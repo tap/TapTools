@@ -6,8 +6,8 @@
 >
   <preset number='1' name='default'>
     <item name='matrix' type='array' priority='0'>0 1 0 1 1 0 1 0 1 0 0 1 </item>
-    <item name='numInputs' type='integer' priority='1'>0</item>
-    <item name='numOutputs' type='integer' priority='2'>0</item>
+    <item name='numInputs' type='integer' priority='1'>4</item>
+    <item name='numOutputs' type='integer' priority='2'>3</item>
     <item name='view/color/border' type='array' priority='0'>0</item>
     <item name='view/color/contentBackground' type='array' priority='0'>0</item>
     <item name='view/color/toolbarBackground' type='array' priority='0'>0</item>
