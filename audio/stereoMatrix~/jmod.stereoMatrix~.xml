@@ -5,10 +5,12 @@
 		xsi:schemaLocation='http://jamoma.org/ file:jamoma.xsd'
 >
   <preset number='1' name='default'>
-    <item name='matrix' type='array' priority='0'>0 1 0 1 1 0 1 0 1 0 0 1 </item>
+    <item name='inputs' type='array' priority='0'>input echo equalizer limiter </item>
+    <item name='matrix' type='array' priority='0'>0 0 0 1 1 0 0 0 0 1 0 0 0 0 1 0 </item>
     <item name='numInputs' type='integer' priority='1'>4</item>
-    <item name='numOutputs' type='integer' priority='2'>3</item>
-    <item name='view/color/border' type='array' priority='0'>0</item>
+    <item name='numOutputs' type='integer' priority='2'>4</item>
+    <item name='outputs' type='array' priority='0'>output echo equalizer limiter </item>
+    <item name='view/color/border' type='array' priority='0'>0.620000 0.000000 0.360000 1.000000 </item>
     <item name='view/color/contentBackground' type='array' priority='0'>0</item>
     <item name='view/color/toolbarBackground' type='array' priority='0'>0</item>
     <item name='view/color/toolbarText' type='array' priority='0'>0</item>
