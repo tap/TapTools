@@ -15,7 +15,86 @@
 		"toolbarvisible" : 1,
 		"boxanimatetime" : 200,
 		"imprint" : 0,
+		"enablehscroll" : 1,
+		"enablevscroll" : 1,
+		"devicewidth" : 0.0,
 		"boxes" : [ 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"frgb" : [ 0.0, 0.0, 0.0, 1.0 ],
+					"id" : "obj-44",
+					"linecount" : 2,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 363.0, 378.0, 38.0, 31.0 ],
+					"presentation" : 1,
+					"presentation_linecount" : 2,
+					"presentation_rect" : [ 264.0, 18.0, 37.0, 31.0 ],
+					"text" : "early\nrefl."
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-39",
+					"linecount" : 2,
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 432.0, 385.0, 580.0, 31.0 ],
+					"text" : "jcom.parameter earlyReflections/active @type boolean @range/bounds 0 1 @range/clipmode both @description \"Toggles on/off early-reflections\"",
+					"varname" : "delay[1]"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-33",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 153.0, 399.0, 138.0, 17.0 ],
+					"text" : "use_early_reflections $1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"fontname" : "Verdana",
+					"fontsize" : 10.0,
+					"id" : "obj-23",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 153.0, 374.0, 204.0, 19.0 ],
+					"text" : "jcom.oscroute /earlyReflections/active"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"hint" : "early reflections on/off",
+					"id" : "obj-20",
+					"maxclass" : "toggle",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "int" ],
+					"patching_rect" : [ 395.0, 386.0, 20.0, 20.0 ],
+					"presentation" : 1,
+					"presentation_rect" : [ 277.0, 45.0, 20.0, 20.0 ]
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
@@ -24,7 +103,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 430.0, 465.0, 141.0, 19.0 ],
+					"patching_rect" : [ 427.0, 493.0, 141.0, 19.0 ],
 					"text" : "jcom.meter_receive 2"
 				}
 
@@ -38,7 +117,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 430.0, 420.0, 141.0, 19.0 ],
+					"patching_rect" : [ 427.0, 448.0, 141.0, 19.0 ],
 					"text" : "jcom.meter_receive 1"
 				}
 
@@ -50,7 +129,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 430.0, 490.0, 80.0, 4.0 ],
+					"patching_rect" : [ 427.0, 518.0, 80.0, 4.0 ],
 					"presentation" : 1,
 					"presentation_rect" : [ 151.0, 10.0, 80.0, 4.0 ]
 				}
@@ -63,7 +142,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 430.0, 445.0, 80.0, 4.0 ],
+					"patching_rect" : [ 427.0, 473.0, 80.0, 4.0 ],
 					"presentation" : 1,
 					"presentation_rect" : [ 151.0, 5.0, 80.0, 4.0 ]
 				}
@@ -78,7 +157,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "signal", "signal", "" ],
-					"patching_rect" : [ 120.0, 443.0, 79.0, 19.0 ],
+					"patching_rect" : [ 120.0, 488.0, 79.0, 19.0 ],
 					"text" : "jcom.out~ 2",
 					"varname" : "tap.harmonizer~.mod[2]"
 				}
@@ -108,9 +187,9 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "float", "bang" ],
-					"patching_rect" : [ 375.0, 310.0, 43.0, 19.0 ],
+					"patching_rect" : [ 375.0, 321.0, 43.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 135.0, 25.0, 43.0, 19.0 ],
+					"presentation_rect" : [ 124.0, 24.0, 43.0, 19.0 ],
 					"triangle" : 0,
 					"triscale" : 0.9,
 					"varname" : "left.shift[7]"
@@ -122,13 +201,13 @@
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
 					"id" : "obj-4",
-					"linecount" : 3,
+					"linecount" : 4,
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 430.0, 310.0, 585.0, 43.0 ],
-					"text" : "jcom.parameter damping @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds -48. 48. @range/clipmode none @description \"The amount of pitch shift in semitones to apply tp both the left and right channels.\"",
+					"patching_rect" : [ 430.0, 310.0, 606.0, 55.0 ],
+					"text" : "jcom.parameter damping @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 20000. @range/clipmode low @description \"Damping filter cutoff in Hz. Emulates the effect air and walls have on sound as it travels and reflects.\" @dataspace pitch @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
 					"varname" : "damping"
 				}
 
@@ -144,7 +223,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 85.0, 25.0, 52.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 85.0, 25.0, 52.0, 19.0 ],
+					"presentation_rect" : [ 75.0, 24.0, 52.0, 19.0 ],
 					"text" : "damping"
 				}
 
@@ -160,7 +239,7 @@
 					"outlettype" : [ "float", "bang" ],
 					"patching_rect" : [ 375.0, 258.0, 43.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 35.0, 45.0, 43.0, 19.0 ],
+					"presentation_rect" : [ 35.0, 46.0, 43.0, 19.0 ],
 					"triangle" : 0,
 					"triscale" : 0.9,
 					"varname" : "left.shift[6]"
@@ -178,7 +257,7 @@
 					"outlettype" : [ "float", "bang" ],
 					"patching_rect" : [ 375.0, 211.0, 43.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 35.0, 25.0, 43.0, 19.0 ],
+					"presentation_rect" : [ 35.0, 24.0, 43.0, 19.0 ],
 					"triangle" : 0,
 					"triscale" : 0.9,
 					"varname" : "left.shift[4]"
@@ -195,8 +274,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 430.0, 160.0, 582.0, 43.0 ],
-					"text" : "jcom.parameter lowpass @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds -48. 48. @range/clipmode none @description \"The amount of pitch shift in semitones to apply tp both the left and right channels.\"",
+					"patching_rect" : [ 430.0, 160.0, 596.0, 43.0 ],
+					"text" : "jcom.parameter lowpass @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 16000. @range/clipmode low @description \"Cutoff frequency for a final lowpass filter stage to control the brightness of the reverb.\" @dataspace pitch @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
 					"varname" : "lowpass"
 				}
 
@@ -212,7 +291,7 @@
 					"outlettype" : [ "float", "bang" ],
 					"patching_rect" : [ 375.0, 159.0, 43.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 135.0, 45.0, 43.0, 19.0 ],
+					"presentation_rect" : [ 124.0, 46.0, 43.0, 19.0 ],
 					"triangle" : 0,
 					"triscale" : 0.9,
 					"varname" : "left.shift[3]"
@@ -230,7 +309,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 90.0, 45.0, 48.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 90.0, 45.0, 48.0, 19.0 ],
+					"presentation_rect" : [ 79.0, 46.0, 48.0, 19.0 ],
 					"text" : "lowpass"
 				}
 
@@ -246,7 +325,7 @@
 					"outlettype" : [ "float", "bang" ],
 					"patching_rect" : [ 375.0, 60.0, 43.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 250.0, 25.0, 43.0, 19.0 ],
+					"presentation_rect" : [ 221.0, 24.0, 43.0, 19.0 ],
 					"triangle" : 0,
 					"triscale" : 0.9,
 					"varname" : "left.shift[2]"
@@ -263,8 +342,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 430.0, 60.0, 584.0, 43.0 ],
-					"text" : "jcom.parameter modfreq @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds -48. 48. @range/clipmode none @description \"The amount of pitch shift in semitones to apply tp both the left and right channels.\"",
+					"patching_rect" : [ 430.0, 60.0, 602.0, 43.0 ],
+					"text" : "jcom.parameter modfreq @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Modulation frequency in Hz - applied to the delay times internally.\" @dataspace pitch @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
 					"varname" : "modfreq"
 				}
 
@@ -274,13 +353,13 @@
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
 					"id" : "obj-14",
-					"linecount" : 3,
+					"linecount" : 2,
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 430.0, 110.0, 593.0, 43.0 ],
-					"text" : "jcom.parameter moddepth @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds -48. 48. @range/clipmode none @description \"The amount of pitch shift in semitones to apply tp both the left and right channels.\"",
+					"patching_rect" : [ 430.0, 110.0, 565.0, 31.0 ],
+					"text" : "jcom.parameter moddepth @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 1. @range/clipmode none @description \"Modulation depth for the delay-time modulator\"",
 					"varname" : "moddepth"
 				}
 
@@ -296,7 +375,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 190.0, 45.0, 59.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 190.0, 45.0, 59.0, 19.0 ],
+					"presentation_rect" : [ 164.0, 46.0, 59.0, 19.0 ],
 					"text" : "moddepth"
 				}
 
@@ -312,7 +391,7 @@
 					"outlettype" : [ "float", "bang" ],
 					"patching_rect" : [ 375.0, 112.0, 43.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 250.0, 45.0, 43.0, 19.0 ],
+					"presentation_rect" : [ 221.0, 46.0, 43.0, 19.0 ],
 					"triangle" : 0,
 					"triscale" : 0.9,
 					"varname" : "left.shift[1]"
@@ -330,7 +409,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 200.0, 25.0, 50.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 200.0, 25.0, 50.0, 19.0 ],
+					"presentation_rect" : [ 174.0, 24.0, 50.0, 19.0 ],
 					"text" : "modfreq"
 				}
 
@@ -345,8 +424,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 430.0, 260.0, 573.0, 43.0 ],
-					"text" : "jcom.parameter delay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds -48. 48. @range/clipmode none @description \"The amount of pitch shift in semitones to apply tp both the left and right channels.\"",
+					"patching_rect" : [ 430.0, 260.0, 680.0, 43.0 ],
+					"text" : "jcom.parameter delay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 100. @range/clipmode low @description \"Delay time in milliseconds. Relates to room size / how quickly echo density builds up in the reverberator.\" @dataspace time @dataspace/unit/active ms @dataspace/unit/native ms @dataspace/unit/display ms",
 					"varname" : "delay"
 				}
 
@@ -362,7 +441,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 0.0, 45.0, 35.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 0.0, 45.0, 35.0, 19.0 ],
+					"presentation_rect" : [ 0.0, 46.0, 35.0, 19.0 ],
 					"text" : "delay"
 				}
 
@@ -377,8 +456,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 430.0, 210.0, 573.0, 43.0 ],
-					"text" : "jcom.parameter decay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds -48. 48. @range/clipmode none @description \"The amount of pitch shift in semitones to apply tp both the left and right channels.\"",
+					"patching_rect" : [ 430.0, 210.0, 578.0, 43.0 ],
+					"text" : "jcom.parameter decay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Decay time in seconds. How long (in seconds) for the reverberant sound to decay 60 dB.\" @dataspace time @dataspace/unit/active s @dataspace/unit/native s @dataspace/unit/display s",
 					"varname" : "decay"
 				}
 
@@ -394,7 +473,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 0.0, 25.0, 38.0, 19.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 0.0, 25.0, 38.0, 19.0 ],
+					"presentation_rect" : [ 0.0, 24.0, 38.0, 19.0 ],
 					"text" : "decay"
 				}
 
@@ -473,7 +552,7 @@
 					"maxclass" : "outlet",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 120.0, 470.0, 20.0, 20.0 ]
+					"patching_rect" : [ 120.0, 515.0, 20.0, 20.0 ]
 				}
 
 			}
@@ -494,12 +573,12 @@
 					"fontname" : "Verdana",
 					"fontsize" : 10.0,
 					"id" : "obj-32",
-					"linecount" : 3,
+					"linecount" : 2,
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "signal", "signal", "" ],
-					"patching_rect" : [ 120.0, 390.0, 139.0, 43.0 ],
+					"patching_rect" : [ 120.0, 435.0, 175.0, 31.0 ],
 					"text" : "tap.verb~ @limit 1 @dcblock 1 @limiter_threshold 0.",
 					"varname" : "tap.harmonizer~.mod"
 				}
@@ -523,7 +602,7 @@
 					"maxclass" : "outlet",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 150.0, 470.0, 20.0, 20.0 ]
+					"patching_rect" : [ 150.0, 515.0, 20.0, 20.0 ]
 				}
 
 			}
@@ -549,56 +628,19 @@
  ],
 		"lines" : [ 			{
 				"patchline" : 				{
-					"destination" : [ "obj-38", 0 ],
+					"destination" : [ "obj-30", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-26", 0 ]
+					"source" : [ "obj-1", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-36", 0 ],
+					"destination" : [ "obj-35", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-51", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-4", 0 ],
-					"hidden" : 1,
-					"midpoints" : [  ],
-					"source" : [ "obj-3", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-3", 0 ],
-					"hidden" : 1,
-					"midpoints" : [  ],
-					"source" : [ "obj-4", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-21", 0 ],
-					"hidden" : 1,
-					"midpoints" : [  ],
-					"source" : [ "obj-8", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 1.0, 0.890196, 0.090196, 1.0 ],
-					"destination" : [ "obj-8", 0 ],
-					"hidden" : 1,
-					"midpoints" : [  ],
-					"source" : [ "obj-21", 0 ]
+					"source" : [ "obj-1", 1 ]
 				}
 
 			}
@@ -608,33 +650,6 @@
 					"hidden" : 1,
 					"midpoints" : [  ],
 					"source" : [ "obj-10", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-10", 0 ],
-					"hidden" : 1,
-					"midpoints" : [  ],
-					"source" : [ "obj-9", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-14", 0 ],
-					"hidden" : 1,
-					"midpoints" : [  ],
-					"source" : [ "obj-16", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-16", 0 ],
-					"hidden" : 1,
-					"midpoints" : [  ],
-					"source" : [ "obj-14", 0 ]
 				}
 
 			}
@@ -658,10 +673,92 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-25", 0 ],
+					"destination" : [ "obj-16", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ],
+					"source" : [ "obj-14", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-14", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ],
+					"source" : [ "obj-16", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-6", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ],
+					"source" : [ "obj-18", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-23", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-27", 0 ]
+					"source" : [ "obj-2", 2 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-32", 1 ],
+					"hidden" : 0,
+					"midpoints" : [ 144.5, 426.0, 285.5, 426.0 ],
+					"source" : [ "obj-2", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-32", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ],
+					"source" : [ "obj-2", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-39", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ],
+					"source" : [ "obj-20", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 1.0, 0.890196, 0.090196, 1.0 ],
+					"destination" : [ "obj-8", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ],
+					"source" : [ "obj-21", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-32", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ],
+					"source" : [ "obj-23", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-33", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ],
+					"source" : [ "obj-23", 0 ]
 				}
 
 			}
@@ -676,15 +773,6 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-25", 0 ],
-					"hidden" : 0,
-					"midpoints" : [ 194.5, 222.0, 29.5, 222.0 ],
-					"source" : [ "obj-28", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-34", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
@@ -694,19 +782,46 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-32", 1 ],
+					"destination" : [ "obj-38", 0 ],
 					"hidden" : 0,
-					"midpoints" : [ 144.5, 381.0, 249.5, 381.0 ],
-					"source" : [ "obj-2", 1 ]
+					"midpoints" : [  ],
+					"source" : [ "obj-26", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-1", 1 ],
+					"destination" : [ "obj-25", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-32", 1 ]
+					"source" : [ "obj-27", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-25", 0 ],
+					"hidden" : 0,
+					"midpoints" : [ 194.5, 222.0, 29.5, 222.0 ],
+					"source" : [ "obj-28", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-2", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ],
+					"source" : [ "obj-29", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-4", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ],
+					"source" : [ "obj-3", 0 ]
 				}
 
 			}
@@ -721,19 +836,10 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-35", 0 ],
+					"destination" : [ "obj-1", 1 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-1", 1 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-30", 0 ],
-					"hidden" : 0,
-					"midpoints" : [  ],
-					"source" : [ "obj-1", 0 ]
+					"source" : [ "obj-32", 1 ]
 				}
 
 			}
@@ -751,25 +857,34 @@
 					"destination" : [ "obj-32", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-2", 0 ]
+					"source" : [ "obj-33", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-32", 0 ],
+					"destination" : [ "obj-20", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-2", 2 ]
+					"source" : [ "obj-39", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-2", 0 ],
+					"destination" : [ "obj-3", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ],
+					"source" : [ "obj-4", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-36", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ],
-					"source" : [ "obj-29", 0 ]
+					"source" : [ "obj-51", 0 ]
 				}
 
 			}
@@ -784,10 +899,19 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-6", 0 ],
+					"destination" : [ "obj-21", 0 ],
 					"hidden" : 1,
 					"midpoints" : [  ],
-					"source" : [ "obj-18", 0 ]
+					"source" : [ "obj-8", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-10", 0 ],
+					"hidden" : 1,
+					"midpoints" : [  ],
+					"source" : [ "obj-9", 0 ]
 				}
 
 			}
