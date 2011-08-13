@@ -207,7 +207,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 310.0, 606.0, 55.0 ],
-					"text" : "jcom.parameter damping @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 20000. @range/clipmode low @description \"Damping filter cutoff in Hz. Emulates the effect air and walls have on sound as it travels and reflects.\" @dataspace pitch @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
+					"text" : "jcom.parameter damping @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 20000. @range/clipmode low @description \"Damping filter cutoff in Hz. Emulates the effect air and walls have on sound as it travels and reflects.\" @dataspace time @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
 					"varname" : "damping"
 				}
 
@@ -275,7 +275,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 160.0, 596.0, 43.0 ],
-					"text" : "jcom.parameter lowpass @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 16000. @range/clipmode low @description \"Cutoff frequency for a final lowpass filter stage to control the brightness of the reverb.\" @dataspace pitch @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
+					"text" : "jcom.parameter lowpass @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 16000. @range/clipmode low @description \"Cutoff frequency for a final lowpass filter stage to control the brightness of the reverb.\" @dataspace time @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
 					"varname" : "lowpass"
 				}
 
@@ -343,7 +343,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 60.0, 602.0, 43.0 ],
-					"text" : "jcom.parameter modfreq @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Modulation frequency in Hz - applied to the delay times internally.\" @dataspace pitch @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
+					"text" : "jcom.parameter modfreq @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Modulation frequency in Hz - applied to the delay times internally.\" @dataspace time @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
 					"varname" : "modfreq"
 				}
 
