@@ -5,17 +5,18 @@
 		xsi:schemaLocation='http://jamoma.org/ file:jamoma.xsd'
 >
   <preset number='1' name='default'>
-    <item name='modfreq' type='decimal'>0.100000</item>
-    <item name='moddepth' type='decimal'>0.100000</item>
-    <item name='lowpass' type='decimal'>15000.000000</item>
-    <item name='delay' type='decimal'>100.000000</item>
-    <item name='decay' type='decimal'>3.500000</item>
-    <item name='damping' type='decimal'>20000.000000</item>
-    <item name='earlyReflections/active' type='boolean'>1</item>  
-    <item name='audio/mute' type='boolean'>1</item>
-    <item name='audio/mix' type='decimal'>100.000000</item>
-    <item name='audio/meters/freeze' type='boolean'>0</item>
-    <item name='audio/gain' type='decimal'>0</item>
-    <item name='audio/bypass' type='boolean'>0</item>
+    <item name='audio/bypass' type='boolean' priority='0' mixweight='1'>0</item>
+    <item name='audio/gain' type='decimal' priority='0' mixweight='1'>0.000000</item>
+    <item name='audio/mix' type='decimal' priority='0' mixweight='1'>100.000000</item>
+    <item name='audio/mute' type='boolean' priority='0' mixweight='1'>1</item>
+    <item name='damping' type='decimal' priority='0' mixweight='1'>20000.000000</item>
+    <item name='decay' type='decimal' priority='0' mixweight='1'>3.500000</item>
+    <item name='delay' type='decimal' priority='0' mixweight='1'>100.000000</item>
+    <item name='earlyReflections/active' type='boolean' priority='0' mixweight='1'>1</item>
+    <item name='lowpass' type='decimal' priority='0' mixweight='1'>15000.000000</item>
+    <item name='moddepth' type='decimal' priority='0' mixweight='1'>0.100000</item>
+    <item name='modfreq' type='decimal' priority='0' mixweight='1'>0.100000</item>
+    <item name='view/freeze' type='boolean' priority='0' mixweight='1'>0</item>
+    <item name='view/highlight' type='string' priority='0' mixweight='1'>none</item>
   </preset>
 </jamoma>

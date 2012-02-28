@@ -5,9 +5,12 @@
 		xsi:schemaLocation='http://jamoma.org/ file:jamoma.xsd'
 >
   <preset number='1' name='default'>
-    <item name='view/freeze' type='boolean' priority='0'>0</item>
-    <item name='shape' type='string' priority='0'>sine</item>
-    <item name='frequency' type='decimal' priority='0'>1.000000</item>
-    <item name='depth' type='decimal' priority='0'>2.000000</item>
+    <item name='audio/gain' type='decimal' priority='0' mixweight='1'>0</item>
+    <item name='audio/mute' type='boolean' priority='0' mixweight='1'>0</item>
+    <item name='depth' type='decimal' priority='0' mixweight='1'>2.000000</item>
+    <item name='frequency' type='decimal' priority='0' mixweight='1'>1.000000</item>
+    <item name='shape' type='string' priority='0' mixweight='1'>sine</item>
+    <item name='view/freeze' type='boolean' priority='0' mixweight='1'>0</item>
+    <item name='view/highlight' type='string' priority='0' mixweight='1'>none</item>
   </preset>
 </jamoma>
