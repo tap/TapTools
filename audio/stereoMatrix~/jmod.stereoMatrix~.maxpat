@@ -4,10 +4,10 @@
 		"appversion" : 		{
 			"major" : 6,
 			"minor" : 0,
-			"revision" : 4
+			"revision" : 5
 		}
 ,
-		"rect" : [ -1084.0, -280.0, 809.0, 809.0 ],
+		"rect" : [ -257.0, -280.0, 809.0, 809.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 10.0,
@@ -279,7 +279,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 0,
-							"revision" : 4
+							"revision" : 5
 						}
 ,
 						"rect" : [ 83.0, 69.0, 640.0, 480.0 ],
@@ -1234,16 +1234,16 @@
 ,
 					"patching_rect" : [ 320.0, 25.0, 164.5, 19.0 ],
 					"saved_object_attributes" : 					{
-						"globalpatchername" : "",
 						"fontface" : 0,
 						"fontsize" : 12.0,
-						"tags" : "",
 						"default_fontface" : 0,
 						"digest" : "",
 						"default_fontname" : "Arial",
+						"tags" : "",
 						"fontname" : "Arial",
 						"default_fontsize" : 12.0,
-						"description" : ""
+						"description" : "",
+						"globalpatchername" : ""
 					}
 ,
 					"text" : "p"
@@ -1265,7 +1265,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 0,
-							"revision" : 4
+							"revision" : 5
 						}
 ,
 						"rect" : [ 83.0, 69.0, 640.0, 480.0 ],
@@ -2220,16 +2220,16 @@
 ,
 					"patching_rect" : [ 85.0, 0.0, 178.5, 19.0 ],
 					"saved_object_attributes" : 					{
-						"globalpatchername" : "",
 						"fontface" : 0,
 						"fontsize" : 12.0,
-						"tags" : "",
 						"default_fontface" : 0,
 						"digest" : "",
 						"default_fontname" : "Arial",
+						"tags" : "",
 						"fontname" : "Arial",
 						"default_fontsize" : 12.0,
-						"description" : ""
+						"description" : "",
+						"globalpatchername" : ""
 					}
 ,
 					"text" : "p"
@@ -3520,7 +3520,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 0,
-							"revision" : 4
+							"revision" : 5
 						}
 ,
 						"rect" : [ 196.0, 94.0, 767.0, 389.0 ],
@@ -3673,7 +3673,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 0,
-											"revision" : 4
+											"revision" : 5
 										}
 ,
 										"rect" : [ 680.0, 548.0, 600.0, 426.0 ],
@@ -3784,16 +3784,16 @@
 ,
 									"patching_rect" : [ 25.0, 310.0, 42.0, 19.0 ],
 									"saved_object_attributes" : 									{
-										"globalpatchername" : "",
 										"fontface" : 0,
 										"fontsize" : 10.0,
-										"tags" : "",
 										"default_fontface" : 0,
 										"digest" : "",
 										"default_fontname" : "Verdana",
+										"tags" : "",
 										"fontname" : "Verdana",
 										"default_fontsize" : 10.0,
-										"description" : ""
+										"description" : "",
+										"globalpatchername" : ""
 									}
 ,
 									"text" : "p front"
@@ -3916,16 +3916,16 @@
 ,
 					"patching_rect" : [ 390.0, 155.0, 89.0, 19.0 ],
 					"saved_object_attributes" : 					{
-						"globalpatchername" : "",
 						"fontface" : 0,
 						"fontsize" : 12.0,
-						"tags" : "",
 						"default_fontface" : 0,
 						"digest" : "",
 						"default_fontname" : "Verdana",
+						"tags" : "",
 						"fontname" : "Verdana",
 						"default_fontsize" : 12.0,
-						"description" : ""
+						"description" : "",
+						"globalpatchername" : ""
 					}
 ,
 					"text" : "p panel"
@@ -4019,10 +4019,9 @@
 			}
 , 			{
 				"box" : 				{
-					"bgcolor" : [ 0.0, 1.0, 0.0, 1.0 ],
-					"bordercolor" : [ 0.0, 1.0, 0.0, 1.0 ],
+					"bgcolor" : [ 0.933, 0.933, 0.933, 1.0 ],
 					"has_panel" : 1,
-					"headercolor" : [ 0.0, 1.0, 0.0, 1.0 ],
+					"headercolor" : [ 0.816, 0.816, 0.816, 1.0 ],
 					"id" : "obj-37",
 					"maxclass" : "jcom.ui",
 					"numinlets" : 1,
@@ -4032,8 +4031,7 @@
 					"prefix" : "audio",
 					"presentation" : 1,
 					"presentation_rect" : [ 0.0, 0.0, 300.0, 350.0 ],
-					"text" : "/editing_this_module",
-					"textcolor" : [ 0.0, 1.0, 0.0, 1.0 ]
+					"text" : "/editing_this_module"
 				}
 
 			}
@@ -5183,15 +5181,15 @@
 			}
 , 			{
 				"name" : "jcom.thru.maxpat",
-				"bootpath" : "/Users/nilspeters/Documents/gits/Jamoma/Modules/Modular/Max/library/components/thru",
-				"patcherrelativepath" : "../../../../Modules/Modular/Max/library/components/thru",
+				"bootpath" : "/Users/nilspeters/Documents/gits/freshJamoma/Modules/Modular/Max/library/components/thru",
+				"patcherrelativepath" : "../../../../../freshJamoma/Modules/Modular/Max/library/components/thru",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "jcom.thru~.maxpat",
-				"bootpath" : "/Users/nilspeters/Documents/gits/Jamoma/Modules/Modular/Max/library/components/thru",
-				"patcherrelativepath" : "../../../../Modules/Modular/Max/library/components/thru",
+				"bootpath" : "/Users/nilspeters/Documents/gits/freshJamoma/Modules/Modular/Max/library/components/thru",
+				"patcherrelativepath" : "../../../../../freshJamoma/Modules/Modular/Max/library/components/thru",
 				"type" : "JSON",
 				"implicit" : 1
 			}
