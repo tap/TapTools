@@ -235,7 +235,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 310.0, 606.0, 55.0 ],
-					"text" : "jcom.parameter damping @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 20000. @range/clipmode low @description \"Damping filter cutoff in Hz. Emulates the effect air and walls have on sound as it travels and reflects.\" @dataspace time @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
+					"text" : "jcom.parameter damping @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 20000. @range/clipmode low @description \"Damping filter cutoff in Hz. Emulates the effect air and walls have on sound as it travels and reflects.\" @dataspace time @dataspace/unit Hz",
 					"varname" : "damping"
 				}
 
@@ -307,7 +307,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 160.0, 596.0, 43.0 ],
-					"text" : "jcom.parameter lowpass @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 16000. @range/clipmode low @description \"Cutoff frequency for a final lowpass filter stage to control the brightness of the reverb.\" @dataspace time @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
+					"text" : "jcom.parameter lowpass @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 5. 16000. @range/clipmode low @description \"Cutoff frequency for a final lowpass filter stage to control the brightness of the reverb.\" @dataspace time @dataspace/unit Hz",
 					"varname" : "lowpass"
 				}
 
@@ -379,7 +379,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 60.0, 602.0, 43.0 ],
-					"text" : "jcom.parameter modfreq @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Modulation frequency in Hz - applied to the delay times internally.\" @dataspace time @dataspace/unit/active Hz @dataspace/unit/native Hz @dataspace/unit/display Hz",
+					"text" : "jcom.parameter modfreq @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Modulation frequency in Hz - applied to the delay times internally.\" @dataspace time @dataspace/unit Hz",
 					"varname" : "modfreq"
 				}
 
@@ -463,7 +463,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 260.0, 682.0, 43.0 ],
-					"text" : "jcom.parameter delay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 100. @range/clipmode low @description \"Delay time in milliseconds. Relates to room size / how quickly echo density builds up in the reverberator.\" @dataspace time @dataspace/unit/active ms @dataspace/unit/native ms @dataspace/unit/display ms",
+					"text" : "jcom.parameter delay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 100. @range/clipmode low @description \"Delay time in milliseconds. Relates to room size / how quickly echo density builds up in the reverberator.\" @dataspace time @dataspace/unit ms",
 					"varname" : "delay"
 				}
 
@@ -495,7 +495,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 430.0, 210.0, 578.0, 43.0 ],
-					"text" : "jcom.parameter decay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Decay time in seconds. How long (in seconds) for the reverberant sound to decay 60 dB.\" @dataspace time @dataspace/unit/active s @dataspace/unit/native s @dataspace/unit/display s",
+					"text" : "jcom.parameter decay @type decimal @ramp/drive scheduler @repetitions/allow 0 @range/bounds 0. 48. @range/clipmode low @description \"Decay time in seconds. How long (in seconds) for the reverberant sound to decay 60 dB.\" @dataspace time @dataspace/unit s",
 					"varname" : "decay"
 				}
 
