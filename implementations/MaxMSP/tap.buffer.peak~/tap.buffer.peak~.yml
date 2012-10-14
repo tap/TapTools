@@ -5,24 +5,19 @@ sources:
   - ../../../../Support/max/TTClassWrapperMax.cpp
     
 includes:
-  - ../../../../TapTools/library
-  - ../../../../TapTools/library/ttblue-0.2
-  - ../../../../Foundation/library/includes
-  - ../../../../DSP/library/includes
-  - ../../../../Graphics/library/includes
+  - ../../../../../Modules/Foundation/library/includes
+  - ../../../../../Modules/DSP/library/includes
+  - ../../../../../Modules/Graphics/library/includes
   - ../../../../Support/max
-  - "../../../../Support/objectivemax/SDKs/Max5/c74support/max-includes"
-  - "../../../../Support/objectivemax/SDKs/Max5/c74support/msp-includes"
-  - "../../../../Support/objectivemax/SDKs/Max5/c74support/jit-includes"
+  - C74-INCLUDES
 
 libraries:
-  - FOUNDATION
-  - DSP
-  - ../../../../TapTools/library/build/TapTools3.dylib
+  - ../../../../../Modules/Foundation/library/build/JamomaFoundation.dylib
+  - ../../../../../Modules/DSP/library/build/JamomaDSP.dylib
   - C74-MAX
   - C74-MSP
   - C74-JITTER
 
 prefix: ../../../../Support/objectivemax/SDKs/Max5/c74support/max-includes/macho-prefix.pch
 arch: "i386"
-builddir: Builds
+#builddir: Builds

@@ -5,7 +5,7 @@
  * Copyright © 2004 Electrotap L.L.C.
  */
 
-#include "TapToolsObject.h"
+#include "TTClassWrapperMax.h"
 #include "ext_globalsymbol.h"
 #include "buffer.h"
 #include "ext_atomic.h"
@@ -40,13 +40,13 @@ static t_symbol*	ps_buffer_modified;
 /*************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 	
 	c = class_new("tap.buffer.peak~",(method)peak_new, (method)peak_free, sizeof(t_peak), (method)0L, A_SYM, 0);
 
-	taptools_max::class_init(c);	common_symbols_init();
+	common_symbols_init();
 	class_addmethod(c, (method)peak_calc,		"bang",			A_LONG, 0);
 	class_addmethod(c, (method)peak_set,		"set",			A_SYM, 0);
 	class_addmethod(c, (method)peak_notify,		"notify",		A_CANT,	0);
@@ -54,11 +54,13 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	class_addmethod(c, (method)stdinletinfo,	"inletinfo",	A_CANT, 0);
 
 	class_dspinit(c);
-	s_peak_class = taptools_max::class_finalize(c);
+	class_register(_sym_box, c);
+	s_peak_class = c;
 	
 	ps_globalsymbol_binding = gensym("globalsymbol_binding");
 	ps_globalsymbol_unbinding = gensym("globalsymbol_unbinding");
 	ps_buffer_modified = gensym("buffer_modified");
+	return 0;
 }
 
 
@@ -67,7 +69,7 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 
 void *peak_new(t_symbol *s)
 {
-    t_peak *x = (t_peak *)taptools_max::instance_create(s_peak_class, taptools_max::PACKAGE_MSP + taptools_max::LICENSE_ARTIST + taptools_max::LICENSE_DEMO);	
+    t_peak *x = (t_peak *)object_alloc(s_peak_class);	
 	if(x){
 	   	object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));
 		x->outlet = outlet_new(x, 0L);
