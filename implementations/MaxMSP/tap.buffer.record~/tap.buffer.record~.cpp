@@ -1,7 +1,7 @@
 // MSP External: tap.record~.c
 // Click-free recording
 
-#include "TapToolsObject.h"	
+#include "TTClassWrapperMax.h"
 #include "ext_globalsymbol.h"
 #include "buffer.h"
 #include "ext_atomic.h"
@@ -42,11 +42,10 @@ static t_symbol*	ps_buffer_modified;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c = class_new("tap.buffer.record~",(method)record_new, (method)dsp_free, sizeof(t_record), (method)0L, A_GIMME, 0);
 
-	taptools_max::class_init(c);	
 	common_symbols_init();
 
 	class_addmethod(c, (method)record_int,		"int", A_LONG, 0L);
@@ -63,11 +62,13 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	CLASS_ATTR_LONG(c,		"channel",		0,	t_record, l_chan);
 
 	class_dspinit(c);									// Setup object's class to work with MSP
-	s_record_class = taptools_max::class_finalize(c);
+	class_register(_sym_box, c);
+	s_record_class = c;
 
 	ps_globalsymbol_binding = gensym("globalsymbol_binding");
 	ps_globalsymbol_unbinding = gensym("globalsymbol_unbinding");
 	ps_buffer_modified = gensym("buffer_modified");	
+	return 0;
 }
 
 
@@ -97,7 +98,7 @@ void *record_new(t_symbol *msg, short argc, t_atom *argv)
 		}
 	}
  
-    x = (t_record *)taptools_max::instance_create(s_record_class, taptools_max::PACKAGE_MSP + taptools_max::LICENSE_ARTIST + taptools_max::LICENSE_DEMO);	
+    x = (t_record *)object_alloc(s_record_class);	
 	if(x){
 	   	object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));	// dumpout	
 	    dsp_setup((t_pxobject *)x,1);						// Create Object and 1 Inlet (last argument)
@@ -108,8 +109,8 @@ void *record_new(t_symbol *msg, short argc, t_atom *argv)
 		if(fade == 0) 
 			fade = 10;										// length of the fade in samples
 		record_set(x, name);								// Buffer name argument
-		x->l_chan = taptools_max::clip((int)chan, 1, 4);	// Channel argument
-		x->fade = taptools_max::clip((int)fade, 1, 255);	// Fade argument
+		x->l_chan = TTClip<int>(chan, 1, 4);	// Channel argument
+		x->fade = TTClip<int>(fade, 1, 255);	// Fade argument
 		
 		attr_args_process(x, argc, argv);					// handle attribute args
 	}
@@ -221,7 +222,7 @@ t_int *record_perform(t_int *w)
 
 
 		// 1. find the final destination, increment it, and write it to the correct location 
-		index_wrap = taptools_max::onewrap((long)(frame_index - fade), 0L, frames - 1);		// index is in the range of 0 to frames-1
+		index_wrap = TTOneWrap((long)(frame_index - fade), 0L, frames - 1);		// index is in the range of 0 to frames-1
 		if (nc > 1) 
 			index_wrap = index_wrap * (nc) + chan;
 		tab[index_wrap] = tab[index_wrap] + increment_steps[fade -1];	// take the value at the index (wrapped for the length of the fade) and increment it
@@ -231,11 +232,11 @@ t_int *record_perform(t_int *w)
 			increment_steps[i] = increment_steps[i-1];
 				
 		// 3. get sample value at current index and calculate the step size to get from there to the new one
-		increment_steps[0] = (xx - (tab[taptools_max::clip(sample_index, 0L, num_samples - 1)])) * fade_inv; 
+		increment_steps[0] = (xx - (tab[TTClip(sample_index, 0L, num_samples - 1)])) * fade_inv; 
 		
 		// 4. increment all of the values and then write them to the buffer
 		for (i=0;i < fade - 1;i++) {
-			index_wrap = taptools_max::onewrap((long)(frame_index - i), 0L, frames - 1);
+			index_wrap = TTOneWrap((long)(frame_index - i), 0L, frames - 1);
 			if(nc > 1) 
 				index_wrap = index_wrap * (nc) + chan;
 			tab[index_wrap] = tab[index_wrap] + increment_steps[i];
