@@ -1,7 +1,7 @@
 // MSP External: tap.buildassist
 // flag Max's collective builder to automatically include files
 
-#include "TapToolsObject.h"
+#include "TTClassWrapperMax.h"
 
 
 // Data Structure for this object
@@ -33,7 +33,7 @@ static t_symbol	*item[1024];
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 
@@ -56,6 +56,7 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	ps_folder = gensym("folder");
 	ps_external = gensym("external");
 	ps_win_external = gensym("win_external");
+	return 0;
 }
 
 
