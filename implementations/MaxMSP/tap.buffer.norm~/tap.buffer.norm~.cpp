@@ -1,7 +1,7 @@
 // tap.norm~.c  
 // normalize a buffer
 
-#include "TapToolsObject.h"
+#include "TTClassWrapperMax.h"
 #include "buffer.h"
 
 static t_class *norm_class;
@@ -24,21 +24,23 @@ void norm_calc(t_norm *x);
 /*************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 
 	c = class_new("tap.buffer.norm~",(method)norm_new, (method)dsp_free, sizeof(t_norm), 
 		(method)0L, A_SYM, 0);
 
-	taptools_max::class_init(c);	common_symbols_init();										// Initialize TapTools
+	common_symbols_init();										// Initialize TapTools
 	class_addmethod(c, (method)norm_calc,		"bang", A_LONG, 0L);
 	class_addmethod(c, (method)norm_set,		"set", A_SYM, 0L);
  	class_addmethod(c, (method)norm_dsp, 		"dsp", A_CANT, 0L);		
 	class_addmethod(c, (method)norm_assist, 	"assist", A_CANT, 0L); 
 
 	class_dspinit(c);									// Setup object's class to work with MSP
-	norm_class = taptools_max::class_finalize(c);
+	class_register(_sym_box, c);
+	norm_class = c;
+	return 0;
 }
 
 
@@ -47,7 +49,7 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 
 void *norm_new(t_symbol *s)
 {
-    t_norm *x = (t_norm *)taptools_max::instance_create(norm_class, taptools_max::PACKAGE_MSP + taptools_max::LICENSE_ARTIST + taptools_max::LICENSE_DEMO);	
+    t_norm *x = (t_norm *)object_alloc(norm_class);	
 	if(x){
 	   	object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));	// dumpout	
 	    dsp_setup((t_pxobject *)x,1);					// Create Object and 1 Inlet (last argument)
@@ -71,7 +73,7 @@ void norm_set(t_norm *x, t_symbol *s)
 	t_buffer *b;
 	
 	x->l_sym = s;
-	if ((b = (t_buffer *)(s->s_thing)) && ob_sym(b) == taptools_max::sym_buffer){
+	if ((b = (t_buffer *)(s->s_thing)) && ob_sym(b) == gensym("buffer~")){
 		x->l_buf = b;
 	} 
 	else 
