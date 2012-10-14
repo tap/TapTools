@@ -4,7 +4,7 @@
 	Copyright © 2003 by Timothy Place
 */
 
-#include "TapToolsObject.h"
+#include "TTClassWrapperMax.h"
 
 
 typedef struct _bits 				// Data Structure for this object
@@ -35,13 +35,13 @@ static t_symbol *ps_ints2matrixctrl;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {	
 	t_class *c;
 	
 	c = class_new("tap.bits",(method)bits_new, (method)0L, sizeof(t_bits), (method)0L, A_GIMME, 0);
 
-	taptools_max::class_init(c);	common_symbols_init();
+	common_symbols_init();
 	class_addmethod(c, (method)bits_int,		"int", A_LONG, 0L);
 	class_addmethod(c, (method)bits_list,		"list", A_GIMME, 0L);	
 	class_addmethod(c, (method)bits_assist,		"assist", A_CANT, 0L); 
@@ -52,7 +52,8 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	
 	CLASS_ATTR_LONG(c,		"matrix_width",	0,	t_bits, matrix_width);
 
-	bits_class = taptools_max::class_finalize(c);
+	class_register(_sym_box, c);
+	bits_class = c;
 
 	// Initialize Globals
 	ps_bits2ints = gensym("bits2ints");	// Initialize these globals (so we don't have to constantly run a gensym for them in our methods)
@@ -69,7 +70,7 @@ void *bits_new(t_symbol *s, long argc, t_atom *argv)
 {
 	t_bits *x;
 
-	x = (t_bits *)taptools_max::instance_create(bits_class, taptools_max::PACKAGE_MAX + taptools_max::LICENSE_ARTIST + taptools_max::LICENSE_DEMO); 
+	x = (t_bits *)object_alloc(bits_class);
 	if(x){
 		x->my_outlet[1] = outlet_new(x,0L);			// create an outlet (this is my outlet) and store the pointer in the struct
 		x->my_outlet[0] = outlet_new(x,0L);			// create an outlet (this is my outlet) and store the pointer in the struct
@@ -83,7 +84,7 @@ void *bits_new(t_symbol *s, long argc, t_atom *argv)
 		
 		// Check the mode attributes to make sure they are valid (i.e. the user didn't make a typo)
 		if((x->mode != ps_bits2ints) && (x->mode != ps_ints2bits) && (x->mode != ps_matrixctrl2ints)&& (x->mode != ps_ints2matrixctrl))
-		x->matrix_width = taptools_max::clip(x->matrix_width, 2L, 31L);
+		x->matrix_width = TTClip(x->matrix_width, 2L, 31L);
 	}
 	return (x);										// return the pointer to our new instantiation
 }
