@@ -1,7 +1,7 @@
 // MSP External: a better count~ object
 // Copyright © 2003 by Timothy A. Place
 
-#include "TapToolsObject.h"
+#include "TTClassWrapperMax.h"
 
 
 typedef struct _count_tilde{		// Data Structure for this object
@@ -31,13 +31,12 @@ static t_class *count_tilde_class;					// Required. Global pointing to this clas
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 	
 	c = class_new("tap.count~",(method)count_tilde_new, (method)count_tilde_free, sizeof(t_count_tilde), (method)0L, A_GIMME, 0);
 
-	taptools_max::class_init(c);	
 	common_symbols_init();
 	
 	class_addmethod(c, (method)count_tilde_reset, 	"reset", 0L);
@@ -58,7 +57,9 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	CLASS_ATTR_STYLE(c,		"loop",			0,	"onoff");
 	
 	class_dspinit(c);									// Setup object's class to work with MSP
-	count_tilde_class = taptools_max::class_finalize(c);
+	class_register(_sym_box, c);
+	count_tilde_class = c;
+	return 0;
 }
 
 
@@ -69,7 +70,7 @@ void *count_tilde_new(t_symbol *s, long argc, t_atom *argv)
 {
 	t_count_tilde *x;
 
-	x = (t_count_tilde *)taptools_max::instance_create(count_tilde_class, taptools_max::PACKAGE_MSP + taptools_max::LICENSE_ARTIST + taptools_max::LICENSE_DEMO); 
+	x = (t_count_tilde *)object_alloc(count_tilde_class); 
 	if(x){
 		object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));	// dumpout
 
@@ -109,8 +110,8 @@ void count_tilde_reset(t_count_tilde *x)
 
 void count_tilde_perform64(t_count_tilde *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-	t_double *in = ins[0];
-	t_double *out = outs[0];
+	double *in = ins[0];
+	double *out = outs[0];
 	int n = sampleframes;
 	double value;
 	
