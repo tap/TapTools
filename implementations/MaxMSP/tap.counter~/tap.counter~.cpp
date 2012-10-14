@@ -1,7 +1,7 @@
 // MSP External: signal transition counter
 // Copyright © 2003 by Timothy A. Place
 
-#include "TapToolsObject.h"
+#include "TTClassWrapperMax.h"
 
 
 typedef struct _counter{			// Data Structure for this object
@@ -34,14 +34,14 @@ static t_symbol *ps_down;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 
 	c = class_new("tap.counter~",(method)counter_new, (method)dsp_free, sizeof(t_counter), 
 		(method)0L, A_GIMME, 0);
 
-	taptools_max::class_init(c);	common_symbols_init();
+	common_symbols_init();
 	class_addmethod(c, (method)counter_set,				"set", A_LONG, 0L);
 	class_addmethod(c, (method)counter_reset,			"reset", 0L);
  	class_addmethod(c, (method)counter_dsp, 			"dsp", A_CANT, 0L);		
@@ -59,10 +59,12 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	CLASS_ATTR_LONG(c,		"init_value",	0,	t_counter, init_value);
 
 	class_dspinit(c);
-	counter_class = taptools_max::class_finalize(c);
+	class_register(_sym_box, c);
+	counter_class = c;
 
 	ps_up = gensym("up");
 	ps_down = gensym("down");
+	return 0;
 }
 
 
@@ -73,7 +75,7 @@ void *counter_new(t_symbol *s, long argc, t_atom *argv)
 {
 	t_counter *x;
 
-	x = (t_counter *)taptools_max::instance_create(counter_class, taptools_max::PACKAGE_MSP + taptools_max::LICENSE_ARTIST + taptools_max::LICENSE_DEMO);
+	x = (t_counter *)object_alloc(counter_class);
 	if(x){
     	object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));	// dumpout	
 		dsp_setup((t_pxobject *)x,1);							// Create object with 1 inlet
@@ -159,8 +161,8 @@ out:
 void counter_perform64(t_counter *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
 	
-	t_double *in = ins[0];
-	t_double *out = outs[0];
+	double *in = ins[0];
+	double *out = outs[0];
 	int n = sampleframes;
 	double value;
 //	short b_last, b_current;
