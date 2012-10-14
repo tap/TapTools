@@ -1,7 +1,7 @@
 // tap.snap~.c  
 // snap a location to the nearest zero-crossing
 
-#include "TapToolsObject.h"
+#include "TTClassWrapperMax.h"
 #include "ext_globalsymbol.h"
 #include "buffer.h"
 #include "ext_atomic.h"
@@ -26,8 +26,8 @@ void snap_set(t_snap *x, t_symbol *s);
 void *snap_new(t_symbol *msg, short argc, t_atom *argv);
 void snap_assist(t_snap *x, void *b, long m, long a, char *s);
 t_max_err snap_notify(t_snap *x, t_symbol *s, t_symbol *msg, void *sender, void *data);
-void snap_float(t_snap *x, tt_maxarg_float value);
-void snap_int(t_snap *x, tt_maxarg_int value);
+void snap_float(t_snap *x, double value);
+void snap_int(t_snap *x, long value);
 double snap_calc(t_snap *x, double value);
 
 
@@ -43,14 +43,14 @@ static t_symbol*	ps_buffer_modified;
 /*************************************************************************************/
 // Main() Function
 
-extern "C" int TAP_EXPORT_MAXOBJ main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 
 	c = class_new("tap.buffer.snap~",(method)snap_new, (method)dsp_free, sizeof(t_snap), 
 		(method)0L, A_GIMME, 0);
 
-	taptools_max::class_init(c);	common_symbols_init();
+	common_symbols_init();
 	class_addmethod(c, (method)snap_int,		"int",			A_LONG, 0L);
 	class_addmethod(c, (method)snap_float,		"float",		A_FLOAT, 0L);
 	class_addmethod(c, (method)snap_set,		"set",			A_SYM, 0L);
@@ -65,7 +65,8 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	CLASS_ATTR_LONG(c,		"channel",		0,	t_snap, channel);
 
 	class_dspinit(c);									// Setup object's class to work with MSP
-	snap_class = taptools_max::class_finalize(c);
+	class_register(_sym_box, c);
+	snap_class = c;
 
 	// Init Globals
 	ps_ms = gensym("ms");
@@ -73,6 +74,7 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 	ps_globalsymbol_binding = gensym("globalsymbol_binding");
 	ps_globalsymbol_unbinding = gensym("globalsymbol_unbinding");
 	ps_buffer_modified = gensym("buffer_modified");
+	return 0;
 }
 
 
@@ -82,7 +84,7 @@ extern "C" int TAP_EXPORT_MAXOBJ main(void)
 void *snap_new(t_symbol *msg, short argc, t_atom *argv)
 {
 	long 		chan = 1;
-	t_symbol 	*name = taptools_max::sym_nothing;
+	t_symbol 	*name = _sym_nothing;
 	t_snap 		*x; 
     long		attrstart;
 
@@ -97,7 +99,7 @@ void *snap_new(t_symbol *msg, short argc, t_atom *argv)
 		}
 	}
  	
-	x = (t_snap *)taptools_max::instance_create(snap_class, taptools_max::PACKAGE_MSP + taptools_max::LICENSE_ARTIST + taptools_max::LICENSE_DEMO);
+	x = (t_snap *)object_alloc(snap_class);
 	if(x){
 	  	object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));	// dumpout	
 		dsp_setup((t_pxobject *)x, 1);					// Left inlet (proxy)
@@ -149,7 +151,7 @@ t_max_err snap_notify(t_snap *x, t_symbol *s, t_symbol *msg, void *sender, void 
 
 
 // method for float input
-void snap_float(t_snap *x, tt_maxarg_float value)
+void snap_float(t_snap *x, double value)
 {
 	double snap;
 	
@@ -163,9 +165,9 @@ void snap_float(t_snap *x, tt_maxarg_float value)
 
 
 // method for int input
-void snap_int(t_snap *x, tt_maxarg_int value)
+void snap_int(t_snap *x, long value)
 {
-	snap_float(x, (tt_maxarg_float)value);
+	snap_float(x, value);
 }
 
 
@@ -251,7 +253,7 @@ double snap_calc(t_snap *x, double value)
 	if(x->attr_mode == ps_ms) 
 		value = value * x->srx;	// Convert to samples if neccessary	
 	snap = round(value);					// from our argument (rounds to long)
-	snap = taptools_max::clip(snap, 0L, frames-1);		// limit range
+	snap = TTClip(snap, 0L, frames-1);		// limit range
 
 	index = snap * nc + chan;
 
@@ -265,8 +267,8 @@ double snap_calc(t_snap *x, double value)
 			i += nc;													// increment the snap-distance counter
 			index1 = index+i;
 			index2 = index-i;
-			index1 = taptools_max::clip(index1, 0L, frames * nc - 1);	// limit ranges...
-			index2 = taptools_max::clip(index2, 0L, frames * nc - 1);
+			index1 = TTClip(index1, 0L, frames * nc - 1);	// limit ranges...
+			index2 = TTClip(index2, 0L, frames * nc - 1);
 			
 			if(above_zero != (tab[index1] > 0))
 				flag = 1;											// flag as a "1" if nearest zerox is at a higher snap
