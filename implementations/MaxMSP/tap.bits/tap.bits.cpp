@@ -60,6 +60,8 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	ps_ints2bits = gensym("ints2bits");
 	ps_matrixctrl2ints = gensym("matrixctrl2ints");
 	ps_ints2matrixctrl = gensym("ints2matrixctrl");
+	
+	return 0;
 }
 
 

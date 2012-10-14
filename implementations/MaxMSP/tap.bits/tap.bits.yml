@@ -5,8 +5,6 @@ sources:
   - ../../../../Support/max/TTClassWrapperMax.cpp
     
 includes:
-  - ../../../../TapTools/library
-  - ../../../../TapTools/library/ttblue-0.2
   - ../../../../../Modules/Foundation/library/includes
   - ../../../../../Modules/DSP/library/includes
   - ../../../../../Modules/Graphics/library/includes
