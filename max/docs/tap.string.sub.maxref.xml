@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.string.sub" module="max" category="TapTools, Data">
+
+	<digest>
+		Easy string substitution
+	</digest>
+
+	<description>
+		The <o>tap.string.sub</o> object 
+		provides an easy way to perform string substitution without having to figure out Regular expressions for the
+		<o>regex</o> object or js object.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="anything">
+			<arglist/>
+			<description>A symbol for which a substring will (attempt to) be extracted.</description>
+		</method>
+	</methodlist>
+	
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="regexp"/>
+		<seealso name="js"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.scale~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Audio version of the scale object
+	</digest>
+
+	<description>
+		The <o>tap.scale~</o> object 
+		is an audio version of the standard <o>scale</o> object.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="inlow" type="float" optional="1">
+			<description>Sets the low bound of the input.</description>
+		</objarg>
+		<objarg name="inhigh" type="float" optional="1">
+			<description>Sets the high bound of the input.</description>
+		</objarg>
+		<objarg name="outlow" type="float" optional="1">
+			<description>Sets the low bound of the output.</description>
+		</objarg>
+		<objarg name="outhigh" type="float" optional="1">
+			<description>Sets the high bound of the output.</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>Set the input and output ranges for the scaling to be applied to the signal at the first inlet.</description>
+		</method>
+	</methodlist>
+		
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="scale"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.svf~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		State variable filter with LFO modulation
+	</digest>
+
+	<description>
+		The <o>tap.svf~</o> object is a state variable filter which provides a resonant bandpass, highpass, lowpass, 
+		and notch filter along with an integrated lfo modulator for the cutoff/center frequency.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		
+		<method name="symbol">
+			<arglist>
+				<arg name="clear" type="symbol" optional="0" id="0" />
+			</arglist>
+			<description>Reset internal feedback history in the event that something blows up. </description>
+		</method>
+	
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="type" get="1" set="1" type="symbol" size="1">
+			<description>Select the filter shape you would like.</description>
+		</attribute>
+		<attribute name="frequency" get="1" set="1" type="symbol" size="1">
+			<description>Set the center/cutoff frequency for the filter.</description>
+		</attribute>
+		<attribute name="resonance" get="1" set="1" type="symbol" size="1">
+			<description>Adjust the resonance/steepness of the filter.</description>
+		</attribute>
+		<attribute name="portamento_time" get="1" set="1" type="symbol" size="1">
+			<description>Set a time in milliseconds over which to ramp to any new frequencies that are sent to the object.</description>
+		</attribute>
+		<attribute name="lfo.freq.shape" get="1" set="1" type="symbol" size="1">
+			<description>Choose the waveform of the internal LFO. The internal LFO modulates the frequency of the filter.</description>
+		</attribute>
+		<attribute name="lfo.freq.speed" get="1" set="1" type="symbol" size="1">
+			<description>Set the speed/frequency of the LFO.</description>
+		</attribute>
+		<attribute name="lfo.freq.depth" get="1" set="1" type="symbol" size="1">
+			<description>Adjust the depth of the internal LFO (i.e. the number of hertz either side of the center frequency to modulate between).</description>
+		</attribute>
+		<attribute name="lfo.freq.toggle" get="1" set="1" type="symbol" size="1">
+			<description>Turn the LFO on/off.</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.filter~"/>
+		<seealso name="tap.allpass~"/>
+		<seealso name="tap.allpole~"/>
+		<seealso name="tap.comb~"/>
+		<seealso name="tap.smooth"/>
+		<seealso name="tap.svf~"/>
+		<seealso name="biquad~"/>
+		<seealso name="cascade~"/>
+		<seealso name="comb~"/>
+		<seealso name="onepole~"/>
+		<seealso name="reson~"/>
+		<seealso name="teeth~"/>
+	</seealsolist>
+
+	
+</c74object>

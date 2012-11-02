@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.smooth" module="max" category="TapTools, Math, Interpolation">
+
+	<digest>
+		Data stream smoother
+	</digest>
+
+	<description>
+		The <o>tap.smooth</o> object 
+		implements a simple 1-pole lowpass filter which is applied to the incoming data stream to 
+		massage the incoming data.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Interpolation</metadata>
+		<metadata name="tag">Filter</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="float">
+			<arglist>
+				<arg name="input" type="float" optional="0" id="0" />
+			</arglist>
+			<description>Floating point input to be smoothed out.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="onepole~"/>
+	</seealsolist>
+
+	
+</c74object>

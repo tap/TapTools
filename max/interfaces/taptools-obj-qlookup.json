@@ -1,0 +1,32 @@
+{
+  "tap.comb~": {
+    "digest": "Sweet sounding comb filter",
+    "module": "msp",
+    "category": [
+      "Tap.Tools",
+	  "MSP Filters"
+    ]
+  },
+  "tap.verb~": {
+    "digest": "Reverb in a box",
+    "module": "msp",
+    "category": [
+      "Tap.Tools",
+	  "MSP Effects"
+    ]
+  },
+  "tap.dragwindow": {
+    "digest": "Define a region of a window as a handle for dragging the window",
+    "module": "max",
+    "category": [
+      "U/I"
+    ],
+    "palette": {
+      "category": [
+        "Interface"
+      ],
+      "action": "dropfile",
+      "pic": "dropfile.svg"
+    }
+  }
+}

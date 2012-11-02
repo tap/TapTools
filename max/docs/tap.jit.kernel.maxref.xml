@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.kernel" module="jit" category="TapTools, Jitter, Jitter Generators">
+
+	<digest>
+		Generate a gaussian kernel
+	</digest>
+
+	<description>
+		The <o>tap.jit.kernel</o> object 
+		will generate a single-plane gaussian blob at the specified coordinates.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Video</metadata>
+		<metadata name="tag">Generator</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+
+	<!--MOP-->
+	<mop matrixinputcount="0" matrixoutputcount="1">
+		<matrixoutput name="out" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixoutput>	
+	</mop>
+		
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="center" get="1" set="1" type="float" size="2">
+			<description>The coordinates for the center of the gaussian kernel within the matrix.</description>
+		</attribute>
+
+		<attribute name="size" get="1" set="1" type="float" size="2">
+			<description>The size of the kernel on the horizontal and vertical axes.</description>
+		</attribute>
+
+		<attribute name="weight" get="1" set="1" type="float" size="1">
+			<description>
+				A weight factor which is applied to both the horizontal and vertical sizes of the gaussian kernel.
+			</description>
+		</attribute>
+
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.jit.ali"/>
+	</seealsolist>
+
+	
+</c74object>

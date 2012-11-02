@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.shift~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Pitch-shift a signal
+	</digest>
+
+	<description>
+		The <o>tap.shift~</o> object 
+		is an efficient pitch-shifter for audio signals.
+		The algorithm is similar to the well known harmv~ pitch shifter from IRCAM's Jimmies.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Effect</metadata>
+	</metadatalist>
+
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="ratio" get="1" set="1" type="float" size="1">
+			<description>Set the ratio of the desired pitch to the original pitch.</description>
+		</attribute>
+		<attribute name="windowsize" get="1" set="1" type="float" size="1">
+			<description>Set the size of the sound fragments used in the pitch-shifter (in milliseconds).</description>
+		</attribute>
+	</attributelist>
+	
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.verb~"/>
+	</seealsolist>
+
+	
+</c74object>

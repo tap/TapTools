@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.thru" module="max" category="TapTools, Control">
+
+	<digest>
+		A feedback utility
+	</digest>
+
+	<description>
+		In Max, an object cannot be connected to itself. The <o>tap.thru</o> object helps with that plus has a few other useful situations.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Utility</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.thru~"/>
+		<seealso name="tap.autothru~"/>
+	</seealsolist>
+
+	
+</c74object>

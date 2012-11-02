@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="_c74_vig.xsl" type="text/xsl"?>
+<vignette name="What's New in TapTools 3">
+
+	<bodytext>
+		<img src="74objects-logo128.png" />
+		<header1>What's New in TapTools 3</header1>
+
+
+		<sidebartext>
+			<header2>Introduction</header2>
+			<body>
+				<ul>
+				<!--	<li>Introduction</li>
+					<li><link type="tutorial" module="max" name="maxindex">Tutorials</link></li> -->
+					<li><link type="vignette" module="core" name="taptools_intro">TapTools Topics</link></li>
+					<li><link type="vignette" module="core" name="taptools_authorization">Authorization</link></li>
+					<!--	<li><link type="vignette" module="intro" name="taptools_software_update">Software Update</link></li> -->
+					<li><link type="vignette" module="core" name="taptools_whats_new">What's New</link></li>
+					<li><link type="vignette" module="core" name="taptools_support">Support</link></li>
+				<!--	<li><link type="vignette" module="core" name="shortcuts">Tips and Shortcuts</link></li>
+					<li><link type="vignette" module="core" name="messages_to_max">Messages to <o>max</o></link></li>
+				-->
+				</ul>
+			</body>
+
+			<header2>In Depth</header2>
+			<body>
+				<ul>
+					<!--
+					<li><link type="tutorial" module="msp" name="mspindex">Tutorials</link></li>
+					<li><link type="tutorial" module="msp" name="mspintro">MSP Introduction</link></li>
+					<li><link type="tutorial" module="msp" name="mspdigitalaudio">How Digital Audio Works</link></li>
+					<li><link type="tutorial" module="msp" name="msphowmspworks">How MSP Works</link></li>
+					<li><link type="tutorial" module="msp" name="mspaudioio">Audio I/O</link></li>
+					<li><link type="vignette" module="core" name="msp_functional">MSP Objects by Function</link></li>
+					<li><link type="vignette" module="core" name="msp_alphabetical">MSP Objects A-Z</link></li>
+					<li><link type="vignette" module="core" name="messages_to_dsp">Messages to <o>dsp</o></link></li>
+				-->
+					<li><link type="vignette" module="core" name="taptools_and_collectives">Collectives &amp; Standalones</link></li>
+				</ul>
+			</body>
+		</sidebartext>
+
+<!--
+		<header2>Software Update</header2>
+		<body>
+			TapTools 3 features a new Software Update that will fetch any new features or fixes from the services
+			whenever you ask it to.  This means that fixes will be available immediately, instead of waiting for 
+			enough fixes to accumulate to justify building a whole new installer.
+		</body>
+-->
+		<header2>Max 5 Integration</header2>
+		<body>
+			TapTools 3 doesn't just work with Max 5, but actually integrates its wealth of new features. This includes
+			the new inspector styles, searchable documentation system, file browser tagging, double-clickable Max window posts,
+			and new file formats.
+		</body>
+		
+		<header2>New Audio Infrastructure</header2>
+		<body>
+			Internally, TapTools 3 is transitioning to a new audio infrastructure. This uses 64-bits to pass audio 
+			signals internally, and also allows for more dynamic channel specification. The result is better sound
+			quality and new multichannel capabilities for many objects.
+		</body>
+		
+		<header2>Simplification</header2>
+		<body>
+			TapTools still supports a lot of objects that aren't as useful now as they used to be.  Nearly half of the objects
+			pre-date Max 4.0 (let alone 5.0)!  Objects like atoi and itoa have replaced the need for tap.ascii.  The tap.ascii
+			object still exists for backwards compatibility, but it's hidden and won't confuse you when using Max's 
+			autocompletion or filebrowser.  The same is true of many other objects.
+		</body>
+
+		<header2>New Objects</header2>
+		<body>
+			While the emphasis has been on infrastructure, no new version would be complete without a few new objects.<br/><br/>
+			<ul>
+				<li>tap.filter~ encapsulates many different kinds of filters, which may be freely switched on the fly.</li>
+				<li>tap.filecontainer lets you create custom file formats that bundle together many files into a single file.</li>
+				<li>tap.folder performs operations such as creating, deleting, copying, etc. folders in the filesystem.</li>
+				<li>tap.inquisitor queries other objects for their attribute values.</li>
+			</ul>
+		</body>
+
+		<header2>Lots of Little Things</header2>
+		<body>
+			We won't bore you with all of the details, but a lot of things have happened on a less grandiose scale.  For example:<br/><br/>
+			<ul>
+				<li>tap.applescript rewritten from scratch to be much more reliable and flexible. 
+					It has a new script method for specifying scripts on the fly.</li>
+				<li>tap.windowdrag re-written to be Max 5-savvy and is also now available on Windows.</li>
+				<li>Optimizations including improved object load time performance</li>
+				<li>Improved process to make it easier to build standalone applications with TapTools and Max.</li>
+			</ul>
+		</body>
+
+	</bodytext>
+</vignette>

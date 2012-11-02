@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.vocoder~" module="msp" category="TapTools, MSP Filters, MSP Modifiers">
+
+	<digest>
+		Basic 24-band vocoder
+	</digest>
+
+	<description>
+		The <o>tap.vocoder~</o> object is a simple 24-band vocoder.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Effect</metadata>
+		<metadata name="tag">Envelope</metadata>
+	</metadatalist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="response_interval" get="1" set="1" type="symbol" size="1">
+			<description>The response_interval attribute sets the analysis period for the excitation stage.</description>
+		</attribute>
+		<attribute name="q" get="1" set="1" type="symbol" size="1">
+			<description>The q attribute sets the Q factor for all of the resonant filters.</description>
+		</attribute>
+	</attributelist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.vocoderlite~"/>
+		<seealso name="classic-vocoder"/>
+	</seealsolist>
+	
+</c74object>

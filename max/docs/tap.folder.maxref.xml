@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.folder" module="max" category="TapTools, Files">
+
+	<digest>
+		Create, delete, and copy folders
+	</digest>
+
+	<description>
+		Use <o>tap.folder</o> as a cross-platform way to create, delete, and copy folders.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Utility</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="make">
+			<arglist><arg name="foldername" type="symbol" optional="0" id="0" /></arglist>
+			<description>Create a new folder with the specified name.</description>
+		</method>
+		<method name="delete">
+			<arglist><arg name="foldername" type="symbol" optional="0" id="0" /></arglist>
+			<description>Delete a folder with the specified name. 
+				Be extremely careful with the use of this method!!!
+				It can result in the permanent loss of data.
+			</description>
+		</method>
+		<method name="copy">
+			<arglist>
+				<arg name="srcfoldername" type="symbol" optional="0" id="0" />
+				<arg name="dstfoldername" type="symbol" optional="0" id="0" />
+			</arglist>
+			<description>
+				Copy a folder with the name specified for the first arg to a new
+				folder with the name specified with the second arg.
+			</description>
+		</method>
+		<method name="zip">
+			<arglist><arg name="foldername" type="symbol" optional="0" id="0" /></arglist>
+			<description>This Mac-only method creates a zip file from the folder
+				specified as an argument.
+			</description>
+		</method>
+	</methodlist>
+		
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="opendialog"/>
+		<seealso name="folder"/>
+	</seealsolist>
+
+	
+</c74object>

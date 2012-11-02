@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.sustain~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Sample and loop sounds
+	</digest>
+
+	<description>
+		The <o>tap.sustain~</o> object 
+		records a loop when it receives a bang and immediately begins playing the loop.
+		The looped sample is crossfaded and layered to make the sound more smooth.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Effect</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="buffersize" type="float" optional="1">
+			<description>Sets the size of the buffer used for capturing audio in milliseconds.</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="length">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>Change the size of the internal buffer in milliseconds.</description>
+		</method>
+		<method name="normalize">
+			<arglist/>
+			<description>Normalize the content of the buffer.</description>
+		</method>
+		<method name="bang">
+			<arglist/>
+			<description>Capture input and begin looping/sustaining it.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="groove~"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.spectra~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Spectral remapping
+	</digest>
+
+	<description>
+		The <o>tap.spectra~</o> object 
+		performs a remapping of spectral data by reorienting the bins of an FFT to different bins 
+		of an IFFT.  The result is an ultra-non-linear effect that can yield unexpected results.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Effect</metadata>
+		<metadata name="tag">Spectral</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>Set the remapping parameters.</description>
+		</method>
+	</methodlist>
+	
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="pfft~"/>
+	</seealsolist>
+
+	
+</c74object>

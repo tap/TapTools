@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.deviate" module="max" category="TapTools, Math">
+
+	<digest>
+		Randomize and 'prime' the input
+	</digest>
+
+	<description>
+		Output a slightly randomized / deviated version of the input.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="randomrange" type="float" optional="1">
+			<description>Initial random range.</description>
+		</objarg>
+		<objarg name="scalerange" type="float" optional="1">
+			<description>Initial scaling range.</description>
+		</objarg>
+	</objarglist>
+	
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="drunk"/>
+	</seealsolist>
+
+	
+</c74object>

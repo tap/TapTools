@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.grayscale" module="jit" category="TapTools, Jitter, Jitter Colorspace">
+
+	<digest>
+		Grayscale conversion
+	</digest>
+
+	<description>
+		The <o>tap.jit.grayscale</o> object converts a 4 plane char matrix (color video) into a 1 plane char matrix (grayscale video).
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Video</metadata>
+		<metadata name="tag">Color</metadata>
+		<metadata name="tag">Conversion</metadata>
+	</metadatalist>
+
+	
+	<!--MOP-->
+	<mop matrixinputcount="1" matrixoutputcount="1">
+		<matrixinput name="in" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixinput>	
+		<matrixoutput name="out" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixoutput>	
+	</mop>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="jit.matrix"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.anticlick~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		Audio click and pop reduction
+	</digest>
+
+	<description>
+		The <o>tap.anticlick~</o> object uses an idiosyncratic algorithm to attempt to reduce pops and clicks from an incoming 
+		audio source.
+		<br/><br/>
+		
+		To eliminate clicks, an analysis is performed inside of the object to find a threshold. 
+		If the distance between any two samples exceeds this threshold, the sample is modified to reduce the distance. 
+		The 2nd outlet (connected to the scope below) outputs the threshold being used in the analysis. 
+		The analysis may be refined by using the 2nd inlet to scale the thresholds calculated inside of the object.
+		<br/><br/>
+		
+		The response message determines the smoothing of changes to the threshold 
+		(low numbers create smooth transitions, while high numbers are quicker in response).
+		<br/><br/>
+		
+		The size message changes the number of samples used in a single analysis. 
+		Higher sizes will give more "accurate" threshold calculations, while smaller sizes will be more responsive. 
+		This can also be set as the first argument to the object itself.
+		<br/><br/>
+		
+		A 'mode 1' message can set the object to be manually controlled (default mode is 0). 
+		The threshold can then be set using the 'thresh $1' message and the correction amount using the 'correct $1' message. 
+		This manual mode is probably not terribly useful, but is left in for the curious. 
+		Manual mode does not work when the 2nd inlet and/or 2nd outlet is connected with a signal.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Filter</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Audio input to be filtered.</digest>
+		</inlet>
+		<inlet id="1" name="INLET_NAME">
+			<digest>A shortcut inlet for setting the <m>threshold</m> attribute.</digest>
+		</inlet>
+	</inletlist>
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" name="OUTLET_NAME">
+			<digest>Audio signal: the de-clicked signal.</digest>
+		</outlet>
+		<outlet id="1" name="OUTLET_NAME">
+			<digest>Audio signal: the threshold signal that is being applied to the pop reduction internally.</digest>
+		</outlet>
+		<outlet id="2" name="OUTLET_NAME">
+			<digest>Dumpout: for accessing object state.</digest>
+		</outlet>
+	</outletlist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="buffersize" type="int" optional="1">
+			<description>Sets the initial value of the 'size' attribute.</description>
+		</objarg>
+	</objarglist>
+
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="size" get="1" set="1" type="float" size="1">
+			<digest>Analysis frame size in samples</digest>
+		</attribute>
+
+		<attribute name="response" get="1" set="1" type="float" size="1">
+			<digest>Feedback coefficient for internal smoothing</digest>
+		</attribute>
+
+		<attribute name="thresh" get="1" set="1" type="float" size="1">
+			<digest>Threshold adjustment</digest>
+			<description>Threshold adjustment. This is overriden if a signal is connected to the second inlet</description>
+		</attribute>
+
+		<attribute name="mode" get="1" set="1" type="float" size="1">
+			<digest>Automatic or manual threshold adjustment</digest>
+		</attribute>
+
+		<attribute name="adjust" get="1" set="1" type="float" size="1">
+			<digest>Sensitivity to high frequencies</digest>
+			<description>Sensitivity to high frequencies (low number = high Sensitivity).</description>
+		</attribute>
+
+		<attribute name="correct" get="1" set="1" type="float" size="1">
+			<digest>Amount of correction when a click is large</digest>
+		</attribute>
+
+	</attributelist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.adsr~"/>
+		<seealso name="tap.filter~"/>
+	</seealsolist>
+
+	
+</c74object>

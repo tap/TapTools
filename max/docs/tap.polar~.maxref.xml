@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.polar~" module="msp">
+
+	<digest>
+		Cartesian to / from polar coordinates
+	</digest>
+
+	<description>
+		The <o>tap.polar~</o> object 
+		has been replaced by the standard <o>cartopol~</o> and <o>poltocar~</o> objects introduced in Max 4.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="cartopol~"/>
+		<seealso name="poltocar~"/>
+	</seealsolist>
+
+	
+</c74object>

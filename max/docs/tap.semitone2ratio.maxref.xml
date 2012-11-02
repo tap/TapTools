@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.semitone2ratio" module="max" category="TapTools, Notes">
+
+	<digest>
+		Convert units from semitones to a frequency ratio
+	</digest>
+
+	<description>
+		The <o>tap.semitone2ratio</o> object 
+		is simple utility for converting units in the frequency domain.
+		For more advanced unit conversions, see the <o>jcom.dataspace</o> object in <a href="http://jamoma.org">Jamoma</a>.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="float">
+			<arglist>
+				<arg name="input" type="float" optional="0" id="0" />
+			</arglist>
+			<description>Input to be converted from semitones to a frequency ratio.</description>
+		</method>
+	</methodlist>
+	
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.shift~"/>
+	</seealsolist>
+
+	
+</c74object>

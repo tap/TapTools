@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.delay" module="max" category="TapTools, Timing">
+
+	<digest>
+		Delay lists, symbols, numbers, etc.
+	</digest>
+
+	<description>
+		Send any message (number, symbol, or list) and it will be delayed by N milliseconds.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Time</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="time" type="float" optional="1">
+			<description>Argument sets the initial number of milliseconds in the delay.</description>
+		</objarg>
+	</objarglist>
+	
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="int">
+			<arglist><arg name="input" type="int" optional="0" id="0" /></arglist>
+			<description>Integer input.</description>
+		</method>
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>Float input.</description>
+		</method>
+		<method name="list">
+			<arglist><arg name="input" type="int" optional="0" id="0" /></arglist>
+			<description>List input.</description>
+		</method>
+		<method name="anything">
+			<arglist><arg name="input" type="symbol" optional="0" id="0" /></arglist>
+			<description>Any symbol.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="clip" get="1" set="1" type="float" size="1">
+			<description>This sets a clipping range for the internal feedback to prevent the filter from "blowing up."</description>
+		</attribute>
+
+		<attribute name="coefficients" get="1" set="1" type="float" size="1">
+			<description>A list that specifies the coefficients for each of the poles in the filter.</description>
+		</attribute>
+
+		<attribute name="gain" get="1" set="1" type="float" size="1">
+			<description>
+				The gain attribute scales the internal feedback in the object. 
+				You should keep this between 0.0 and less-than 1.0.
+			</description>
+		</attribute>
+
+	</attributelist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="delay"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.motion2" module="jit" category="TapTools, Jitter, Jitter Analysis">
+
+	<digest>
+		Video motion detection analysis
+	</digest>
+
+	<description>
+		The <o>tap.jit.motion2</o> object 
+		This is yet another version of <o>tap.jit.motion</o>. 
+		The distinguishing feature is that the difference found in a region is output as a 1x1 matrix 
+		rather than as a floating-point number.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Video</metadata>
+		<metadata name="tag">Motion</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--MOP-->
+	<mop matrixinputcount="1" matrixoutputcount="1">
+		<matrixinput name="in" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixinput>	
+		<matrixoutput name="out" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixoutput>	
+	</mop>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.jit.motion"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.autoscale~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Automatic range scaler
+	</digest>
+
+	<description>
+		Incoming signal gets scaled to the new outgoing range. 
+		If auto is on, the incoming signal is tracked and the gain adjusts automatically to the new input range. 
+		Very useful for applications like sensors where you know the output range you want, but the input range is flexible.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Utility</metadata>
+	</metadatalist>
+
+	
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Audio signal: input to be processed.</digest>
+		</inlet>
+	</inletlist>
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" name="OUTLET_NAME">
+			<digest>Audio signal: the processed audio signal.</digest>
+		</outlet>
+		<outlet id="1" name="OUTLET_NAME">
+			<digest>Dumpout: for accessing object state.</digest>
+		</outlet>
+	</outletlist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="reset">
+			<arglist>
+				<!-- <arg name="input" type="int" optional="0" id="0" /> -->
+			</arglist>
+			<description>reset inputLow and input High to their default values.</description>
+		</method>
+		<method name="bang">
+			<arglist></arglist>
+			<description>Print InputLow, InputHigh, OutputLow, OutputHigh, and Gain values to the Max Window.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="auto" get="1" set="1" type="int" size="1">
+			<description>Automatic input High/Low tracking (default on)</description>
+		</attribute>
+
+		<attribute name="input_low" get="1" set="1" type="float" size="1">
+			<digest>Low bound for input range</digest>
+			<description>
+input_low and input_high [default: 0.49 and 0.51] - the original high and low value. As the incoming values go higher or lower, the range is extended. You should set this value to somewhere within the range of your input signal. For instance if your signal will go from 100 to 1000, set it to 300 to 700 and let it auto track to the exact range. The default values are useful with the Teabox sensors.			
+			</description>
+		</attribute>
+
+		<attribute name="input_high" get="1" set="1" type="float" size="1">
+			<digest>High bound for input range</digest>
+			<description>
+input_low and input_high [default: 0.49 and 0.51] - the original high and low value. As the incoming values go higher or lower, the range is extended. You should set this value to somewhere within the range of your input signal. For instance if your signal will go from 100 to 1000, set it to 300 to 700 and let it auto track to the exact range. The default values are useful with the Teabox sensors.
+			</description>
+		</attribute>
+
+		<attribute name="outut_low" get="1" set="1" type="float" size="1">
+			<digest>Low bound for output range</digest>
+			<description>
+input_low and input_high [default: 0.49 and 0.51] - the original high and low value. As the incoming values go higher or lower, the range is extended. You should set this value to somewhere within the range of your input signal. For instance if your signal will go from 100 to 1000, set it to 300 to 700 and let it auto track to the exact range. The default values are useful with the Teabox sensors.
+			</description>
+		</attribute>
+
+		<attribute name="output_high" get="1" set="1" type="float" size="1">
+			<digest>High bound for output range</digest>
+			<description>
+input_low and input_high [default: 0.49 and 0.51] - the original high and low value. As the incoming values go higher or lower, the range is extended. You should set this value to somewhere within the range of your input signal. For instance if your signal will go from 100 to 1000, set it to 300 to 700 and let it auto track to the exact range. The default values are useful with the Teabox sensors.
+			</description>
+		</attribute>
+
+
+	</attributelist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.scale~"/>
+	</seealsolist>
+
+	
+</c74object>

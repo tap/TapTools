@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.prime" module="max" category="TapTools, Math">
+
+	<digest>
+		Generate prime numbers
+	</digest>
+
+	<description>
+		The <o>tap.prime</o> object 
+		produces the next prime number in a sequence.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="initial value" type="int" optional="1">
+			<description>
+				Sets the initial value tracker so that the first bang to the object 
+				will produce the next higher prime number from the specified argument.
+			</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="int">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>Set the base from which to calculate the next highest prime number.
+				If the input is at the left inlet, also trigger a calculation of the next highest number.
+			</description>
+		</method>
+		<method name="bang">
+			<arglist/>
+			<description>Trigger the output of the next highest prime number.</description>
+		</method>	
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="jit.op"/>
+		<seealso name="tap.deviate"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.pan" module="jit" category="TapTools, Jitter, Jitter Effects">
+
+	<digest>
+		A simple video 'panner'
+	</digest>
+
+	<description>
+		The <o>tap.jit.pan</o> object 
+		distributes a matrix between two destinations.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Video</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+	
+	<!--MOP-->
+	<mop matrixinputcount="1" matrixoutputcount="2">
+		<matrixinput name="in" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixinput>	
+		<matrixoutput name="outleft" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixoutput>	
+		<matrixoutput name="outright" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixoutput>	
+	</mop>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="pan">
+			<arglist>
+				<arg name="input" type="float" optional="0" id="0" />
+			</arglist>
+			<description>
+				A value between 0.0 and 1.0 controls the distribution of the input between the two outputs.
+			</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="jit.xfade"/>
+	</seealsolist>
+
+	
+</c74object>

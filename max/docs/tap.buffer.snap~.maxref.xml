@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.buffer.snap~" module="msp" category="TapTools, MSP Buffers">
+
+	<digest>
+		Snap to zero-crossings in a buffer~
+	</digest>
+
+	<description>
+		<o>tap.buffer.snap~</o> is most useful when building patches in which you want to snap your edit/loop points 
+		to zero-crossings without the added overhead of the <o>waveform~</o> object.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Buffer</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="buffername" type="symbol" optional="0">
+			<description>The name of a buffer to reference.</description>
+		</objarg>
+	</objarglist>
+	
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="set">
+			<arglist><arg name="name" type="symbol" optional="0" id="0" /></arglist>
+			<description>Set the buffer to reference.</description>
+		</method>
+		<method name="float">
+			<arglist><arg name="name" type="float" optional="0" id="0" /></arglist>
+			<description>
+				The location in the buffer, from which to find the nearest zero-crossing.
+			</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="float" size="1">
+			<description>Determines how input is interpreted -- as sample numbers or as time specified in milliseconds.</description>
+		</attribute>
+		<attribute name="channel" get="1" set="1" type="float" size="1">
+			<description>Specifies the channel in the buffer on which to operate.</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.buffer.peak~"/>
+	</seealsolist>
+
+	
+</c74object>

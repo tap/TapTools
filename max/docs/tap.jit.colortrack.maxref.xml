@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.colortrack" module="jit" category="TapTools, Jitter, Jitter Colorspace, Jitter Analysis">
+
+	<digest>
+		Match specified colors and return information about them
+	</digest>
+
+	<description>
+		The <o>tap.jit.colortrack</o> object is a colortracker for Jitter that will track up to four different colors simultaneously. 
+		Because this object is written specifically for video colortracking it is faster than doing the same thing 
+		with the more generalized <o>jit.findbounds</o> object.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Video</metadata>
+		<metadata name="tag">Color</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--MOP-->
+	<mop matrixinputcount="1" matrixoutputcount="0">
+		<matrixinput name="in" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixinput>	
+	</mop>
+		
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="output_bounds_1" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the bounds of the first color tracker are sent as output.</description>
+		</attribute>
+		<attribute name="output_center_1" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the center location of the first color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="output_size_1" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the size of the matched region matched by the first color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="hue_1" get="1" set="1" type="float" size="1">
+			<description>The hue to match for the first color tracker, specified in degrees around the color wheel.</description>
+		</attribute>
+		<attribute name="hue_variation_1" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the hue for the first color tracker, specified in degrees.</description>
+		</attribute>
+		<attribute name="saturation_1" get="1" set="1" type="float" size="1">
+			<description>The saturation to match for the first color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="saturation_variation_1" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the saturation for the first color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_1" get="1" set="1" type="float" size="1">
+			<description>The brightness to match for the first color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_variation_1" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the brightness for the first color tracker, specified as a percentage.</description>
+		</attribute>
+
+		<attribute name="output_bounds_2" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the bounds of the second color tracker are sent as output.</description>
+		</attribute>
+		<attribute name="output_center_2" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the center location of the second color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="output_size_2" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the size of the matched region matched by the second color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="hue_2" get="2" set="1" type="float" size="1">
+			<description>The hue to match for the second color tracker, specified in degrees around the color wheel.</description>
+		</attribute>
+		<attribute name="hue_variation_2" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the hue for the second color tracker, specified in degrees.</description>
+		</attribute>
+		<attribute name="saturation_2" get="1" set="1" type="float" size="1">
+			<description>The saturation to match for the second color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="saturation_variation_2" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the saturation for the second color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_2" get="1" set="1" type="float" size="1">
+			<description>The brightness to match for the second color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_variation_2" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the brightness for the second color tracker, specified as a percentage.</description>
+		</attribute>
+
+		<attribute name="output_bounds_3" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the bounds of the third color tracker are sent as output.</description>
+		</attribute>
+		<attribute name="output_center_3" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the center location of the third color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="output_size_3" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the size of the matched region matched by the third color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="hue_3" get="1" set="1" type="float" size="1">
+			<description>The hue to match for the third color tracker, specified in degrees around the color wheel.</description>
+		</attribute>
+		<attribute name="hue_variation_3" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the hue for the third color tracker, specified in degrees.</description>
+		</attribute>
+		<attribute name="saturation_3" get="1" set="1" type="float" size="1">
+			<description>The saturation to match for the third color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="saturation_variation_3" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the saturation for the third color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_3" get="1" set="1" type="float" size="1">
+			<description>The brightness to match for the third color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_variation_3" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the brightness for the third color tracker, specified as a percentage.</description>
+		</attribute>
+
+		<attribute name="output_bounds_4" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the bounds of the fourth color tracker are sent as output.</description>
+		</attribute>
+		<attribute name="output_center_4" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the center location of the fourth color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="output_size_4" get="1" set="1" type="char" size="1">
+			<description>When set to 1, the size of the matched region matched by the fourth color tracker is sent as output.</description>
+		</attribute>
+		<attribute name="hue_4" get="1" set="1" type="float" size="1">
+			<description>The hue to match for the fourth color tracker, specified in degrees around the color wheel.</description>
+		</attribute>
+		<attribute name="hue_variation_4" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the hue for the fourth color tracker, specified in degrees.</description>
+		</attribute>
+		<attribute name="saturation_4" get="1" set="1" type="float" size="1">
+			<description>The saturation to match for the fourth color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="saturation_variation_4" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the saturation for the fourth color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_4" get="1" set="1" type="float" size="1">
+			<description>The brightness to match for the fourth color tracker, specified as a percentage.</description>
+		</attribute>
+		<attribute name="brightness_variation_4" get="1" set="1" type="float" size="1">
+			<description>The amount of acceptable variation in the brightness for the fourth color tracker, specified as a percentage.</description>
+		</attribute>
+
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.jit.motion"/>
+	</seealsolist>
+
+	
+</c74object>

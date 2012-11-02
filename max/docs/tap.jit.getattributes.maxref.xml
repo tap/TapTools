@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.getattributes" module="jit">
+
+	<digest>
+		Assistant for building jitter abstractions
+	</digest>
+
+	<description>
+		This object is meant to assist in building abstractions which mimic the gettable attributes of Jitter externals.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Utility</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="valuename" type="symbol" optional="0">
+			<description>
+				The name of a <o>value</o> object to reference. 
+				The value object stores the current state of all attributes.
+			</description>
+		</objarg>
+	</objarglist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="patcherargs"/>
+	</seealsolist>
+
+	
+</c74object>

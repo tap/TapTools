@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.sum" module="jit" category="TapTools, Jitter, Jitter Math, Jitter Analysis">
+
+	<digest>
+		Sum the contents of a matrix
+	</digest>
+
+	<description>
+		The <o>tap.jit.sum</o> object 
+		sums all of the pixel values of a matrix and then divides by the number of pixels to give an average of the values.
+		It also provides the weighted mean coordinates.
+		Currently it only accepts 1 plane char data.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Video</metadata>
+		<metadata name="tag">Motion</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--MOP-->
+	<mop matrixinputcount="1" matrixoutputcount="0">
+		<matrixinput name="in" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixinput>	
+	</mop>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="char" size="1">
+			<description>mode 0: normal operation, mode 1: change notification</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.jit.motion"/>
+		<seealso name="jit.3m"/>
+	</seealsolist>
+
+	
+</c74object>

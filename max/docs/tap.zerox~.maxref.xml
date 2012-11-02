@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.zerox~" module="msp" category="TapTools, MSP Analysis">
+
+	<digest>
+		Count zero crossings in a signal
+	</digest>
+
+	<description>
+		The <o>tap.zerox~</o> object counts the number of zero crossings in a signal within a set number of samples.  
+		It can be useful as a rough but CPU-friendly frequency tracker.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="size" get="1" set="1" type="int" size="1">
+			<description>Sets the length of the analysis in samples.</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--OUTPUT-->
+	<misc name="Output">
+		<entry name="signal">
+			<description>Number of zero-crossings.</description>
+		</entry>
+		<entry name="signal">
+			<description>Trigger when a zero-crossing has occured.</description>
+		</entry>
+	</misc>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="zerox~"/>
+		<seealso name="fiddle~"/>
+	</seealsolist>
+
+	
+</c74object>

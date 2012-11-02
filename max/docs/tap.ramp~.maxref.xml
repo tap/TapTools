@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.ramp~" module="msp" category="TapTools, MSP Generators">
+
+	<digest>
+		Generate ramping signals
+	</digest>
+
+	<description>
+		The <o>tap.ramp~</o> object 
+		generates a signal that ramps from a starting point to a destination point over a given amount of time,
+		much like the <o>line~</o> object or the <o>jcom.ramp~</o> object in <a href="http://jamoma.org/">Jamoma</a>.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Interpolation</metadata>
+		<metadata name="tag">Time</metadata>
+		<metadata name="tag">Generator</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		
+		<method name="list">
+			<arglist>
+				<arg name="target" type="float" optional="0" id="0" />
+				<arg name="time" type="float" optional="0" id="1" />
+			</arglist>
+			<description>
+				Ramps to the target value over the given amount of time (in milliseconds).
+			</description>
+		</method>
+		
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>Set the current value of the ramper, and halt ramping.</description>
+		</method>
+		
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="symbol" size="1">
+			<description>The mode can be set to sample_accurate or vector_accurate.
+				vector_accurate is more efficient, but not suitable for very fast ramps.
+			</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="line~"/>
+	</seealsolist>
+
+	
+</c74object>

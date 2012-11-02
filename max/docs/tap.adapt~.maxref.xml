@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.adapt~" module="msp" category="TapTools, MSP Dynamics">
+
+	<digest>
+		Adapt signal intensity to a reference
+	</digest>
+
+	<description>
+		This object can be useful in several contexts. 
+		For one, it can perform an enhanced envelope substitution, 
+		where the signal level is actually increased where needed to make the desired magnitude.
+		<br/><br/>
+		
+		It can also be used as a type of continuous normalizer or compressor 
+		where the gain is continuously adjusted to make a signals' power fairly consistent.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Dynamics</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Audio signal: sound source needing a gain change.</digest>
+		</inlet>
+		<inlet id="1" name="INLET_NAME">
+			<digest>Audio signal: Reference Signal containing desired amplitude envelope.</digest>
+		</inlet>
+		<inlet id="2" name="INLET_NAME">
+			<digest>Float: responsiveness of the envelope followers. Low numbers are very responsive, high numbers are very smooth.</digest>
+		</inlet>
+	</inletlist>
+	
+	
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" name="OUTLET_NAME">
+			<digest>Audio signal: the processed audio signal.</digest>
+		</outlet>
+	</outletlist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.limi~"/>
+	</seealsolist>
+
+	
+</c74object>

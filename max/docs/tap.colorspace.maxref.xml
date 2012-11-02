@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.colorspace" module="max" category="TapTools, Math, Interface">
+
+	<digest>
+		Convert between colorspaces
+	</digest>
+
+	<description>
+		These conversion routines were taken from Luke Dubois' Percolate Nato externals. His comments follow:
+		<br/><br/>
+		
+		<blockquote>
+			242.colorspace -- does colorspace conversion on an input image. by r. luke dubois (luke@music.columbia.edu), 
+			computer music center, columbia university, 2001.
+			<br/><br/>
+		
+			Most of the color conversion routines in this software are taken from rafael santos' color image processing toolkit. 
+			The copyright below cites the original author. 
+			Objects and source are provided without warranty of any kind, express or implied. 
+			<br/><br/>
+			
+			Copyright (C) 1996, Rafael Santos. 
+			Developed at the Ejima Lab / Department of Artificial Intelligence, Kyushu Institute of Technology.
+			<br/><br/>
+		</blockquote>
+		
+		For a thorough unit conversion utility, take a look at the <o>jcom.dataspace</o> object in <a href="http://jamoma.org">Jamoma</a>.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Color</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="bang">
+			<arglist/>
+			<description>Calculate the conversion and output it from the object.</description>
+		</method>
+		<method name="int">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>Set one component of the input colorspace, and possible trigger output.</description>
+		</method>
+		<method name="float">
+			<arglist>
+				<arg name="input" type="float" optional="0" id="0" />
+			</arglist>
+			<description>Set one component of the input colorspace, and possible trigger output.</description>
+		</method>
+		<method name="list">
+			<arglist>
+				<arg name="input1" type="float" optional="0" id="0" />
+				<arg name="input2" type="float" optional="0" id="0" />
+				<arg name="input3" type="float" optional="0" id="0" />
+			</arglist>
+			<description>A list of the component values for the input colorspace, 
+				which will be converted to the output colorspace.
+			</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="mode" get="1" set="1" type="symbol" size="1">
+			<description>The mode determines which type of conversion will be done.  The available options are:
+				no_transform, rgb2cmy, cmy2rgb, rgb2hsv, hsv2rgb, rgb2xyz, xyz2rgb, rgb2uvw, uvw2rgb, rgb2retinalcone, retinalcone2rgb, rgb2lab, lab2rgb, rgb2yiq, yiq2rgb, rgb2hls, hls2rgb, rgb2rgbcie, rgbcie2rgb, rgb2rgbsmpte, rgbsmpte2rgb, rgb2hsl, hsl2rgb.
+				</description>
+		</attribute>
+
+		<attribute name="outputtype" get="1" set="1" type="symbol" size="1">
+			<description>This symbol defines whether the output is sent as a list out of the first outlet, or individual components out of separate outlets.</description>
+		</attribute>
+
+		<attribute name="autopack" get="1" set="1" type="int" size="1">
+			<description>
+				When set to 1 tap.colorspace will send output every time one of the input components changes.
+				Otherwise it will only trigger output when the left inlet changes.
+			</description>
+		</attribute>
+
+	</attributelist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="jit.colorspace"/>
+	</seealsolist>
+
+	
+</c74object>

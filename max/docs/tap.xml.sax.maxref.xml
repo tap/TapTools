@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.xml.sax" module="max" category="TapTools, Data">
+
+	<digest>
+		Parse XML files
+	</digest>
+
+	<description>
+		The <o>tap.xml.sax</o> object 
+		uses the Java SAX parser to stream an XML file into a patcher for some sort of user-defined
+		processing.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">List Processing</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+		
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="open">
+			<arglist><arg name="filename" type="symbol" optional="1" id="0" /></arglist>
+			<description>Open an XML, and prepare it for parsing.</description>
+		</method>
+		<method name="process">
+			<arglist/>
+			<description>Process an open file, parsing it through the outlets of the object.</description>
+		</method>
+	</methodlist>
+	
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="pack"/>
+		<seealso name="tap.pack"/>
+		<seealso name="unpack"/>
+		<seealso name="pak"/>
+	</seealsolist>
+
+	
+</c74object>

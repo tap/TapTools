@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.radians~" module="msp" category="TapTools, MSP Functions">
+
+	<digest>
+		Convert to and from radians
+	</digest>
+
+	<description>
+		The <o>tap.radians~</o> object 
+		performs unit conversions for working with trigonometric values in radians.
+		For a thorough treatment of unit conversion,
+		the <o>jcom.dataspace</o> object in <a href="http://jamoma.org/">Jamoma</a> is recommended.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="float">
+			<arglist>
+				<arg name="input" type="float" optional="0" id="0" />
+			</arglist>
+			<description>float input is process, just like signals, and the converted output is sent to the second outlet.</description>
+		</method>		
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="symbol" size="1">
+			<description>Determines what kind of calculation will be performed.
+				The available options are: hz-to-radians, radians-to-hertz, 
+				degrees-to-radians, radians-to-degrees.
+			</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="cos~"/>
+	</seealsolist>
+
+	
+</c74object>

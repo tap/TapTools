@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.limiter~" module="msp">
+
+	<digest>
+		Dynamics processor: limiter
+	</digest>
+
+	<description>
+		The <o>tap.limiter~</o> object 
+		is an abstraction demonstrating how to create a somewhat simple MSP patch to do dynamics processing.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.gate~"/>
+		<seealso name="tap.limi~"/>
+	</seealsolist>
+
+	
+</c74object>

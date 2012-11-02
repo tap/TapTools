@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.filterbank~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		24-band bank of bandpass filters
+	</digest>
+
+	<description>
+		Originally this was many bandpass filters configured into a filterbank. 
+		Now in Max/MSP 4.0 the fffb~ object far exceeds the ability of the original abstraction. 
+		This abstraction has been rewritten as a simple wrapper around the fffb~ object for backwards compatibility.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="fffb~"/>
+	</seealsolist>
+
+	
+</c74object>

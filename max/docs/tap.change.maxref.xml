@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.change" module="max" category="TapTools, Data">
+
+	<digest>
+		Filter out repetitions
+	</digest>
+
+	<description>
+		Like Max's change object but operates on ints, floats, symbols, and lists. The second inlet acts like a 'set' message.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="int">
+			<arglist><arg name="input" type="int" optional="0" id="0" /></arglist>
+			<description>Integer input.</description>
+		</method>
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>Float input.</description>
+		</method>
+		<method name="list">
+			<arglist><arg name="input" type="int" optional="0" id="0" /></arglist>
+			<description>List input.</description>
+		</method>
+		<method name="anything">
+			<arglist><arg name="input" type="symbol" optional="0" id="0" /></arglist>
+			<description>Any symbol.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="change"/>
+	</seealsolist>
+
+	
+</c74object>

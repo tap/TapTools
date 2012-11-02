@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.filecontainer" module="max" category="TapTools, Files">
+
+	<digest>
+		Bundle files into a database container
+	</digest>
+
+	<description>
+		The tap.filecontainer object provides a way to bundle together a number of 
+		individual files into a single file for distribution.
+		
+		The actual implementation creates a SQLite database into which the files are inserted.
+		When opening a previously created filecontainer, the files are extracted from the 
+		database into a temp folder, and the temp folder is temporarily added to the searchpath
+		-- thus allowing you to access the contents of the container in Max.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Utility</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="open">
+			<arglist>
+				<arg name="filename" type="symbol" optional="1" id="0" />
+			</arglist>
+			<description>Open a file container. If it doesn't exist it will be created.
+				If it does exist, its contents will be extracted and added to the searchpath.
+			</description>
+		</method>
+		<method name="close">
+			<arglist/>
+			<description>Closes the container and cleans up temp files that we extracted.</description>
+		</method>
+		<method name="addfile">
+			<arglist>
+				<arg name="filename" type="symbol" optional="1" id="0" />
+			</arglist>
+			<description>Adds a file to the container. Optional arg specifies the file to add</description>
+		</method>
+		<method name="removefile">
+			<arglist>
+				<arg name="filename" type="symbol" optional="0" id="0" />
+			</arglist>
+			<description>Required argument specifies the file to remove from the container.</description>
+		</method>
+		<method name="getfilepath">
+			<arglist>
+				<arg name="filename" type="symbol" optional="0" id="0" />
+			</arglist>
+			<description>
+				For a named file in the container, 
+				return the full path to the extracted file's temp location.
+			</description>
+		</method>
+		<method name="getnumfiles">
+			<arglist/>
+			<description>Query for the number of files saved inside of the container.</description>
+		</method>
+		<method name="getfilenames">
+			<arglist/>
+			<description>Query for the names of the files saved inside of the container.</description>
+		</method>
+		<method name="sql">
+			<arglist/>
+			<description>Run raw SQL queries on the container. 
+				Don't select the 'content' column though, as that will try to spool the entire 
+				binary file content which will likely freeze up Max for a while.
+			</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="sqlite"/>
+	</seealsolist>
+
+	
+</c74object>

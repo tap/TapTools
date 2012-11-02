@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.dcblock~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		Filter out DC Offsets
+	</digest>
+
+	<description>
+		The <o>tap.dbblock~</o> object is multichannel-capable DC Offset filter.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Filter</metadata>
+		<metadata name="tag">Multichannel</metadata>
+		<metadata name="tag">64-bit</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="clear">
+			<arglist/>
+			<description>Clear out the feedback memory of the object.  
+				Useful for resetting the filter if it has blown up.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="bypass" get="1" set="1" type="int" size="1">
+			<description>Bypass the DC Blocker.</description>
+		</attribute>
+
+		<attribute name="mute" get="1" set="1" type="float" size="1">
+			<description>Silence the DC Blocker.</description>
+		</attribute>
+
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.filter~"/>
+	</seealsolist>
+
+	
+</c74object>

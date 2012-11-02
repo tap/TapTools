@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.ifft~" module="msp" category="TapTools, MSP FFT">
+
+	<digest>
+		Windowed and overlapped Inverse Fast Fourier Transform
+	</digest>
+
+	<description>
+		The <o>tap.ifft~</o> object is a wrapper for MSP's FFT and IFFT objects. 
+		These objects deal with creating, overlapping and windowing the FFTs and IFFTs.
+		Historical Note: these abstractions were developed back in the days of Max 3.5.9 and MSP 1, 
+		before the advent of the <o>pfft~</o> object.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="fftsize" type="int" optional="0">
+			<description>The size of the FFT.</description>
+		</objarg>
+		<objarg name="fftsizeovertwo" type="int" optional="0">
+			<description>Half the size of the FFT.</description>
+		</objarg>
+	</objarglist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.fft~"/>
+	</seealsolist>
+
+	
+</c74object>

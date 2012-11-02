@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.gate~" module="msp">
+
+	<digest>
+		dynamics processor: noise gate
+	</digest>
+
+	<description>
+		This is a simple noise gate example abstraction. 
+		It allows the use of an external key so that a 2nd audio source can control the gating of the original audio source. 
+		Currently attack and release parameters are hardwired, but the abstraction can be easily edited.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.limiter~"/>
+		<seealso name="tap.limi~"/>
+	</seealsolist>
+
+	
+</c74object>

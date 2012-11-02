@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.5comb~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		A bank of 5 comb filters
+	</digest>
+
+	<description>
+		This object is a bank of 5 comb filters that can be controlled via messages or using a
+		built-in graphical interface. 
+			
+		In the interface window you can edit all of the parameters (if you don't want to control them from outside the object). 
+		Additionally, you can store and recall presets. 
+		To store a preset chose a number in the number box at the bottom of the presets and click bang. 
+		If there is no file you will need to create one called tap.5comb.pref in the same folder as the 5comb patch. 
+		Then you can recall the preset at any time.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Filter</metadata>
+		<metadata name="tag">Effect</metadata>
+	</metadatalist>
+
+	
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Audio signal: sound to be processed.</digest>
+		</inlet>
+		<inlet id="1" name="INLET_NAME">
+			<digest>List: Commands for controlling the filter bank.</digest>
+		</inlet>
+	</inletlist>
+	
+	
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" name="OUTLET_NAME">
+			<digest>Audio signal: the processed audio signal.</digest>
+		</outlet>
+	</outletlist>
+	
+	<!-- TODO: Add messages here!-->
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="comb~"/>
+		<seealso name="teeth~"/>
+		<seealso name="tap.comb~"/>
+	</seealsolist>
+
+	
+</c74object>

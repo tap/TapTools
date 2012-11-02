@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.delay~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Sample-accurate delay
+	</digest>
+
+	<description>
+		A simple audio delay.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Time</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="buffersize" type="float" optional="1">
+			<description>An initial size of the sample buffer memory of the delay.</description>
+		</objarg>
+	</objarglist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="delay~"/>
+	</seealsolist>
+
+	
+</c74object>

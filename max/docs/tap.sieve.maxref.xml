@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.sieve" module="max" category="TapTools, Control">
+
+	<digest>
+		Only allow filtered values to pass through
+	</digest>
+
+	<description>
+		The <o>tap.sieve</o> object 
+		is like Max's <o>select</o> object except that it passes the matched number rather than sending a bang.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="value" type="int" optional="1">
+			<description>Sets the initial value to let pass.</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="int">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>Integer input.</description>
+		</method>
+	</methodlist>
+	
+		
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="jcom.pass"/>
+		<seealso name="tap.route"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.diff~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		6db per octave highpass filter
+	</digest>
+
+	<description>
+		6dB per octave highpass filter. 
+		It rebalances the spectrum without fully attenuating the low frequencies. 
+		Particularly useful following convolution to restore some of the definition to a sound. 
+		Similar to Csound's diff opcode.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Filter</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.filter~"/>
+	</seealsolist>
+
+	
+</c74object>

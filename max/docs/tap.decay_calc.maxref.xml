@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.delay_calc" module="msp" category="TapTools, MSP System, MSP Operators">
+
+	<digest>
+		Calculate feedback coefficients
+	</digest>
+
+	<description>
+		Calculates the amount of feedback needed to decay over a certain amount of time for any given delay.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Utility</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="delay" get="1" set="1" type="float" size="1">
+			<description>In order to calculate the feedback amount for a given decay time, the amount of delay (in ms) must be known.</description>
+		</attribute>
+		<attribute name="decay" get="1" set="1" type="float" size="1">
+			<description>Specify the decay time (in seconds) that is desired to get the correct scaling for the feedback coefficient.</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.comb~"/>
+	</seealsolist>
+
+	
+</c74object>

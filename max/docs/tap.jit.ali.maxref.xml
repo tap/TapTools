@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.ali" module="jit" category="TapTools, Jitter, Interpolation, Control">
+
+	<digest>
+		Multidimensional matrix interpolator
+	</digest>
+
+	<description>
+		The concept implemented in the <o>tap.jit.ali</o> object 
+		for multiparametric control was developed by Ali Momeni (for whom the object is named).
+		The paper on which this work is based is published in the NIME 2003 Proceedings:
+		<br/><br/>
+		
+		Momeni, A. and D. Wessel, "Characterizing and Controlling Musical Material Intuitively with Graphical Models."
+		<a href="http://cnmat.cnmat.berkeley.edu/~ali/documents/intuition.pdf">http://cnmat.cnmat.berkeley.edu/~ali/documents/intuition.pdf</a>.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Control</metadata>
+		<metadata name="tag">Interpolation</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="coords">
+			<arglist>
+				<arg name="x" type="float" optional="0" id="0" />
+				<arg name="y" type="float" optional="0" id="0" />
+			</arglist>
+			<description>
+				Perform a look up in the space matrix at the specified location and provide 
+				a calculation of the interpolated data matrix values at the output.
+			</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="data_matrix" get="1" set="1" type="symbol" size="1">
+			<description>The name of the matrix containing the data for interpolation.</description>
+		</attribute>
+		<attribute name="space_matrix" get="1" set="1" type="symbol" size="1">
+			<description>The name of the matrix containing the space by which interpolation weights are determined.</description>
+		</attribute>
+		<attribute name="out_matrix" get="1" set="1" type="symbol" size="1">
+			<description>The name of the matrix to send as output, if output_type is set accordingly.</description>
+		</attribute>
+		<attribute name="output_type" get="1" set="1" type="symbol" size="1">
+			<description>Should be set to 'matrix' or 'list'.</description>
+		</attribute>
+		<attribute name="data_interpolation" get="1" set="1" type="long" size="1">
+			<description>A 1 turns interpolation on, a zero turns it off.</description>
+		</attribute>
+		<attribute name="data_depthclip" get="1" set="1" type="long" size="1">
+			<description>This attribute will limit how "deep" into the matrix to go with the interpolation.</description>
+		</attribute>
+		<attribute name="data_widthclip" get="1" set="1" type="long" size="1">
+			<description>This attribute will limit how "wide" the returned matrix/list of parameters.</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.jit.kernel"/>
+	</seealsolist>
+
+	
+</c74object>

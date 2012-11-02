@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.autothru~" module="msp" category="TapTools, Math">
+
+	<digest>
+		Automatic switch for building abstractions with optional signal inlets
+	</digest>
+
+	<description>
+		Essentially an automatic switch, 
+		<o>tap.autothru~</o> sends the first inlet's signal thru to the output unless the second inlet has a signal connected to it. 
+		If a signal is connected to the 2nd inlet, the first inlet is cut off.<br/><br/>
+		
+		This can be useful for building more flexible abstractions. 
+		A compressor with an optional side-chain for keying is one example.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Utility</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+	
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Audio signal: will pass thru is the second inlets unconnected.</digest>
+		</inlet>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Audio signal: will pass thru if connected, cutting off the first inlet.</digest>
+		</inlet>
+	</inletlist>
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" name="OUTLET_NAME">
+			<digest>Audio signal: the correct audio signal.</digest>
+		</outlet>
+		<outlet id="1" name="OUTLET_NAME">
+			<digest>Dumpout: for accessing object state.</digest>
+		</outlet>
+	</outletlist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.thru"/>
+		<seealso name="tap.thru~"/>
+	</seealsolist>
+
+	
+</c74object>

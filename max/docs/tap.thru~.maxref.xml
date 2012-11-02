@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.thru~" module="msp" category="TapTools, Patching, MSP System">
+
+	<digest>
+		Break feedback loops
+	</digest>
+
+	<description>
+		In MSP, a continuous signal chain is not allowed to feedback into itself. 
+		If it is set up to, MSP simply won't perform the routine. 
+		In order to play with feedback techniques, the signal chain must be broken (typically using send~/receive~ or tapin~/tapout~). 
+		The <o>tap.thru~</o> object does just that. It is particularly useful when working with matrix~.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.thru"/>
+		<seealso name="tap.autothru~"/>
+		<seealso name="send~"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.motion" module="jit" category="TapTools, Jitter, Jitter Analysis">
+
+	<digest>
+		Video motion detection analysis
+	</digest>
+
+	<description>
+		The <o>tap.jit.motion</o> object 
+		compares a frame with the previous frame and reports back the difference and the weighted location of the difference. 
+		All values are normalized (range is from 0.0 to 1.0).
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Video</metadata>
+		<metadata name="tag">Motion</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--MOP-->
+	<mop matrixinputcount="1" matrixoutputcount="0">
+		<matrixinput name="in" planelink="0" typelink="0" dimlink="0" minplanecount="4" maxplanecount="4" mindimcount="2" maxdimcount="2">
+			<types>
+				char
+				long
+				float32
+				float64
+			</types>
+		</matrixinput>	
+	</mop>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.jit.motion+"/>
+		<seealso name="tap.jit.motion2"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.pulsesub~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Pulse-based envelope substitution
+	</digest>
+
+	<description>
+		The <o>tap.pulsesub~</o> object 
+		combines an ADSR envelope generator and an envelope substitution algorithm to 
+		super-impose a beat on top of an existing audio signal.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Effect</metadata>
+		<metadata name="tag">Envelope</metadata>
+		<metadata name="tag">Multichannel</metadata>
+		<metadata name="tag">64-bit</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="numchans" type="int" optional="1">
+			<description>Int argument sets the number of channels of audio to process with the filter.</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="attack" get="1" set="1" type="float" size="1">
+			<description>Attack time in milliseconds.</description>
+		</attribute>
+		<attribute name="decay" get="1" set="1" type="float" size="1">
+			<description>Decay time in milliseconds.</description>
+		</attribute>
+		<attribute name="sustain" get="1" set="1" type="float" size="1">
+			<description>Sustain time in milliseconds.</description>
+		</attribute>
+		<attribute name="release" get="1" set="1" type="float" size="1">
+			<description>Release time in milliseconds.</description>
+		</attribute>
+		<attribute name="mode" get="1" set="1" type="symbol" size="1">
+			<description>Determines the shape of the envelope. The two options are <m>linear</m> and <m>exponential</m>.</description>
+		</attribute>
+		<attribute name="frequency" get="1" set="1" type="float" size="1">
+			<description>The frequency of the generated pulse in Hertz.</description>
+		</attribute>
+		<attribute name="length" get="1" set="1" type="float" size="1">
+			<description>A value between 0.0 and 1.0 determines the duty cycle for how
+				much of each cycle is sustained.</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.adsr~"/>
+	</seealsolist>
+
+	
+</c74object>

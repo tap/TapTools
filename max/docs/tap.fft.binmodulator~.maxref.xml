@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.fft.binmodulator~" module="msp" category="TapTools, MSP Modifiers, MSP FFT">
+
+	<digest>
+		Modulate the bins of an FFT
+	</digest>
+
+	<description>
+		The <o>tap.fft.binmodulator~</o> object contains a bank of up to 512 individual LFOs internally, 
+		which are then applied to each of the bins of an FFT. 
+		In order to function properly the object must be used inside of a <o>pfft~</o> patcher.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Spectral</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="phase_resync">
+			<arglist/>
+			<description>...</description>
+		</method>
+		<method name="zero_frequency">
+			<arglist/>
+			<description>Set the frequency of all LFOs to zero.</description>
+		</method>
+		<method name="zero_phase">
+			<arglist/>
+			<description>Set the phase of all LFOs to zero.</description>
+		</method>
+		<method name="zero_depth">
+			<arglist/>
+			<description>Set the depth of all LFOs to zero.</description>
+		</method>
+		<method name="zero_shape">
+			<arglist/>
+			<description>Set the shape of all LFOs to sine.</description>
+		</method>
+		<method name="getfrequencyn">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>Get the frequency for the specified bin LFO via the dumpout outlet.</description>
+		</method>
+		<method name="getphasen">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>Get the phase for the specified bin LFO via the dumpout outlet.</description>
+		</method>
+		<method name="getdepthn">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>Get the depth for the specified bin LFO via the dumpout outlet.</description>
+		</method>
+		<method name="getshapen">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>Get the shape for the specified bin LFO via the dumpout outlet.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="bypass" get="1" set="1" type="int" size="1">
+			<description>Bypass this object's audio processing.</description>
+		</attribute>
+		<attribute name="frequency" get="1" set="1" type="float" size="1">
+			<description>Use a list to specify the frequencies of the LFOs in the binmodulator.</description>
+		</attribute>
+		<attribute name="depth" get="1" set="1" type="float" size="1">
+			<description>Use a list to specify the depths of the LFOs in the binmodulator.</description>
+		</attribute>
+		<attribute name="phase" get="1" set="1" type="float" size="1">
+			<description>Use a list to specify the phases of the LFOs in the binmodulator.</description>
+		</attribute>
+		<attribute name="shape" get="1" set="1" type="float" size="1">
+			<description>Use a list to specify the waveshapes of the LFOs in the binmodulator.</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.fft.binmodui"/>
+	</seealsolist>
+
+	
+</c74object>

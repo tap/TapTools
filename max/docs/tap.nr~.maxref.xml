@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.nr~" module="msp" category="TapTools, MSP Filters, MSP FFT, MSP Modifiers">
+
+	<digest>
+		Spectral noise reduction
+	</digest>
+
+	<description>
+		The <o>tap.nr~</o> object 
+		implements a spectral expander/gate to silence bins whose signal falls below a threshold used to determine importance.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Spectral</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="fftsize" type="int" optional="0">
+			<description>The size of the FFT.</description>
+		</objarg>
+		<objarg name="fftsizeovertwo" type="int" optional="0">
+			<description>Half the size of the FFT.</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>
+				A float in the left inlet sets the threshold. 
+				A float in the right inlet sets how gradually the threshold will be engaged.
+			</description>
+		</method>
+		
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="triggers" get="1" set="1" type="int" size="1">
+			<description>The triggers attribute specifies which inlets are "hot", 
+				meaning which inlets trigger and output when input is received.  
+				This is specified as a list of toggles (ones or zeros) that represent which inlets do the triggering.  
+				By default the first inlet is hot and the remaining inlets are cold.
+			</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.gate~"/>
+	</seealsolist>
+
+	
+</c74object>

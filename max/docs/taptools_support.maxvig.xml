@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="_c74_vig.xsl" type="text/xsl"?>
+<vignette name="TapTools 3 Support">
+
+	<bodytext>
+		<img src="74objects-logo128.png" />
+		<header1>TapTools 3 Support</header1>
+
+
+		<sidebartext>
+			<header2>Introduction</header2>
+			<body>
+				<ul>
+				<!--	<li>Introduction</li>
+					<li><link type="tutorial" module="max" name="maxindex">Tutorials</link></li> -->
+					<li><link type="vignette" module="core" name="taptools_intro">TapTools Topics</link></li>
+					<li><link type="vignette" module="core" name="taptools_authorization">Authorization</link></li>
+				<!--	<li><link type="vignette" module="intro" name="taptools_software_update">Software Update</link></li> -->
+					<li><link type="vignette" module="core" name="taptools_whats_new">What's New</link></li>
+					<li><link type="vignette" module="core" name="taptools_support">Support</link></li>
+				<!--	<li><link type="vignette" module="core" name="shortcuts">Tips and Shortcuts</link></li>
+					<li><link type="vignette" module="core" name="messages_to_max">Messages to <o>max</o></link></li>
+				-->
+				</ul>
+			</body>
+
+			<header2>In Depth</header2>
+			<body>
+				<ul>
+					<!--
+					<li><link type="tutorial" module="msp" name="mspindex">Tutorials</link></li>
+					<li><link type="tutorial" module="msp" name="mspintro">MSP Introduction</link></li>
+					<li><link type="tutorial" module="msp" name="mspdigitalaudio">How Digital Audio Works</link></li>
+					<li><link type="tutorial" module="msp" name="msphowmspworks">How MSP Works</link></li>
+					<li><link type="tutorial" module="msp" name="mspaudioio">Audio I/O</link></li>
+					<li><link type="vignette" module="core" name="msp_functional">MSP Objects by Function</link></li>
+					<li><link type="vignette" module="core" name="msp_alphabetical">MSP Objects A-Z</link></li>
+					<li><link type="vignette" module="core" name="messages_to_dsp">Messages to <o>dsp</o></link></li>
+				-->
+					<li><link type="vignette" module="core" name="taptools_and_collectives">Collectives &amp; Standalones</link></li>
+				</ul>
+			</body>
+		</sidebartext>
+
+
+
+		<!-- TODO: How cool would it be to have the form right in here and have send the info! -->
+
+		<header2>How do I get help or submit a bug report?</header2>
+		<body>
+<!--
+			The best way to submit a request for help or a bug report is to use the 
+			<a href="http://electrotap.com/support/">Electrotap Support Form</a> on the Electrotap website.
+			<br/><br/>
+	
+			You can also email <a href="mailto:support@electrotap.com">support@electrotap.com</a> with your question or comment.
+			<br/><br/>
+	
+-->
+			The easiest way to get help is to send an email to <a href="mailto:support@74objects.com">support@74objects.com</a>
+			or to the <a href="http://groups.google.com/group/electrotap">Electrotap Google Group</a>.
+			<br/><br/>
+			
+			It is of the utmost importance that you provide as much information as possible.  If the 
+			report is ambiguous then it is very hard to help.  Here is a checklist of things we will be looking for:<br/><br/>
+			<ul>
+				<li>Platform: Mac OS 10.6.2 or Windows XP Service Pack 3 are two examples.</li>
+				<li>Processor: Is this a PPC or an Intel processor?</li>
+				<li>Crash Log: If you are on a Mac, please send the crash report!</li>
+				<li>Max settings: Is overdrive turned on? What is you audio vector size and sample rate?</li>
+				<li>Example Patch: If you can send a small patcher that demonstrates the problem, you will be much loved.</li>
+				<li>Unambiguous steps to reproduce the problem.</li>
+				<li>Registration number: believe it or not, this actually helps :-).</li>
+				<li>Documentation List: What documentation have you read about the problem? Have you visited our <a href="http://electrotap.com/faqs">FAQ</a>?</li>
+			</ul>
+		</body>
+
+
+
+
+		<header2><link type="vignette" module="intro" name="taptools_intro">TapTools Documentation Topics</link></header2>
+
+
+	</bodytext>
+</vignette>

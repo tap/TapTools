@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.buffer.peak~" module="msp" category="TapTools, MSP Buffers">
+
+	<digest>
+		Find the hottest sample in a buffer~
+	</digest>
+
+	<description>
+		<o>tap.buffer.peak~</o> finds the hottest sample in the buffer (it looks at all channels when doing this).
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Buffer</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="buffername" type="symbol" optional="0">
+			<description>The name of a buffer to reference.</description>
+		</objarg>
+	</objarglist>
+	
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="set">
+			<arglist><arg name="name" type="symbol" optional="0" id="0" /></arglist>
+			<description>Set the buffer to reference.</description>
+		</method>
+		<method name="bang">
+			<arglist/>
+			<description>Return the location of the peak sample in the buffer.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.buffer.norm~"/>
+	</seealsolist>
+
+	
+</c74object>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.ascii" module="max">
+
+	<digest>
+		Converts between characters and their ASCII number representation
+	</digest>
+
+	<description>
+		The <o>tap.ascii</o> object 
+		does the same thing as the now-standard <o>atoi</o> and <o>itoa</o> objects in Max.
+		This object is still included for backwards-compatibility purposes.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">Obsolete</metadata>
+	</metadatalist>
+
+	
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Input to be converted to/from an ASCII representation.</digest>
+		</inlet>
+	</inletlist>
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" name="OUTLET_NAME">
+			<digest>The converted output.</digest>
+		</outlet>
+		<outlet id="1" name="OUTLET_NAME">
+			<digest>Dumpout: for accessing object state.</digest>
+		</outlet>
+	</outletlist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+
+		<method name="int">
+			<arglist><arg name="input" type="int" optional="0" id="0" /></arglist>
+			<description>If the <m>mode</m> attribute is set to <m>itoa</m>>, then this is processed as an ascii number and a character is sent to the outlet.  Otherwise it is converted to a symbol, and processed in to a list of appropriate ascii values.</description>
+		</method>
+		
+		<method name="list">
+			<arglist>
+				<arg name="input" type="list" optional="0" id="0" />
+			</arglist>
+			<description>If the <m>mode</m> attribute is set to <m>itoa</m>>, then this is processed as a series of ascii numbers and a symbol is sent to the outlet after being converted to text.  Otherwise it is converted to a symbol, and processed in to a list of appropriate ascii values.</description>
+		</method>
+		
+		<method name="anything">
+			<arglist><arg name="input" type="list" optional="0" id="0" /></arglist>
+			<description>If the <m>mode</m> attribute is set to <m>itoa</m>>, then this is processed as a series of ascii numbers and a symbol is sent to the outlet after being converted to text.  Otherwise it is converted to a symbol, and processed in to a list of appropriate ascii values.</description>
+		</method>
+		
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="symbol" size="1">
+			<digest>Switches between <m>atoi</m> and <m>itoa</m> conversion</digest>
+		</attribute>
+	</attributelist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="atoi"/>
+		<seealso name="itoa"/>
+	</seealsolist>
+
+	
+</c74object>
