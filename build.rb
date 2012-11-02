@@ -25,3 +25,6 @@ zero_count
 build_project("#{glibdir}/../Support/objectivemax/MaxObject", "MaxObject.xcodeproj", "Deployment", true, nil, false)
 
 load "build.rb"
+
+`mkdir -p "#{glibdir}"/max/externals`
+`mv "#{glibdir}"/../../Builds/MaxMSP/tap.* "#{glibdir}"/max/externals`
