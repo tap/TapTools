@@ -376,7 +376,7 @@ t_int *comb2_perform(t_int *w)
 void comb2_perform64(t_comb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
 	
-    t_double	*delay = ((t_float *)(w[3]));				// Input (Delay Time)
+    double	*delay = ((t_float *)(w[3]));				// Input (Delay Time)
     x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
     x->signal_out[0]->set_vector((t_float *)(w[4]));	// Output
 	x->signal_in[0]->vectorsize = (int)(w[5]);			// Vector Size
