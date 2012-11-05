@@ -1,5 +1,10 @@
-// tap.filecontainer - a sqlite-based container for storing files
-// tim place
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2008 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 /*	TO DO
 	- Implement the 'sync' method so that files that are updated in the temp folder

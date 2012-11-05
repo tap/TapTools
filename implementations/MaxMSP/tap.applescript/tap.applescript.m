@@ -1,9 +1,9 @@
-/*	
- *	tap.applescript
- *	max object for executing applescripts
- *	by timothy place
- *	tim@electrotap.com
- *	copyright © 2007	
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2007 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
 
 #include "ext.h"

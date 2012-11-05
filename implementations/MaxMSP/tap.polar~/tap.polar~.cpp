@@ -1,6 +1,10 @@
-// MSP External: tap.polar~.c
-// polar coordinate conversion
-// by Timothy Place, 2000
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2000 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"		// stuff needed for TapTools Externals
 #include "../ttblue/tt_audio_base.h"

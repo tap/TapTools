@@ -1,5 +1,10 @@
-// MSP External: tap.buildassist
-// flag Max's collective builder to automatically include files
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

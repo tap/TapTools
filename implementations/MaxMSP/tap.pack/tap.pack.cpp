@@ -1,12 +1,10 @@
 /* 
-	tap.pack
- 		a pack object that is specified with a single argument for how many inlets (any type)
- 		- has an assignable trigger inlet (not always inlet 0), may be any of a list (specified as an attribute)
-	Copyright © 2003 by Timothy Place
-*/
-//  Add these later
-//	@mode <pack|concatenate>
-//	@initialelements <(list)>
+ *	External object for Max/MSP
+ *	Copyright © 2003 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

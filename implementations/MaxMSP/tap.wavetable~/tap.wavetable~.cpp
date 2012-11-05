@@ -1,6 +1,10 @@
-// MSP External: wavetable oscillator
-// Copyright © 2003/2004 Electrotap L.L.C.
-// All Rights Reserved.
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2003 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"	// Required for all TapTools External Objects
 #include "../ttblue/tt_audio_base.h"

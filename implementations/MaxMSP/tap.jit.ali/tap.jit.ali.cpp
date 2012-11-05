@@ -1,7 +1,13 @@
 /* 
-	Copyright © 2003 by Timothy Place
-	Based on patches by Ali Momeni for the NIME'03 conference
-*/
+ *	External object for Max/MSP
+ *	Copyright © 2003 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
+//	Based on patches by Ali Momeni for the NIME'03 conference
+ 
 
 // NEED TO WRITE A CUSTOM SET_ATTRIBUTE METHOD FOR out_matrix !!!
 

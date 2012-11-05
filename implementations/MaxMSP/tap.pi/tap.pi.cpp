@@ -1,3 +1,11 @@
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 1999 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
 #include "TTClassWrapperMax.h"
 
 static t_class*   pi_class;		// Required. Global pointing to this class 

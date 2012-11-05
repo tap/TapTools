@@ -1,5 +1,10 @@
-// tap.snap~.c  
-// snap a location to the nearest zero-crossing
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 #include "ext_globalsymbol.h"

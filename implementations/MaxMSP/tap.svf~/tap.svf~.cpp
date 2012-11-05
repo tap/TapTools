@@ -1,5 +1,10 @@
-// MSP External: SVF Filter with Modulation
-// copyright 2004 by tim place
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 #include "../ttblue/tt_audio_base.h"

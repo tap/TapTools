@@ -1,5 +1,10 @@
-// MSP External: tap.biquadcalc
-// Calculate coefficients for MSP's biquad~ filter object
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

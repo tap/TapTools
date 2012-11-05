@@ -1,8 +1,10 @@
 /* 
-	tap.unpack
- 		an unpack object that is specified with a single argument for how many outlets (any type)
-	Copyright © 2003 by Timothy Place
-*/
+ *	External object for Max/MSP
+ *	Copyright © 2003 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

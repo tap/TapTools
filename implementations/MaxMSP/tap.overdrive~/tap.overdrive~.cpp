@@ -1,5 +1,12 @@
-#include "TTClassWrapperMax.h"
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2006 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
+#include "TTClassWrapperMax.h"
 
 extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {

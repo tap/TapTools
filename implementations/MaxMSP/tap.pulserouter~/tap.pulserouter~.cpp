@@ -1,10 +1,9 @@
-/*
- *  jta.pr.c
- *  jta.pulserouter~
- *
- *  Created by Jesse Allison on Mon May 31 2004.
- *  Copyright (c) 2004 __MyCompanyName__. All rights reserved.
- *
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Jesse Allison
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
 
 #include "TTClassWrapperMax.h"

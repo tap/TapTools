@@ -1,6 +1,10 @@
-// MSP External: delay unit
-// by Tim Place
-// Copyright © 2004, Electrotap L.L.C.
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 #include "../ttblue/tt_audio_base.h"

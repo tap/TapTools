@@ -1,11 +1,15 @@
 /* 
+ *	External object for Max/MSP
+ *	Copyright © 2007 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
+/* 
 	tap.rotate
  	perform 3D rotations on sets of coordinates
 	algorithm provided by stephan moore
-	external object copyright © 2007 by timothy place tim@electrotap.com
-
-	may define NOCP preprocessor directive to build a copy that doesn't link to the TT lib
-	this is done so no-strings-attached versions can be compiled for stephan
 */
 
 

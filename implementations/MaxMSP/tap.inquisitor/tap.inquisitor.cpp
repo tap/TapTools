@@ -1,5 +1,12 @@
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2009 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
 // Query the values of another object
-// Copyright © 2009 by Tim Place
 
 #include "TTClassWrapperMax.h"
 #include "jpatcher_api.h"

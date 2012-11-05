@@ -1,9 +1,9 @@
 /* 
- *	tap.pan~
  *	External object for Max/MSP
- *
  *	Copyright © 2001 by Timothy Place
- * 	All Rights Reserved.
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
 
 #include "TTClassWrapperMax.h"

@@ -1,5 +1,10 @@
-// MSP External: tap.elixir~.c
-// an advanced signal selector/elixir
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2000 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 // Things to think about adding: a switch for the automatic gain cut
 

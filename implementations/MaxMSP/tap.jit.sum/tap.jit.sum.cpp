@@ -1,7 +1,11 @@
 /* 
-	Copyright © 2002 by Timothy Place
-	Based on the jit.iter source code by Joshua Kit Clayton and © 2002 by Cycling'74 
-*/
+ *	External object for Max/MSP
+ *	Copyright © 2002 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
 
 #include "TTClassWrapperMax.h"
 #include "jit.common.h"

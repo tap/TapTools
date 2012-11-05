@@ -1,5 +1,10 @@
-// Max External: prime.c
-// T.Place - 11/04/1999
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 1999 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

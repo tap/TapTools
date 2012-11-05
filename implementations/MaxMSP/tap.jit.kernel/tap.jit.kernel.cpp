@@ -1,3 +1,11 @@
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2003 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
 #define NO_COMMON_SYMS
 #include "ext.h"
 #include "ext_obex.h"

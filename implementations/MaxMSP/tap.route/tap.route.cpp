@@ -1,8 +1,10 @@
 /* 
-	tap.route
- 	an alternative route object
-	copyright © 2003 by timothy place tap@electrotap.com
-*/
+ *	External object for Max/MSP
+ *	Copyright © 2003 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

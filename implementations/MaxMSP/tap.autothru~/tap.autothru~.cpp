@@ -1,5 +1,10 @@
-// MSP External: tap.auto_thru~.c
-// A thru object that switches to the 2nd inlet if it is connected
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2001 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

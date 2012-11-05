@@ -1,12 +1,9 @@
 /* 
- *	tt.limiter~
  *	External object for Max/MSP
- *	
- *	Example project for TTBlue
- *	Copyright © 2008 by Timothy Place
+ *	Copyright © 2005 by Timothy Place
  * 
- * License: This code is licensed under the terms of the "New BSD License"
- * http://creativecommons.org/licenses/BSD/
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
 
 #include "TTClassWrapperMax.h"

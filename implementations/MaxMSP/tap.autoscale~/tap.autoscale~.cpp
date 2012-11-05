@@ -1,5 +1,10 @@
-// By Jesse Allison
-// Attributes added 2005-03-29, Tim Place
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2005 by Jesse Allison
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 

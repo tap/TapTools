@@ -1,6 +1,10 @@
-// MSP External: sift~.c
-// An MSP object to "sift" out unwanted sample values and convert to floats
-// By Timothy Place, 2000
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2000 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"			
 

@@ -1,5 +1,10 @@
-// MSP External: tap.lp-comb~.c
-// Comb filter with a lowpass filter in the feedback loop
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2001 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 #include "../ttblue/tt_audio_base.h"

@@ -1,13 +1,11 @@
 /* 
- *	tt.filter~
  *	External object for Max/MSP
- *	Wannabe Max wrapper (external) for all filter units in ttblue
- *	Example project for TTBlue
- *	Copyright © 2008 by Timothy Place & Trond Lossius
+ *	Copyright © 2008 by Timothy Place and Trond Lossius
  * 
- * License: This code is licensed under the terms of the "New BSD License"
- * http://creativecommons.org/licenses/BSD/
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
+
 
 #include "TTClassWrapperMax.h"
 //#include "TTClassWrapperMax.h"

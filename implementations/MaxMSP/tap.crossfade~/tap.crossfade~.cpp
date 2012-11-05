@@ -1,7 +1,9 @@
 /* 
- *	tap.crossfade~
  *	External object for Max/MSP
- *	Copyright © 2001-2012 by Timothy Place
+ *	Copyright © 2001 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
 
 #include "TTClassWrapperMax.h"

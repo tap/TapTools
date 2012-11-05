@@ -1,5 +1,12 @@
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2005 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
 // gang multiple objects together (originally called tap.hipnopp)
-// Copyright © 2005 by Tim Place
 
 #include "TTClassWrapperMax.h"
 

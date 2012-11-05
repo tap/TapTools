@@ -1,5 +1,10 @@
-// Max External: tap.random.c
-// T.Place - (11/30/2001)
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2001 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"
 //#include <stdlib.h>

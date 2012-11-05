@@ -1,5 +1,10 @@
-// MSP External: tap.1pole-lp~.c
-// 1 pole lowpass filter
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
 
 #include "TTClassWrapperMax.h"	// Required for all TapTools External Objects
 #include "../ttblue/tt_audio_base.h"

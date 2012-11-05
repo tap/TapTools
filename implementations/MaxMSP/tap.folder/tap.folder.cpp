@@ -1,7 +1,9 @@
-/*	
- *	tap.folder
- *	Perform operations on folders in the filesystem.
- *	Copyright © 2008 by Tim Place
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2008 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
  
 #include "TTClassWrapperMax.h"

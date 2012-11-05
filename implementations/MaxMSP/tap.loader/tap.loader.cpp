@@ -1,11 +1,17 @@
 /* 
+ *	External object for Max/MSP
+ *	Copyright © 2009 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
+ */
+
+/* 
 	tap.loader
 	when max is launched, check for the presence of the required shared libraries
 	if not present, then copy them into place
  
 	finally, init the shared libs by loading one of the externs that links to them
-
-	Copyright © 2009
 */
 
 		//#import <Cocoa/Cocoa.h>

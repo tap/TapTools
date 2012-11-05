@@ -1,8 +1,9 @@
-/*
- * tap.buffer.peak~
- * an msp object for finding the hottest sample of a buffer
- * by Timothy Place
- * Copyright © 2004 Electrotap L.L.C.
+/* 
+ *	External object for Max/MSP
+ *	Copyright © 2004 by Timothy Place
+ * 
+ *	License: This code is licensed under the terms of the "New BSD License"
+ *	http://creativecommons.org/licenses/BSD/
  */
 
 #include "TTClassWrapperMax.h"
