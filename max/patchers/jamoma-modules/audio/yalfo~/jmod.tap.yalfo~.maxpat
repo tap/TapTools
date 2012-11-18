@@ -548,7 +548,7 @@
 		"dependency_cache" : [ 			{
 				"name" : "jcom.meter_receive.maxpat",
 				"bootpath" : "/Users/nilspeters/Documents/gits/Jamoma/Modules/Modular/Max/library/components/meter_receive",
-				"patcherrelativepath" : "../../../../Modules/Modular/Max/library/components/meter_receive",
+				"patcherrelativepath" : "../../../../Core/Modular/Max/library/components/meter_receive",
 				"type" : "JSON",
 				"implicit" : 1
 			}
