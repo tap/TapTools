@@ -11,11 +11,11 @@
 		2202567114E820BA0049BF4B /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2202567014E820BA0049BF4B /* MaxAudioAPI.framework */; };
 		2202567314E820C60049BF4B /* JitterAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2202567214E820C60049BF4B /* JitterAPI.framework */; };
 		2202567514E820D90049BF4B /* commonsyms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2202567414E820D90049BF4B /* commonsyms.cpp */; };
-		2202567A14E820F70049BF4B /* MaxAudioSignal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2202567614E820F70049BF4B /* MaxAudioSignal.h */; };
-		2202567B14E820F70049BF4B /* MaxObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 2202567714E820F70049BF4B /* MaxObject.h */; };
-		2202567C14E820F70049BF4B /* maxobjectbridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 2202567814E820F70049BF4B /* maxobjectbridge.h */; };
-		2202567D14E820F70049BF4B /* MaxObjectTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2202567914E820F70049BF4B /* MaxObjectTypes.h */; };
-		2202567F14E8217D0049BF4B /* libMaxObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2202567E14E8217D0049BF4B /* libMaxObject.a */; };
+		2266865916593A7000C33CFF /* libMaxObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2266865816593A7000C33CFF /* libMaxObject.a */; };
+		2266865E16593A8D00C33CFF /* MaxAudioSignal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865A16593A8D00C33CFF /* MaxAudioSignal.h */; };
+		2266865F16593A8D00C33CFF /* MaxObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865B16593A8D00C33CFF /* MaxObject.h */; };
+		2266866016593A8D00C33CFF /* maxobjectbridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865C16593A8D00C33CFF /* maxobjectbridge.h */; };
+		2266866116593A8D00C33CFF /* MaxObjectTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865D16593A8D00C33CFF /* MaxObjectTypes.h */; };
 		227E0DD010B650EE00161657 /* tap.applescript.m in Sources */ = {isa = PBXBuildFile; fileRef = 227E0DCF10B650EE00161657 /* tap.applescript.m */; };
 		227E0E0910B651F200161657 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 227E0E0810B651F200161657 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
@@ -25,11 +25,11 @@
 		2202567014E820BA0049BF4B /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../../Core/Shared/max/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = "<group>"; };
 		2202567214E820C60049BF4B /* JitterAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JitterAPI.framework; path = "../../../../../Core/Shared/max/c74support/jit-includes/JitterAPI.framework"; sourceTree = "<group>"; };
 		2202567414E820D90049BF4B /* commonsyms.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = commonsyms.cpp; path = "../../../../../Core/Shared/max/c74support/max-includes/common/commonsyms.cpp"; sourceTree = "<group>"; };
-		2202567614E820F70049BF4B /* MaxAudioSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxAudioSignal.h; path = ../../../../../Core/Shared/objectivemax/MaxObject/MaxAudioSignal.h; sourceTree = "<group>"; };
-		2202567714E820F70049BF4B /* MaxObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxObject.h; path = ../../../../../Core/Shared/objectivemax/MaxObject/MaxObject.h; sourceTree = "<group>"; };
-		2202567814E820F70049BF4B /* maxobjectbridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maxobjectbridge.h; path = ../../../../../Core/Shared/objectivemax/MaxObject/maxobjectbridge.h; sourceTree = "<group>"; };
-		2202567914E820F70049BF4B /* MaxObjectTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxObjectTypes.h; path = ../../../../../Core/Shared/objectivemax/MaxObject/MaxObjectTypes.h; sourceTree = "<group>"; };
-		2202567E14E8217D0049BF4B /* libMaxObject.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMaxObject.a; path = ../../../../../Core/Shared/objectivemax/MaxObject/build/UninstalledProducts/libMaxObject.a; sourceTree = "<group>"; };
+		2266865816593A7000C33CFF /* libMaxObject.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMaxObject.a; path = ../../../objectivemax/MaxObject/build/UninstalledProducts/libMaxObject.a; sourceTree = "<group>"; };
+		2266865A16593A8D00C33CFF /* MaxAudioSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxAudioSignal.h; path = ../../../objectivemax/MaxObject/MaxAudioSignal.h; sourceTree = "<group>"; };
+		2266865B16593A8D00C33CFF /* MaxObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxObject.h; path = ../../../objectivemax/MaxObject/MaxObject.h; sourceTree = "<group>"; };
+		2266865C16593A8D00C33CFF /* maxobjectbridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maxobjectbridge.h; path = ../../../objectivemax/MaxObject/maxobjectbridge.h; sourceTree = "<group>"; };
+		2266865D16593A8D00C33CFF /* MaxObjectTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxObjectTypes.h; path = ../../../objectivemax/MaxObject/MaxObjectTypes.h; sourceTree = "<group>"; };
 		227E0DCF10B650EE00161657 /* tap.applescript.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = tap.applescript.m; sourceTree = "<group>"; };
 		227E0E0810B651F200161657 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		2FBBEAE508F335360078DB84 /* tap.applescript.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tap.applescript.mxo; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,7 +44,7 @@
 				2202566E14E820AF0049BF4B /* MaxAPI.framework in Frameworks */,
 				2202567114E820BA0049BF4B /* MaxAudioAPI.framework in Frameworks */,
 				2202567314E820C60049BF4B /* JitterAPI.framework in Frameworks */,
-				2202567F14E8217D0049BF4B /* libMaxObject.a in Frameworks */,
+				2266865916593A7000C33CFF /* libMaxObject.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,7 +65,6 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				2202567E14E8217D0049BF4B /* libMaxObject.a */,
 				227E0E0810B651F200161657 /* Cocoa.framework */,
 				2202567214E820C60049BF4B /* JitterAPI.framework */,
 				2202567014E820BA0049BF4B /* MaxAudioAPI.framework */,
@@ -78,10 +77,11 @@
 			isa = PBXGroup;
 			children = (
 				227E0DCF10B650EE00161657 /* tap.applescript.m */,
-				2202567614E820F70049BF4B /* MaxAudioSignal.h */,
-				2202567714E820F70049BF4B /* MaxObject.h */,
-				2202567814E820F70049BF4B /* maxobjectbridge.h */,
-				2202567914E820F70049BF4B /* MaxObjectTypes.h */,
+				2266865A16593A8D00C33CFF /* MaxAudioSignal.h */,
+				2266865B16593A8D00C33CFF /* MaxObject.h */,
+				2266865C16593A8D00C33CFF /* maxobjectbridge.h */,
+				2266865D16593A8D00C33CFF /* MaxObjectTypes.h */,
+				2266865816593A7000C33CFF /* libMaxObject.a */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -101,10 +101,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2202567A14E820F70049BF4B /* MaxAudioSignal.h in Headers */,
-				2202567B14E820F70049BF4B /* MaxObject.h in Headers */,
-				2202567C14E820F70049BF4B /* maxobjectbridge.h in Headers */,
-				2202567D14E820F70049BF4B /* MaxObjectTypes.h in Headers */,
+				2266865E16593A8D00C33CFF /* MaxAudioSignal.h in Headers */,
+				2266865F16593A8D00C33CFF /* MaxObject.h in Headers */,
+				2266866016593A8D00C33CFF /* maxobjectbridge.h in Headers */,
+				2266866116593A8D00C33CFF /* MaxObjectTypes.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,7 +136,7 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0450;
 			};
 			buildConfigurationList = 2FBBEACF08F335010078DB84 /* Build configuration list for PBXProject "tap.applescript" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -221,6 +221,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../../Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
+					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Core/Shared/objectivemax";
@@ -249,6 +250,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../../Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
+					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Core/Shared/objectivemax";

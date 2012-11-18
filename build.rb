@@ -22,7 +22,7 @@ require "#{glibdir}/../../Core/Shared/jamomalib.rb"
 
 create_logs(@projectName)
 zero_count
-build_project("#{glibdir}/../../Core/Shared/objectivemax/MaxObject", "MaxObject.xcodeproj", "Deployment", true, nil, false)
+build_project("#{glibdir}/objectivemax/MaxObject", "MaxObject.xcodeproj", "Deployment", true, nil, false)
 
 load "build.rb"
 
