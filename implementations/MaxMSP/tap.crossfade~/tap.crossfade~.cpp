@@ -26,7 +26,7 @@ typedef struct _fade{
 
 // Prototypes for methods
 void *fade_new(t_symbol *s, long argc, t_atom *argv);				// New Object Creation Method
-void fade_dsp64(t_fade *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags); // DSP64 Method
+void fade_dsp64(t_fade *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags); // ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib64 Method
 void fade_assist(t_fade *x, void *b, long m, long a, char *s);		// Assistance Method
 void fade_float(t_fade *x, double value );							// Float Method
 void fade_free(t_fade *x);
@@ -47,7 +47,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 	
-	TTDSPInit();
+	TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylibInit();
 	common_symbols_init();
 	
 	// Define our class
@@ -252,7 +252,7 @@ void fade_perform64_2(t_fade *x, t_object *dsp64, double **ins, long numins, dou
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void fade_dsp64(t_fade *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	short		i, j, k;

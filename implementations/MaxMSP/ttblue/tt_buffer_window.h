@@ -25,7 +25,7 @@
 class tt_buffer_window:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_buffer_window::*FuncPtr)(tt_audio_signal *, tt_audio_signal *, tt_audio_signal *);
 		FuncPtr dsp_executor;
 		
@@ -95,7 +95,7 @@ class tt_buffer_window:public tt_audio_base{
 		
 
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for this object's dsp routine
@@ -105,7 +105,7 @@ class tt_buffer_window:public tt_audio_base{
 		}
 
 	private:
-		// DSP LOOP: input is the location from 0 to 1
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: input is the location from 0 to 1
 		void dsp_vector_calc_normalized(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			int p1, p2;
@@ -128,7 +128,7 @@ class tt_buffer_window:public tt_audio_base{
 		    in1->reset(); in2->reset(); out->reset();
 		}
 		
-		// DSP LOOP: input is the location from 0 to 1, NO INTERPOLATION, NO RANGE CHECK
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: input is the location from 0 to 1, NO INTERPOLATION, NO RANGE CHECK
 		//	in1: index
 		//	in2: signal to scale
 		//	out: output

@@ -31,7 +31,7 @@ typedef struct _maxwave{
 void *maxwave_new(t_symbol *msg, short argc, t_atom *argv);					// New Object Creation Method
 void maxwave_free(t_maxwave *x);
 void maxwave_assist(t_maxwave *x, void *b, long msg, long arg, char *dst);	// Assistance Method
-void maxwave_dsp(t_maxwave *x, t_signal **sp, short *count);				// DSP Method
+void maxwave_dsp(t_maxwave *x, t_signal **sp, short *count);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 t_int *maxwave_perform(t_int *w);											// An MSP Perform (signal) Method
 t_int *maxwave_perform2(t_int *w);
 t_max_err attr_set_gain(t_maxwave *x, void *attr, long argc, t_atom *argv);
@@ -185,11 +185,11 @@ t_int *maxwave_perform(t_int *w)
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void maxwave_dsp(t_maxwave *x, t_signal **sp, short *count)
 {
 	x->my_wave->set_sr(sp[0]->s_sr);
-	dsp_add(maxwave_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+	dsp_add(maxwave_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 	
 	#pragma unused(count)
 }

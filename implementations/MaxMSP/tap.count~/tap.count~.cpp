@@ -21,7 +21,7 @@ typedef struct _count_tilde{		// Data Structure for this object
 
 
 // Prototypes for methods: need a method for each incoming message type:
-void count_tilde_dsp64(t_count_tilde *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void count_tilde_dsp64(t_count_tilde *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void count_tilde_assist(t_count_tilde *x, void *b, long m, long a, char *s);	// Assistance Method
 void *count_tilde_new(t_symbol *s, long argc, t_atom *argv);				// New Object Creation Method
 void count_tilde_perform64(t_count_tilde *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);

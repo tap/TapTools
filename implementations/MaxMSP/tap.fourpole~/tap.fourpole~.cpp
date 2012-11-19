@@ -29,7 +29,7 @@ typedef struct _fourpole
 void *fourpole_new(t_symbol *msg, short argc, t_atom *argv);				// New Object Creation Method
 t_int *fourpole_perform(t_int *w);											// An MSP Perform (signal) Method
 t_int *fourpole_perform2(t_int *w);
-void fourpole_dsp(t_fourpole *x, t_signal **sp, short *count);				// DSP Method
+void fourpole_dsp(t_fourpole *x, t_signal **sp, short *count);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void fourpole_assist(t_fourpole *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void fourpole_free(t_fourpole *x);
 void fourpole_clear(t_fourpole *x);
@@ -170,7 +170,7 @@ t_int *fourpole_perform(t_int *w)
 	if (!(x->x_obj.z_disabled))
 		x->myFilter->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);	
 
-    return (w + 5);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -188,11 +188,11 @@ t_int *fourpole_perform2(t_int *w)
 		x->myFilter->set_attr(tt_lowpass_fourpole::k_frequency, x->attr_frequency);
 		x->myFilter->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);	
 	}
-    return (w + 6);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 6);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void fourpole_dsp(t_fourpole *x, t_signal **sp, short *count)
 {
 	x->myFilter->set_sr(sp[0]->s_sr);
@@ -200,6 +200,6 @@ void fourpole_dsp(t_fourpole *x, t_signal **sp, short *count)
 	if(count[1])
 		dsp_add(fourpole_perform2, 5, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[0]->s_n);
 	else
-		dsp_add(fourpole_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+		dsp_add(fourpole_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 }
 

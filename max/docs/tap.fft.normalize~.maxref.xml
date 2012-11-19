@@ -11,7 +11,7 @@
 		Normalizing an FFT is not the same as normalizing time-domain audio representations. 
 		In MSP, the normalization normally takes place in the ifft~ object, 
 		but if you're simply doing analysis (as in this patch) you should normalize the FFT before using it. 
-		For more information on normalizing FFTs check <a href="http://www.dspguide.com/">The DSP Guide</a>.
+		For more information on normalizing FFTs check <a href="http://www.dspguide.com/">The ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Guide</a>.
 	</description>
 
 	

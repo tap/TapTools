@@ -24,7 +24,7 @@
 class tt_crossfade:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_crossfade::*FuncPtr)(tt_audio_signal *, tt_audio_signal *, tt_audio_signal *);
 		FuncPtr dsp_executor;
 
@@ -99,7 +99,7 @@ class tt_crossfade:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for this object's dsp routine
@@ -109,7 +109,7 @@ class tt_crossfade:public tt_audio_base{
 		}
 	
 	private:
-		// DSP LOOP: LINEAR SHAPE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: LINEAR SHAPE
 		void dsp_vector_calc_linear(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			temp_vs = in1->vectorsize;
@@ -118,7 +118,7 @@ class tt_crossfade:public tt_audio_base{
 			in1->reset(); in2->reset(); out->reset();
 		}
 
-		// DSP LOOP: EQUAL POWER LOOKUP MODE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: EQUAL POWER LOOKUP MODE
 		void dsp_vector_calc_equalpower_lookup(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			int index;
@@ -130,7 +130,7 @@ class tt_crossfade:public tt_audio_base{
 			in1->reset(); in2->reset(); out->reset();
 		}
 
-		// DSP LOOP: EQUAL POWER CALCULATED
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: EQUAL POWER CALCULATED
 		void dsp_vector_calc_equalpower_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			temp_vs = in1->vectorsize;

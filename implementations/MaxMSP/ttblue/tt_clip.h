@@ -78,7 +78,7 @@ class tt_clip:public tt_audio_base{
 		}
 				
 		
-		// DSP LOOP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;		
@@ -87,7 +87,7 @@ class tt_clip:public tt_audio_base{
 			in->reset(); out->reset();
 		}
 		
-		// DSP LOOP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2,
 			tt_audio_signal *out1, tt_audio_signal *out2)
 		{

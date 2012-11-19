@@ -72,7 +72,7 @@ void *norm_new(t_symbol *s)
 /*************************************************************************************/
 // Bound to input/inlet methods
 
-// Set Buffer Method - (also used by DSP method)
+// Set Buffer Method - (also used by ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib method)
 void norm_set(t_norm *x, t_symbol *s)
 {
 	t_buffer *b;
@@ -143,7 +143,7 @@ out:
 }
 
 
-// DSP METHOD - USED ONLY FOR BINDING TO THE BUFFER
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib METHOD - USED ONLY FOR BINDING TO THE BUFFER
 void norm_dsp(t_norm *x, t_signal **sp, short *count)
 {
 	norm_set(x, x->l_sym);

@@ -25,7 +25,7 @@ typedef struct _ramper{
 void *ramper_new(t_symbol *msg, short argc, t_atom *argv);					// New Object Creation Method
 void ramper_free(t_ramper *x);
 void ramper_assist(t_ramper *x, void *b, long msg, long arg, char *dst);	// Assistance Method
-void ramper_dsp(t_ramper *x, t_signal **sp, short *count);					// DSP Method
+void ramper_dsp(t_ramper *x, t_signal **sp, short *count);					// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 t_int *ramper_perform(t_int *w);											// An MSP Perform (signal) Method
 void ramper_list(t_ramper *x, double end_value, double time);
 void ramper_float(t_ramper *x, double current_value);
@@ -171,14 +171,14 @@ t_int *ramper_perform(t_int *w)
 	if(!(x->x_obj.z_disabled))
 		x->my_ramp->dsp_vector_calc(x->signal_out[0]);	
 
-    return (w + 4);						// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 4);						// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void ramper_dsp(t_ramper *x, t_signal **sp, short *count)
 {
 	x->my_ramp->set_sr(sp[0]->s_sr);
-	dsp_add(ramper_perform, 3, x, sp[0]->s_vec, sp[0]->s_n); 	// Add Perform Method to the DSP Call Chain
+	dsp_add(ramper_perform, 3, x, sp[0]->s_vec, sp[0]->s_n); 	// Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 }
 

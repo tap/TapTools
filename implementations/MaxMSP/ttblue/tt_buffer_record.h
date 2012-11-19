@@ -25,7 +25,7 @@
 class tt_buffer_record:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_buffer_record::*FuncPtr)(tt_audio_signal *);
 		FuncPtr dsp_executor;
 		
@@ -119,7 +119,7 @@ class tt_buffer_record:public tt_audio_base{
 		
 
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for this object's dsp routine
@@ -129,7 +129,7 @@ class tt_buffer_record:public tt_audio_base{
 		}
 
 	private:
-		// DSP LOOP: direct (no fade in)
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: direct (no fade in)
 		void dsp_vector_calc_direct(tt_audio_signal *in)
 		{
 			temp_vs = in->vectorsize;
@@ -148,7 +148,7 @@ class tt_buffer_record:public tt_audio_base{
    		    in->reset();
 		}
 		
-		// DSP LOOP: fade in
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: fade in
 		void dsp_vector_calc_fadein(tt_audio_signal *in)
 		{
 			temp_vs = in->vectorsize;

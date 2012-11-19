@@ -114,7 +114,7 @@ void *snap_new(t_symbol *msg, short argc, t_atom *argv)
 		x->channel = chan;
 		x->attr_mode = ps_ms;							// Default to "ms" mode
 		x->srx = sys_getsr() * 0.001;					// Set up our conversion variables based on the global SR
-		x->sry = (1.0 / sys_getsr()) * 1000.0;			// They wil be re-inited to local SR when the DSP is started
+		x->sry = (1.0 / sys_getsr()) * 1000.0;			// They wil be re-inited to local SR when the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib is started
 		if(name != _sym_nothing)
 			snap_set(x, name);
 
@@ -205,7 +205,7 @@ end:
 }
 
 
-// Set Buffer Method - (also used by DSP method)
+// Set Buffer Method - (also used by ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib method)
 void snap_set(t_snap *x, t_symbol *s)
 {
 	if(s != x->name){
@@ -218,7 +218,7 @@ void snap_set(t_snap *x, t_symbol *s)
 }
 
 
-// DSP method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib method
 void snap_dsp(t_snap *x, t_signal **sp, short *count)
 {
 	x->srx = sp[0]->s_sr * 0.001;				// Init these using the local sample rate

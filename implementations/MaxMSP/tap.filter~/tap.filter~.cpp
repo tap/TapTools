@@ -15,7 +15,7 @@
 //#include "commonsyms.h"					// Common symbols used by the Max 4.5 API
 //#include "ext_obex.h"					// Max Object Extensions (attributes) Header
 //
-//#include "TTDSP.h"						// TTBlue Interfaces...
+//#include "TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib.h"						// TTBlue Interfaces...
 
 #define DEFAULT_F 1000
 #define DEFAULT_Q 18
@@ -102,7 +102,7 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	TTCString	s = NULL;
 	
 	common_symbols_init();
-	TTDSPInit();
+	TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylibInit();
 
 	c = class_new("tap.filter~",(method)filter_new, (method)filter_free, sizeof(t_filter), (method)0L, A_GIMME, 0);
 	
@@ -515,9 +515,9 @@ void filter_perform64_freq_q(t_filter *x, t_object *dsp64, double **ins, long nu
 }
 
 /************************************************************************************/
-// DSP Setup
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Setup
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void filter_dsp(t_filter *x, t_signal **sp, short *count)
 {
 	short		i, j, k=0;

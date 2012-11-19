@@ -25,7 +25,7 @@ typedef struct _radians{
 t_int *radians_perform(t_int *w);
 void radians_perform64(t_radians *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);										// An MSP Perform (signal) Method
 void radians_dsp(t_radians *x, t_signal **sp, short *count);
-void radians_dsp64(t_radians *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void radians_dsp64(t_radians *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void radians_assist(t_radians *x, void *b, long m, long a, char *s);	// Assistance Method
 void *radians_new(t_symbol *msg, short argc, t_atom *argv);				// New Object Creation Method
 void radians_float(t_radians *x, double value);							// Float method
@@ -248,7 +248,7 @@ out:
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void radians_dsp(t_radians *x, t_signal **sp, short *count)
 {
 	x->tt->set_sr(sp[0]->s_sr);		// update the sample rate

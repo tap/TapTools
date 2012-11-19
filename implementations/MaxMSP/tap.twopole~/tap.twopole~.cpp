@@ -28,7 +28,7 @@ typedef struct _twopole{
 void *twopole_new(t_symbol *msg, long argc, t_atom *argv);					// New Object Creation Method
 t_int *twopole_perform(t_int *w);											// An MSP Perform (signal) Method
 t_int *twopole_perform2(t_int *w);
-void twopole_dsp(t_twopole *x, t_signal **sp, short *count);				// DSP Method
+void twopole_dsp(t_twopole *x, t_signal **sp, short *count);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void twopole_assist(t_twopole *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 t_max_err attr_set_frequency(t_twopole *x, void *attr, long argc, t_atom *argv);
 t_max_err attr_set_resonance(t_twopole *x, void *attr, long argc, t_atom *argv);
@@ -165,7 +165,7 @@ t_int *twopole_perform(t_int *w)
 	if (!(x->x_obj.z_disabled))
 		x->myFilter->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);	
 
-    return (w + 5);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -182,11 +182,11 @@ t_int *twopole_perform2(t_int *w)
 	if (!(x->x_obj.z_disabled))
 		x->myFilter->dsp_vector_calc(x->signal_in[0], x->signal_in[1], x->signal_out[0], x->signal_out[1]);	
 
-    return (w + 7);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 7);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void twopole_dsp(t_twopole *x, t_signal **sp, short *count)
 {
 	x->myFilter->set_sr(sp[0]->s_sr);
@@ -194,7 +194,7 @@ void twopole_dsp(t_twopole *x, t_signal **sp, short *count)
 	if(count[1] && count[3])
 		dsp_add(twopole_perform2, 6, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[0]->s_n);
 	else
-		dsp_add(twopole_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+		dsp_add(twopole_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 	#pragma unused(count)
 }
 

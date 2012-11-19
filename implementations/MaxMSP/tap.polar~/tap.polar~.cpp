@@ -25,7 +25,7 @@ typedef struct _polar{
 
 // Prototypes for methods: need a method for each incoming message type:
 t_int *polar_perform(t_int *w);										// An MSP Perform (signal) Method
-void polar_dsp(t_polar *x, t_signal **sp, short *count);			// DSP Method
+void polar_dsp(t_polar *x, t_signal **sp, short *count);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void polar_assist(t_polar *x, void *b, long m, long a, char *s);	// Assistance Method
 void polar_free(t_polar *x);										// Memory Deallocation Function
 void *polar_new(t_symbol *s, short argc, t_atom *argv);				// New Object Creation Method
@@ -153,7 +153,7 @@ t_int *polar_perform(t_int *w)
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void polar_dsp(t_polar *x, t_signal **sp, short *count)
 {
 	x->polar->set_sr(sp[0]->s_sr);	

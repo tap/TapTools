@@ -96,7 +96,7 @@ void *pulserouter_new(t_symbol *s, long outlets)
 	
 	x->l_sym = s;								// Buffer name argument
 		
-	// MOVING THIS TO THE DSP METHOD - DONT TRY IT HERE !  20041216/TAP
+	// MOVING THIS TO THE ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib METHOD - DONT TRY IT HERE !  20041216/TAP
 	//defer_low(x, (method)pulserouter_set, s,0,0L);		// guarantee buffer has loaded before binding to it
 
 		
@@ -129,7 +129,7 @@ void pulserouter_set(t_pulserouter *x, t_symbol *s)
 
 
 /************************************************************************************
-DSP Signal Processing   void pulserouter_dsp(t_pulserouter *x, t_signal **sp, short *count)
+../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Signal Processing   void pulserouter_dsp(t_pulserouter *x, t_signal **sp, short *count)
 inputs:			x = pointer to this object
 				sp = array of pointers to input & output signals
 				count = # of signals attached
@@ -145,7 +145,7 @@ void pulserouter_dsp64(t_pulserouter *x, t_object *dsp64, short *count, double s
 
 
 /************************************************************************************
-DSP Perform Method   t_int *pulserouter_perform(t_int *w)
+../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Perform Method   t_int *pulserouter_perform(t_int *w)
 inputs:			w = array of signal vectors specified in pulserouter_dsp
 description:	counts pulses & routes them to successive outlets
 outputs:		pointer to next

@@ -164,7 +164,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "comment",
-					"text" : "The object is also optimized so that if no signals are connected, the object is not added to the DSP chain, hence it does not use any CPU if it is not connected.",
+					"text" : "The object is also optimized so that if no signals are connected, the object is not added to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib chain, hence it does not use any CPU if it is not connected.",
 					"linecount" : 3,
 					"numoutlets" : 0,
 					"fontsize" : 10.0,

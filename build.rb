@@ -16,9 +16,9 @@ ENV['JAMOMAPROJECT'] = projectName
 @fail_array = Array.new
 @zerolink = false
 
-Dir.chdir "#{glibdir}/../../Core/Shared"
+Dir.chdir "#{glibdir}/../../Jamoma/Core/Shared"
 
-require "#{glibdir}/../../Core/Shared/jamomalib.rb"
+require "#{glibdir}/../../Jamoma/Core/Shared/jamomalib.rb"
 
 create_logs(@projectName)
 zero_count

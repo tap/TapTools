@@ -78,7 +78,7 @@ void verb_perform64(t_verb *x, t_object *dsp64, double **ins, long numins, doubl
 t_int *verb_perform_stereo(t_int *w);
 void verb_perform_stereo64(t_verb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);											// Perform (vector calculation) method
 void verb_dsp(t_verb *x, t_signal **sp, short *count);
-void verb_dsp64(t_verb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);							// DSP-Chain construction method
+void verb_dsp64(t_verb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);							// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib-Chain construction method
 void verb_assist(t_verb *x, void *b, long msg, long arg, char *dst);			// Assistance method
 void verb_clear(t_verb *x);														// Reset/Refresh method
 void verb_alloc(t_verb *x, int vector_size);
@@ -469,7 +469,7 @@ t_int *verb_perform(t_int *w)
 		x->upsampler->dsp_vector_calc(x->signal[0], x->signal_out[0]);
 	}
 out:
-    return (w + 5);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -594,7 +594,7 @@ t_int *verb_perform_stereo(t_int *w)
 		x->upsampler->dsp_vector_calc(x->signal[0], x->signal[1], x->signal_out[0], x->signal_out[1]);
 	}
 out:
-    return (w + 7);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 7);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -665,7 +665,7 @@ out:
 #endif
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void verb_dsp(t_verb *x, t_signal **sp, short *count)
 {
 	int vs = sp[0]->s_n;		// Vector Size
@@ -678,9 +678,9 @@ void verb_dsp(t_verb *x, t_signal **sp, short *count)
 	do_downsample(x, x->attr_downsample);	// just make sure our vectorsizes, etc. are all in sync
 	
 	if(count[1] && count[3])
-		dsp_add(verb_perform_stereo, 6, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[0]->s_n);	// Stereo DSP Loop
+		dsp_add(verb_perform_stereo, 6, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[0]->s_n);	// Stereo ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop
 	else
-		dsp_add(verb_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n);	// Mono DSP Loop	
+		dsp_add(verb_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n);	// Mono ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop	
 }
 
 

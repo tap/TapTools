@@ -38,7 +38,7 @@ void comb2_perform64(t_comb *x, t_object *dsp64, double **ins, long numins, doub
 void comb_float(t_comb *x, double phase);						//
 void comb_int(t_comb *x, long n);								//
 void comb_dsp(t_comb *x, t_signal **sp, short *count);
-void comb_dsp64(t_comb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void comb_dsp64(t_comb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void comb_assist(t_comb *x, void *b, long m, long a, char *s);	// Assistance Method
 void comb_free(t_comb *x);										// Memory Deallocation Function
 void comb_deallocate(t_comb *x);								// More Memory Deallocation Function
@@ -397,7 +397,7 @@ void comb2_perform64(t_comb *x, t_object *dsp64, double **ins, long numins, doub
 #endif
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void comb_dsp(t_comb *x, t_signal **sp, short *count)
 {
 	x->mycomb->set_sr(sp[0]->s_sr);

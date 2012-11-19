@@ -20,7 +20,7 @@ typedef struct _fftnorm			// Data Structure for this object
 // Prototypes for methods: need a method for each incoming message type
 void *fftnorm_new(long value);									// New Object Creation Method
 t_int *fftnorm_perform(t_int *w);								// An MSP Perform (signal) Method
-void fftnorm_dsp(t_fftnorm *x, t_signal **sp, short *count);			// DSP Method
+void fftnorm_dsp(t_fftnorm *x, t_signal **sp, short *count);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void fftnorm_assist(t_fftnorm *x, void *b, long m, long a, char *s);		// Assistance Method
 
 /************************************************************************************/
@@ -120,10 +120,10 @@ t_int *fftnorm_perform(t_int *w)
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void fftnorm_dsp(t_fftnorm *x, t_signal **sp, short *count)
 {
 	x->s_bins2 = x->s_bins / 2;
 	dsp_add(fftnorm_perform, 7, sp[0]->s_vec-1, sp[1]->s_vec-1, sp[0]->s_vec-1, 
-		sp[1]->s_vec-1, sp[1]->s_vec-1, x, sp[0]->s_n+1);	// Add Perform (signal) Method to the DSP Call Chain
+		sp[1]->s_vec-1, sp[1]->s_vec-1, x, sp[0]->s_n+1);	// Add Perform (signal) Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 }

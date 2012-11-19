@@ -1,23 +1,25 @@
 
 sources:
   - tap.list.slice.cpp
-  - ../../../../../Core/Shared/max/c74support/max-includes/common/commonsyms.cpp
-  - ../../../../../Core/Shared/max/TTClassWrapperMax.cpp
+  - ../../../../../Jamoma/Core/Shared/max/c74support/max-includes/common/commonsyms.cpp
+  - ../../../../../Jamoma/Core/Shared/max/TTClassWrapperMax.cpp
     
 includes:
-  - ../../../../../Core/Foundation/library/includes
-  - ../../../../../Core/DSP/library/includes
-  - ../../../../../Core/Graphics/library/includes
-  - ../../../../../Core/Shared/max
-  - C74-INCLUDES
+  - ../../../../../Jamoma/Core/Foundation/library/includes
+  - ../../../../../Jamoma/Core/DSP/library/includes
+  - ../../../../../Jamoma/Core/Graphics/library/includes
+  - ../../../../../Jamoma/Core/Shared/max
+  - ../../../../../Jamoma/Core/Shared/max/c74support/max-includes
+  - ../../../../../Jamoma/Core/Shared/max/c74support/msp-includes
+  - ../../../../../Jamoma/Core/Shared/max/c74support/jit-includes
 
 libraries:
-  - FOUNDATION
-  - DSP
-  - C74-MAX
-  - C74-MSP
-  - C74-JITTER
+  - ../../../../../Jamoma/Core/Foundation/library/build/JamomaFoundation.dylib
+  - ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
+  - ../../../../../Jamoma/Core/Shared/max/c74support/max-includes/MaxAPI.framework/Versions/A/MaxAPI
+  - ../../../../../Jamoma/Core/Shared/max/c74support/msp-includes/MaxAudioAPI.framework/Versions/A/MaxAudioAPI
+  - ../../../../../Jamoma/Core/Shared/max/c74support/jit-includes/JitterAPI.framework/Versions/A/JitterAPI
 
-prefix: ../../../../../Core/Shared/max/c74support/max-includes/macho-prefix.pch
+prefix: ../../../../../Jamoma/Core/Shared/max/c74support/max-includes/macho-prefix.pch
 arch: "i386"
 builddir: Builds

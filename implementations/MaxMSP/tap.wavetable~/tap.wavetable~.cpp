@@ -28,7 +28,7 @@ typedef struct _wavetable{
 void *wavetable_new(t_symbol *msg, short argc, t_atom *argv);					// New Object Creation Method
 void wavetable_free(t_wavetable *x);
 void wavetable_assist(t_wavetable *x, void *b, long msg, long arg, char *dst);	// Assistance Method
-void wavetable_dsp(t_wavetable *x, t_signal **sp, short *count);				// DSP Method
+void wavetable_dsp(t_wavetable *x, t_signal **sp, short *count);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 t_int *wavetable_perform(t_int *w);												// An MSP Perform (signal) Method
 t_int *wavetable_perform2(t_int *w);
 t_max_err attr_set_frequency(t_wavetable *x, void *attr, long argc, t_atom *argv);
@@ -165,12 +165,12 @@ t_int *wavetable_perform2(t_int *w)
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void wavetable_dsp(t_wavetable *x, t_signal **sp, short *count)
 {
 	x->my_wavetable->set_sr(sp[0]->s_sr);
 	if(count[0])
-		dsp_add(wavetable_perform2, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+		dsp_add(wavetable_perform2, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 	else
 		dsp_add(wavetable_perform, 3, x, sp[1]->s_vec, sp[0]->s_n);
 }

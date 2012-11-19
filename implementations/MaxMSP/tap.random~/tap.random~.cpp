@@ -27,7 +27,7 @@ typedef struct _rand_tilde{				// Data Structure for this object
 
 
 // Prototypes for methods: need a method for each incoming message type:
-void rand_tilde_dsp64(t_rand_tilde *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void rand_tilde_dsp64(t_rand_tilde *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void rand_tilde_assist(t_rand_tilde *x, void *b, long m, long a, char *s);	// Assistance Method
 void *rand_tilde_new(t_symbol *s, long argc, t_atom *argv);				// New Object Creation Method
 void rand_tilde_perform64(t_rand_tilde *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
@@ -127,7 +127,7 @@ out:
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void rand_tilde_dsp64(t_rand_tilde *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	x->stored_sample = 0;	// Initialize stored sample for delta analysis algorithm

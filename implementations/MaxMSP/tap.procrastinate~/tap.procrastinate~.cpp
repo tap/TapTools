@@ -46,7 +46,7 @@ void *		procrastinate_new(t_symbol *msg, short argc, t_atom *argv);
 t_int *		procrastinate_perform(t_int *w);
 void 		procrastinate_perform64(t_procrastinate *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);											// An MSP Perform (signal) Method
 void 		procrastinate_dsp(t_procrastinate *x, t_signal **sp, short *count);
-void procrastinate_dsp64(t_procrastinate *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// DSP Method
+void procrastinate_dsp64(t_procrastinate *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void 		procrastinate_assist(t_procrastinate *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void 		procrastinate_free(t_procrastinate *x);
 void 		procrastinate_bang(t_procrastinate *x);
@@ -486,7 +486,7 @@ t_int *procrastinate_perform(t_int *w)
 	x->procrastinate->dsp_vector_calc(x->signal_in[0], x->signal_out[0], x->signal_out[1]);	
 	
 out:
-    return (w + 6);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 6);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -510,14 +510,14 @@ out:
 #endif
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void procrastinate_dsp(t_procrastinate *x, t_signal **sp, short *count)
 {
 	procrastinate_clear(x);
 	x->procrastinate->set_vectorsize(sp[0]->s_n);
 	x->procrastinate->set_sr(sp[0]->s_sr);
 
-	dsp_add(procrastinate_perform, 5, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+	dsp_add(procrastinate_perform, 5, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 	#pragma unused(count)
 }
 

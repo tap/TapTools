@@ -137,7 +137,7 @@ class tt_wavetable:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP - WITHOUT MODULATION
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - WITHOUT MODULATION
 		void dsp_vector_calc(tt_audio_signal *out)
 		{
 			unsigned long p1, p2;
@@ -168,7 +168,7 @@ class tt_wavetable:public tt_audio_base{
 		}
 
 		
-		// DSP LOOP - WITH MODULATION INPUT
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - WITH MODULATION INPUT
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			unsigned long p1, p2;

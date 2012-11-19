@@ -23,7 +23,7 @@ typedef struct _fftlist
 // Prototypes for methods: need a method for each incoming message type
 void *fftlist_new(t_symbol *msg, short argc, t_atom *argv);			// New Object Creation Method
 t_int *fftlist_perform(t_int *w);									// An MSP Perform (signal) Method
-void fftlist_dsp(t_fftlist *x, t_signal **sp, short *count);		// DSP Method
+void fftlist_dsp(t_fftlist *x, t_signal **sp, short *count);		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void fftlist_assist(t_fftlist *x, void *b, long m, long a, char *s);// Assistance Method
 void fftlist_bang(t_fftlist *x);									// 
 void fftlist_free(t_fftlist *x);									// 
@@ -153,8 +153,8 @@ byebye:
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void fftlist_dsp(t_fftlist *x, t_signal **sp, short *count)
 {
-	dsp_add(fftlist_perform, 4, sp[0]->s_vec-1, sp[1]->s_vec-1, x, sp[0]->s_n+1);	// Add Perform (signal) Method to the DSP Call Chain
+	dsp_add(fftlist_perform, 4, sp[0]->s_vec-1, sp[1]->s_vec-1, x, sp[0]->s_n+1);	// Add Perform (signal) Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 }

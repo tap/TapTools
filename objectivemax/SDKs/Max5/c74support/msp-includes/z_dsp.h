@@ -1,9 +1,9 @@
-// z_dsp.h -- the main header file for all DSP objects copyright 1997-2003 Cycling '74
+// z_dsp.h -- the main header file for all ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib objects copyright 1997-2003 Cycling '74
 
-// DSP services:
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib services:
 
-#ifndef _Z_DSP_H
-#define _Z_DSP_H
+#ifndef _Z_../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_H
+#define _Z_../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_H
 
 #ifndef SAMPLE_TYPEDEF
 /**	An integer.	@ingroup msp	*/
@@ -72,7 +72,7 @@ while (n--) { if ((*(o) & NAN_MASK) == NAN_MASK) *(o) = 0; (o)++; } // now post 
 #endif
 
 
-// header for all DSP objects. Provides a proxy.
+// header for all ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib objects. Provides a proxy.
 
 // z_misc flags:
 
@@ -183,7 +183,7 @@ BEGIN_USING_C_LINKAGE
 
 void *dspmess(t_symbol *mess);
 
-// access to DSP system variables
+// access to ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib system variables
 
 /**	Query MSP for the maximum global vector (block) size.
 	@ingroup	msp	
@@ -206,7 +206,7 @@ int sys_altivec(void);			// returns whether machine has vector processing
 
 /**	Query MSP to determine whether or not it is running.
 	@ingroup	msp	
-	@return		Returns true if the DSP is turned on, otherwise returns false.		*/
+	@return		Returns true if the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib is turned on, otherwise returns false.		*/
 int sys_getdspstate(void);		// returns whether audio is on or off
 
 /** Query MSP to determine whether or not a given audio object is 
@@ -218,7 +218,7 @@ int sys_getdspstate(void);		// returns whether audio is on or off
 */
 int sys_getdspobjdspstate(t_object *o);  
 
-// controlling the DSP
+// controlling the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
 
 void canvas_start_dsp(void);
 void canvas_stop_dsp(void);
@@ -243,10 +243,10 @@ t_int *sig_perform(t_int *args);
 t_int *copy_perform(t_int *args);
 t_int *plus2_perform(t_int *w);
 
-// setup routines used by DSP objects
+// setup routines used by ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib objects
 
 /**	Call this function in your MSP object's dsp method.
-	This function adds your object's perform method to the DSP call chain 
+	This function adds your object's perform method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain 
 	and specifies the arguments it will be passed. 
 	n, the number of arguments to your perform method, should be followed by n 
 	additional arguments, all of which must be the size of a pointer or a long.
@@ -260,7 +260,7 @@ t_int *plus2_perform(t_int *w);
 void dsp_add(t_perfroutine f, int n, ...);
 
 /**	Call this function in your MSP object's dsp method.
-	Use dsp_addv() to add your object's perform routine to the DSP call 
+	Use dsp_addv() to add your object's perform routine to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call 
 	chain and specify its arguments in an array rather than as arguments to 
 	a function. 
 		
@@ -296,7 +296,7 @@ void z_dsp_setup(t_pxobject *x, long nsignals);		// called in new method
 
 
 /**	This function disposes of any memory used by proxies allocated by 
-	dsp_setup(). It also notifies the signal compiler that the DSP call chain 
+	dsp_setup(). It also notifies the signal compiler that the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain 
 	needs to be rebuilt if signal processing is active. You should be sure to 
 	call this before de-allocating any memory that might be in use by your 
 	object’s perform routine, in the event that signal processing is on when 
@@ -358,7 +358,7 @@ t_symbol *atom_getsymarg(short which, short argc, t_atom *argv);
 
 /**	This routine must be called in your object's initialization routine. It 
 	adds a set of methods to your object's class that are called by MSP to 
-	build the DSP call chain. These methods function entirely 
+	build the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain. These methods function entirely 
 	transparently to your object so you don't have to worry about them. 
 	However, you should avoid binding anything to their names: signal, 
 	userconnect, nsiginlets, and enable. 
@@ -374,7 +374,7 @@ void class_dspinit(t_class *c);
 
 /**	This routine must be called in your object's initialization routine. It 
 	adds a set of methods to your object's class that are called by MSP to 
-	build the DSP call chain. These methods function entirely 
+	build the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain. These methods function entirely 
 	transparently to your object so you don't have to worry about them. 
 	However, you should avoid binding anything to their names: signal, 
 	userconnect, nsiginlets, and enable. 
@@ -391,21 +391,21 @@ void class_dspinitjbox(t_class *c);
 // defines for SIMD optimization
 
 // minimum vector size to use SIMD optimization
-#define DSP_OPTIMIZE_MIN	64
+#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_OPTIMIZE_MIN	64
 
 // simple (e.g. times, minus) not worth optimizing, disabled
-#define DSP_SIMPLE_OPTIMIZE_TEST(sigptr)		(FALSE)
+#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_SIMPLE_OPTIMIZE_TEST(sigptr)		(FALSE)
 
 // simple parameter setting test (e.g. times, minus) not worth optimizing, disabled
-#define DSP_SIMPLE_OPTIMIZE_TEST_PARAM			(FALSE)
+#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_SIMPLE_OPTIMIZE_TEST_PARAM			(FALSE)
 
 // complex (e.g. cos, log, sqrt, fft family) optimize as long as enabled and vector is large enough
-#define DSP_COMPLEX_OPTIMIZE_TEST(sigptr)		(FALSE)
-//#define DSP_COMPLEX_OPTIMIZE_TEST(sigptr)		(sys_optimize()&&(sigptr)&&(sigptr)->s_n>=DSP_OPTIMIZE_MIN)
+#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_COMPLEX_OPTIMIZE_TEST(sigptr)		(FALSE)
+//#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_COMPLEX_OPTIMIZE_TEST(sigptr)		(sys_optimize()&&(sigptr)&&(sigptr)->s_n>=../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_OPTIMIZE_MIN)
 
 // buffered routines optimize always if enabled since signal vector isn't relevant
-#define DSP_BUFFERED_OPTIMIZE_TEST(sigptr)		(FALSE)
-//#define DSP_BUFFERED_OPTIMIZE_TEST(sigptr)	(sys_optimize())
+#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_BUFFERED_OPTIMIZE_TEST(sigptr)		(FALSE)
+//#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_BUFFERED_OPTIMIZE_TEST(sigptr)	(sys_optimize())
 
 
 
@@ -450,5 +450,5 @@ END_USING_C_LINKAGE
 
 
 #endif // _JPATCHER_API_H_
-#endif // _Z_DSP_H
+#endif // _Z_../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_H
 

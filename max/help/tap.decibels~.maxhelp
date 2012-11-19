@@ -311,7 +311,7 @@
 				"box" : 				{
 					"maxclass" : "comment",
 					"varname" : "autohelp_top_description",
-					"text" : "The signal processing does not need to be on for the floating point conversion to operate (just like MSP's standard mstosamps~ object). The object is also optimized so that if no signals are connected, the object is not added to the DSP chain, hence it does not use any CPU if it is not connected.",
+					"text" : "The signal processing does not need to be on for the floating point conversion to operate (just like MSP's standard mstosamps~ object). The object is also optimized so that if no signals are connected, the object is not added to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib chain, hence it does not use any CPU if it is not connected.",
 					"linecount" : 4,
 					"numoutlets" : 0,
 					"fontsize" : 10.0,

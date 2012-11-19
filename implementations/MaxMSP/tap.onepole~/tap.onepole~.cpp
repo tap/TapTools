@@ -25,7 +25,7 @@ typedef struct _onepole{
 // Prototypes for methods: need a method for each incoming message type
 void *onepole_new(double value);											// New Object Creation Method
 t_int *onepole_perform(t_int *w);											// An MSP Perform (signal) Method
-void onepole_dsp(t_onepole *x, t_signal **sp, short *count);				// DSP Method
+void onepole_dsp(t_onepole *x, t_signal **sp, short *count);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void onepole_assist(t_onepole *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void onepole_float(t_onepole *x, double value);								// Cutoff Freq	
 void onepole_coef(t_onepole *x, double value);								// Direct spec of coef
@@ -148,15 +148,15 @@ t_int *onepole_perform(t_int *w)
 	if (!(x->x_obj.z_disabled))
 		x->myFilter->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);	
 
-    return (w + 5);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void onepole_dsp(t_onepole *x, t_signal **sp, short *count)
 {
 	x->myFilter->set_sr(sp[0]->s_sr);
 	x->myFilter->clear();
-	dsp_add(onepole_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+	dsp_add(onepole_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 }
 

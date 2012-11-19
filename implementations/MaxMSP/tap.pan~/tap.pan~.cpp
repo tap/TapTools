@@ -15,7 +15,7 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	WrappedClassPtr			c = NULL;	
 	TTValue					v(2);
 	
-	TTDSPInit();
+	TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylibInit();
 	options->append(TT("fixedNumOutputChannels"), v);
 	wrapTTClassAsMaxClass(TT("panorama"), "tap.pan~", &c, options);
 	CLASS_ATTR_ENUM(c->maxClass, "mode", 0, "calculate lookup");

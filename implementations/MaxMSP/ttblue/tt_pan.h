@@ -25,7 +25,7 @@
 class tt_pan:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_pan::*FuncPtr)(tt_audio_signal *, tt_audio_signal *, tt_audio_signal *);
 		FuncPtr dsp_executor;
 		
@@ -99,7 +99,7 @@ class tt_pan:public tt_audio_base{
 		}
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for this object's dsp routine
@@ -109,7 +109,7 @@ class tt_pan:public tt_audio_base{
 		}
 	
 	private:
-		// DSP LOOP: LINEAR SHAPE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: LINEAR SHAPE
 		void dsp_vector_calc_linear(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			tt_sample_value	temp;
@@ -123,7 +123,7 @@ class tt_pan:public tt_audio_base{
 			in->reset(); out1->reset(); out2->reset();
 		}
 
-		// DSP LOOP: EQUAL POWER LOOKUP MODE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: EQUAL POWER LOOKUP MODE
 		void dsp_vector_calc_equalpower_lookup(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			tt_sample_value	temp;
@@ -139,7 +139,7 @@ class tt_pan:public tt_audio_base{
 			in->reset(); out1->reset(); out2->reset();
 		}
 
-		// DSP LOOP: EQUAL POWER CALCULATED
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: EQUAL POWER CALCULATED
 		void dsp_vector_calc_equalpower_calc(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			tt_sample_value 	temp;

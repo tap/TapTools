@@ -30,7 +30,7 @@ void adsr_free(t_adsr *x);
 void adsr_assist(t_adsr *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 
 void adsr_dsp(t_adsr *x, t_signal **sp, short *count);
-void adsr_dsp64(t_adsr *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);					// DSP Method
+void adsr_dsp64(t_adsr *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);					// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 t_int *adsr_perform(t_int *w);
 void adsr_perform64(t_adsr *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);											// An MSP Perform (signal) Method
 t_int *adsr_perform2(t_int *w);
@@ -282,7 +282,7 @@ void adsr_perform264(t_adsr *x, t_object *dsp64, double **ins, long numins, doub
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void adsr_dsp(t_adsr *x, t_signal **sp, short *count)
 {
 	x->adsr->setAttributeValue(kTTSym_sampleRate, sp[0]->s_sr);

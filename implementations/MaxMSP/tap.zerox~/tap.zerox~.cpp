@@ -25,7 +25,7 @@ void*		zerox_new(t_symbol *msg, long argc, t_atom *argv);
 void		zerox_free(t_zerox *x);
 void		zerox_assist(t_zerox *x, void *b, long m, long a, char *s);
 t_max_err	attr_set_size(t_zerox *x, void *attr, long argc, t_atom *argv);
-void		zerox_dsp64(t_zerox *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags); // DSP64 Method
+void		zerox_dsp64(t_zerox *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags); // ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib64 Method
 
 // Globals
 static t_class *zerox_class;					// Required. Global pointing to this class
@@ -130,7 +130,7 @@ void zerox_perform64(t_zerox *x, t_object *dsp64, double **ins, long numins, dou
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void zerox_dsp64(t_zerox *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	x->zeroxUnit->sendMessage(TT("clear"));

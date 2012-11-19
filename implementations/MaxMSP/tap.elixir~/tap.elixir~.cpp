@@ -45,7 +45,7 @@ void elixir_perform864(t_elixir *x, t_object *dsp64, double **ins, long numins, 
 void elixir_perform964(t_elixir *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
 void elixir_perform1064(t_elixir *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
 
-void elixir_dsp64(t_elixir *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void elixir_dsp64(t_elixir *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void elixir_assist(t_elixir *x, void *b, long m, long a, char *s);	// Assistance Method
 void elixir_int(t_elixir *x, long toggle);							// Int Method
 //void elixir_free(t_elixir *x);

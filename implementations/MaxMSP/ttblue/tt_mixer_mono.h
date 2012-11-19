@@ -92,7 +92,7 @@ class tt_mixer_mono:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP - 2 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 2 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			temp_vs = in1->vectorsize;
@@ -101,7 +101,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in1->reset(); in2->reset(); out->reset();
 		}
 		
-		// DSP LOOP - 3 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 3 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *out)
 		{
 			temp_vs = in1->vectorsize;
@@ -111,7 +111,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in1->reset(); in2->reset(); in3->reset(); out->reset();
 		}
 		
-		// DSP LOOP - 4 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 4 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *out)
 		{
@@ -122,7 +122,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in1->reset(); in2->reset(); in3->reset(); in4->reset(); out->reset();
 		}
 		
-		// DSP LOOP - 5 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 5 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *out)
 		{
@@ -133,7 +133,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in1->reset(); in2->reset(); in3->reset(); in4->reset(); in5->reset(); out->reset();
 		}
 		
-		// DSP LOOP - 6 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 6 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *out)
 		{
@@ -145,7 +145,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in1->reset(); in2->reset(); in3->reset(); in4->reset(); in5->reset(); in6->reset(); out->reset();
 		}
 		
-		// DSP LOOP - 7 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 7 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *out)
 		{
@@ -157,7 +157,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in1->reset(); in2->reset(); in3->reset(); in4->reset(); in5->reset(); in6->reset(); in7->reset(); out->reset();
 		}
 
-		// DSP LOOP - 8 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 8 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, 
 			tt_audio_signal *out)
@@ -171,7 +171,7 @@ class tt_mixer_mono:public tt_audio_base{
 			out->reset();
 		}
 		
-		// DSP LOOP - 9 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 9 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *out)
@@ -186,7 +186,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in9->reset(); out->reset();
 		}
 
-		// DSP LOOP - 10 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 10 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *in10, tt_audio_signal *out)
@@ -201,7 +201,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in9->reset(); in10->reset(); out->reset();
 		}		
 
-		// DSP LOOP - 11 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 11 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *in10, tt_audio_signal *in11, tt_audio_signal *out)
@@ -216,7 +216,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in9->reset(); in10->reset(); in11->reset(); out->reset();
 		}		
 
-		// DSP LOOP - 12 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 12 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *in10, tt_audio_signal *in11, tt_audio_signal *in12, tt_audio_signal *out)
@@ -232,7 +232,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in9->reset(); in10->reset(); in11->reset(); in12->reset(); out->reset();
 		}		
 
-		// DSP LOOP - 13 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 13 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *in10, tt_audio_signal *in11, tt_audio_signal *in12, tt_audio_signal *in13, 
@@ -249,7 +249,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in9->reset(); in10->reset(); in11->reset(); in12->reset(); in13->reset(); out->reset();
 		}		
 
-		// DSP LOOP - 14 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 14 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *in10, tt_audio_signal *in11, tt_audio_signal *in12, tt_audio_signal *in13, tt_audio_signal *in14, 
@@ -266,7 +266,7 @@ class tt_mixer_mono:public tt_audio_base{
 			in9->reset(); in10->reset(); in11->reset(); in12->reset(); in13->reset(); in14->reset(); out->reset();
 		}		
 
-		// DSP LOOP - 15 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 15 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *in10, tt_audio_signal *in11, tt_audio_signal *in12, tt_audio_signal *in13, tt_audio_signal *in14, 
@@ -285,7 +285,7 @@ class tt_mixer_mono:public tt_audio_base{
 			out->reset();
 		}		
 
-		// DSP LOOP - 16 CHANNELS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - 16 CHANNELS
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *in3, tt_audio_signal *in4, 
 			tt_audio_signal *in5, tt_audio_signal *in6, tt_audio_signal *in7, tt_audio_signal *in8, tt_audio_signal *in9, 
 			tt_audio_signal *in10, tt_audio_signal *in11, tt_audio_signal *in12, tt_audio_signal *in13, tt_audio_signal *in14, 

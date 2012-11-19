@@ -25,7 +25,7 @@ typedef struct _biquadcalc			// Data Structure for this object
 
 // Prototypes for methods: need a method for each incoming message type
 void *biquadcalc_new(t_symbol *msg, long argc, t_atom *argv);				// New Object Creation Method
-void biquadcalc_dsp(t_biquadcalc *x, t_signal **sp, short *count);			// DSP Method
+void biquadcalc_dsp(t_biquadcalc *x, t_signal **sp, short *count);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void biquadcalc_assist(t_biquadcalc *x, void *b, long m, long a, char *s);	// Assistance Method
 
 void biquadcalc_bang(t_biquadcalc *x);
@@ -313,7 +313,7 @@ void biquadcalc_bang(t_biquadcalc *x)
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void biquadcalc_dsp(t_biquadcalc *x, t_signal **sp, short *count)
 {
 	x->attr_sr = long(sp[0]->s_sr);

@@ -480,7 +480,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 10.0, 57.0, 523.0, 55.0 ],
-					"text" : "Normalizing an FFT is not the same as normalizing time-domain audio representations. In MSP, the normalization normally takes place in the ifft~ object, but if you're simply doing analysis (as in this patch) you should normalize the FFT before using it. For more information on normalizing FFTs check The DSP Guide.",
+					"text" : "Normalizing an FFT is not the same as normalizing time-domain audio representations. In MSP, the normalization normally takes place in the ifft~ object, but if you're simply doing analysis (as in this patch) you should normalize the FFT before using it. For more information on normalizing FFTs check The ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Guide.",
 					"varname" : "autohelp_top_description"
 				}
 

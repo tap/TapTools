@@ -67,7 +67,7 @@ class tt_modulo:public tt_audio_base{
 		
 
 
-		// DSP LOOP - ARGUMENT IS A CONSTANT
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - ARGUMENT IS A CONSTANT
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;
@@ -78,7 +78,7 @@ class tt_modulo:public tt_audio_base{
 			in->reset(); out->reset();
 		}
 		
-		// DSP LOOP - ARGUMENT IS A SIGNAL
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - ARGUMENT IS A SIGNAL
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			temp_vs = in1->vectorsize;

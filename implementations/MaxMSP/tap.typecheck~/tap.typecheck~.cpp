@@ -24,7 +24,7 @@ typedef struct _tc			// Data Structure for this object
 
 // Prototypes for methods: need a method for each incoming message type:
 void typecheck_tilde_perform64(t_tc *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
-void typecheck_tilde_dsp64(t_tc *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// DSP Method
+void typecheck_tilde_dsp64(t_tc *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void typecheck_tilde_assist(t_tc *x, void *b, long m, long a, char *s);		// Assistance Method
 void *typecheck_tilde_new(void);												// New Object Creation Method
 void typecheck_tilde_bang(t_tc *x);											// Bang method

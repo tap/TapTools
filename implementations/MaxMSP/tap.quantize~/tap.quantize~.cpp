@@ -22,7 +22,7 @@ void *quantize_new(long value);											// New Object Creation Method
 t_int *quantize_perform(t_int *w);
 void quantize_perform64(t_quantize *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);										// An MSP Perform (signal) Method
 void quantize_dsp(t_quantize *x, t_signal **sp, short *count);
-void quantize_dsp64(t_quantize *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void quantize_dsp64(t_quantize *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void quantize_assist(t_quantize *x, void *b, long m, long a, char *s);	// Assistance Method
 
 
@@ -104,7 +104,7 @@ t_int *quantize_perform(t_int *w)
 		}
 		*out++ = value; 					// Run input through Decimal Rounding Function
 	}					                       
-	return (w + 5);							// Return a pointer to the NEXT object in the DSP call chain
+	return (w + 5);							// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -140,10 +140,10 @@ void quantize_perform64(t_quantize *x, t_object *dsp64, double **ins, long numin
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void quantize_dsp(t_quantize *x, t_signal **sp, short *count)
 {
-	dsp_add(quantize_perform, 4, sp[0]->s_vec, sp[1]->s_vec, x, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+	dsp_add(quantize_perform, 4, sp[0]->s_vec, sp[1]->s_vec, x, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 }
 
 

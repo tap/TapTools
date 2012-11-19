@@ -27,7 +27,7 @@
 class tt_overdrive:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_overdrive::*function_ptr_1in_1out)(tt_audio_signal *, tt_audio_signal *);
 		typedef void (tt_overdrive::*function_ptr_2in_2out)(tt_audio_signal *, tt_audio_signal *, tt_audio_signal *, tt_audio_signal *);
 		function_ptr_1in_1out dsp_executor_mono;
@@ -145,7 +145,7 @@ class tt_overdrive:public tt_audio_base{
 
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for MONO dsp routine
@@ -162,7 +162,7 @@ class tt_overdrive:public tt_audio_base{
 	
 	
 	private:
-		// DSP LOOP: mono
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: mono
 		void dsp_vector_calc_mono(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			tt_sample_value temp;
@@ -197,7 +197,7 @@ class tt_overdrive:public tt_audio_base{
 		}
 
 
-		// DSP LOOP: stereo
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: stereo
 		void dsp_vector_calc_stereo(tt_audio_signal *in1, tt_audio_signal *in2, 
 			tt_audio_signal *out1, tt_audio_signal *out2)
 		{
@@ -249,7 +249,7 @@ class tt_overdrive:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP: mono - no dc blocking
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: mono - no dc blocking
 		void dsp_vector_calc_mono_nodcblock(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			tt_sample_value temp;
@@ -278,7 +278,7 @@ class tt_overdrive:public tt_audio_base{
 		}
 
 
-		// DSP LOOP: stereo - no dc blocking
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: stereo - no dc blocking
 		void dsp_vector_calc_stereo_nodcblock(tt_audio_signal *in1, tt_audio_signal *in2, 
 			tt_audio_signal *out1, tt_audio_signal *out2)
 		{

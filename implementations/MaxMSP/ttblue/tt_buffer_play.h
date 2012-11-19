@@ -25,7 +25,7 @@
 class tt_buffer_play:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_buffer_play::*FuncPtr)(tt_audio_signal *, tt_audio_signal *);
 		FuncPtr dsp_executor;
 		
@@ -118,7 +118,7 @@ class tt_buffer_play:public tt_audio_base{
 		
 
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for this object's dsp routine
@@ -128,7 +128,7 @@ class tt_buffer_play:public tt_audio_base{
 		}
 
 	private:
-		// DSP LOOP: input is the location in samples
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: input is the location in samples
 		void dsp_vector_calc_samples(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			unsigned long p1, p2;	
@@ -152,7 +152,7 @@ class tt_buffer_play:public tt_audio_base{
 		    in->reset(); out->reset();
 		}
 		
-		// DSP LOOP: input is the location in ms
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: input is the location in ms
 		void dsp_vector_calc_ms(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			int p1, p2;
@@ -175,7 +175,7 @@ class tt_buffer_play:public tt_audio_base{
 		    in->reset(); out->reset();
 		}
 		
-		// DSP LOOP: input is the location from 0 to 1
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: input is the location from 0 to 1
 		void dsp_vector_calc_normalized(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			unsigned long p1, p2;
@@ -197,7 +197,7 @@ class tt_buffer_play:public tt_audio_base{
 		    }
 		}
 		
-		// DSP LOOP: input is the location from 0 to 1, NO INTERPOLATION, NO RANGE CHECK
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: input is the location from 0 to 1, NO INTERPOLATION, NO RANGE CHECK
 		void dsp_vector_calc_normalized_fast(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			long index;

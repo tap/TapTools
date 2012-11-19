@@ -29,7 +29,7 @@ typedef struct _mydelay{
 void *mydelay_new(t_symbol *msg, long argc, t_atom *argv);					// New Object Creation Method
 t_int *mydelay_perform(t_int *w);											// An MSP Perform (signal) Method
 t_int *mydelay_perform2(t_int *w);
-void mydelay_dsp(t_mydelay *x, t_signal **sp, short *count);				// DSP Method
+void mydelay_dsp(t_mydelay *x, t_signal **sp, short *count);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void mydelay_assist(t_mydelay *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void mydelay_free(t_mydelay *x);
 t_max_err attr_set_delay(t_mydelay *x, void *attr, long argc, t_atom *argv);
@@ -191,7 +191,7 @@ t_int *mydelay_perform(t_int *w)
 	if (!(x->x_obj.z_disabled))
 		x->audio_delay->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);	
 
-    return (w + 5);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 // Perform (signal) Method
@@ -206,18 +206,18 @@ t_int *mydelay_perform2(t_int *w)
 	if (!(x->x_obj.z_disabled))
 		x->audio_delay->dsp_vector_calc(x->signal_in[0], x->signal_in[1], x->signal_out[0]);	
 
-    return (w + 6);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 6);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void mydelay_dsp(t_mydelay *x, t_signal **sp, short *count)
 {
 	x->audio_delay->set_sr(sp[0]->s_sr);
 	if(count[1])
 		dsp_add(mydelay_perform2, 5, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[0]->s_n);
 	else
-		dsp_add(mydelay_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+		dsp_add(mydelay_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 	#pragma unused(count)
 }
 

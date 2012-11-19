@@ -25,7 +25,7 @@
 class tt_polar:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_polar::*function_ptr_2in_2out)(tt_audio_signal *, tt_audio_signal *, tt_audio_signal *, tt_audio_signal *);			
 		function_ptr_2in_2out dsp_executor;
 
@@ -84,7 +84,7 @@ class tt_polar:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for the dsp routine
@@ -94,7 +94,7 @@ class tt_polar:public tt_audio_base{
 		}
 	
 	private:
-		// DSP LOOP: CARTOPOL
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: CARTOPOL
 		void dsp_vector_calc_cartopol(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			tt_sample_value	real, imaginary, magnitude, phase;
@@ -120,7 +120,7 @@ class tt_polar:public tt_audio_base{
 		    in1->reset(); in2->reset(); out1->reset(); out2->reset();
 		}
 
-		// DSP LOOP: POLTOCAR
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: POLTOCAR
 		void dsp_vector_calc_poltocar(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			tt_sample_value	real, imaginary, magnitude, phase;

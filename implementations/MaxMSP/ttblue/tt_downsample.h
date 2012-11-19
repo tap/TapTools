@@ -66,7 +66,7 @@ class tt_downsample:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP - MONO
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - MONO
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			tt_sample_value	temp=0;
@@ -85,7 +85,7 @@ class tt_downsample:public tt_audio_base{
 			in->reset(); out->reset();
 		}
 
-		// DSP LOOP - STEREO
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - STEREO
 		void dsp_vector_calc(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			tt_sample_value	temp1=0, temp2=0;

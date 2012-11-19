@@ -42,7 +42,7 @@ void *binmod_new(t_symbol *msg, short argc, t_atom *argv);						// New Object Cr
 void binmod_free(t_binmod *x);
 void binmod_assist(t_binmod *x, void *b, long m, long a, char *s);				// Assistance Method
 t_int *binmod_perform(t_int *w);												// An MSP Perform (signal) Method
-void binmod_dsp(t_binmod *x, t_signal **sp, short *count);						// DSP Method
+void binmod_dsp(t_binmod *x, t_signal **sp, short *count);						// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 t_max_err binmod_freq_set(t_binmod *x, void *attr, long argc, t_atom *argv);
 t_max_err binmod_depth_set(t_binmod *x, void *attr, long argc, t_atom *argv);
 t_max_err binmod_phase_set(t_binmod *x, void *attr, long argc, t_atom *argv);
@@ -394,7 +394,7 @@ t_int *binmod_perform(t_int *w)
 		goto out;
 	}
 	
-	// THIS IS DONE IN THE DSP ROUTINE ALREADY
+	// THIS IS DONE IN THE ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib ROUTINE ALREADY
 	// n = x->tempsig->vectorsize = taptools_audio::clip(n, 0, MAX_NUM_LFOS-1);	// insure that the vector isn't too big
 	
 	while(n--){
@@ -409,7 +409,7 @@ out:
 }
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void binmod_dsp(t_binmod *x, t_signal **sp, short *count)
 {
 	int i;

@@ -72,7 +72,7 @@ class tt_zerox:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			bool this_samp_is_over_zero;

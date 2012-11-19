@@ -83,7 +83,7 @@ class tt_degrade:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			long l;

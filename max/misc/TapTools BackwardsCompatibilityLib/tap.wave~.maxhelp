@@ -307,7 +307,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "comment",
-					"text" : "Tap.Tools Blue is a library of DSP objects written in C++. The library features a number of components including its own type of audio buffer. This object references a Tap.Tools Blue buffer in the same way that MSP's wave~ object references MSP's buffer~ object.",
+					"text" : "Tap.Tools Blue is a library of ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib objects written in C++. The library features a number of components including its own type of audio buffer. This object references a Tap.Tools Blue buffer in the same way that MSP's wave~ object references MSP's buffer~ object.",
 					"linecount" : 3,
 					"fontsize" : 7.9,
 					"numinlets" : 1,

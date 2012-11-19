@@ -50,7 +50,7 @@
 
 		<attribute name="autoreset" get="1" set="1" type="int" size="1">
 			<description>
-				When autoreset is 1, then the counter is reset automatically when the DSP is turned on.
+				When autoreset is 1, then the counter is reset automatically when the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib is turned on.
 			</description>
 		</attribute>
 

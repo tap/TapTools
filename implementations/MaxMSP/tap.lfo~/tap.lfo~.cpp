@@ -31,7 +31,7 @@ void lfo_free(t_lfo *x);
 void lfo_assist(t_lfo *x, void *b, long msg, long arg, char *dst);			// Assistance Method
 void lfo_reset(t_lfo *x);
 void lfo_dsp(t_lfo *x, t_signal **sp, short *count);
-void lfo_dsp64(t_lfo *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);						// DSP Method
+void lfo_dsp64(t_lfo *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);						// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 t_int *lfo_perform(t_int *w);
 void lfo_perform64(t_lfo *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);												// An MSP Perform (signal) Method
 t_max_err attr_set_frequency(t_lfo *x, void *attr, long argc, t_atom *argv);
@@ -235,7 +235,7 @@ bye:
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void lfo_dsp(t_lfo *x, t_signal **sp, short *count)
 {
 	x->my_lfo->set_sr(sp[0]->s_sr);

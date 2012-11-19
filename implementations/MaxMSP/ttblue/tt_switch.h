@@ -64,7 +64,7 @@ class tt_switch:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP: 1 OUTPUT
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: 1 OUTPUT
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out1)
 		{
 			temp_vs = in->vectorsize;
@@ -81,7 +81,7 @@ class tt_switch:public tt_audio_base{
 			in->reset(); out1->reset();
 		}
 
-		// DSP LOOP: 2 OUTPUTS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: 2 OUTPUTS
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			temp_vs = in->vectorsize;
@@ -104,7 +104,7 @@ class tt_switch:public tt_audio_base{
 			in->reset(); out1->reset(); out2->reset();
 		}
 		
-		// DSP LOOP: 3 OUTPUTS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: 3 OUTPUTS
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2, tt_audio_signal *out3)
 		{
 			temp_vs = in->vectorsize;
@@ -134,7 +134,7 @@ class tt_switch:public tt_audio_base{
 			in->reset(); out1->reset(); out2->reset(); out3->reset();
 		}
 
-		// DSP LOOP: 4 OUTPUTS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: 4 OUTPUTS
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2, tt_audio_signal *out3, tt_audio_signal *out4)
 		{
 			temp_vs = in->vectorsize;
@@ -173,7 +173,7 @@ class tt_switch:public tt_audio_base{
 			in->reset(); out1->reset(); out2->reset(); out3->reset(); out4->reset();
 		}
 
-		// DSP LOOP: 5 OUTPUTS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: 5 OUTPUTS
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out1, tt_audio_signal *out2, tt_audio_signal *out3, tt_audio_signal *out4, tt_audio_signal *out5)
 		{
 			temp_vs = in->vectorsize;

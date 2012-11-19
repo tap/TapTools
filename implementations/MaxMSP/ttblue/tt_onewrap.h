@@ -54,7 +54,7 @@ class tt_onewrap:public tt_audio_base{
 		
 
 
-		// DSP LOOP - ARGUMENT IS A CONSTANT
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - ARGUMENT IS A CONSTANT
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			tt_sample_value temp;

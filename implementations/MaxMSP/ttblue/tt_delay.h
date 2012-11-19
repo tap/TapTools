@@ -23,7 +23,7 @@
 class tt_delay:public tt_audio_base{
 
 	private:
-		// Function pointers for the DSP Loops (use this instead of branching for speed)
+		// Function pointers for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loops (use this instead of branching for speed)
 		typedef void (tt_delay::*function_ptr_1in_1out)(tt_audio_signal *, tt_audio_signal *);
 		typedef void (tt_delay::*function_ptr_2in_1out)(tt_audio_signal *, tt_audio_signal *, tt_audio_signal *);
 		function_ptr_1in_1out		dsp_executor;
@@ -185,7 +185,7 @@ class tt_delay:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for CONTROL RATE triggered dsp routine
@@ -201,7 +201,7 @@ class tt_delay:public tt_audio_base{
 		}
 
 	private:
-		// DSP LOOP - NO INTERPOLATION
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - NO INTERPOLATION
 		void dsp_vector_calc_nointerp(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;
@@ -217,7 +217,7 @@ class tt_delay:public tt_audio_base{
 		    in->reset(); out->reset();
 		}
 
-		// DSP LOOP - NO INTERPOLATION - SIGNAL SPEC'D DELAY TIME
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - NO INTERPOLATION - SIGNAL SPEC'D DELAY TIME
 		void dsp_vector_calc_nointerp_2in(tt_audio_signal *in, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;
@@ -241,7 +241,7 @@ class tt_delay:public tt_audio_base{
 		}
 
 
-		// DSP LOOP - LINEAR INTERPOLATION
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - LINEAR INTERPOLATION
 		void dsp_vector_calc_linear(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			float temp;
@@ -277,7 +277,7 @@ class tt_delay:public tt_audio_base{
 		}
 
 
-		// DSP LOOP - DELAY TIME IS A SIGNAL (LINEAR INTERPOLATION)
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - DELAY TIME IS A SIGNAL (LINEAR INTERPOLATION)
 		// Note: A modulated delay is essentially a resampling process. This means that when we resample we need the 
 		//	values that are "between" the buffer indices - thus we interpolate to find them (not between output indices).
 		void dsp_vector_calc_linear_2in(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
@@ -332,7 +332,7 @@ class tt_delay:public tt_audio_base{
 		}
 
 /*
-		// DSP LOOP - DELAY TIME IS A SIGNAL (POLYNOMIAL INTERPOLATION)
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - DELAY TIME IS A SIGNAL (POLYNOMIAL INTERPOLATION)
 		void dsp_vector_calc_poly_2in(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out)
 		{
 			//sample_value temp;

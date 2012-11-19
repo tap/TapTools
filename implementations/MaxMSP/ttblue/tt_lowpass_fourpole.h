@@ -86,7 +86,7 @@ class tt_lowpass_fourpole:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		void dsp_vector_calc(tt_audio_signal *input, tt_audio_signal *output)
 		{
 			tt_sample_value temp;

@@ -157,7 +157,7 @@ class tt_fivecomb:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		// Because this is a meta-object, it is the user of this object who is responsible for making sure that
 		//	the vectorsize of the signals are the same as that of this object.

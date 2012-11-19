@@ -192,7 +192,7 @@ class tt_multitap:public tt_audio_base{
 	}
 	
 	
-	// DSP ROUTINE(S) *********************************
+	// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib ROUTINE(S) *********************************
 	
 	void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 	{

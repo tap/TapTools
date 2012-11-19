@@ -26,7 +26,7 @@ static t_symbol	*ps_amp2db, *ps_db2amp, *ps_mm2db, *ps_db2mm, *ps_mm2amp, *ps_am
 t_int *decibels_perform(t_int *w);
 void decibels_perform64(t_decibels *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);										// An MSP Perform (signal) Method
 void decibels_dsp(t_decibels *x, t_signal **sp, short *count);
-void decibels_dsp64(t_decibels *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void decibels_dsp64(t_decibels *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void decibels_assist(t_decibels *x, void *b, long m, long a, char *s);	// Assistance Method
 void *decibels_new(t_symbol *msg, short argc, t_atom *argv);			// New Object Creation Method
 void decibels_float(t_decibels *x, double value);				// Float method
@@ -250,7 +250,7 @@ out:
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void decibels_dsp(t_decibels *x, t_signal **sp, short *count)
 {
 	if (count[0] && count[1])

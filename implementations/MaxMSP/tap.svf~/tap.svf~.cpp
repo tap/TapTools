@@ -50,7 +50,7 @@ void svf_perform_mono64(t_svf *x, t_object *dsp64, double **ins, long numins, do
 t_int *svf_perform(t_int *w);
 void svf_perform64(t_svf *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);										// An MSP Perform (signal) Method
 void svf_dsp(t_svf *x, t_signal **sp, short *count);
-void svf_dsp64(t_svf *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// DSP Method
+void svf_dsp64(t_svf *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void svf_assist(t_svf *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void svf_clear(t_svf *x);
 void svf_freqlfo_depth(t_svf *x, double value);
@@ -374,11 +374,11 @@ t_int *svf_perform_mono(t_int *w)
 
 	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
 
-	// DSP
+	// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
 	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
 	
 out:
-    return (w + 5);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -404,7 +404,7 @@ void svf_perform_mono64(t_svf *x, t_object *dsp64, double **ins, long numins, do
 
 	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
 
-	// DSP
+	// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
 	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
 	
 out:
@@ -438,12 +438,12 @@ t_int *svf_perform(t_int *w)
 	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
 	x->filter[RIGHT]->set_attr(tt_svf::k_frequency, x->freq);
 
-	// DSP
+	// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
 	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
 	x->filter[RIGHT]->dsp_vector_calc(x->signal_in[1], x->signal_out[1]);
 	
 out:
-    return (w + 7);		// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 7);		// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -472,7 +472,7 @@ void svf_perform64(t_svf *x, t_object *dsp64, double **ins, long numins, double 
 	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
 	x->filter[RIGHT]->set_attr(tt_svf::k_frequency, x->freq);
 
-	// DSP
+	// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
 	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
 	x->filter[RIGHT]->dsp_vector_calc(x->signal_in[1], x->signal_out[1]);
 	
@@ -482,7 +482,7 @@ out:
 #endif
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void svf_dsp(t_svf *x, t_signal **sp, short *count)
 {
 	short i;
@@ -505,7 +505,7 @@ void svf_dsp(t_svf *x, t_signal **sp, short *count)
 	
 	// add correct perform routine to MSP's call chain
 	if(count[1] && count[3])	// STEREO
-		dsp_add(svf_perform, 6, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+		dsp_add(svf_perform, 6, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 	else						// MONO
 		dsp_add(svf_perform_mono, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n);
 }

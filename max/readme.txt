@@ -106,7 +106,7 @@ New In TapTools 3.0.2
 New In TapTools 3.0.1
 - Performance and reliability improvements to all objects referencing buffers (e.g. tap.buffer.peak~, tap.buffer.snap~, etc.).
 - Eliminated external dependency on the MaxObject framework (now linked internally)
-- Updated to use a version of the Jamoma DSP Library that is compatible with the latest versions of Jamoma
+- Updated to use a version of the Jamoma ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Library that is compatible with the latest versions of Jamoma
 - tap.jit.ali help patcher fixes, now fits on a MacBook screen (submitted by Nils Peters)
 - various help patcher and documentation fixes and updates (including fixed usage of named-default colors)
 - tap.sustain~: now documents the ‘buffer clear’ message

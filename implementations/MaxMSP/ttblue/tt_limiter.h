@@ -25,7 +25,7 @@
 class tt_limiter:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_limiter::*function_ptr_1in_1out)(tt_audio_signal *, tt_audio_signal *);
 		typedef void (tt_limiter::*function_ptr_2in_2out)(tt_audio_signal *, tt_audio_signal *, tt_audio_signal *, tt_audio_signal *);
 		function_ptr_1in_1out dsp_executor_mono;
@@ -203,7 +203,7 @@ class tt_limiter:public tt_audio_base{
 
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for MONO dsp routine
@@ -221,7 +221,7 @@ class tt_limiter:public tt_audio_base{
 	
 	private:
 		
-		// DSP LOOP - STEREO
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - STEREO
 		void dsp_vector_calc_stereo(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			double left_sample, right_sample, curgain, newgain, inc;
@@ -292,7 +292,7 @@ class tt_limiter:public tt_audio_base{
 		    in1->reset(); in2->reset(); out1->reset(); out2->reset();
 		}
 
-		// DSP LOOP - MONO
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - MONO
 		// NOTE: This is no more efficient than the stereo version - need to optimize sometime
 		void dsp_vector_calc_mono(tt_audio_signal *in, tt_audio_signal *out)
 		{
@@ -360,7 +360,7 @@ class tt_limiter:public tt_audio_base{
 		}
 
 		
-		// DSP LOOP - STEREO
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - STEREO
 		void dsp_vector_calc_stereo_nodcblock(tt_audio_signal *in1, tt_audio_signal *in2, tt_audio_signal *out1, tt_audio_signal *out2)
 		{
 			double left_sample, right_sample, curgain, newgain, inc;
@@ -422,7 +422,7 @@ class tt_limiter:public tt_audio_base{
 		    in1->reset(); in2->reset(); out1->reset(); out2->reset();
 		}
 
-		// DSP LOOP - MONO
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - MONO
 		// NOTE: This is no more efficient than the stereo version - need to optimize sometime
 		void dsp_vector_calc_mono_nodcblock(tt_audio_signal *in, tt_audio_signal *out)
 		{

@@ -103,7 +103,7 @@ t_max_err peak_notify(t_peak *x, t_symbol *s, t_symbol *msg, void *sender, void 
 }
 
 
-// Set Buffer Method - (also used by DSP method)
+// Set Buffer Method - (also used by ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib method)
 void peak_set(t_peak *x, t_symbol *s)
 {
 	if(s != x->sym){

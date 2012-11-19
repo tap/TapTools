@@ -28,7 +28,7 @@ typedef struct _record {
 // Prototypes for methods: need a method for each incoming message type
 void *record_new(t_symbol *msg, short argc, t_atom *argv);			// New Object Creation Method
 t_int *record_perform(t_int *w);									// An MSP Perform (signal) Method
-void record_dsp(t_record *x, t_signal **sp, short *count);			// DSP Method
+void record_dsp(t_record *x, t_signal **sp, short *count);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void record_assist(t_record *x, void *b, long m, long a, char *s);	// Assistance Method
 t_max_err record_notify(t_record *x, t_symbol *s, t_symbol *msg, void *sender, void *data);
 void record_int(t_record *x, long value);							// Toggle on/off
@@ -181,7 +181,7 @@ t_int *record_perform(t_int *w)
 	if (x->buf == 0) 
 		return (w+5);				// If the buffer is invalid, skip it
 	
-	if (x->record_toggle == 0) {	// DSP Loop if NOT recording
+	if (x->record_toggle == 0) {	// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop if NOT recording
 		while (n--)
 			*out++ = 0;
 		return (w+5);
@@ -257,11 +257,11 @@ t_int *record_perform(t_int *w)
 	
 out:
 	ATOMIC_DECREMENT((int32_t*)&b->b_inuse);
-    return (w + 5);						// Return a pointer to the NEXT object in the DSP call chain
+    return (w + 5);						// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
-// Set Buffer Method - (also used by DSP method)
+// Set Buffer Method - (also used by ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib method)
 void record_set(t_record *x, t_symbol *s)
 {
 	if(s != x->sym){
@@ -275,14 +275,14 @@ void record_set(t_record *x, t_symbol *s)
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void record_dsp(t_record *x, t_signal **sp, short *count)
 {
 	short i;
 
-	for(i=0; i<MAX_FADE_SIZE; i++)			// Clear our memory when the DSP is turned on...
+	for(i=0; i<MAX_FADE_SIZE; i++)			// Clear our memory when the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib is turned on...
     	x->increment_steps[i] = 0;
 		
 	x->current_record_loc = 0;
-	dsp_add(record_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the DSP Call Chain
+	dsp_add(record_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
 }

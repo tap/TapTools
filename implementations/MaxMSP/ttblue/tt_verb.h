@@ -50,7 +50,7 @@ class tt_verb:public tt_audio_base{
 
 		tt_audio_signal			*temp[k_num_temp_signals];	// Temp Signals
 		
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_verb::*FuncPtr)(tt_audio_signal *, tt_audio_signal *);
 		FuncPtr dsp_executor;
 
@@ -253,7 +253,7 @@ class tt_verb:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		// Because this is a meta-object, it is the user of this object who is responsible for making sure that
 		//	the vectorsize of the signals are the same as that of this object.
@@ -265,7 +265,7 @@ class tt_verb:public tt_audio_base{
 		}
 
 	private:
-		// DSP LOOP: WITH EARLY REFLECTIONS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: WITH EARLY REFLECTIONS
 		void dsp_vector_calc_normal(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			short i;
@@ -294,7 +294,7 @@ class tt_verb:public tt_audio_base{
 		}
 
 
-		// DSP LOOP: NO EARLY REFLECTIONS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: NO EARLY REFLECTIONS
 		void dsp_vector_calc_no_reflections(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			short i;
@@ -318,7 +318,7 @@ class tt_verb:public tt_audio_base{
 			master_gain->dsp_vector_calc(temp[4], out);		// Output Gain Control
 		}
 
-		// DSP LOOP: WITH EARLY REFLECTIONS **** LITE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: WITH EARLY REFLECTIONS **** LITE
 		void dsp_vector_calc_normal_lite(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			short i;
@@ -347,7 +347,7 @@ class tt_verb:public tt_audio_base{
 		}
 
 
-		// DSP LOOP: NO EARLY REFLECTIONS **** LITE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: NO EARLY REFLECTIONS **** LITE
 		void dsp_vector_calc_no_reflections_lite(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			short i;

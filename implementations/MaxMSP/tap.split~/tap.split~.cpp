@@ -22,7 +22,7 @@ typedef struct _split	// Data Structure for this object
 void *split_new(t_symbol *msg, short argc, t_atom *argv);			// New Object Creation Method
 void split_perform164(t_split *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);									// An MSP Perform (signal) Method
 void split_perform364(t_split *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);									// An MSP Perform (signal) Method
-void split_dsp64(t_split *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void split_dsp64(t_split *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void split_assist(t_split *x, void *b, long m, long a, char *s);	// Assistance Method
 void split_int(t_split *x, long n);
 void split_float(t_split *x, double val);

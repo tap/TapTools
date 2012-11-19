@@ -21,7 +21,7 @@ typedef struct _counter{			// Data Structure for this object
 
 // Prototypes for methods: need a method for each incoming message type:
 void counter_dsp(t_counter *x, t_signal **sp, short *count);
-void counter_dsp64(t_counter *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void counter_dsp64(t_counter *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void counter_assist(t_counter *x, void *b, long m, long a, char *s);	// Assistance Method
 void *counter_new(t_symbol *s, long argc, t_atom *argv);				// New Object Creation Method
 void counter_reset(t_counter *x);
@@ -203,7 +203,7 @@ out:
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void counter_dsp(t_counter *x, t_signal **sp, short *count)
 {
 	dsp_add(counter_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, sp[0]->s_n);

@@ -24,7 +24,7 @@
 class tt_adsr:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_adsr::*function_ptr_0in_1out)(tt_audio_signal *);
 		typedef void (tt_adsr::*function_ptr_1in_1out)(tt_audio_signal *, tt_audio_signal *);
 		function_ptr_0in_1out dsp_executor;
@@ -179,7 +179,7 @@ class tt_adsr:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for CONTROL RATE triggered dsp routine
@@ -195,7 +195,7 @@ class tt_adsr:public tt_audio_base{
 		}
 	
 	private:
-		// DSP LOOP: CONTROL-RATE TRIGGER - LINEAR
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: CONTROL-RATE TRIGGER - LINEAR
 		void dsp_vector_calc_linear(tt_audio_signal *out)
 		{
 			temp_vs = out->vectorsize;
@@ -248,7 +248,7 @@ class tt_adsr:public tt_audio_base{
 		}
 
 		
-		// DSP LOOP: SIGNAL TRIGGER - LINEAR
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: SIGNAL TRIGGER - LINEAR
 		void dsp_vector_calc_linear(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = out->vectorsize;
@@ -302,7 +302,7 @@ class tt_adsr:public tt_audio_base{
 		}
 
 
-		// DSP LOOP: CONTROL-RATE TRIGGER - EXPONENTIAL
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: CONTROL-RATE TRIGGER - EXPONENTIAL
 		void dsp_vector_calc_exponential(tt_audio_signal *out)
 		{
 			temp_vs = out->vectorsize;
@@ -358,7 +358,7 @@ class tt_adsr:public tt_audio_base{
 		}
 
 
-		// DSP LOOP: SIGNAL TRIGGER - EXPONENTIAL
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: SIGNAL TRIGGER - EXPONENTIAL
 		void dsp_vector_calc_exponential(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = out->vectorsize;

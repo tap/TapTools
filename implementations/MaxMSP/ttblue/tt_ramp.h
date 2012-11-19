@@ -24,7 +24,7 @@
 class tt_ramp:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_ramp::*function_ptr_0in_1out)(tt_audio_signal *);
 		function_ptr_0in_1out dsp_executor;	
 	
@@ -134,14 +134,14 @@ class tt_ramp:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		// Publically exposed interface for the dsp routine
 		void dsp_vector_calc(tt_audio_signal *out)
 		{
 			(*this.*dsp_executor)(out);	// Run the function pointed to by our function pointer
 		}
 	private:	
-		// DSP LOOP - SAMPLE ACCURATE - UP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - SAMPLE ACCURATE - UP
 		void dsp_vector_calc_sa_up(tt_audio_signal *out)
 		{
 			temp_vs = out->vectorsize;
@@ -158,7 +158,7 @@ class tt_ramp:public tt_audio_base{
 			out->reset();
 		}
 
-		// DSP LOOP - SAMPLE ACCURATE - DOWN
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - SAMPLE ACCURATE - DOWN
 		void dsp_vector_calc_sa_down(tt_audio_signal *out)
 		{
 			temp_vs = out->vectorsize;
@@ -175,7 +175,7 @@ class tt_ramp:public tt_audio_base{
 			out->reset();
 		}
 
-		// DSP LOOP - VECTOR ACCURATE - UP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - VECTOR ACCURATE - UP
 		void dsp_vector_calc_va_up(tt_audio_signal *out)
 		{
 			if(step){
@@ -189,7 +189,7 @@ class tt_ramp:public tt_audio_base{
 			out->reset();
 		}
 
-		// DSP LOOP - VECTOR ACCURATE - DOWN
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP - VECTOR ACCURATE - DOWN
 		void dsp_vector_calc_va_down(tt_audio_signal *out)
 		{
 			if(step){

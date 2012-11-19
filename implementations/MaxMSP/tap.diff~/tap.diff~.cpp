@@ -20,7 +20,7 @@ void *diff_new(void);											// New Object Creation Method
 t_int *diff_perform(t_int *w);
 void diff_perform64(t_diff *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);									// An MSP Perform (signal) Method
 void diff_dsp(t_diff *x, t_signal **sp, short *count);
-void diff_dsp64(t_diff *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void diff_dsp64(t_diff *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void diff_assist(t_diff *x, void *b, long m, long a, char *s);	// Assistance Method
 
 
@@ -95,7 +95,7 @@ t_int *diff_perform(t_int *w)
 		*++out = val;					// Output
 		x->diff_b1 = val;				// Store Feedback Sample
 	}		
-	return (w + 5);					// Return a pointer to the NEXT object in the DSP call chain
+	return (w + 5);					// Return a pointer to the NEXT object in the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
@@ -121,7 +121,7 @@ void diff_perform64(t_diff *x, t_object *dsp64, double **ins, long numins, doubl
 
 
 
-// DSP Method
+// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void diff_dsp(t_diff *x, t_signal **sp, short *count)
 {	
 	x->diff_b1 = 0;							

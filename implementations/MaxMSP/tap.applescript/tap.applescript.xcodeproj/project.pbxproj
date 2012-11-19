@@ -21,10 +21,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2202566D14E820AF0049BF4B /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "../../../../../Core/Shared/max/c74support/max-includes/MaxAPI.framework"; sourceTree = "<group>"; };
-		2202567014E820BA0049BF4B /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../../Core/Shared/max/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = "<group>"; };
-		2202567214E820C60049BF4B /* JitterAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JitterAPI.framework; path = "../../../../../Core/Shared/max/c74support/jit-includes/JitterAPI.framework"; sourceTree = "<group>"; };
-		2202567414E820D90049BF4B /* commonsyms.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = commonsyms.cpp; path = "../../../../../Core/Shared/max/c74support/max-includes/common/commonsyms.cpp"; sourceTree = "<group>"; };
+		2202566D14E820AF0049BF4B /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "../../../../../Jamoma/Core/Shared/max/c74support/max-includes/MaxAPI.framework"; sourceTree = "<group>"; };
+		2202567014E820BA0049BF4B /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../../Jamoma/Core/Shared/max/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = "<group>"; };
+		2202567214E820C60049BF4B /* JitterAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JitterAPI.framework; path = "../../../../../Jamoma/Core/Shared/max/c74support/jit-includes/JitterAPI.framework"; sourceTree = "<group>"; };
+		2202567414E820D90049BF4B /* commonsyms.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = commonsyms.cpp; path = "../../../../../Jamoma/Core/Shared/max/c74support/max-includes/common/commonsyms.cpp"; sourceTree = "<group>"; };
 		2266865816593A7000C33CFF /* libMaxObject.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMaxObject.a; path = ../../../objectivemax/MaxObject/build/UninstalledProducts/libMaxObject.a; sourceTree = "<group>"; };
 		2266865A16593A8D00C33CFF /* MaxAudioSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxAudioSignal.h; path = ../../../objectivemax/MaxObject/MaxAudioSignal.h; sourceTree = "<group>"; };
 		2266865B16593A8D00C33CFF /* MaxObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxObject.h; path = ../../../objectivemax/MaxObject/MaxObject.h; sourceTree = "<group>"; };
@@ -207,24 +207,24 @@
 				DSTROOT = "$(BUILDS)/MaxMSP";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/max-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/msp-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/jit-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/max-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/msp-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/jit-includes\"",
 				);
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/max-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/msp-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/jit-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/max-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/msp-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/jit-includes\"",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
 					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Core/Shared/objectivemax";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax";
 				WRAPPER_EXTENSION = mxo;
 			};
 			name = Development;
@@ -237,23 +237,23 @@
 				DSTROOT = "$(BUILDS)/MaxMSP";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/max-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/msp-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/jit-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/max-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/msp-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/jit-includes\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/max-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/msp-includes\"",
-					"\"$(SRCROOT)/../../../../../Core/Shared/max/c74support/jit-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/max-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/msp-includes\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/jit-includes\"",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
+					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
 					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Core/Shared/objectivemax";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax";
 				WRAPPER_EXTENSION = mxo;
 			};
 			name = Deployment;

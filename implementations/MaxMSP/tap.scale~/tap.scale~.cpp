@@ -27,7 +27,7 @@ typedef struct _scale				// Data Structure for this object
 void *scale_new(Symbol *s, short argc, Atom *argv);			// New Object Creation Method
 void scale_perform64(t_scale *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
 void scale_perform264(t_scale *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
-void scale_dsp64(t_scale *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// DSP Method
+void scale_dsp64(t_scale *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void scale_assist(t_scale *x, void *b, long m, long a, char *s);		// Assistance Method
 void scale_float(t_scale *x, double val);
 

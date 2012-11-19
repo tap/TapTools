@@ -25,7 +25,7 @@
 class tt_svf:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_svf::*FuncPtr)(tt_audio_signal *, tt_audio_signal *);
 		FuncPtr dsp_executor;
 
@@ -140,7 +140,7 @@ class tt_svf:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for this object's dsp routine
@@ -150,7 +150,7 @@ class tt_svf:public tt_audio_base{
 		}
 	
 	private:
-		// DSP LOOP: LOWPASS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: LOWPASS
 		void dsp_vector_calc_lowpass(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;
@@ -161,7 +161,7 @@ class tt_svf:public tt_audio_base{
 			in->reset(); out->reset();
 		}
 
-		// DSP LOOP: HIGHPASS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: HIGHPASS
 		void dsp_vector_calc_highpass(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;
@@ -172,7 +172,7 @@ class tt_svf:public tt_audio_base{
 			in->reset(); out->reset();
 		}
 
-		// DSP LOOP: BANDPASS
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: BANDPASS
 		void dsp_vector_calc_bandpass(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;
@@ -183,7 +183,7 @@ class tt_svf:public tt_audio_base{
 			in->reset(); out->reset();
 		}
 
-		// DSP LOOP: NOTCH
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: NOTCH
 		void dsp_vector_calc_notch(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;
@@ -194,7 +194,7 @@ class tt_svf:public tt_audio_base{
 			in->reset(); out->reset();
 		}
 
-		// DSP LOOP: PEAK
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: PEAK
 		void dsp_vector_calc_peak(tt_audio_signal *in, tt_audio_signal *out)
 		{
 			temp_vs = in->vectorsize;

@@ -24,7 +24,7 @@
 class tt_noise:public tt_audio_base{
 
 	private:
-		// Function pointer for the DSP Loop (use this instead of branching for speed)
+		// Function pointer for the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop (use this instead of branching for speed)
 		typedef void (tt_noise::*FuncPtr)(tt_audio_signal *);
 		FuncPtr dsp_executor;
 
@@ -88,7 +88,7 @@ class tt_noise:public tt_audio_base{
 		
 		
 		/*****************************************************
-		 * DSP LOOPS
+		 * ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOPS
 		 *****************************************************/
 		
 		// Publically exposed interface for this object's dsp routine
@@ -98,7 +98,7 @@ class tt_noise:public tt_audio_base{
 		}
 	
 	private:
-		// DSP LOOP: WHITE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: WHITE
 		void dsp_vector_calc_white(tt_audio_signal *out)
 		{
 			temp_vs = out->vectorsize;
@@ -110,7 +110,7 @@ class tt_noise:public tt_audio_base{
 			out->reset();
 		}		
 
-		// DSP LOOP: PINK
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: PINK
 		void dsp_vector_calc_pink(tt_audio_signal *out)
 		{
 			tt_sample_value temp;
@@ -136,7 +136,7 @@ class tt_noise:public tt_audio_base{
 			out->reset();
 		}		
 
-		// DSP LOOP: BROWN
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: BROWN
 		void dsp_vector_calc_brown(tt_audio_signal *out)
 		{
 			tt_sample_value temp;
@@ -156,7 +156,7 @@ class tt_noise:public tt_audio_base{
 			out->reset();
 		}		
 
-		// DSP LOOP: BLUE
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP: BLUE
 		void dsp_vector_calc_blue(tt_audio_signal *out)
 		{
 			tt_sample_value temp;

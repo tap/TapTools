@@ -180,7 +180,7 @@ class tt_lfo:public tt_audio_base{
 		}
 		
 		
-		// DSP LOOP
+		// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		//	only processes the first sample of the vector
 		//	intended only for driving parameters of other objects
 		//	not for use as audio
@@ -209,7 +209,7 @@ class tt_lfo:public tt_audio_base{
 			p1 = (int)index;
 			p2 = p1 + 1;
 			diff = index - p1;	
-			p2 &= ((wavetable->length_samples) - 1);	// fast modulo:  NOTE - ONLY WORKS ON POWERS OF 2 !!!!   MAKE A SEPARATE DSP LOOP FOR THIS!!!!
+			p2 &= ((wavetable->length_samples) - 1);	// fast modulo:  NOTE - ONLY WORKS ON POWERS OF 2 !!!!   MAKE A SEPARATE ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP FOR THIS!!!!
 
 
 		    *out->vector = ((wavetable->contents[p2] * diff) + (wavetable->contents[p1] * (1.0 - diff))) * gain;
