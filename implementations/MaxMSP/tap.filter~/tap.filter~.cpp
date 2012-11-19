@@ -102,7 +102,7 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	TTCString	s = NULL;
 	
 	common_symbols_init();
-	TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylibInit();
+	TTDSPInit();
 
 	c = class_new("tap.filter~",(method)filter_new, (method)filter_free, sizeof(t_filter), (method)0L, A_GIMME, 0);
 	

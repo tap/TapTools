@@ -2,3 +2,6 @@ Makefile
 *.o
 build
 externals
+
+xcuserdata
+*.xcworkspace

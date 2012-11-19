@@ -12,6 +12,6 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	WrappedClassPtr	w;
 	
-	TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylibInit();
+	TTDSPInit();
 	return wrapTTClassAsMaxClass(TT("tap.rms"), "tap.rms~", &w);
 }

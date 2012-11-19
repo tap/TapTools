@@ -47,7 +47,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c;
 	
-	TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylibInit();
+	TTDSPInit();
 	common_symbols_init();
 	
 	// Define our class

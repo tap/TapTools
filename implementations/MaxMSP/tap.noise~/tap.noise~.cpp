@@ -15,7 +15,7 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	WrappedClassPtr			c = NULL;	
 	TTValue					v(1);
 	
-	TT../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylibInit();
+	TTDSPInit();
 	options->append(TT("fixedNumOutputChannels"), v);
 	wrapTTClassAsMaxClass(TT("noise"), "tap.noise~", &c, options);
 	CLASS_ATTR_ENUM(c->maxClass, "mode", 0, "white pink brown blue gauss");

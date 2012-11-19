@@ -1,9 +1,7 @@
-// z_dsp.h -- the main header file for all ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib objects copyright 1997-2003 Cycling '74
+// z_dsp.h -- the main header file for all DSP objects copyright 1997-2003 Cycling '74
 
-// ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib services:
-
-#ifndef _Z_../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_H
-#define _Z_../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_H
+#ifndef _Z_DSP_H
+#define _Z_DSP_H
 
 #ifndef SAMPLE_TYPEDEF
 /**	An integer.	@ingroup msp	*/
@@ -391,20 +389,20 @@ void class_dspinitjbox(t_class *c);
 // defines for SIMD optimization
 
 // minimum vector size to use SIMD optimization
-#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_OPTIMIZE_MIN	64
+#define DSP_OPTIMIZE_MIN	64
 
 // simple (e.g. times, minus) not worth optimizing, disabled
-#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_SIMPLE_OPTIMIZE_TEST(sigptr)		(FALSE)
+#define DSP_SIMPLE_OPTIMIZE_TEST(sigptr)		(FALSE)
 
 // simple parameter setting test (e.g. times, minus) not worth optimizing, disabled
-#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_SIMPLE_OPTIMIZE_TEST_PARAM			(FALSE)
+#define DSP_SIMPLE_OPTIMIZE_TEST_PARAM			(FALSE)
 
 // complex (e.g. cos, log, sqrt, fft family) optimize as long as enabled and vector is large enough
-#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_COMPLEX_OPTIMIZE_TEST(sigptr)		(FALSE)
+#define DSP_COMPLEX_OPTIMIZE_TEST(sigptr)		(FALSE)
 //#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_COMPLEX_OPTIMIZE_TEST(sigptr)		(sys_optimize()&&(sigptr)&&(sigptr)->s_n>=../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_OPTIMIZE_MIN)
 
 // buffered routines optimize always if enabled since signal vector isn't relevant
-#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_BUFFERED_OPTIMIZE_TEST(sigptr)		(FALSE)
+#define DSP_BUFFERED_OPTIMIZE_TEST(sigptr)		(FALSE)
 //#define ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_BUFFERED_OPTIMIZE_TEST(sigptr)	(sys_optimize())
 
 
@@ -450,5 +448,4 @@ END_USING_C_LINKAGE
 
 
 #endif // _JPATCHER_API_H_
-#endif // _Z_../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib_H
-
+#endif // _Z_DSP_H
