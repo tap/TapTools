@@ -376,7 +376,7 @@ void max_jit_colortrack_jit_matrix(t_max_jit_colortrack *x, t_symbol *s, long ar
 	void *in_matrix=NULL;
 
 	if(argc && argv)
-		in_matrix = jit_object_findregistered(jit_atom_getsym(argv));		//find matrix
+		in_matrix = jit_object_findregistered(atom_getsym(argv));		//find matrix
 	else 
 		goto out;
 	
@@ -667,27 +667,27 @@ void jit_colortrack_calculate_ndim(t_max_jit_colortrack *x, long dimcount, long 
 			normalized_bounds[3] = (float)max_y[tracker] / dim[1];	
 			
 			if(x->output_bounds[tracker]){
-				jit_atom_setlong(&(my_val[0]), tracker+1);								
-				jit_atom_setsym(&(my_val[1]), gensym("bounds"));
-				jit_atom_setfloat(&(my_val[2]), normalized_bounds[0]);
-				jit_atom_setfloat(&(my_val[3]), normalized_bounds[1]);
-				jit_atom_setfloat(&(my_val[4]), normalized_bounds[2]);
-				jit_atom_setfloat(&(my_val[5]), normalized_bounds[3]);
+				atom_setlong(&(my_val[0]), tracker+1);								
+				atom_setsym(&(my_val[1]), gensym("bounds"));
+				atom_setfloat(&(my_val[2]), normalized_bounds[0]);
+				atom_setfloat(&(my_val[3]), normalized_bounds[1]);
+				atom_setfloat(&(my_val[4]), normalized_bounds[2]);
+				atom_setfloat(&(my_val[5]), normalized_bounds[3]);
 //				outlet_list(x->valout, 0L, 6, &my_val);
 				outlet_list(x->valout, 0L, 6, &my_val[0]);
 			}
 			if(x->output_center[tracker]){			
-				jit_atom_setlong(&(my_val[0]), tracker+1);								
-				jit_atom_setsym(&(my_val[1]),gensym("center"));					
-				jit_atom_setfloat(&(my_val[2]), (normalized_bounds[2] + normalized_bounds[0]) * 0.5);
-				jit_atom_setfloat(&(my_val[3]), (normalized_bounds[3] + normalized_bounds[1]) * 0.5);
+				atom_setlong(&(my_val[0]), tracker+1);								
+				atom_setsym(&(my_val[1]),gensym("center"));					
+				atom_setfloat(&(my_val[2]), (normalized_bounds[2] + normalized_bounds[0]) * 0.5);
+				atom_setfloat(&(my_val[3]), (normalized_bounds[3] + normalized_bounds[1]) * 0.5);
 //				outlet_list(x->valout, 0L, 4, &my_val);
 				outlet_list(x->valout, 0L, 4, &my_val[0]);
 			}
 			if(x->output_size[tracker]){
-				jit_atom_setlong(&(my_val[0]), tracker+1);								
-				jit_atom_setsym(&(my_val[1]),gensym("size"));					
-				jit_atom_setfloat(&(my_val[2]), (normalized_bounds[2] - normalized_bounds[0]) * (normalized_bounds[3] - normalized_bounds[1]));
+				atom_setlong(&(my_val[0]), tracker+1);								
+				atom_setsym(&(my_val[1]),gensym("size"));					
+				atom_setfloat(&(my_val[2]), (normalized_bounds[2] - normalized_bounds[0]) * (normalized_bounds[3] - normalized_bounds[1]));
 //				outlet_list(x->valout, 0L, 3, &my_val);
 				outlet_list(x->valout, 0L, 3, &my_val[0]);
 			}
@@ -807,52 +807,52 @@ void colortrack_setbrightnessvar(t_max_jit_colortrack *x, short tracker_num, sho
 // ATTRIBUTE: HUE_1
 t_jit_err colortrack_set_hue_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethue(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_sethue(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_hue_variation_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethuevar(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_sethuevar(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;	
 }
 
 // ATTRIBUTE: HUE_2
 t_jit_err colortrack_set_hue_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethue(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_sethue(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_hue_variation_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethuevar(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_sethuevar(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: HUE_3
 t_jit_err colortrack_set_hue_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethue(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_sethue(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_hue_variation_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethuevar(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_sethuevar(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: HUE_4
 t_jit_err colortrack_set_hue_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethue(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_sethue(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_hue_variation_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_sethuevar(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_sethuevar(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
@@ -860,52 +860,52 @@ t_jit_err colortrack_set_hue_variation_4(t_max_jit_colortrack *x, void *attr, lo
 // ATTRIBUTE: SATURATION_1
 t_jit_err colortrack_set_saturation_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturation(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_setsaturation(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_saturation_variation_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturationvar(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_setsaturationvar(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: SATURATION_2
 t_jit_err colortrack_set_saturation_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturation(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_setsaturation(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_saturation_variation_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturationvar(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_setsaturationvar(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: SATURATION_3
 t_jit_err colortrack_set_saturation_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturation(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_setsaturation(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_saturation_variation_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturationvar(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_setsaturationvar(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: SATURATION_4
 t_jit_err colortrack_set_saturation_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturation(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_setsaturation(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_saturation_variation_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setsaturationvar(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_setsaturationvar(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
@@ -915,52 +915,52 @@ t_jit_err colortrack_set_saturation_variation_4(t_max_jit_colortrack *x, void *a
 // ATTRIBUTE: BRIGHTNESS_1
 t_jit_err colortrack_set_brightness_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightness(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_setbrightness(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_brightness_variation_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightnessvar(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_setbrightnessvar(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: BRIGHTNESS_2
 t_jit_err colortrack_set_brightness_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightness(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_setbrightness(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_brightness_variation_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightnessvar(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_setbrightnessvar(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: BRIGHTNESS_3
 t_jit_err colortrack_set_brightness_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightness(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_setbrightness(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_brightness_variation_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightnessvar(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_setbrightnessvar(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 // ATTRIBUTE: BRIGHTNESS_4
 t_jit_err colortrack_set_brightness_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightness(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_setbrightness(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
 t_jit_err colortrack_set_brightness_variation_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setbrightnessvar(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_setbrightnessvar(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }
 
@@ -988,28 +988,28 @@ void colortrack_setoutputsize(t_max_jit_colortrack *x, short tracker_num, short 
 // ATTRIBUTE: OUTPUT_BOUNDS_1
 t_jit_err colortrack_set_output_bounds_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputbounds(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_setoutputbounds(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_BOUNDS_2
 t_jit_err colortrack_set_output_bounds_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputbounds(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_setoutputbounds(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_BOUNDS_3
 t_jit_err colortrack_set_output_bounds_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputbounds(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_setoutputbounds(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_BOUNDS_4
 t_jit_err colortrack_set_output_bounds_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputbounds(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_setoutputbounds(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
@@ -1017,28 +1017,28 @@ t_jit_err colortrack_set_output_bounds_4(t_max_jit_colortrack *x, void *attr, lo
 // ATTRIBUTE: OUTPUT_CENTER_1
 t_jit_err colortrack_set_output_center_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputcenter(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_setoutputcenter(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_CENTER_2
 t_jit_err colortrack_set_output_center_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputcenter(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_setoutputcenter(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_CENTER_3
 t_jit_err colortrack_set_output_center_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputcenter(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_setoutputcenter(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_CENTER_4
 t_jit_err colortrack_set_output_center_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputcenter(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_setoutputcenter(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
@@ -1046,27 +1046,27 @@ t_jit_err colortrack_set_output_center_4(t_max_jit_colortrack *x, void *attr, lo
 // ATTRIBUTE: OUTPUT_SIZE_1
 t_jit_err colortrack_set_output_size_1(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputsize(x, TRACKER_1, jit_atom_getlong(argv));
+	colortrack_setoutputsize(x, TRACKER_1, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_SIZE_2
 t_jit_err colortrack_set_output_size_2(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputsize(x, TRACKER_2, jit_atom_getlong(argv));
+	colortrack_setoutputsize(x, TRACKER_2, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_SIZE_3
 t_jit_err colortrack_set_output_size_3(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputsize(x, TRACKER_3, jit_atom_getlong(argv));
+	colortrack_setoutputsize(x, TRACKER_3, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		
 
 // ATTRIBUTE: OUTPUT_SIZE_4
 t_jit_err colortrack_set_output_size_4(t_max_jit_colortrack *x, void *attr, long argc, t_atom *argv)
 {
-	colortrack_setoutputsize(x, TRACKER_4, jit_atom_getlong(argv));
+	colortrack_setoutputsize(x, TRACKER_4, atom_getlong(argv));
 	return MAX_ERR_NONE;
 }		

@@ -13,7 +13,6 @@
 typedef struct _jit_sum 
 {
 	t_object			ob;
-	void				*obex;
 	void 				*valout;
 	char				mode; 			// mode 0: normal operation, mode 1: change notification
 	void				*matrix;		// pointer to the internal matrix used in change detection
@@ -44,7 +43,6 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	
 	c = class_new("tap.jit.sum", (method)jit_sum_new, (method)jit_sum_free, sizeof(t_jit_sum), 
 		(method)0L, A_GIMME, 0);
-	class_obexoffset_set(c, calcoffset(t_jit_sum, obex));
 
 		common_symbols_init();
     class_addmethod(c, (method)jit_sum_jit_matrix,	"jit_matrix", A_GIMME, 0L);
@@ -131,7 +129,7 @@ void jit_sum_jit_matrix(t_jit_sum *x, t_symbol *s, long argc, t_atom *argv)
 	
 	if (argc&&argv) {
 		//find matrix
-		matrix = jit_object_findregistered(jit_atom_getsym(argv));
+		matrix = jit_object_findregistered(atom_getsym(argv));
 		if (matrix&&jit_object_method(matrix, _sym_class_jit_matrix)) {
 			//calculate
 			in_savelock = (long) jit_object_method(matrix, _sym_lock,1);
@@ -198,11 +196,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 				rowstride = in_minfo->dimstride[1];
 				for (j=0;j<dim[0];j++) {
 					ip = (uchar *)(bip + j * in_minfo->dimstride[0]);	
-					jit_atom_setlong(&(a_coord[0]),j);	
+					atom_setlong(&(a_coord[0]),j);	
 					for (i=0;i<dim[1];i++){
-						jit_atom_setlong(&(a_coord[1]),i);
+						atom_setlong(&(a_coord[1]),i);
 						for (k=0;k<in_minfo->planecount;k++) {
-							jit_atom_setlong(&(a_val[k]),(((uchar *)ip)[k]) + mySum);
+							atom_setlong(&(a_val[k]),(((uchar *)ip)[k]) + mySum);
 						}
 
 						// BECAUSE THEY WANTED TO MAKE LISTS FOR MULTIPLANE (UNLIKE ME)
@@ -218,11 +216,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 				rowstride = in_minfo->dimstride[1];// >> 2L;
 				for (j=0;j<dim[0];j++){
 					ip = (uchar *)(bip + j * in_minfo->dimstride[0]);					
-					jit_atom_setlong(&(a_coord[0]),j);	
+					atom_setlong(&(a_coord[0]),j);	
 					for (i=0;i<dim[1];i++) {	
-						jit_atom_setlong(&(a_coord[1]),i);	
+						atom_setlong(&(a_coord[1]),i);	
 						for (k=0;k<in_minfo->planecount;k++) {
-							jit_atom_setlong(&(a_val[k]),((long *)ip)[k]);
+							atom_setlong(&(a_val[k]),((long *)ip)[k]);
 						}
 
 						if (in_minfo->planecount>1)	
@@ -236,11 +234,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 				rowstride = in_minfo->dimstride[1];// >> 2L;
 				for (j=0;j<dim[0];j++){
 					ip = (uchar *)(bip + j * in_minfo->dimstride[0]);					
-					jit_atom_setlong(&(a_coord[0]),j);	
+					atom_setlong(&(a_coord[0]),j);	
 					for (i=0;i<dim[1];i++) {	
-						jit_atom_setlong(&(a_coord[1]),i);	
+						atom_setlong(&(a_coord[1]),i);	
 						for (k=0;k<in_minfo->planecount;k++) {
-							jit_atom_setfloat(&(a_val[k]),((float *)ip)[k]);
+							atom_setfloat(&(a_val[k]),((float *)ip)[k]);
 						}
 
 						if (in_minfo->planecount>1)	
@@ -254,11 +252,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 				rowstride = in_minfo->dimstride[1];// >> 3L;
 				for (j=0;j<dim[0];j++){
 					ip = (uchar *)(bip + j * in_minfo->dimstride[0]);					
-					jit_atom_setlong(&(a_coord[0]),j);	
+					atom_setlong(&(a_coord[0]),j);	
 					for (i=0;i<dim[1];i++) {	
-						jit_atom_setlong(&(a_coord[1]),i);	
+						atom_setlong(&(a_coord[1]),i);	
 						for (k=0;k<in_minfo->planecount;k++) {
-							jit_atom_setfloat(&(a_val[k]),((double *)ip)[k]);
+							atom_setfloat(&(a_val[k]),((double *)ip)[k]);
 						}
 
 						if (in_minfo->planecount>1)	
@@ -277,11 +275,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 				myDivisor = /*255 **/ dim[0] * dim[1] * in_minfo->planecount;
 				for (i=0;i<dim[1];i++){						// Y loop
 					ip = (uchar *)(bip + i*in_minfo->dimstride[1]);					
-					jit_atom_setlong(&(a_coord[1]),i);	
+					atom_setlong(&(a_coord[1]),i);	
 					for (j=0;j<dim[0];j++) {				// X loop (nested)
-						jit_atom_setlong(&(a_coord[0]),j);	
+						atom_setlong(&(a_coord[0]),j);	
 						for (k=0;k<in_minfo->planecount;k++) {   // PLANE loop (double-nested)
-							jit_atom_setlong(&(a_val[k]),((uchar *)ip)[(j*in_minfo->planecount)+k]);
+							atom_setlong(&(a_val[k]),((uchar *)ip)[(j*in_minfo->planecount)+k]);
 							if(a_val[0].a_w.w_long != 0){
 								mySum++;	// Increment the sum
 								myRowAccum += a_coord[1].a_w.w_long;
@@ -296,13 +294,13 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 					myColAccum = myColAccum / mySum;
 				}	
 				
-				jit_atom_setsym(&(my_val[0]),gensym("quantity"));					
-				jit_atom_setfloat(&(my_val[1]),mySum/myDivisor);
+				atom_setsym(&(my_val[0]),gensym("quantity"));					
+				atom_setfloat(&(my_val[1]),mySum/myDivisor);
 				outlet_list(x->valout, 0L, 2, (atom *)&my_val);
 				
-				jit_atom_setsym(&(my_val[0]),gensym("location"));								
-				jit_atom_setfloat(&(my_val[1]),myColAccum/dim[0]);
-				jit_atom_setfloat(&(my_val[2]),myRowAccum/dim[1]);
+				atom_setsym(&(my_val[0]),gensym("location"));								
+				atom_setfloat(&(my_val[1]),myColAccum/dim[0]);
+				atom_setfloat(&(my_val[2]),myRowAccum/dim[1]);
 				outlet_list(x->valout, 0L, 3, (atom *)&my_val);
 
 				
@@ -313,11 +311,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 			} else if (in_minfo->type==_sym_long) {
 				for (i=0;i<dim[1];i++){
 					ip = (uchar *)(bip + i*in_minfo->dimstride[1]);					
-					jit_atom_setlong(&(a_coord[1]),i);	
+					atom_setlong(&(a_coord[1]),i);	
 					for (j=0;j<dim[0];j++) {	
-						jit_atom_setlong(&(a_coord[0]),j);	
+						atom_setlong(&(a_coord[0]),j);	
 						for (k=0;k<in_minfo->planecount;k++) {
-							jit_atom_setlong(&(a_val[k]),((long *)ip)[(j*in_minfo->planecount)+k]);
+							atom_setlong(&(a_val[k]),((long *)ip)[(j*in_minfo->planecount)+k]);
 						}
 
 						if (in_minfo->planecount>1)	
@@ -329,11 +327,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 			} else if (in_minfo->type==_sym_float32) {
 				for (i=0;i<dim[1];i++){
 					ip = (uchar *)(bip + i*in_minfo->dimstride[1]);					
-					jit_atom_setlong(&(a_coord[1]),i);	
+					atom_setlong(&(a_coord[1]),i);	
 					for (j=0;j<dim[0];j++) {	
-						jit_atom_setlong(&(a_coord[0]),j);	
+						atom_setlong(&(a_coord[0]),j);	
 						for (k=0;k<in_minfo->planecount;k++) {
-							jit_atom_setfloat(&(a_val[k]),((float *)ip)[(j*in_minfo->planecount)+k]);
+							atom_setfloat(&(a_val[k]),((float *)ip)[(j*in_minfo->planecount)+k]);
 						}
 
 						if (in_minfo->planecount>1)	
@@ -345,11 +343,11 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 			} else if (in_minfo->type==_sym_float64) {
 				for (i=0;i<dim[1];i++){
 					ip = (uchar *)(bip + i*in_minfo->dimstride[1]);					
-					jit_atom_setlong(&(a_coord[1]),i);	
+					atom_setlong(&(a_coord[1]),i);	
 					for (j=0;j<dim[0];j++) {	
-						jit_atom_setlong(&(a_coord[0]),j);	
+						atom_setlong(&(a_coord[0]),j);	
 						for (k=0;k<in_minfo->planecount;k++) {
-							jit_atom_setfloat(&(a_val[k]),((double *)ip)[(j*in_minfo->planecount)+k]);
+							atom_setfloat(&(a_val[k]),((double *)ip)[(j*in_minfo->planecount)+k]);
 						}
 
 						if (in_minfo->planecount>1)	
@@ -366,7 +364,7 @@ void jit_sum_calculate_ndim(t_jit_sum *x, long dimcount, long *dim, t_atom *a_co
 		object_post((t_object *)x, "I am C");
 		for	(i=0;i<dim[dimcount-1];i++) {
 			ip = (uchar *)(bip + i*in_minfo->dimstride[dimcount-1]);
-			jit_atom_setlong(&(a_coord[dimcount-1]),i);	
+			atom_setlong(&(a_coord[dimcount-1]),i);	
 			jit_sum_calculate_ndim(x,dimcount-1,dim,a_coord,in_minfo, (char *)ip);
 		}
 	}

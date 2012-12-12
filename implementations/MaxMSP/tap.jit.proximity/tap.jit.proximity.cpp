@@ -17,7 +17,6 @@
 
 typedef struct _proximity{
 	t_object			ob;
-	void				*obex;
 	void 				*outlet[1];
 	t_symbol			*name; 			// ATTRIBUTE
 } t_proximity;
@@ -42,9 +41,9 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	
 	c = class_new("tap.jit.proximity", (method)proximity_new, (method)proximity_free, sizeof(t_proximity), 
 		(method)0L, A_GIMME, 0);
-	class_obexoffset_set(c, calcoffset(t_proximity, obex));
 
-		common_symbols_init();												// Initialize TapTools
+	common_symbols_init();
+	
     class_addmethod(c, (method)proximity_coords,	"coords", A_FLOAT, A_FLOAT, 0L);
     class_addmethod(c, (method)proximity_assist, 	"assist", A_CANT, 0L); 
 	class_addmethod(c, (method)stdinletinfo,		"inletinfo",	A_CANT, 0);
@@ -153,9 +152,9 @@ void proximity_coords(t_proximity *x, double xin, double yin)
 		for(j=0; j<i; j++){
 			if((xdifs[j] + ydifs[j]) < sum){
 				sum = xdifs[j] + ydifs[j];
-				jit_atom_setlong(&(outlist[0]),j+1);
-				jit_atom_setfloat(&(outlist[1]), JIT_2D_GET_FLOAT32(in_bp, &in_minfo, 0, 0, j));
-				jit_atom_setfloat(&(outlist[2]), JIT_2D_GET_FLOAT32(in_bp, &in_minfo, 0, 1, j));
+				atom_setlong(&(outlist[0]),j+1);
+				atom_setfloat(&(outlist[1]), JIT_2D_GET_FLOAT32(in_bp, &in_minfo, 0, 0, j));
+				atom_setfloat(&(outlist[2]), JIT_2D_GET_FLOAT32(in_bp, &in_minfo, 0, 1, j));
 			}
 		}
 		outlet_list(x->outlet[0], 0L, 3, &outlist[0]);
