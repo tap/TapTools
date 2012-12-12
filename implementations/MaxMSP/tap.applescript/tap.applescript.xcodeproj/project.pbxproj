@@ -204,7 +204,8 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DSTROOT = "$(BUILDS)/MaxMSP";
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = /;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/max-includes\"",
@@ -218,12 +219,14 @@
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/msp-includes\"",
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/jit-includes\"",
 				);
+				INSTALL_PATH = "$(SRCROOT)/../../../../Builds/MaxMSP";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
 					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
+				SKIP_INSTALL = NO;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax";
 				WRAPPER_EXTENSION = mxo;
 			};
@@ -233,8 +236,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
-				DSTROOT = "$(BUILDS)/MaxMSP";
+				COPY_PHASE_STRIP = NO;
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = /;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/max-includes\"",
@@ -247,12 +251,14 @@
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/msp-includes\"",
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/max/c74support/jit-includes\"",
 				);
+				INSTALL_PATH = "$(SRCROOT)/../../../../Builds/MaxMSP";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
 					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
+				SKIP_INSTALL = NO;
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../../../Jamoma/Core/Shared/objectivemax";
 				WRAPPER_EXTENSION = mxo;
 			};

@@ -24,4 +24,4 @@ libraries:
 
 prefix: ../../../../../Jamoma/Core/Shared/max/c74support/max-includes/macho-prefix.pch
 #arch: "i386"
-#builddir: Builds
+builddir: Builds

@@ -28,4 +28,4 @@ load "build.rb"
 
 `mkdir -p "#{glibdir}"/max/externals`
 `rm -rf "#{glibdir}"/max/externals/*`
-`mv "#{glibdir}"/../../Builds/MaxMSP/tap.* "#{glibdir}"/max/externals`
+`mv "#{glibdir}"/../Builds/MaxMSP/tap.* "#{glibdir}"/max/externals`
