@@ -5,3 +5,4 @@ externals
 
 xcuserdata
 *.xcworkspace
+*.xcuserstate
