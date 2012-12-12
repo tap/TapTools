@@ -16,9 +16,7 @@ includes:
 libraries:
   - ../../../../../Jamoma/Core/Foundation/library/build/JamomaFoundation.dylib
   - ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
-  - ../../../../../Jamoma/Core/Shared/max/c74support/max-includes/MaxAPI.framework/Versions/A/MaxAPI
-  - ../../../../../Jamoma/Core/Shared/max/c74support/msp-includes/MaxAudioAPI.framework/Versions/A/MaxAudioAPI
-  - ../../../../../Jamoma/Core/Shared/max/c74support/jit-includes/JitterAPI.framework/Versions/A/JitterAPI
+  - C74
 
 prefix: ../../../../../Jamoma/Core/Shared/max/c74support/max-includes/macho-prefix.pch
 #arch: "i386"
