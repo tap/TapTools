@@ -2,6 +2,7 @@ Makefile
 *.o
 build
 externals
+extensions
 
 xcuserdata
 *.xcworkspace

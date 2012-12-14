@@ -27,5 +27,8 @@ build_project("#{glibdir}/objectivemax/MaxObject", "MaxObject.xcodeproj", "Deplo
 load "build.rb"
 
 `mkdir -p "#{glibdir}"/max/externals`
+`mkdir -p "#{glibdir}"/max/extensions`
 `rm -rf "#{glibdir}"/max/externals/*`
+`rm -rf "#{glibdir}"/max/extensions/*`
 `mv "#{glibdir}"/../Builds/MaxMSP/tap.* "#{glibdir}"/max/externals`
+`mv "#{glibdir}"/max/externals/tap.loader.* "#{glibdir}"/max/extensions`
