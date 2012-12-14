@@ -67,19 +67,19 @@ t_jit_err jit_kernel_init(void)
 	attrflags = JIT_ATTR_GET_DEFER_LOW | JIT_ATTR_SET_USURP_LOW;
 
 	// ATTRIBUTE: center -- sets the center location of the kernel
-	attr = (t_object *)jit_object_new(_sym_jit_attr_offset_array, "center", _jit_sym_float64, 2, 
+	attr = (t_object *)jit_object_new(_sym_jit_attr_offset_array, "center", _sym_float64, 2, 
 		attrflags, (method)0L, (method)0L, calcoffset(t_jit_kernel, centercount),
 		calcoffset(t_jit_kernel, center));
 	jit_class_addattr(_jit_kernel_class,attr);
 
 	// ATTRIBUTE: size -- sets the x/y sizes of the kernel
-	attr = (t_object *)jit_object_new(_jit_sym_jit_attr_offset_array, "size", _jit_sym_float64, 2, 
+	attr = (t_object *)jit_object_new(_sym_jit_attr_offset_array, "size", _sym_float64, 2, 
 		attrflags, (method)0L, (method)0L, calcoffset(t_jit_kernel, sizecount),
 		calcoffset(t_jit_kernel,size));
 	jit_class_addattr(_jit_kernel_class,attr);
 
 	// ATTRIBUTE: weight -- sets the overall weight of the kernel
-	attr = (t_object *)jit_object_new(_jit_sym_jit_attr_offset,"weight",_jit_sym_float64,attrflags,
+	attr = (t_object *)jit_object_new(_sym_jit_attr_offset,"weight", _sym_float64,attrflags,
 		(method)0L,(method)0L,calcoffset(t_jit_kernel,weight));
 	jit_class_addattr(_jit_kernel_class,attr);
 
@@ -198,14 +198,14 @@ t_jit_err jit_kernel_matrix_calc(t_jit_kernel *x, void *inputs, void *outputs)
 	long i,dimcount,planecount,dim[JIT_MATRIX_MAX_DIMCOUNT];
 	void *out_matrix;
 	
-	out_matrix 	= jit_object_method(outputs,_jit_sym_getindex,0);
+	out_matrix 	= jit_object_method(outputs, _sym_getindex,0);
 
 	if (x&&out_matrix) {
-		out_savelock = (long) jit_object_method(out_matrix,_jit_sym_lock,1);
+		out_savelock = (long) jit_object_method(out_matrix, _sym_lock,1);
 		
-		jit_object_method(out_matrix,_jit_sym_getinfo,&out_minfo);
+		jit_object_method(out_matrix, _sym_getinfo,&out_minfo);
 		
-		jit_object_method(out_matrix,_jit_sym_getdata,&out_bp);
+		jit_object_method(out_matrix, _sym_getdata,&out_bp);
 		
 		if(!out_bp){
 			err=JIT_ERR_INVALID_OUTPUT;

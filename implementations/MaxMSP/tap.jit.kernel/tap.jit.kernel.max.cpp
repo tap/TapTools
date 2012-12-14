@@ -82,16 +82,16 @@ void max_jit_kernel_outputmatrix(t_max_jit_kernel *x)
 {
 	//t_atom a;
 	long outputmode=max_jit_mop_getoutputmode(x);
-	void *mop=max_jit_obex_adornment_get(x,_jit_sym_jit_mop);
+	void *mop=max_jit_obex_adornment_get(x, _sym_jit_mop);
 	t_jit_err err;	
 	
 	if (outputmode&&mop) { //always output unless output mode is none
 		if (outputmode==1) {
 			if (err=(t_jit_err)jit_object_method(
 				max_jit_obex_jitob_get(x), 
-				_jit_sym_matrix_calc,
-				jit_object_method(mop,_jit_sym_getinputlist),
-				jit_object_method(mop,_jit_sym_getoutputlist)))						
+				_sym_matrix_calc,
+				jit_object_method(mop, _sym_getinputlist),
+				jit_object_method(mop, _sym_getoutputlist)))						
 			{
 				jit_error_code(x,err); 
 			} else {
