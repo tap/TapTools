@@ -1,45 +1,12 @@
-TapTools, Version 3
-Artist & Pro License Terms
-	
-Please read this document carefully and\or attentively prior to utilizing any part of TapTools Max (the Software).  If you do not agree to reading this license prior to utilizing the Software or if you do not fully or in part understand the terms or syntax of this license prior to utilizing the Software, you are not agreeing to this license.
-If you do not agree to the provisions of this license you are agreeing to not utilizing the Software.
-By utilizing the Software you are agreeing to be bound by the terms of this license. 
+Copyright (c) 1999-2012, Timothy Place.
+All rights reserved.
 
-TapTools for Max/MSP/Jitter
-authored by Timothy Place with Jesse Allison and Dave Watson
-http://www.electrotap.com/
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 
-PREAMBLE
-All software in this package is covered under the following terms unless explicitly stated otherwise. The use of the term “Artist” and “Student” with regards to licensing restrictions are interchangeable and to be considered one and the same.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
+* Neither the name of the organization nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
-COPYRIGHT
-This software, source code, and documentation is copyright © 2008 by Electrotap, L.L.C.  All rights reserved.  You may make copies of the Software for your own use (on both the Mac OS and Windows platforms).  You may make backup copies of the Software as long as they include all components of the Software, including this license agreement.
-
-
-LICENSE
-The Software is provided by Electrotap (the Author) to you, a single user, for a license fee - it is NOT free.  This license gives you the royalty-free right to use the Software's components in your own ORIGINAL WORKS in the form of Max patcher documents.
-
-ONLY IF YOU HAVE PURCHASED PRO LICENSE are you permitted to use the Software's components in 
-Max collectives, plugins, and standalone applications.  Furthermore, ONLY IF YOU HAVE PURCHASES A PRO LICENSE do you have the right to use, distribute, and license such original works to third parties without the payment of any further license fees, so long as a your terms of use for your ORIGINAL WORKS are sufficient to protect the copyright and license of the Software.
-
-YOU MAY NOT SELL, LEASE, OR OTHERWISE DISTRIBUTE THE SOFTWARE, NOR MAY YOU TAKE A FEE OR COMMISSION FOR PROVIDING THE SOFTWARE TO ANOTHER PERSON, NOR MAY YOU INCLUDE THE SOFTWARE WITH OTHER SOFTWARE THAT IS DISTRIBUTED WITHOUT PRIOR WRITTEN PERMISSION FROM THE AUTHOR OR BY FOLLOWING THE TERMS OF THE PRECEDING PARAGRAPH. 
-
-
-DISCLAIMER OF WARRANTY ON SOFTWARE
-THE SOFTWARE IS PROVIDED 'AS IS' AND WITHOUT WARRANTY OF ANY KIND. The Author expressly disclaims all warranties, express or implied, including, but not limited to, the fitness for a particular purpose. The Author does not warrant that the software will be uninterrupted or error-free, or that defects in the software will be corrected.  Furthermore, The Author does not warrant or make any representations regarding the 
-use or the results of the use of the software in terms of their correctness, accuracy, reliability, or otherwise.  No oral or written information or advice given by the Author shall create a warranty or in any way increase the scope of this warranty. Should the software prove defective, you (and not the Author) assume the entire cost of all necessary servicing, repair or correction of the software, or the computer system with which it is used. 
-
-
-LIMITATION OF LIABILITY
-UNDER NO CIRCUMSTANCES, INCLUDING NEGLIGENCE, SHALL THE AUTHOR BE LIABLE 
-FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES THAT RESULT FROM 
-THE USE OR INABILITY TO USE THE SOFTWARE, EVEN IF THE AUTHOR HAS BEEN 
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-
----
-
-Copyright © 2008
-Electrotap, L.L.C.
-www.electrotap.com
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

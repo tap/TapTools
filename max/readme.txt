@@ -2,21 +2,23 @@ TAPTOOLS
 By Timothy Place
 http://74objects.com/
 
-Version 3.6.4 (build 36155)
-23 August 2012
+Version 4 beta 1
+13 December 2012
 
 
-Distribution of TapTools is governed by the TapTools License.  
-If you have not already registered/purchased your copy, please do so @ http://electrotap.com/ .  
-Also be sure to read the license agreement located in the accompanying license text file.
+Distribution of TapTools is governed by the New BSD License ( http://opensource.org/licenses/BSD-3-Clause )  
 
 
-Installing on Mac OSX
-The TapTools Installer (.pkg) will install TapTools to your Max6 folder.
+Installing for Max 6.0.x
+
+1. The TapTools package is a folder that can be placed into the Max search path.
+2. Move the stuff in the 'extensions' folder into the Cycling '74/extensions folder.
+3. Move the stuff in the 'queries' folder into the Cycling '74/queries folder.
+4. Move the stuff in the 'extras' folder into the Cycling '74/extras folder, and *trash the empty folder you leave behind*.
 
 
 System Requirements
-Max 6.0.5 or higher for Mac OS
+Max 6 for Mac OS
 
 
 Contact
@@ -46,6 +48,15 @@ TapTools stands on the shoulders of some excellent open source software projects
 Known Issues
 - tap.myip does not as reliably return your IP address as it once did.
 - tap.jit.ali harmlessly posts "warning: attempting to allocate matrix with unknown type" to the Max window the first time it is created.
+
+
+New In TapTools 4 beta 1
+- All code is now open source and available via GitHub
+- It is no longer required that you enter a registration number for authorization
+  (TapTools now operates on the honor system -- if you derive benefit from TapTools then please support it with a donation)
+- An installer is no longer provided
+- Requisite Jamoma dependencies, where applicable, are no longer provided (you must install Jamoma to use these objects)
+
 
 New In TapTools 3.6.4
 - Fixed problems with TapTools 3.6.x not functioning in Max for Live
