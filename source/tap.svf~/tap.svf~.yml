@@ -1,0 +1,27 @@
+
+sources:
+  - tap.svf~.cpp
+  - ../ttblue/tt_audio_base.cpp
+  - ../../../../Jamoma/Implementations/Max/source/c74support/max-includes/common/commonsyms.cpp
+  - ../../../../Jamoma/Implementations/Max/source/classwrapper/TTClassWrapperMax.cpp
+    
+includes:
+  - ../../../../Jamoma/Core/Foundation/library/includes
+  - ../../../../Jamoma/Core/DSP/library/includes
+  - ../../../../Jamoma/Core/Graphics/library/includes
+  - ../../../../Jamoma/Implementations/Max/source/classwrapper
+  - ../../../../Jamoma/Implementations/Max/source/c74support/max-includes
+  - ../../../../Jamoma/Implementations/Max/source/c74support/msp-includes
+  - ../../../../Jamoma/Implementations/Max/source/c74support/jit-includes
+
+defines:
+  - MAC_VERSION
+
+libraries:
+  - ../../../../Jamoma/Core/Foundation/library/build/JamomaFoundation.dylib
+  - ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
+  - C74
+
+prefix: ../../../../Jamoma/Implementations/Max/source/c74support/max-includes/macho-prefix.pch
+#arch: "i386"
+builddir: Builds
