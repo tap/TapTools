@@ -202,7 +202,7 @@ t_max_err binmod_freq_set(t_binmod *x, void *attr, long argc, t_atom *argv)
 			x->attr_freq_len = argc;
 			for(i=0; i < argc; i++){
 				x->attr_freq[i] = atom_getfloat(argv+i);
-				x->lfos[i]->set_attr(tt_lfo::k_frequency,  TTClip(atom_getfloat(argv+i), 0.f, float(x->krate-1)));				
+				x->lfos[i]->set_attr(tt_lfo::k_frequency,  TTClip<double>(atom_getfloat(argv+i), 0.f, float(x->krate-1)));				
 			}
 			break;
 	}
@@ -255,7 +255,7 @@ t_max_err binmod_phase_set(t_binmod *x, void *attr, long argc, t_atom *argv)
 			x->attr_phase_len = argc;
 			for(i=0; i < argc; i++){
 				x->attr_phase[i] = atom_getfloat(argv+i);
-				x->lfos[i]->set_attr(tt_lfo::k_phase, TTClip(atom_getfloat(argv+i), 0.f, 1.f));				
+				x->lfos[i]->set_attr(tt_lfo::k_phase, TTClip<double>(atom_getfloat(argv+i), 0.f, 1.f));				
 			}
 			break;
 	}

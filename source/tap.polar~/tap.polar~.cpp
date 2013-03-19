@@ -64,7 +64,7 @@ void *polar_new(t_symbol *s, short argc, t_atom *argv)
 {
 	t_polar *x;
 	long attrstart;
-	long argument = 0;
+	t_atom_long argument = 0;
 	short i;
 
 	attrstart = attr_args_offset(argc, argv);

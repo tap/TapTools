@@ -63,7 +63,7 @@ class_register(_sym_box, c); 	radians_class = c;
 
 void *radians_new(t_symbol *msg, short argc, t_atom *argv)
 {
-	long myArg = 0;
+	t_atom_long myArg = 0;
 	long attrstart;	
 	t_radians *x;
 	

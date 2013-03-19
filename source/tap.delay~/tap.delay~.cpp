@@ -145,7 +145,7 @@ void mydelay_assist(t_mydelay *x, void *b, long msg, long arg, char *dst)
 // ATTRIBUTE: delay time in ms
 t_max_err attr_set_delay(t_mydelay *x, void *attr, long argc, t_atom *argv)
 {
-	x->attr_delay = TTClip(atom_getfloat(argv), 0.0f, x->maxDelay);
+	x->attr_delay = TTClip<double>(atom_getfloat(argv), 0.0, x->maxDelay);
 	x->audio_delay->set_attr(tt_delay::k_delay_ms, x->attr_delay);
 	
 	return MAX_ERR_NONE;

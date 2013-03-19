@@ -190,7 +190,7 @@ void filecontainer_gettemppath(t_filecontainer *x)
 
 	err = FSCreateDirectoryUnicode(&folderref, strlen(unique->s_name), uni,
 			kFSCatInfoNone, NULL, &newref, NULL, NULL);
-#else WIN_VERSION
+#else // WIN_VERSION
 	CreateDirectory((LPCSTR)temppath, NULL);
 #endif	
 
@@ -236,8 +236,8 @@ void filecontainer_doopen(t_filecontainer *x, t_symbol *arg)
 	int				err = 0;
 	char			filename[256];
 	short			path;
-	long			outtype = 0;
-	long			type = 'cO0p';
+	t_fourcc		outtype = 0;
+	t_fourcc		type = 'cO0p';
 #ifdef MAC_VERSION
 	char			*temppath;
 	FSRef			ref;
@@ -252,7 +252,7 @@ void filecontainer_doopen(t_filecontainer *x, t_symbol *arg)
 	char			**record = NULL;		// sqlite records
 	char			**record2 = NULL;		// sqlite records
 	t_filehandle	file_handle;
-	long			len = 0;
+	t_ptr_size		len = 0;
 	char			*blob;
 	char			sql[512];
 		
@@ -261,7 +261,7 @@ void filecontainer_doopen(t_filecontainer *x, t_symbol *arg)
 			return;										
 	}
 	else{
-		long typelist[1];
+		t_fourcc typelist[1];
 		typelist[0] = 'cO0p';
 		strcpy(filename, arg->s_name);
 		path = 0;
@@ -495,12 +495,12 @@ void filecontainer_doaddfile(t_filecontainer *x, t_symbol *arg)
 	int				err = 0;
 	char			filename[256];
 	short			path;
-	long			outtype = 0;
+	t_fourcc		outtype = 0;
 	t_filehandle	file_handle;
 	char			*blob = NULL;
 	char			sql[512];
-	long			size;
-	unsigned long	moddate = 0;
+	t_ptr_size		size;
+	t_ptr_uint		moddate = 0;
 	t_datetime		moddatetime;
 	char			moddatetimestring[32];
 		

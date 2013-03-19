@@ -314,7 +314,7 @@ t_max_err attr_set_lfo_freq_depth(t_svf *x, void *attr, long argc, t_atom *argv)
 // ATTRIBUTE: speed
 t_max_err attr_set_lfo_freq_speed(t_svf *x, void *attr, long argc, t_atom *argv)
 {
-	x->attr_lfo_freq_speed = TTClip(atom_getfloat(argv), 0.0f, 200.0f);
+	x->attr_lfo_freq_speed = TTClip<double>(atom_getfloat(argv), 0.0f, 200.0f);
 	x->lfo->set_attr(tt_lfo::k_frequency, x->attr_lfo_freq_speed);		
 	
 	return MAX_ERR_NONE;

@@ -88,7 +88,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 
 void *snap_new(t_symbol *msg, short argc, t_atom *argv)
 {
-	long 		chan = 1;
+	t_atom_long chan = 1;
 	t_symbol 	*name = _sym_nothing;
 	t_snap 		*x; 
     long		attrstart;

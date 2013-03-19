@@ -63,7 +63,7 @@ class_register(_sym_box, c); 	fftlist_class = c;
 
 void *fftlist_new(t_symbol *msg, short argc, t_atom *argv)
 {
-	long 		value = 512;
+	t_atom_long value = 512;
 	t_fftlist 	*x;
 	long		attrstart;
 
@@ -78,7 +78,7 @@ void *fftlist_new(t_symbol *msg, short argc, t_atom *argv)
 	 	x->fftlist_out = listout(x);							// Create a list Outlet
 	 	x->fftlist_clock = clock_new(x, (method)fftlist_bang);	// Create the queue clock
 
-		x->s_bins = TTClip(value, 2L, MAXSIZE);		// Number of bins in analysis
+		x->s_bins = TTClip<TTInt32>(value, 2, MAXSIZE);		// Number of bins in analysis
 		x->fftlist_mult = 1.;									// 
 		x->fftlist_nyquist = 1;									// 
 		x->fftlist_autopoll = 1;								// 

@@ -79,7 +79,7 @@ void *decibels_new(t_symbol *msg, short argc, t_atom *argv)
 {
 	t_decibels *x;
 	long attrstart;
-	long argument = 0;
+	t_atom_long argument = 0;
 
 	attrstart = attr_args_offset(argc, argv);
 	if (attrstart && argv)

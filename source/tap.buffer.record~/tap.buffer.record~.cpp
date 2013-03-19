@@ -82,7 +82,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 
 void *record_new(t_symbol *msg, short argc, t_atom *argv)
 {
-	long chan = 1, fade = 5;
+	t_atom_long chan = 1, fade = 5;
 	t_symbol *name = 0;
     t_record *x;
     long	attrstart;
