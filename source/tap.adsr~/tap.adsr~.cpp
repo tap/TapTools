@@ -58,6 +58,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	
 	c = class_new("tap.adsr~", (method)adsr_new, (method)adsr_free, sizeof(t_adsr), (method)0L, A_GIMME, 0);
 
+	TTDSPInit();
 	common_symbols_init();
  	class_addmethod(c, (method)adsr_dsp,		"dsp", A_CANT, 0);		
 	class_addmethod(c, (method)adsr_dsp64, "dsp64", A_CANT, 0);
