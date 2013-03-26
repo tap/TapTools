@@ -22,5 +22,5 @@ frameworks:
   - Carbon
 
 prefix: ../../../../Jamoma/Implementations/Max/source/c74support/max-includes/macho-prefix.pch
-#arch: "i386"
-builddir: Builds
+
+
