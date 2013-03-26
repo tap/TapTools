@@ -26,9 +26,20 @@ build_project("#{glibdir}/objectivemax/MaxObject", "MaxObject.xcodeproj", "Deplo
 
 load "build.rb"
 
-`mkdir -p "#{glibdir}"/max/externals`
-`mkdir -p "#{glibdir}"/max/extensions`
-`rm -rf "#{glibdir}"/max/externals/*`
-`rm -rf "#{glibdir}"/max/extensions/*`
-`mv "#{glibdir}"/../Builds/MaxMSP/tap.* "#{glibdir}"/max/externals`
-`mv "#{glibdir}"/max/externals/tap.loader.* "#{glibdir}"/max/extensions`
+`rm -rf "#{glibdir}"/TapTools/extensions/tap.loader.*`
+`mv "#{glibdir}"/TapTools/externals/tap.loader.* "#{glibdir}"/TapTools/extensions`
+`cp "#{glibdir}"/readme.txt "#{glibdir}"/TapTools/readme.txt`
+
+`mkdir -p "#{glibdir}"/TapTools/support`
+`cp -r "#{glibdir}"/../../Jamoma/Core/*/library/build/*.dylib "#{glibdir}"/TapTools/support` if mac?
+`rm -f "#{glibdir}"/TapTools/support/*-i386.dylib`
+`rm -f "#{glibdir}"/TapTools/support/*-x86_64.dylib`
+
+`cp -r "#{glibdir}"/../../Jamoma/Core/*/extensions/*/build/*.ttdylib "#{glibdir}"/TapTools/support` if mac?
+`rm -f "#{glibdir}"/TapTools/support/*-i386.ttdylib`
+`rm -f "#{glibdir}"/TapTools/support/*-x86_64.ttdylib`
+
+`cp -r "#{glibdir}"/../../Jamoma/Core/*/library/build/*.dll "#{glibdir}"/TapTools/support` if win?
+
+`cp -r "#{glibdir}"/../../Jamoma/Core/*/extensions/*/build/*.ttdll "#{glibdir}"/TapTools/support` if win?
+
