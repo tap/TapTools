@@ -10,7 +10,7 @@
 #include "ext.h"
 #include "ext_obex.h"
 #include "jit.common.h"
-//#include "TTClassWrapperMax.h"
+#include "TTClassWrapperMax.h"
 
 #define JIT_2D_GET_FLOAT32(bp,info,plane,x,y) \
 	(*(float *)(((uchar *)(bp))+(plane*4)+((info)->dimstride[0]*(x))+((info)->dimstride[1]*(y))))
@@ -164,7 +164,7 @@ void jit_kernel_calculate_ndim(t_jit_kernel *x, long dimcount, long *dim, long p
 				
 				temp3 -= 1.0;
 				temp3 *= -1.0;
-				temp3 = CLIP(temp3, 0.0001F, 1.0F);
+				temp3 = TTClip<float>(temp3, 0.0001F, 1.0F);
 
 				JIT_2D_SET_FLOAT32(bop, out_minfo, 1, j-1, i, temp3);
 			}

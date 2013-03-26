@@ -99,7 +99,7 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	ClassPtr	c;
 	TTValue		v;
-	TTCString	s = NULL;
+	TTString	s;
 	
 	common_symbols_init();
 	TTDSPInit();
@@ -129,8 +129,8 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	CLASS_ATTR_ACCESSORS(c,	"type",	NULL, filter_setType);
 	TTGetRegisteredClassNamesForTags(v, TT("filter"));
 	v.toString();
-	v.get(0, s);
-	CLASS_ATTR_ENUM(c,		"type", 0, s);
+	s = TTString(v[0]);
+	CLASS_ATTR_ENUM(c,		"type", 0, s.c_str());
 	
 
 	CLASS_ATTR_SYM(c,		"mode",	0,	t_filter, attrMode);

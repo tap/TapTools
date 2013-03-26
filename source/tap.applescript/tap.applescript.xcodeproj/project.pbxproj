@@ -11,13 +11,9 @@
 		2202567114E820BA0049BF4B /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2202567014E820BA0049BF4B /* MaxAudioAPI.framework */; };
 		2202567314E820C60049BF4B /* JitterAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2202567214E820C60049BF4B /* JitterAPI.framework */; };
 		2202567514E820D90049BF4B /* commonsyms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2202567414E820D90049BF4B /* commonsyms.cpp */; };
-		2266865916593A7000C33CFF /* libMaxObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2266865816593A7000C33CFF /* libMaxObject.a */; };
-		2266865E16593A8D00C33CFF /* MaxAudioSignal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865A16593A8D00C33CFF /* MaxAudioSignal.h */; };
-		2266865F16593A8D00C33CFF /* MaxObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865B16593A8D00C33CFF /* MaxObject.h */; };
-		2266866016593A8D00C33CFF /* maxobjectbridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865C16593A8D00C33CFF /* maxobjectbridge.h */; };
-		2266866116593A8D00C33CFF /* MaxObjectTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2266865D16593A8D00C33CFF /* MaxObjectTypes.h */; };
 		227E0DD010B650EE00161657 /* tap.applescript.m in Sources */ = {isa = PBXBuildFile; fileRef = 227E0DCF10B650EE00161657 /* tap.applescript.m */; };
 		227E0E0910B651F200161657 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 227E0E0810B651F200161657 /* Cocoa.framework */; };
+		22DC27DF1702258E00D8AD34 /* libMaxObject.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 22DC27DE1702258E00D8AD34 /* libMaxObject.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,13 +21,9 @@
 		2202567014E820BA0049BF4B /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../Jamoma/Implementations/Max/source/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = "<group>"; };
 		2202567214E820C60049BF4B /* JitterAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JitterAPI.framework; path = "../../../../Jamoma/Implementations/Max/source/c74support/jit-includes/JitterAPI.framework"; sourceTree = "<group>"; };
 		2202567414E820D90049BF4B /* commonsyms.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = commonsyms.cpp; path = "../../../../Jamoma/Implementations/Max/source/c74support/max-includes/common/commonsyms.cpp"; sourceTree = "<group>"; };
-		2266865816593A7000C33CFF /* libMaxObject.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMaxObject.a; path = ../../../objectivemax/MaxObject/build/UninstalledProducts/libMaxObject.a; sourceTree = "<group>"; };
-		2266865A16593A8D00C33CFF /* MaxAudioSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxAudioSignal.h; path = ../../../objectivemax/MaxObject/MaxAudioSignal.h; sourceTree = "<group>"; };
-		2266865B16593A8D00C33CFF /* MaxObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxObject.h; path = ../../../objectivemax/MaxObject/MaxObject.h; sourceTree = "<group>"; };
-		2266865C16593A8D00C33CFF /* maxobjectbridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maxobjectbridge.h; path = ../../../objectivemax/MaxObject/maxobjectbridge.h; sourceTree = "<group>"; };
-		2266865D16593A8D00C33CFF /* MaxObjectTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MaxObjectTypes.h; path = ../../../objectivemax/MaxObject/MaxObjectTypes.h; sourceTree = "<group>"; };
 		227E0DCF10B650EE00161657 /* tap.applescript.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = tap.applescript.m; sourceTree = "<group>"; };
 		227E0E0810B651F200161657 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		22DC27DE1702258E00D8AD34 /* libMaxObject.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMaxObject.a; path = ../../objectivemax/MaxObject/build/UninstalledProducts/libMaxObject.a; sourceTree = "<group>"; };
 		2FBBEAE508F335360078DB84 /* tap.applescript.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tap.applescript.mxo; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -44,7 +36,7 @@
 				2202566E14E820AF0049BF4B /* MaxAPI.framework in Frameworks */,
 				2202567114E820BA0049BF4B /* MaxAudioAPI.framework in Frameworks */,
 				2202567314E820C60049BF4B /* JitterAPI.framework in Frameworks */,
-				2266865916593A7000C33CFF /* libMaxObject.a in Frameworks */,
+				22DC27DF1702258E00D8AD34 /* libMaxObject.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,11 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				227E0DCF10B650EE00161657 /* tap.applescript.m */,
-				2266865A16593A8D00C33CFF /* MaxAudioSignal.h */,
-				2266865B16593A8D00C33CFF /* MaxObject.h */,
-				2266865C16593A8D00C33CFF /* maxobjectbridge.h */,
-				2266865D16593A8D00C33CFF /* MaxObjectTypes.h */,
-				2266865816593A7000C33CFF /* libMaxObject.a */,
+				22DC27DE1702258E00D8AD34 /* libMaxObject.a */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -101,10 +89,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2266865E16593A8D00C33CFF /* MaxAudioSignal.h in Headers */,
-				2266865F16593A8D00C33CFF /* MaxObject.h in Headers */,
-				2266866016593A8D00C33CFF /* maxobjectbridge.h in Headers */,
-				2266866116593A8D00C33CFF /* MaxObjectTypes.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,6 +208,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../Jamoma/Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
 					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
+					"\"$(SRCROOT)/../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
 				SKIP_INSTALL = NO;
@@ -256,6 +241,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../../../../Jamoma/Core/Shared/objectivemax/MaxObject/build/UninstalledProducts\"",
 					"\"$(SRCROOT)/../../../objectivemax/MaxObject/build/UninstalledProducts\"",
+					"\"$(SRCROOT)/../../objectivemax/MaxObject/build/UninstalledProducts\"",
 				);
 				PRODUCT_NAME = tap.applescript;
 				SKIP_INSTALL = NO;

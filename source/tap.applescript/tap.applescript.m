@@ -6,6 +6,7 @@
  *	http://creativecommons.org/licenses/BSD/
  */
 
+#include <cstdarg>
 #include "ext.h"
 BEGIN_USING_C_LINKAGE
 #import "MaxObject/MaxObject.h"
@@ -143,7 +144,7 @@ void atoms_totext(char *s, short ac, t_atom *av)
 	char 			fullpath[512];			// path and name passed on to the xml parser
 	char			fullpath2[512];
 	short 			path;					// pathID#
-	long			outtype;				// the file type that is actually true
+	t_fourcc		outtype;				// the file type that is actually true
 	char 			*temppath;
 	NSString 		*formattedPath;
 
