@@ -40,7 +40,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 
 	c = class_new("tap.zerox~",(method)zerox_new, (method)zerox_free, sizeof(t_zerox), (method)0L, A_GIMME, 0);
 
-	
+	TTDSPInit();
 	common_symbols_init();
 	
 	class_addmethod(c, (method)zerox_dsp64,		"dsp64", A_CANT, 0);
