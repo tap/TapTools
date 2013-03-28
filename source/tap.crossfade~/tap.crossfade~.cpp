@@ -40,6 +40,9 @@ void fade_perform64_2(t_fade *x, t_object *dsp64, double **ins, long numins, dou
 static t_class	*s_fade_class;
 
 
+extern "C" TT_EXTENSION_EXPORT TTErr TTLoadJamomaExtension_Crossfade(void);
+
+
 /************************************************************************************/
 // Main() Function
 
@@ -48,6 +51,8 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	t_class *c;
 	
 	TTDSPInit();
+	TTLoadJamomaExtension_Crossfade();
+	
 	common_symbols_init();
 	
 	// Define our class
