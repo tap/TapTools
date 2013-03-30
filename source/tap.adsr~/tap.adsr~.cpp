@@ -43,6 +43,8 @@ t_max_err  attr_set_sustain(t_adsr *x, void *attr, long argc, t_atom *argv);
 t_max_err  attr_set_release(t_adsr *x, void *attr, long argc, t_atom *argv);
 t_max_err  attr_set_mode(t_adsr *x, void *attr, long argc, t_atom *argv);
 
+extern "C" TTErr TTLoadJamomaExtension_GeneratorLib(void);
+
 // Globals
 static t_class	*adsr_class;
 static t_symbol	*ps_linear;
@@ -59,6 +61,8 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	c = class_new("tap.adsr~", (method)adsr_new, (method)adsr_free, sizeof(t_adsr), (method)0L, A_GIMME, 0);
 
 	TTDSPInit();
+	TTLoadJamomaExtension_GeneratorLib();
+	
 	common_symbols_init();
  	class_addmethod(c, (method)adsr_dsp,		"dsp", A_CANT, 0);		
 	class_addmethod(c, (method)adsr_dsp64, "dsp64", A_CANT, 0);

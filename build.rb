@@ -30,16 +30,19 @@ load "build.rb"
 `mv "#{glibdir}"/TapTools/externals/tap.loader.* "#{glibdir}"/TapTools/extensions`
 `cp "#{glibdir}"/readme.txt "#{glibdir}"/TapTools/readme.txt`
 
-`mkdir -p "#{glibdir}"/TapTools/support`
-`cp -r "#{glibdir}"/../../Jamoma/Core/*/library/build/*.dylib "#{glibdir}"/TapTools/support` if mac?
-`rm -f "#{glibdir}"/TapTools/support/*-i386.dylib`
-`rm -f "#{glibdir}"/TapTools/support/*-x86_64.dylib`
 
-`cp -r "#{glibdir}"/../../Jamoma/Core/*/extensions/*/build/*.ttdylib "#{glibdir}"/TapTools/support` if mac?
-`rm -f "#{glibdir}"/TapTools/support/*-i386.ttdylib`
-`rm -f "#{glibdir}"/TapTools/support/*-x86_64.ttdylib`
-
-`cp -r "#{glibdir}"/../../Jamoma/Core/*/library/build/*.dll "#{glibdir}"/TapTools/support` if win?
-
-`cp -r "#{glibdir}"/../../Jamoma/Core/*/extensions/*/build/*.ttdll "#{glibdir}"/TapTools/support` if win?
+# No support folder because we are using static linking for Jamoma dependencies
+#
+#`mkdir -p "#{glibdir}"/TapTools/support`
+#`cp -r "#{glibdir}"/../../Jamoma/Core/*/library/build/*.dylib "#{glibdir}"/TapTools/support` if mac?
+#`rm -f "#{glibdir}"/TapTools/support/*-i386.dylib`
+#`rm -f "#{glibdir}"/TapTools/support/*-x86_64.dylib`
+#
+#`cp -r "#{glibdir}"/../../Jamoma/Core/*/extensions/*/build/*.ttdylib "#{glibdir}"/TapTools/support` if mac?
+#`rm -f "#{glibdir}"/TapTools/support/*-i386.ttdylib`
+#`rm -f "#{glibdir}"/TapTools/support/*-x86_64.ttdylib`
+#
+#`cp -r "#{glibdir}"/../../Jamoma/Core/*/library/build/*.dll "#{glibdir}"/TapTools/support` if win?
+#
+#`cp -r "#{glibdir}"/../../Jamoma/Core/*/extensions/*/build/*.ttdll "#{glibdir}"/TapTools/support` if win?
 

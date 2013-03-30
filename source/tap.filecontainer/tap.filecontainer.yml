@@ -7,15 +7,14 @@ sources:
 includes:
   - ../../../../Jamoma/Core/Foundation/library/includes
   - ../../../../Jamoma/Core/DSP/library/includes
-  - ../../../../Jamoma/Core/Graphics/library/includes
   - ../../../../Jamoma/Implementations/Max/source/classwrapper
   - ../../../../Jamoma/Implementations/Max/source/c74support/max-includes
   - ../../../../Jamoma/Implementations/Max/source/c74support/msp-includes
   - ../../../../Jamoma/Implementations/Max/source/c74support/jit-includes
 
 libraries:
-  - ../../../../Jamoma/Core/Foundation/library/build/JamomaFoundation.dylib
-  - ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
+  - ../../../../Jamoma/Core/Foundation/library/build/libJamomaFoundation.a
+  - ../../../../Jamoma/Core/DSP/library/build/libJamomaDSP.a
   - C74
   
 frameworks:
