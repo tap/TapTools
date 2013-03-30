@@ -2,7 +2,6 @@
 sources:
   - tap.path.cpp
   - ../../../../Jamoma/Implementations/Max/source/c74support/max-includes/common/commonsyms.cpp
-  - ../../../../Jamoma/Implementations/Max/source/classwrapper/TTClassWrapperMax.cpp
     
 includes:
   - ../../../../Jamoma/Core/Foundation/library/includes
