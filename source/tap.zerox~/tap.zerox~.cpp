@@ -26,6 +26,7 @@ void		zerox_free(t_zerox *x);
 void		zerox_assist(t_zerox *x, void *b, long m, long a, char *s);
 t_max_err	attr_set_size(t_zerox *x, void *attr, long argc, t_atom *argv);
 void		zerox_dsp64(t_zerox *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags); // ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib64 Method
+extern "C" TTErr TTLoadJamomaExtension_AnalysisLib(void);
 
 // Globals
 static t_class *zerox_class;					// Required. Global pointing to this class
@@ -41,6 +42,8 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	c = class_new("tap.zerox~",(method)zerox_new, (method)zerox_free, sizeof(t_zerox), (method)0L, A_GIMME, 0);
 
 	TTDSPInit();
+	TTLoadJamomaExtension_AnalysisLib();
+	
 	common_symbols_init();
 	
 	class_addmethod(c, (method)zerox_dsp64,		"dsp64", A_CANT, 0);

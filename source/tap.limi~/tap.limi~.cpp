@@ -9,10 +9,14 @@
 #include "TTClassWrapperMax.h"
 //#include "TTClassWrapperMax.h"
 
+extern "C" TTErr TTLoadJamomaExtension_EffectsLib(void);
+
 int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	WrappedClassPtr	w;
 	
 	TTDSPInit();
+	TTLoadJamomaExtension_EffectsLib();
+	
 	return wrapTTClassAsMaxClass(TT("limiter"), "tap.limi~", &w);
 }

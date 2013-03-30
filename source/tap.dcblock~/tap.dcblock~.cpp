@@ -8,11 +8,15 @@
 
 #include "TTClassWrapperMax.h"
 
+extern "C" TTErr TTLoadJamomaExtension_FilterLib(void);
+
 extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	WrappedClassPtr	w;
 	ClassPtr		c;
 	TTErr			err;
+	
+	TTLoadJamomaExtension_FilterLib();
 	
 	err = wrapTTClassAsMaxClass(TT("dcblock"), "tap.dcblock~", &w);
 	if(!err){

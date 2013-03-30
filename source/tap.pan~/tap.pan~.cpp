@@ -8,6 +8,7 @@
 
 #include "TTClassWrapperMax.h"
 
+extern "C" TTErr TTLoadJamomaExtension_EffectsLib(void);
 
 int TTCLASSWRAPPERMAX_EXPORT main(void)
 {	
@@ -16,6 +17,8 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	TTValue					v(2);
 	
 	TTDSPInit();
+	TTLoadJamomaExtension_EffectsLib();
+	
 	options->append(TT("fixedNumOutputChannels"), v);
 	wrapTTClassAsMaxClass(TT("panorama"), "tap.pan~", &c, options);
 	CLASS_ATTR_ENUM(c->maxClass, "mode", 0, "calculate lookup");

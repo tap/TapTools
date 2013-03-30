@@ -87,6 +87,7 @@ void filter_gettypes(t_filter *x);
 
 t_max_err filter_setMode(t_filter *x, void *attr, long argc, t_atom *argv);
 
+extern "C" TTErr TTLoadJamomaExtension_FilterLib(void);
 
 // Globals
 t_class *filter_class;				// Required. Global pointing to this class
@@ -103,6 +104,7 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	
 	common_symbols_init();
 	TTDSPInit();
+	TTLoadJamomaExtension_FilterLib();
 
 	c = class_new("tap.filter~",(method)filter_new, (method)filter_free, sizeof(t_filter), (method)0L, A_GIMME, 0);
 	

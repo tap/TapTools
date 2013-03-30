@@ -8,6 +8,7 @@
 
 #include "TTClassWrapperMax.h"
 
+extern "C" TTErr TTLoadJamomaExtension_GeneratorLib(void);
 
 int TTCLASSWRAPPERMAX_EXPORT main(void)
 {	
@@ -16,6 +17,8 @@ int TTCLASSWRAPPERMAX_EXPORT main(void)
 	TTValue					v(1);
 	
 	TTDSPInit();
+	TTLoadJamomaExtension_GeneratorLib();
+	
 	options->append(TT("fixedNumOutputChannels"), v);
 	wrapTTClassAsMaxClass(TT("noise"), "tap.noise~", &c, options);
 	CLASS_ATTR_ENUM(c->maxClass, "mode", 0, "white pink brown blue gauss");

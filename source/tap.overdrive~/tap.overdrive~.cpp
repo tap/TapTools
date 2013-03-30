@@ -8,10 +8,14 @@
 
 #include "TTClassWrapperMax.h"
 
+extern "C" TTErr TTLoadJamomaExtension_EffectsLib(void);
+
 extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	WrappedClassPtr	w;
 	TTErr			err;
+	
+	TTLoadJamomaExtension_EffectsLib();
 	
 	err = wrapTTClassAsMaxClass(TT("overdrive"), "tap.overdrive~", &w);
 	if (!err) {
