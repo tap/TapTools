@@ -31,13 +31,10 @@ typedef struct _comb					// Data Structure for this object
 
 
 // Prototypes for methods: need a method for each incoming message type:
-t_int *comb_perform(t_int *w);
 void comb_perform64(t_comb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);									// An MSP Perform (signal) Method
-t_int *comb2_perform(t_int *w);
 void comb2_perform64(t_comb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);									// An MSP Perform (signal) Method
 void comb_float(t_comb *x, double phase);						//
 void comb_int(t_comb *x, long n);								//
-void comb_dsp(t_comb *x, t_signal **sp, short *count);
 void comb_dsp64(t_comb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void comb_assist(t_comb *x, void *b, long m, long a, char *s);	// Assistance Method
 void comb_free(t_comb *x);										// Memory Deallocation Function
@@ -55,82 +52,49 @@ t_max_err attr_set_decay(t_comb *x, void *attr, long argc, t_atom *argv);
 t_max_err attr_set_lowpass(t_comb *x, void *attr, long argc, t_atom *argv);
 
 // Globals
-static t_class*	s_comb_class;
-static t_class* s_lp_comb_class;
+static t_class*	s_comb_class = NULL;
 
 /************************************************************************************/
 // Main() Function
 
 extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
-	t_class* c1;
-	t_class* c2;
-
-	c1 = class_new("tap.comb~",(method)comb_new, (method)comb_free, sizeof(t_comb), (method)0L, A_GIMME, 0);
-	c2 = class_new("tap.lp-comb~",(method)comb_new, (method)comb_free, sizeof(t_comb), (method)0L, A_GIMME, 0);
+	t_class* c = class_new("tap.comb~", (method)comb_new, (method)comb_free, sizeof(t_comb), (method)0L, A_GIMME, 0);
 
 	common_symbols_init();
 
-	class_addmethod(c1, (method)comb_dsp, 				"dsp", A_CANT, 0L);		
-#ifdef SUPPORT_64_BIT
 	class_addmethod(c, (method)comb_dsp64, "dsp64", A_CANT, 0);
-#endif
-    class_addmethod(c1, (method)comb_int, 				"int", A_LONG, 0L);		// Input as int
-    class_addmethod(c1, (method)comb_float, 			"float", A_FLOAT, 0L);	// Input as double
-    class_addmethod(c1, (method)comb_lp_cf,				"lpass", A_FLOAT, 0L);	// for backwards compatibility
-    class_addmethod(c1, (method)comb_clear,				"clear", 0L);
-    class_addmethod(c1, (method)comb_assist, 			"assist", A_CANT, 0L); 
-    class_addmethod(c1, (method)object_obex_dumpout, 	"dumpout", A_CANT,0);      
-	class_addmethod(c1, (method)stdinletinfo,			"inletinfo",	A_CANT, 0);
+
+    class_addmethod(c, (method)comb_int, 				"int", A_LONG, 0L);		// Input as int
+    class_addmethod(c, (method)comb_float, 				"float", A_FLOAT, 0L);	// Input as double
+    class_addmethod(c, (method)comb_lp_cf,				"lpass", A_FLOAT, 0L);	// for backwards compatibility
+    class_addmethod(c, (method)comb_clear,				"clear", 0L);
+    class_addmethod(c, (method)comb_assist, 			"assist", A_CANT, 0L); 
+    class_addmethod(c, (method)object_obex_dumpout, 	"dumpout", A_CANT,0);      
+	class_addmethod(c, (method)stdinletinfo,			"inletinfo",	A_CANT, 0);
 	
-	class_addmethod(c2, (method)comb_dsp, 				"dsp", A_CANT, 0L);
-#ifdef SUPPORT_64_BIT
-	class_addmethod(c, (method)comb_dsp64, "dsp64", A_CANT, 0);
-#endif
-    class_addmethod(c2, (method)comb_int, 				"int", A_LONG, 0L);		// Input as int
-    class_addmethod(c2, (method)comb_float, 				"float", A_FLOAT, 0L);	// Input as double
-    class_addmethod(c2, (method)comb_lp_cf,				"lpass", A_FLOAT, 0L);	// for backwards compatibility
-    class_addmethod(c2, (method)comb_clear,				"clear", 0L);
-    class_addmethod(c2, (method)comb_assist, 			"assist", A_CANT, 0L); 
-    class_addmethod(c2, (method)object_obex_dumpout, 	"dumpout", A_CANT,0);      
-	class_addmethod(c2, (method)stdinletinfo,			"inletinfo",	A_CANT, 0);
+	CLASS_ATTR_DOUBLE(c,		"feedback",			0,	t_comb, attr_feedback);
+	CLASS_ATTR_ACCESSORS(c,		"feedback",			NULL, attr_set_feedback);
 
-	CLASS_ATTR_DOUBLE(c1,		"feedback",			0,	t_comb, attr_feedback);
-	CLASS_ATTR_DOUBLE(c2,		"feedback",			0,	t_comb, attr_feedback);
-	CLASS_ATTR_ACCESSORS(c1,	"feedback",			NULL, attr_set_feedback);
-	CLASS_ATTR_ACCESSORS(c2,	"feedback",			NULL, attr_set_feedback);
+	CLASS_ATTR_LONG(c,			"autoclip",			0,	t_comb, attr_autoclip);
+	CLASS_ATTR_ACCESSORS(c,		"autoclip",			NULL, attr_set_autoclip);
+	CLASS_ATTR_STYLE(c,			"autoclip",			0, "onoff");
 
-	CLASS_ATTR_LONG(c1,			"autoclip",			0,	t_comb, attr_autoclip);
-	CLASS_ATTR_LONG(c2,			"autoclip",			0,	t_comb, attr_autoclip);
-	CLASS_ATTR_ACCESSORS(c1,	"autoclip",			NULL, attr_set_autoclip);
-	CLASS_ATTR_ACCESSORS(c2,	"autoclip",			NULL, attr_set_autoclip);
-	CLASS_ATTR_STYLE(c1,		"autoclip",			0, "onoff");
-	CLASS_ATTR_STYLE(c2,		"autoclip",			0, "onoff");
+	CLASS_ATTR_DOUBLE(c,		"delay",			0,	t_comb, attr_delay);
+	CLASS_ATTR_ACCESSORS(c,		"delay",			NULL, attr_set_delay);
 
-	CLASS_ATTR_DOUBLE(c1,		"delay",			0,	t_comb, attr_delay);
-	CLASS_ATTR_DOUBLE(c2,		"delay",			0,	t_comb, attr_delay);
-	CLASS_ATTR_ACCESSORS(c1,	"delay",			NULL, attr_set_delay);
-	CLASS_ATTR_ACCESSORS(c2,	"delay",			NULL, attr_set_delay);
+	CLASS_ATTR_DOUBLE(c,		"decay",			0,	t_comb, attr_decay);
+	CLASS_ATTR_ACCESSORS(c,		"decay",			NULL, attr_set_decay);
 
-	CLASS_ATTR_DOUBLE(c1,		"decay",			0,	t_comb, attr_decay);
-	CLASS_ATTR_DOUBLE(c2,		"decay",			0,	t_comb, attr_decay);
-	CLASS_ATTR_ACCESSORS(c1,	"decay",			NULL, attr_set_decay);
-	CLASS_ATTR_ACCESSORS(c2,	"decay",			NULL, attr_set_decay);
+	CLASS_ATTR_DOUBLE(c,		"buffersize",		0,	t_comb, attr_buffersize);
+	CLASS_ATTR_ACCESSORS(c,		"buffersize",		NULL, attr_set_buffersize);
 
-	CLASS_ATTR_DOUBLE(c1,		"buffersize",		0,	t_comb, attr_buffersize);
-	CLASS_ATTR_DOUBLE(c2,		"buffersize",		0,	t_comb, attr_buffersize);
-	CLASS_ATTR_ACCESSORS(c1,	"buffersize",		NULL, attr_set_buffersize);
-	CLASS_ATTR_ACCESSORS(c2,	"buffersize",		NULL, attr_set_buffersize);
-
-	CLASS_ATTR_DOUBLE(c1,		"lowpass",			0,	t_comb, attr_lowpass);
-	CLASS_ATTR_DOUBLE(c2,		"lowpass",			0,	t_comb, attr_lowpass);
-	CLASS_ATTR_ACCESSORS(c1,	"lowpass",			NULL, attr_set_lowpass);
-	CLASS_ATTR_ACCESSORS(c2,	"lowpass",			NULL, attr_set_lowpass);
+	CLASS_ATTR_DOUBLE(c,		"lowpass",			0,	t_comb, attr_lowpass);
+	CLASS_ATTR_ACCESSORS(c,		"lowpass",			NULL, attr_set_lowpass);
 		
-	class_dspinit(c1);									// Setup object's class to work with MSP
-	class_dspinit(c2);									// Setup object's class to work with MSP
-	s_comb_class = c1;    class_register(_sym_nobox, c1);
-	s_lp_comb_class = c2; class_register(_sym_nobox, c2);
+	class_dspinit(c);									// Setup object's class to work with MSP
+	class_register(_sym_box, c);
+	s_comb_class = c; 
 }
 
 
@@ -151,10 +115,7 @@ void *comb_new(t_symbol *s, short argc, t_atom *argv)
 		arguments_len = i;
 	}
 
-	if(s == gensym("tap.lp-comb~"))
-		x = (t_comb *)object_alloc(s_lp_comb_class);
-	else
-		x = (t_comb *)object_alloc(s_comb_class);
+	x = (t_comb*)object_alloc(s_comb_class);
 
 	if(x){
 		object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x, NULL));	// dumpout
@@ -327,89 +288,29 @@ void comb_float(t_comb *x, double value)
 }
 
 
-// Perform (signal) Method - delay is a constant (not a signal)
-t_int *comb_perform(t_int *w)
-{
-	t_comb *x = (t_comb *)(w[1]);		
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[4]);			// Vector Size
-	
-	if (!(x->x_obj.z_disabled))
-		x->mycomb->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-		
-	return (w+5);
-}
-
-#ifdef SUPPORT_64_BIT
-
 void comb_perform64(t_comb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
+    x->signal_in[0]->set_vector(ins[0]);
+    x->signal_out[0]->set_vector(outs[0]);
+	x->signal_in[0]->vectorsize = sampleframes;
 	
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[4]);			// Vector Size
-	
-	if (!(x->x_obj.z_disabled))
-		x->mycomb->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-		
-	return;
-}
-#endif
-
-
-// Perform (signal) Method - delay is a signal
-t_int *comb2_perform(t_int *w)
-{
-	t_comb *x = (t_comb *)(w[1]);		
-    t_float	*delay = ((t_float *)(w[3]));				// Input (Delay Time)
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[4]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[5]);			// Vector Size
-
-	if(!(x->x_obj.z_disabled)){
-		x->attr_delay = *delay;
-		x->mycomb->set_attr(tt_comb::k_delay, x->attr_delay);
-		x->mycomb->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-	}
-
-	return (w+6);
+	x->mycomb->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
 }
 
-#ifdef SUPPORT_64_BIT
 
 void comb2_perform64(t_comb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
+    double	*delay = ins[1];
 	
-    double	*delay = ((t_float *)(w[3]));				// Input (Delay Time)
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[4]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[5]);			// Vector Size
+    x->signal_in[0]->set_vector(ins[0]);
+    x->signal_out[0]->set_vector(outs[0]);
+	x->signal_in[0]->vectorsize = sampleframes;
 
-	if(!(x->x_obj.z_disabled)){
-		x->attr_delay = *delay;
-		x->mycomb->set_attr(tt_comb::k_delay, x->attr_delay);
-		x->mycomb->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-	}
-
-	return;
-}
-#endif
-
-
-// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
-void comb_dsp(t_comb *x, t_signal **sp, short *count)
-{
-	x->mycomb->set_sr(sp[0]->s_sr);
-	comb_clear(x);
-
-	if (count[1])		// delay is a signal
-		dsp_add(comb2_perform, 5, x, sp[0]->s_vec, sp[1]->s_vec, sp[3]->s_vec, sp[0]->s_n);
-	else				// delay is a constant (non-signal)
-		dsp_add(comb_perform, 4, x, sp[0]->s_vec, sp[3]->s_vec, sp[0]->s_n);
+	x->attr_delay = *delay;
+	x->mycomb->set_attr(tt_comb::k_delay, x->attr_delay);
+	x->mycomb->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
 }
 
-#ifdef SUPPORT_64_BIT
 
 void comb_dsp64(t_comb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
@@ -422,4 +323,4 @@ void comb_dsp64(t_comb *x, t_object *dsp64, short *count, double samplerate, lon
 		object_method(dsp64, gensym("dsp_add64"), (t_object*)x, comb_perform64, 0, NULL);
 }
 
-#endif
+
