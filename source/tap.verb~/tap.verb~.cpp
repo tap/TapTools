@@ -73,11 +73,8 @@ typedef struct _verb
 // Prototypes for methods: need a method for each incoming message type
 void *verb_new(t_symbol *msg, long argc, t_atom *argv);						// Instance constructor
 void verb_free(t_verb *x);														// Instance destructor
-t_int *verb_perform(t_int *w);
 void verb_perform64(t_verb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);													// Perform (vector calculation) method
-t_int *verb_perform_stereo(t_int *w);
 void verb_perform_stereo64(t_verb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);											// Perform (vector calculation) method
-void verb_dsp(t_verb *x, t_signal **sp, short *count);
 void verb_dsp64(t_verb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);							// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib-Chain construction method
 void verb_assist(t_verb *x, void *b, long msg, long arg, char *dst);			// Assistance method
 void verb_clear(t_verb *x);														// Reset/Refresh method
@@ -182,10 +179,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	CLASS_ATTR_ACCESSORS(c,	"gain",		NULL, attr_set_gain);
 
 	// ADD METHODS
-	class_addmethod(c, (method)verb_dsp, 					"dsp",					A_CANT, 0L);		
-#ifdef SUPPORT_64_BIT
 	class_addmethod(c, (method)verb_dsp64, "dsp64", A_CANT, 0);
-#endif
     class_addmethod(c, (method)verb_assist, 				"assist", 				A_CANT, 0L); 
 	class_addmethod(c, (method)verb_clear, 					"clear", 				0L);			// clear out any blown-up filters
 	class_addmethod(c, (method)attr_set_delay,				"/delay",				A_GIMME, 0);
@@ -209,7 +203,8 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 
 	// WRAP UP
     class_dspinit(c);									// Setup object's class to work with MSP
-class_register(_sym_box, c); 	verb_class = c;
+	class_register(_sym_box, c); 	
+	verb_class = c;
 }
 
 
@@ -415,74 +410,12 @@ t_max_err attr_set_er(t_verb *x, void *attr, long argc, t_atom *argv)
 }
 
 
-// Perform Method - MONO
-t_int *verb_perform(t_int *w)
-{
-   	t_verb *x = (t_verb *)(w[1]);						// Pointer
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	short vs = x->signal_in[0]->vectorsize = x->signal_out[0]->vectorsize = (int)(w[4]);	// Vector Size
-
-	// Macro for Standard Tap.Tools Blue Stuff
-	if (x->x_obj.z_disabled) goto out;
-	if (x->attr_mute){
-		while(x->signal_in[0]->vectorsize--)
-			*x->signal_out[0]->vector++ = 0.0;
-		goto out;
-	}
-	if (x->attr_bypass){
-		while(x->signal_in[0]->vectorsize--)
-			*x->signal_out[0]->vector++ = *x->signal_in[0]->vector++;
-		goto out;
-	}
-
-	// Because all of our temp vectors need to be set for downsampling, and this is different for every object,
-	//	the downsamping has to be handled explicitly (it can't be tucked nicely into a macro)
-	if(x->attr_downsample){	
-		x->downsampler->dsp_vector_calc(x->signal_in[0], x->signal[1]);	// Downsample
-		vs /= x->downsample;
-		x->signal_in[0]->vectorsize = vs;								// Change signal to new vector size
-		x->signal_out[0]->vectorsize = vs;								// Change to new vector size
-		x->signal[1]->vectorsize = vs;
-		x->signal[0]->vectorsize = vs;
-		x->copy->dsp_vector_calc(x->signal[1], x->signal_in[0]);		// Move downsampled vector back to "in"
-	}
-	
-	
-	/***************************
-	 * OBJECT SPECIFIC 
-	 ***************************/	 
-	x->reverb[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal[0]);	// Run the core reverb routine
-
-
-	if(x->attr_limit) x->limiter->dsp_vector_calc(x->signal[0], x->signal_out[0]);
-	else if(x->attr_clip) x->clipper->dsp_vector_calc(x->signal[0], x->signal_out[0]);
-	else x->copy->dsp_vector_calc(x->signal[0], x->signal_out[0]);
-	if(x->attr_dcblock){
-		x->copy->dsp_vector_calc(x->signal_out[0], x->signal[0]);
-		x->dcblocker->dsp_vector_calc(x->signal[0], x->signal_out[0]);
-	}
-	if(x->attr_downsample){
-		vs *= x->downsample;
-		x->signal_out[0]->vectorsize = x->signal[0]->vectorsize = vs;
-		x->copy->dsp_vector_calc(x->signal_out[0], x->signal[0]);
-		x->upsampler->dsp_vector_calc(x->signal[0], x->signal_out[0]);
-	}
-out:
-    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
-}
-
-
-#ifdef SUPPORT_64_BIT
 void verb_perform64(t_verb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-   	
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	short vs = x->signal_in[0]->vectorsize = x->signal_out[0]->vectorsize = (int)(w[4]);	// Vector Size
+    x->signal_in[0]->set_vector(ins[0]); 	// Input
+    x->signal_out[0]->set_vector(outs[0]);	// Output
+	short vs = x->signal_in[0]->vectorsize = x->signal_out[0]->vectorsize = sampleframes;	// Vector Size
 
-	// Macro for Standard Tap.Tools Blue Stuff
-	if (x->x_obj.z_disabled) goto out;
 	if (x->attr_mute){
 		while(x->signal_in[0]->vectorsize--)
 			*x->signal_out[0]->vector++ = 0.0;
@@ -529,87 +462,18 @@ void verb_perform64(t_verb *x, t_object *dsp64, double **ins, long numins, doubl
 out:
     return;
 }
-#endif
 
 
-// Perform Method - STEREO
-t_int *verb_perform_stereo(t_int *w)
-{
-   	t_verb 	*x = (t_verb *)(w[1]);								// Pointer
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_in[1]->set_vector((t_float *)(w[3])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[4]));	// Output
-    x->signal_out[1]->set_vector((t_float *)(w[5]));	// Output
-	short vs = x->signal_in[0]->vectorsize = x->signal_in[1]->vectorsize = 
-		x->signal_out[0]->vectorsize = x->signal_out[1]->vectorsize = (int)(w[6]);	// Vector Size
-
-	if (x->x_obj.z_disabled) goto out;
-	if (x->attr_mute){
-		while(x->signal_in[0]->vectorsize--){
-			*x->signal_out[0]->vector++ = 0.0;
-			*x->signal_out[1]->vector++ = 0.0;
-		}
-		goto out;
-	}
-	if (x->attr_bypass){
-		while(x->signal_in[0]->vectorsize--){
-			*x->signal_out[0]->vector++ = *x->signal_in[0]->vector++;
-			*x->signal_out[1]->vector++ = * x->signal_in[1]->vector++;
-		}
-		goto out;
-	}
-
-	// Because all of our temp vectors need to be set for downsampling, and this is different for every object,
-	//	the downsamping has to be handled explicitly (it can't be tucked nicely into a macro)
-	if(x->attr_downsample){	
-		x->downsampler->dsp_vector_calc(x->signal_in[0], x->signal_in[1], x->signal[1], x->signal[2]);		// Downsample
-		vs /= x->downsample;
-		x->signal_in[0]->vectorsize = x->signal_in[1]->vectorsize = vs;				// Change signal to new vector size
-		x->signal_out[0]->vectorsize = x->signal_out[1]->vectorsize = vs;			// Change to new vector size
-		x->signal[2]->vectorsize = vs;
-		x->signal[1]->vectorsize = vs;
-		x->signal[0]->vectorsize = vs;
-		x->copy->dsp_vector_calc(x->signal[1], x->signal[2], x->signal_in[0], x->signal_in[1]);			// Move downsampled vector back to "in"
-	}
-	
-	
-	/***************************
-	 * OBJECT SPECIFIC 
-	 ***************************/	 
-	x->reverb[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal[0]);	// Run the core reverb routine
-	x->reverb[RIGHT]->dsp_vector_calc(x->signal_in[1], x->signal[1]);
-
-	// Macro for Standard Tap.Tools Blue Stuff
-	if(x->attr_limit) x->limiter->dsp_vector_calc(x->signal[0], x->signal[1], x->signal_out[0], x->signal_out[1]);
-	else if(x->attr_clip) x->clipper->dsp_vector_calc(x->signal[0], x->signal[1], x->signal_out[0], x->signal_out[1]);
-	else x->copy->dsp_vector_calc(x->signal[0], x->signal[1], x->signal_out[0], x->signal_out[1]);
-	if(x->attr_dcblock){
-		x->copy->dsp_vector_calc(x->signal_out[0], x->signal_out[1], x->signal[0], x->signal[1]);
-		x->dcblocker->dsp_vector_calc(x->signal[0], x->signal[1], x->signal_out[0], x->signal_out[1]);
-	}
-	if(x->attr_downsample){
-		vs *= x->downsample;
-		x->signal_out[0]->vectorsize = x->signal_out[1]->vectorsize = x->signal[0]->vectorsize = x->signal[1]->vectorsize = vs;
-		x->copy->dsp_vector_calc(x->signal_out[0], x->signal_out[1], x->signal[0], x->signal[1]);
-		x->upsampler->dsp_vector_calc(x->signal[0], x->signal[1], x->signal_out[0], x->signal_out[1]);
-	}
-out:
-    return (w + 7);		// Return a pointer to the NEXT object in the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
-}
-
-
-#ifdef SUPPORT_64_BIT
 void verb_perform_stereo64(t_verb *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
    	
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_in[1]->set_vector((t_float *)(w[3])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[4]));	// Output
-    x->signal_out[1]->set_vector((t_float *)(w[5]));	// Output
+    x->signal_in[0]->set_vector(ins[0]); 	// Input
+    x->signal_in[1]->set_vector(ins[1]); 	// Input
+    x->signal_out[0]->set_vector(outs[0]);	// Output
+    x->signal_out[1]->set_vector(outs[1]);	// Output
 	short vs = x->signal_in[0]->vectorsize = x->signal_in[1]->vectorsize = 
-		x->signal_out[0]->vectorsize = x->signal_out[1]->vectorsize = (int)(w[6]);	// Vector Size
+		x->signal_out[0]->vectorsize = x->signal_out[1]->vectorsize = sampleframes;	// Vector Size
 
-	if (x->x_obj.z_disabled) goto out;
 	if (x->attr_mute){
 		while(x->signal_in[0]->vectorsize--){
 			*x->signal_out[0]->vector++ = 0.0;
@@ -662,29 +526,8 @@ void verb_perform_stereo64(t_verb *x, t_object *dsp64, double **ins, long numins
 out:
     return;
 }
-#endif
 
 
-// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
-void verb_dsp(t_verb *x, t_signal **sp, short *count)
-{
-	int vs = sp[0]->s_n;		// Vector Size
-	x->sr = sp[0]->s_sr;		// Sample Rate
-	
-	x->reverb[LEFT]->set_sr(x->sr);
-	x->reverb[RIGHT]->set_sr(x->sr);
-	
-	verb_alloc(x, vs);
-	do_downsample(x, x->attr_downsample);	// just make sure our vectorsizes, etc. are all in sync
-	
-	if(count[1] && count[3])
-		dsp_add(verb_perform_stereo, 6, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[0]->s_n);	// Stereo ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop
-	else
-		dsp_add(verb_perform, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n);	// Mono ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Loop	
-}
-
-
-#ifdef SUPPORT_64_BIT
 void verb_dsp64(t_verb *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	int vs = maxvectorsize;		// Vector Size
@@ -696,10 +539,11 @@ void verb_dsp64(t_verb *x, t_object *dsp64, short *count, double samplerate, lon
 	verb_alloc(x, vs);
 	do_downsample(x, x->attr_downsample);	// just make sure our vectorsizes, etc. are all in sync
 	
-	if(count[1] && count[3])
+	if (count[1] && count[3])
 		object_method(dsp64, gensym("dsp_add64"), (t_object*)x, verb_perform_stereo64, 0, NULL);
+	else
 		object_method(dsp64, gensym("dsp_add64"), (t_object*)x, verb_perform64, 0, NULL);
-#endif
+}
 
 
 // MEMORY ALLOCATION
