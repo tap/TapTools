@@ -84,7 +84,7 @@ class tt_lfo:public tt_audio_base{
 			switch (sel){
 
 				case k_frequency:
-					frequency = clip(val, 0.f, sr/2.f);
+					frequency = clip(val, 0.0, sr/2.0);
 					index_delta = frequency * wavetable->get_attr(tt_buffer::k_length_samples) / sr;
 					break;
 					

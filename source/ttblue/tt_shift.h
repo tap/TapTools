@@ -114,7 +114,7 @@ class tt_shift:public tt_audio_base{
 					phasor->set_attr(tt_phasor::k_frequency, (-(shift_ratio - 1.0)) * (1.0 / (window_size * 0.001)));
 					break;
 				case k_windowsize:
-					window_size = clip(val, 1.0f, buffersize_in_ms - 1);
+					window_size = clip<double>(val, 1.0, buffersize_in_ms - 1);
 					scale->set_attr(tt_gain::k_gain_direct, window_size);
 					set_attr(k_ratio, shift_ratio);				// update the phasor freq based on the new window size
 					break;

@@ -13,7 +13,7 @@ const double tt_audio_base::pi = 3.1415926535897932;		// pi
 const double tt_audio_base::twopi = 6.2831853071795864;	// 2 * pi
 const double tt_audio_base::anti_denormal_value = 1e-18;	// used by tt_audio_base::anti_denormal()
 
-const float tt_audio_base::lookup_equalpower[] = {			// 512 point equal-power table
+const double tt_audio_base::lookup_equalpower[] = {			// 512 point equal-power table
 	0.999939F, 0.999908F, 0.999939F, 0.999908F, 0.999908F,
 	0.999847F, 0.999817F, 0.999756F, 0.999664F, 0.999695F, 0.999512F, 0.999481F, 0.999298F, 0.999298F, 0.999146F, 
 	0.998993F, 0.998840F, 0.998779F, 0.998505F, 0.998474F, 0.998169F, 0.998047F, 0.997864F, 0.997650F, 0.997406F, 
@@ -68,7 +68,7 @@ const float tt_audio_base::lookup_equalpower[] = {			// 512 point equal-power ta
 	0.036896F, 0.033752F, 0.030701F, 0.027618F, 0.024567F, 0.021484F, 0.018402F, 0.01532F, 0.012268F,0.009216F, 
 	0.006042F, 0.0F};	
 
-const float tt_audio_base::lookup_half_paddedwelch[] = {		// 256 point window table
+const double tt_audio_base::lookup_half_paddedwelch[] = {		// 256 point window table
 	0.000000F, 0.000000F, 0.000000F, 0.000000F, 0.000000F, 0.000000F,	0.000000F, 0.000000F, 0.000000F, 0.000000F,
 	0.000000F, 0.000000F, 0.000000F, 0.000000F, 0.000000F, 0.000000F, 0.000000F, 0.006989F, 0.014008F, 0.021027F,
 	0.028046F, 0.035034F, 0.042053F, 0.049042F, 0.056061F, 0.063049F, 0.070038F, 0.077057F, 0.084045F, 0.091034F,
@@ -97,7 +97,7 @@ const float tt_audio_base::lookup_half_paddedwelch[] = {		// 256 point window ta
 	0.999969F, 0.999969F, 0.999969F, 0.999969F, 0.999969F, 0.999969F
 };
 	
-const float tt_audio_base::lookup_quartersine[] = {		// 128 point quarter sine wave table
+const double tt_audio_base::lookup_quartersine[] = {		// 128 point quarter sine wave table
 	0.000000F, 0.012272F, 0.024541F, 0.036807F, 0.049068F, 0.061321F, 0.073565F, 0.085797F, 
 	0.098017F, 0.110222F, 0.122411F, 0.134581F, 0.146730F, 0.158858F, 0.170962F, 0.183040F, 
 	0.195090F, 0.207111F, 0.219101F, 0.231058F, 0.242980F, 0.254866F, 0.266713F, 0.278520F, 

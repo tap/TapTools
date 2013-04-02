@@ -162,7 +162,7 @@ class tt_procrastinate:public tt_audio_base{
 					phasor[index]->set_attr(tt_phasor::k_frequency, (-(shift_ratio_value[index] - 1.0)) * (1.0 / (window_size_value[index] * 0.001)));
 					break;
 				case k_windowsize:
-					window_size_value[index] = clip(val, 1.0f, buffersize_in_ms - 1);
+					window_size_value[index] = clip<double>(val, 1.0, buffersize_in_ms - 1);
 					scale[index]->set_attr(tt_gain::k_gain_direct, window_size_value[index]);
 					set_attr(k_ratio, index, shift_ratio_value[index]);				// update the phasor freq based on the new window size
 					break;

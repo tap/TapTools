@@ -66,7 +66,7 @@ class tt_pan:public tt_audio_base{
 		{
 			switch (sel){
 				case k_position:
-					position = clip(val, (float)0.0, (float)1.0);
+					position = clip(val, 0.0, 1.0);
 					break;
 				case k_shape:
 					shape = val;

@@ -40,7 +40,7 @@ class tt_limiter:public tt_audio_base{
 		tt_sample_vector 			buf1, buf2, gain;
 //		tt_buffer					*buffer1, *buffer2, *buffer_gain;
 		long 						bp, samps;
-		float 						last;
+		double 						last;
 
 		tt_attribute_value 				threshold;			
 		tt_attribute_value_discrete 	mode;
@@ -85,9 +85,9 @@ class tt_limiter:public tt_audio_base{
 			buf1 = buf2 = gain = 0;
 		
 			// allocate lookahead buffers
-			buf1 = (float *)mem_alloc(MAX_SAMPLES * sizeof(float));
-			buf2 = (float *)mem_alloc(MAX_SAMPLES * sizeof(float));
-			gain = (float *)mem_alloc(MAX_SAMPLES * sizeof(float));
+			buf1 = (double *)mem_alloc(MAX_SAMPLES * sizeof(double));
+			buf2 = (double *)mem_alloc(MAX_SAMPLES * sizeof(double));
+			gain = (double *)mem_alloc(MAX_SAMPLES * sizeof(double));
 
 //			buffer1 = new tt_buffer;
 //			buffer2 = new tt_buffer;

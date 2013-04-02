@@ -160,7 +160,7 @@ class tt_multitap:public tt_audio_base{
 		tap = clip(tap, 0, k_max_num_taps -1);		// range-limit the tap number
 		switch(sel){
 			case k_delay_ms:
-				delay_ms[tap] = clip(val, 0.0F, buffersize_ms);
+				delay_ms[tap] = clip(val, 0.0, buffersize_ms);
 				delay_samples[tap] = (tt_attribute_value_discrete)(delay_ms[tap] * m_sr);
 				position_playheads();
 				break;

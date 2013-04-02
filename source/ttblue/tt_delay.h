@@ -419,7 +419,7 @@ class tt_delay:public tt_audio_base{
 		// clear
 		void clear(void)
 		{
-			float * i;
+			double * i;
 			long j = 0;
 						
 			for(i = buffer; i< end_ptr; i++, j++)

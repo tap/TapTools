@@ -20,15 +20,15 @@
 // Type Definitions
 
 typedef short	tt_selector;
-typedef float	tt_attribute_value;
+typedef double	tt_attribute_value;
 typedef bool	tt_attribute_value_bool;
 typedef long	tt_attribute_value_discrete;
 
 typedef void 	*tt_ptr;
 
-typedef float	tt_sample_value;
+typedef double	tt_sample_value;
 typedef double	tt_sample_value_highres;
-typedef float	*tt_sample_vector;
+typedef double	*tt_sample_vector;
 typedef double	*tt_sample_vector_highres;
 
 typedef short	tt_err;						// used for returning error codes
@@ -88,13 +88,13 @@ class TAPTOOLS_EXPORT tt_audio_base{
 	protected:
 		int 					sr;							// This object's sample rate
 		double					r_sr;						// reciprocal of sr
-		float					m_sr;						// sr * 0.001
+		double					m_sr;						// sr * 0.001
 		static int 				global_sr;					// Global sample rate
 		static int				global_vectorsize;
-		static const float 		lookup_equalpower[];		// Equal Power lookup table
-		static const float 		lookup_half_paddedwelch[];	// 256 point window table (the first half of it)
+		static const double 	lookup_equalpower[];		// Equal Power lookup table
+		static const double 	lookup_half_paddedwelch[];	// 256 point window table (the first half of it)
 
-		static const float 		lookup_quartersine[];		// Quarter Sine lookup table
+		static const double 	lookup_quartersine[];		// Quarter Sine lookup table
 		static const double 	twopi;						// 6.28...
 		static const double 	anti_denormal_value;		// Used by the anti_denormal functions
 		int						temp_vs;					// Temporary variable for use in vector routines
@@ -278,7 +278,7 @@ class TAPTOOLS_EXPORT tt_audio_base{
 
 
 		// Decay Time (seconds) to feedback coefficient conversion
-		static float decay_to_feedback(float decay_time, float delay)
+		static double decay_to_feedback(double decay_time, double delay)
 		{
 			float 	fb;					// variable for our result		
 			delay = delay * 0.001;		// convert delay from milliseconds to seconds
@@ -297,7 +297,7 @@ class TAPTOOLS_EXPORT tt_audio_base{
 		}
 
 		// return the decay time based on the feedback coefficient
-		static float feedback_to_decay(float feedback, float delay)
+		static double feedback_to_decay(double feedback, double delay)
 		{
 			float 	decay_time;				// variable for our result
 			
@@ -321,20 +321,20 @@ class TAPTOOLS_EXPORT tt_audio_base{
 		// ************* DECIBEL CONVERSIONS **************
 
 		// Amplitude to decibels
-		static float amplitude_to_decibels(float value)
+		static double amplitude_to_decibels(double value)
 		{
 			if (value >= 0) return(20. * (log10(value)));
 			else return 0;
 		}
 
 		// Decibels to amplitude
-		static float decibels_to_amplitude(float value)
+		static double decibels_to_amplitude(double value)
 		{
 			return(pow(10., (value / 20.)));
 		}
 
 		// Decibels to millimeters
-		static float decibels_to_millimeters(float value)
+		static double decibels_to_millimeters(double value)
 		{
 			if (value >= 10.)
 				value = 0.; 
@@ -353,7 +353,7 @@ class TAPTOOLS_EXPORT tt_audio_base{
 		}
 
 		// Decibels to millimeters
-		static float millimeters_to_decibels(float value)
+		static double millimeters_to_decibels(double value)
 		{
 			if (value <= 0.) 
 				value = -200.0;
@@ -371,14 +371,14 @@ class TAPTOOLS_EXPORT tt_audio_base{
 		}
 		
 		// Millimeters to amplitude
-		static float millimeters_to_amplitude(float value)
+		static double millimeters_to_amplitude(double value)
 		{
 			value = millimeters_to_decibels(value);
 			return decibels_to_amplitude(value);
 		}
 		
 		// Amplitude to millimeters
-		static float amplitude_to_millimeters(float value)
+		static double amplitude_to_millimeters(double value)
 		{
 			value = amplitude_to_decibels(value);
 			return decibels_to_millimeters(value);
@@ -386,13 +386,13 @@ class TAPTOOLS_EXPORT tt_audio_base{
 
 
 		// extended MIDI units to decibels (127 = unity gain)
-		static float xmidi_to_decibels(float value)
+		static double xmidi_to_decibels(double value)
 		{
 			return (value - 127) * 0.6;
 		}
 		
 		// decibels to extended MIDI units  (127 = unity gain)
-		static float decibels_to_xmidi(float value)
+		static double decibels_to_xmidi(double value)
 		{
 			return (value * 1.66666667) + 127;
 		}
@@ -402,7 +402,7 @@ class TAPTOOLS_EXPORT tt_audio_base{
 		// ************* MISC STUFF **************
 		
 		// Deviate
-		float deviate(float value)
+		float deviate(double value)
 		{
 			value += (2.0 * (float(rand()) / float(RAND_MAX))) - 1.0;	// randomize input with +1 to -1 ms
 			value = value * 0.001 * sr;									// convert from ms to samples

@@ -78,7 +78,7 @@ class tt_svf:public tt_audio_base{
 			
 			switch (sel){
 				case k_frequency:
-					frequency = clip(val, float(20.0), float(sr * 0.5));
+					frequency = clip(val, 20.0, sr * 0.5);
 					freq = 2.0 * sin(pi * val / double(sr * 2)); 
 					if (freq > 0.25)
 						freq = 0.25;

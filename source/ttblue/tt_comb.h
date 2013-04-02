@@ -68,13 +68,13 @@ class tt_comb:public tt_audio_base{
 			buffersize_in_samples = (long int)(buffersize * (sr * 0.001));
 			if (buffersize_in_samples < 24)			// minimum delay buffer size is 24 samples
 					buffersize_in_samples = 24;
-			alloc = (float *)mem_alloc((buffersize_in_samples + 4) * sizeof(float));
+			alloc = (double *)mem_alloc((buffersize_in_samples + 4) * sizeof(double));
 			for (i = 0; i < buffersize_in_samples + 4; i++)
 				alloc[i] = 0.;
 			memory = alloc + 1;
 		
 			// SET DEFAULTS
-			msdelay = clip((float)50,(float)1,arg);			// the initial delay time
+			msdelay = clip((double)50,(double)1,arg);			// the initial delay time
 			//delay = 0;
 			comb_fb_coef = 0.9;					// the initial feedback coefficient
 			clipping = 1.0;						// the initial toggle state for autoclipping
@@ -147,8 +147,8 @@ class tt_comb:public tt_audio_base{
 		// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib LOOP
 		void dsp_vector_calc(tt_audio_signal *in, tt_audio_signal *out)
 		{
-			float comb_fb_sample;
-			float *mem_end, *mem_readptr;
+			double comb_fb_sample;
+			double *mem_end, *mem_readptr;
 			temp_vs = in->vectorsize;
 
 			while(temp_vs--){

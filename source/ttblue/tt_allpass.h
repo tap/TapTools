@@ -65,7 +65,7 @@ class tt_allpass:public tt_audio_base{
 		{
 			switch (sel){			
 				case k_delay_ms:
-					delay_ms = clip(val, float(0.0), delay_ms_max);
+					delay_ms = clip<double>(val, 0.0, delay_ms_max);
 					delay_samples = long(delay_ms * (sr / 1000.0));
 					ff_end_ptr = ff_buffer + delay_samples;
 					fb_end_ptr = fb_buffer + delay_samples;	
