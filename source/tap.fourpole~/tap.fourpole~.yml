@@ -1,7 +1,6 @@
 
 sources:
   - tap.fourpole~.cpp
-  - ../ttblue/tt_audio_base.cpp
   - ../../../../Jamoma/Implementations/Max/source/c74support/max-includes/common/commonsyms.cpp
   - ../../../../Jamoma/Implementations/Max/source/classwrapper/TTClassWrapperMax.cpp
     
@@ -17,6 +16,7 @@ defines:
   - MAC_VERSION
 
 libraries:
+  - ../../../../Jamoma/Core/DSP/extensions/FilterLib/build/libFilterLib.a
   - ../../../../Jamoma/Core/Foundation/library/build/libJamomaFoundation.a
   - ../../../../Jamoma/Core/DSP/library/build/libJamomaDSP.a
   - C74
