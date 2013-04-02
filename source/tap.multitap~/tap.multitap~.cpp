@@ -27,8 +27,8 @@ typedef struct _multitap{					// Data Structure for this object
 	long			attr_delay_len;
 	double			attr_gain[MAX_NUM_TAPS];
 	long			attr_gain_len;
-	std::vector<t_float>	input_buffer;
-	std::vector<t_float>	output_buffer;
+	std::vector<double>	input_buffer;
+	std::vector<double>	output_buffer;
 } t_multitap;
 
 
