@@ -34,9 +34,7 @@ typedef struct _shift{
 
 // Prototypes for methods: need a method for each incoming message type
 void *shift_new(t_symbol *msg, long argc, t_atom *argv);				// New Object Creation Method
-t_int *shift_perform(t_int *w);
 void shift_perform64(t_shift *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);											// An MSP Perform (signal) Method
-void shift_dsp(t_shift *x, t_signal **sp, short *count);
 void shift_dsp64(t_shift *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void shift_assist(t_shift *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void shift_free(t_shift *x);
@@ -73,10 +71,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	class_addmethod(c, (method)shift_float, 	"float", 	A_FLOAT, 0L);
 	class_addmethod(c, (method)shift_int,	 	"int", 		A_LONG, 0L);
 	class_addmethod(c, (method)shift_clear, 	"clear", 	0L);
-	class_addmethod(c, (method)shift_dsp, 		"dsp", 		A_CANT, 0L);		
-#ifdef SUPPORT_64_BIT
 	class_addmethod(c, (method)shift_dsp64, "dsp64", A_CANT, 0);
-#endif
     class_addmethod(c, (method)shift_assist, 	"assist", 	A_CANT, 0L); 
 	class_addmethod(c, (method)stdinletinfo,	"inletinfo",	A_CANT, 0);
 
@@ -208,53 +203,15 @@ void shift_clear(t_shift *x)
 }
 
 
-// Perform (signal) Method
-t_int *shift_perform(t_int *w)
-{
-   	t_shift *x = (t_shift *)(w[1]);						// Pointer
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[4]);			// Vector Size
-	
-	if(x->x_obj.z_disabled) goto out;
-	
-	x->shifter->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-
-out:
-    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
-}
-
-
-#ifdef SUPPORT_64_BIT
 void shift_perform64(t_shift *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-   	
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[4]);			// Vector Size
-	
-	if(x->x_obj.z_disabled) goto out;
-	
+    x->signal_in[0]->set_vector(ins[0]);
+    x->signal_out[0]->set_vector(outs[0]);
+	x->signal_in[0]->vectorsize = sampleframes;	
 	x->shifter->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-
-out:
-    return;
-}
-#endif
-
-
-// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
-void shift_dsp(t_shift *x, t_signal **sp, short *count)
-{
-	x->shifter->set_sr(sp[0]->s_sr);
-	x->shifter->set_vectorsize(sp[0]->s_n);
-
-	dsp_add(shift_perform, 4, x, sp[0]->s_vec, sp[3]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
-	#pragma unused(count)
 }
 
 
-#ifdef SUPPORT_64_BIT
 void shift_dsp64(t_shift *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	x->shifter->set_sr(samplerate);
@@ -262,5 +219,4 @@ void shift_dsp64(t_shift *x, t_object *dsp64, short *count, double samplerate, l
 
 	object_method(dsp64, gensym("dsp_add64"), (t_object*)x, shift_perform64, 0, NULL);
 }
-#endif
 
