@@ -44,13 +44,10 @@ typedef struct _svf			// Data Structure for this object
 
 
 // Prototypes for methods: need a method for each incoming message type
-void *svf_new(t_symbol *msg, short argc, t_atom *argv);				// New Object Creation Method
-t_int *svf_perform_mono(t_int *w);
+void *svf_new(t_symbol *msg, short argc, t_atom *argv);
 void svf_perform_mono64(t_svf *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
-t_int *svf_perform(t_int *w);
-void svf_perform64(t_svf *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);										// An MSP Perform (signal) Method
-void svf_dsp(t_svf *x, t_signal **sp, short *count);
-void svf_dsp64(t_svf *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
+void svf_perform64(t_svf *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
+void svf_dsp64(t_svf *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
 void svf_assist(t_svf *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void svf_clear(t_svf *x);
 void svf_freqlfo_depth(t_svf *x, double value);
@@ -88,10 +85,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 
 		common_symbols_init();									// Initialize TapTools
 	class_addmethod(c, (method)svf_clear, 	"clear", 0L);		
-	class_addmethod(c, (method)svf_dsp, 	"dsp", A_CANT, 0L);		
-#ifdef SUPPORT_64_BIT
 	class_addmethod(c, (method)svf_dsp64, "dsp64", A_CANT, 0);
-#endif
     class_addmethod(c, (method)svf_assist, 	"assist", A_CANT, 0L);	
 	class_addmethod(c, (method)stdinletinfo,"inletinfo",	A_CANT, 0);
 
@@ -352,46 +346,12 @@ void svf_portamento(t_svf *x, double value)
 }
 
 
-// Perform (signal) Method
-t_int *svf_perform_mono(t_int *w)
-{
-   	t_svf *x = (t_svf *)(w[1]);							// Pointer
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[4]);			// Vector Size
-			
-	if (x->x_obj.z_disabled) goto out;
-
-	// Run the portamento for the filter cf
-	x->portamento->dsp_vector_calc(x->audio_sig[0]);
-	x->freq = *(x->audio_sig[0]->vector);		// the portamento is only vector accurate, so only the first value is needed
-
-	// Apply the modulation to the cf of the filters
-	if(x->attr_lfo_freq_toggle){
-		x->lfo->dsp_vector_calc(x->audio_sig[0]);
-		x->freq += (*(x->audio_sig[0]->vector));	
-	}	
-
-	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
-
-	// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
-	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-	
-out:
-    return (w + 5);		// Return a pointer to the NEXT object in the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
-}
-
-
-#ifdef SUPPORT_64_BIT
 void svf_perform_mono64(t_svf *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-   	
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[4]);			// Vector Size
+    x->signal_in[0]->set_vector(ins[0]);
+    x->signal_out[0]->set_vector(outs[0]);
+	x->signal_in[0]->vectorsize = sampleframes;
 			
-	if (x->x_obj.z_disabled) goto out;
-
 	// Run the portamento for the filter cf
 	x->portamento->dsp_vector_calc(x->audio_sig[0]);
 	x->freq = *(x->audio_sig[0]->vector);		// the portamento is only vector accurate, so only the first value is needed
@@ -403,62 +363,17 @@ void svf_perform_mono64(t_svf *x, t_object *dsp64, double **ins, long numins, do
 	}	
 
 	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
-
-	// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
 	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-	
-out:
-    return;
-}
-#endif
-
-
-// Perform (signal) Method
-t_int *svf_perform(t_int *w)
-{
-   	t_svf *x = (t_svf *)(w[1]);							// Pointer
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_in[1]->set_vector((t_float *)(w[3])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[4]));	// Output
-    x->signal_out[1]->set_vector((t_float *)(w[5]));	// Output
-	x->signal_in[0]->vectorsize = x->signal_in[1]->vectorsize 
-		= (int)(w[6]);									// Vector Size
-			
-	if (x->x_obj.z_disabled) goto out;
-
-	// Run the portamento for the filter cf
-	x->portamento->dsp_vector_calc(x->audio_sig[0]);
-	x->freq = *(x->audio_sig[0]->vector);		// the portamento is only vector accurate, so only the first value is needed
-
-	// Apply the modulation to the cf of the filters
-	if(x->attr_lfo_freq_toggle){
-		x->lfo->dsp_vector_calc(x->audio_sig[0]);
-		x->freq += (*(x->audio_sig[0]->vector));	
-	}	
-	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
-	x->filter[RIGHT]->set_attr(tt_svf::k_frequency, x->freq);
-
-	// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
-	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
-	x->filter[RIGHT]->dsp_vector_calc(x->signal_in[1], x->signal_out[1]);
-	
-out:
-    return (w + 7);		// Return a pointer to the NEXT object in the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
 }
 
 
-#ifdef SUPPORT_64_BIT
 void svf_perform64(t_svf *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-   	
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_in[1]->set_vector((t_float *)(w[3])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[4]));	// Output
-    x->signal_out[1]->set_vector((t_float *)(w[5]));	// Output
-	x->signal_in[0]->vectorsize = x->signal_in[1]->vectorsize 
-		= (int)(w[6]);									// Vector Size
-			
-	if (x->x_obj.z_disabled) goto out;
+    x->signal_in[0]->set_vector(ins[0]); 	// Input
+    x->signal_in[1]->set_vector(ins[1]); 	// Input
+    x->signal_out[0]->set_vector(outs[0]);	// Output
+    x->signal_out[1]->set_vector(outs[1]);	// Output
+	x->signal_in[0]->vectorsize = x->signal_in[1]->vectorsize = sampleframes;
 
 	// Run the portamento for the filter cf
 	x->portamento->dsp_vector_calc(x->audio_sig[0]);
@@ -472,46 +387,11 @@ void svf_perform64(t_svf *x, t_object *dsp64, double **ins, long numins, double 
 	x->filter[LEFT]->set_attr(tt_svf::k_frequency, x->freq);
 	x->filter[RIGHT]->set_attr(tt_svf::k_frequency, x->freq);
 
-	// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib
 	x->filter[LEFT]->dsp_vector_calc(x->signal_in[0], x->signal_out[0]);
 	x->filter[RIGHT]->dsp_vector_calc(x->signal_in[1], x->signal_out[1]);
-	
-out:
-    return;
-}
-#endif
-
-
-// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
-void svf_dsp(t_svf *x, t_signal **sp, short *count)
-{
-	short i;
-	
-	// Set sample-rate and vectorsize for member objects
-	for(i=0; i<NUM_FILTERS; i++){
-		x->filter[i]->set_sr(sp[0]->s_sr);
-		x->filter[i]->set_vectorsize(sp[0]->s_n);
-		x->filter[i]->clear();
-	}
-	x->lfo->set_sr(sp[0]->s_sr);
-	x->lfo->set_vectorsize(sp[0]->s_n);
-	x->portamento->set_sr(sp[0]->s_sr);
-	x->portamento->set_vectorsize(sp[0]->s_n);
-	
-	// Re-allocate audio signals
-	for(i=0; i<NUM_AUDIO_SIGNALS; i++){
-		x->audio_sig[i]->alloc(sp[0]->s_n);
-	}
-	
-	// add correct perform routine to MSP's call chain
-	if(count[1] && count[3])	// STEREO
-		dsp_add(svf_perform, 6, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
-	else						// MONO
-		dsp_add(svf_perform_mono, 4, x, sp[0]->s_vec, sp[2]->s_vec, sp[0]->s_n);
 }
 
 
-#ifdef SUPPORT_64_BIT
 void svf_dsp64(t_svf *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	short i;
@@ -533,9 +413,9 @@ void svf_dsp64(t_svf *x, t_object *dsp64, short *count, double samplerate, long 
 	}
 	
 	// add correct perform routine to MSP's call chain
-	if(count[1] && count[3])	// STEREO
+	if (count[1] && count[3])	// STEREO
 		object_method(dsp64, gensym("dsp_add64"), (t_object*)x, svf_perform64, 0, NULL);
+	else
 		object_method(dsp64, gensym("dsp_add64"), (t_object*)x, svf_perform_mono64, 0, NULL);
 }
-#endif
 
