@@ -2,8 +2,12 @@ sources:
   - tap.loader.cpp
     
 includes:
+  - ../../../../Jamoma/Core/Foundation/library/includes
+  - ../../../../Jamoma/Core/DSP/library/includes
   - ../../../../Jamoma/Implementations/Max/source/classwrapper
   - ../../../../Jamoma/Implementations/Max/source/c74support/max-includes
+  - ../../../../Jamoma/Implementations/Max/source/c74support/msp-includes
+  - ../../../../Jamoma/Implementations/Max/source/c74support/jit-includes
 
 libraries:
   - C74

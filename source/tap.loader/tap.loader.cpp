@@ -6,7 +6,7 @@
  *	http://creativecommons.org/licenses/BSD/
  */
 
-#include "ext.h"
+#include "TTClassWrapperMax.h"
 
 
 // Data Structure for this object
@@ -24,7 +24,7 @@ static t_class *s_loader_class;
 /************************************************************************************/
 // Main() Function
 
-int main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	s_loader_class = class_new((char*)"tap.loader",(method)loader_new, (method)NULL, sizeof(t_loader), (method)NULL, A_GIMME, 0);
 	class_register(CLASS_NOBOX, s_loader_class);
