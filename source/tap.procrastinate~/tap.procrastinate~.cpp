@@ -43,10 +43,8 @@ typedef struct _procrastinate{
 
 // Prototypes for methods: need a method for each incoming message type
 void *		procrastinate_new(t_symbol *msg, short argc, t_atom *argv);
-t_int *		procrastinate_perform(t_int *w);
-void 		procrastinate_perform64(t_procrastinate *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);											// An MSP Perform (signal) Method
-void 		procrastinate_dsp(t_procrastinate *x, t_signal **sp, short *count);
-void procrastinate_dsp64(t_procrastinate *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);				// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
+void 		procrastinate_perform64(t_procrastinate *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
+void procrastinate_dsp64(t_procrastinate *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
 void 		procrastinate_assist(t_procrastinate *x, void *b, long msg, long arg, char *dst);	// Assistance Method
 void 		procrastinate_free(t_procrastinate *x);
 void 		procrastinate_bang(t_procrastinate *x);
@@ -83,10 +81,7 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	class_addmethod(c, (method)procrastinate_ratio,		"shift_ratio", A_LONG, A_FLOAT, 0L);	// directly control a specific shifter
 	class_addmethod(c, (method)procrastinate_window,	"window", A_LONG, A_FLOAT, 0L);			// directly control a specific delay time
 	class_addmethod(c, (method)procrastinate_clear,		"clear", 0L);
- 	class_addmethod(c, (method)procrastinate_dsp, 		"dsp", A_CANT, 0L);
-#ifdef SUPPORT_64_BIT
 	class_addmethod(c, (method)procrastinate_dsp64, "dsp64", A_CANT, 0);
-#endif
 	class_addmethod(c, (method)procrastinate_assist, 	"assist", A_CANT, 0L);
 	class_addmethod(c, (method)attr_set_mute,			"/audio/mute",	A_GIMME, 0);
 	class_addmethod(c, (method)procrastinate_anything,	"anything",		A_GIMME, 0);
@@ -471,58 +466,17 @@ void procrastinate_anything(t_procrastinate *x, t_symbol *msg, long argc, t_atom
 }
 
 
-// Perform (signal) Method
-t_int *procrastinate_perform(t_int *w)
-{
-   	t_procrastinate *x = (t_procrastinate *)(w[1]);		// Pointer
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-    x->signal_out[1]->set_vector((t_float *)(w[4]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[5]);			// Vector Size
-	
-	if(x->x_obj.z_disabled || x->attr_mute)
-		goto out;
-		
-	x->procrastinate->dsp_vector_calc(x->signal_in[0], x->signal_out[0], x->signal_out[1]);	
-	
-out:
-    return (w + 6);		// Return a pointer to the NEXT object in the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib call chain
-}
-
-
-#ifdef SUPPORT_64_BIT
 void procrastinate_perform64(t_procrastinate *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-   	
-    x->signal_in[0]->set_vector((t_float *)(w[2])); 	// Input
-    x->signal_out[0]->set_vector((t_float *)(w[3]));	// Output
-    x->signal_out[1]->set_vector((t_float *)(w[4]));	// Output
-	x->signal_in[0]->vectorsize = (int)(w[5]);			// Vector Size
-	
-	if(x->x_obj.z_disabled || x->attr_mute)
-		goto out;
+    x->signal_in[0]->set_vector(ins[0]);
+    x->signal_out[0]->set_vector(outs[0]);
+    x->signal_out[1]->set_vector(outs[1]);
+	x->signal_in[0]->vectorsize = sampleframes;
 		
 	x->procrastinate->dsp_vector_calc(x->signal_in[0], x->signal_out[0], x->signal_out[1]);	
-	
-out:
-    return;
-}
-#endif
-
-
-// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
-void procrastinate_dsp(t_procrastinate *x, t_signal **sp, short *count)
-{
-	procrastinate_clear(x);
-	x->procrastinate->set_vectorsize(sp[0]->s_n);
-	x->procrastinate->set_sr(sp[0]->s_sr);
-
-	dsp_add(procrastinate_perform, 5, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[0]->s_n); // Add Perform Method to the ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Call Chain
-	#pragma unused(count)
 }
 
 
-#ifdef SUPPORT_64_BIT
 void procrastinate_dsp64(t_procrastinate *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
 	procrastinate_clear(x);
@@ -531,5 +485,4 @@ void procrastinate_dsp64(t_procrastinate *x, t_object *dsp64, short *count, doub
 
 	object_method(dsp64, gensym("dsp_add64"), (t_object*)x, procrastinate_perform64, 0, NULL);
 }
-#endif
 
