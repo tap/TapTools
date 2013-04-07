@@ -23,7 +23,6 @@ void thru_assist(t_thru *x, void *b, long m, long a, char *s);	// Assistance Met
 
 
 static t_class *autothru_class;
-static t_class *auto_thru_class;
 
 
 /************************************************************************************/
@@ -32,25 +31,17 @@ static t_class *auto_thru_class;
 extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
 	t_class *c1;
-	t_class *c2;
 
-	// We changed the name to tap.autothru~ in TT3, but are keeping the old name for backward compatibility
 	c1 = class_new("tap.autothru~",(method)thru_new, (method)dsp_free, sizeof(t_thru), (method)0L, A_GIMME, 0);
-	c2 = class_new("tap.auto_thru~",(method)thru_new, (method)dsp_free, sizeof(t_thru), (method)0L, A_GIMME, 0);
 
 	common_symbols_init();
 
-	class_addmethod(c1, (method)thru_dsp64,	"dsp64", A_CANT, 0);
-	class_addmethod(c2, (method)thru_dsp64,	"dsp64", A_CANT, 0);
-	class_addmethod(c1, (method)thru_assist, "assist", A_CANT, 0L); 
-	class_addmethod(c2, (method)thru_assist, "assist", A_CANT, 0L); 
+	class_addmethod(c1, (method)thru_dsp64,		"dsp64", 		A_CANT, 0);
+	class_addmethod(c1, (method)thru_assist, 	"assist", 		A_CANT, 0L); 
 	class_addmethod(c1, (method)stdinletinfo,	"inletinfo",	A_CANT, 0);
-	class_addmethod(c2, (method)stdinletinfo,	"inletinfo",	A_CANT, 0);
 
 	class_dspinit(c1);									// Setup object's class to work with MSP
-	class_dspinit(c2);									// Setup object's class to work with MSP
-	autothru_class = c1; class_register(_sym_nobox, c1);
-	auto_thru_class = c2; class_register(_sym_nobox, c2);
+	autothru_class = c1; class_register(_sym_box, c1);
 }
 
 
@@ -59,14 +50,9 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 
 void *thru_new(t_symbol *name, long argc, t_atom* argv)
 {
-	t_thru *x = NULL;
+	t_thru *x = (t_thru *)object_alloc(autothru_class);
 
-	if(name == gensym("tap.autothru~"))
-		x = (t_thru *)object_alloc(autothru_class);
-	else
-		x = (t_thru *)object_alloc(auto_thru_class);
-
-	if(x){
+	if (x) {
     	object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));	// dumpout		
 		dsp_setup((t_pxobject *)x,2);				// Create Object and 2 Inlet (last argument)
 		outlet_new((t_pxobject *)x, "signal");		// Create a signal Outlet
