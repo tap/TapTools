@@ -866,12 +866,12 @@
 			}
 , 			{
 				"box" : 				{
-					"bkgndpict" : "wfmodes.pct",
+					"bkgndpict" : "wfmodes.png",
 					"bottomvalue" : 3,
 					"id" : "obj-61",
 					"imagemask" : 1,
 					"inactiveimage" : 0,
-					"knobpict" : "wfknob.pct",
+					"knobpict" : "wfknob.png",
 					"maxclass" : "pictslider",
 					"movehorizontal" : 0,
 					"numinlets" : 2,
