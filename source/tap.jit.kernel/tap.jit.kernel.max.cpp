@@ -10,6 +10,7 @@
 #include "jit.common.h"
 #include "max.jit.mop.h"
 #include "commonsyms.h"
+#include "TTClassWrapperMax.h"
 
 // Class Struct Definition
 typedef struct _max_jit_kernel 
@@ -32,7 +33,7 @@ void *max_jit_kernel_class;
 
 /**************************************************************************************/
 // MAIN
-extern "C" int main(void)
+extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {	
 	void *p,*q;
 	
@@ -48,7 +49,6 @@ extern "C" int main(void)
 	max_addmethod_usurp_low((method)max_jit_kernel_outputmatrix, "outputmatrix");	
     addmess((method)max_jit_mop_assist, "assist", A_CANT,0);
     
-//    taptools_init();
 	return 0;
 }
 

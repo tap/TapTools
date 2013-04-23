@@ -16,6 +16,8 @@ libraries:
   - ../../../../Jamoma/Core/Foundation/library/build/libJamomaFoundation.a
   - ../../../../Jamoma/Core/DSP/library/build/libJamomaDSP.a
   - ../../../../Jamoma/Core/DSP/extensions/EffectsLib/build/libEffectsLib.a
+  - ../../../../Jamoma/Core/DSP/extensions/GeneratorLib/build/libGeneratorLib.a
+  - ../../../../Jamoma/Core/DSP/extensions/MathLib/build/libMathLib.a
   - C74
   - mac ../../../../Jamoma/Core/DSP/library/portaudio/libportaudio-jamoma.a
   - win ../../../../Jamoma/Core/DSP/library/portaudio/Debug/PortAudio.lib

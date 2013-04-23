@@ -1,3 +1,5 @@
 max objectfile tap.delay~ jcom.delay~;
 max objectfile tap.ramp~ jcom.ramp~;
 max objectfile tap.allpass~ jcom.allpass~;
+max objectfile tap.filter~ jcom.filter~;
+max objectfile tap.overdrive~ jcom.overdrive~;

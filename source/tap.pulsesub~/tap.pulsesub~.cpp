@@ -9,6 +9,8 @@
 #include "TTClassWrapperMax.h"
 
 extern "C" TTErr TTLoadJamomaExtension_EffectsLib(void);
+extern "C" TTErr TTLoadJamomaExtension_GeneratorLib(void);
+extern "C" TTErr TTLoadJamomaExtension_MathLib(void);
 
 extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 {
@@ -16,6 +18,8 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 	TTErr			err;
 	
 	TTLoadJamomaExtension_EffectsLib();
+	TTLoadJamomaExtension_GeneratorLib();
+	TTLoadJamomaExtension_MathLib();
 	
 	err = wrapTTClassAsMaxClass(TT("pulsesub"), "tap.pulsesub~", &w);
 	if (!err) {

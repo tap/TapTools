@@ -1,12 +1,12 @@
 Makefile
 *.o
 build
-externals
-extensions
+#externals
+#extensions
 
 xcuserdata
 *.xcworkspace
 *.xcuserstate
 
-TapTools/readme.txt
-support/
+#TapTools/readme.txt
+#support/
