@@ -3,7 +3,7 @@ By Timothy Place
 http://74objects.com/
 
 Version 4 beta 2
-26 March 2013
+26 April 2013
 
 
 Distribution of TapTools is governed by the New BSD License ( http://opensource.org/licenses/BSD-3-Clause )  
@@ -60,7 +60,7 @@ New In TapTools 4 beta 2
 - Compatibility with Max 6.1
 - Distributed as a Max Package
 - Jamoma dependencies, where applicable, are provided as a part of the package mechanism
-
+- Lots of bug fixes from beta 1
 
 New In TapTools 4 beta 1
 - All code is now open source and available via GitHub
