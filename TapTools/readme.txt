@@ -21,7 +21,7 @@ INSTALLING
 
 SYSTEM REQUIREMENTS
 
-Max 6.1.1 or higher for Mac OS
+Max 6.1.3 or higher for Mac OS
 
 
 CONTACT
@@ -55,6 +55,9 @@ KNOWN ISSUES
 
 
 CHANGE LOG
+
+New In TapTools 4 beta 3
+- Thread-safety improvements to tap.buffer.norm~
 
 New In TapTools 4 beta 2
 - Compatibility with Max 6.1
