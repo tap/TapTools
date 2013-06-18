@@ -6,44 +6,45 @@
  *	http://creativecommons.org/licenses/BSD/
  */
 
-#include "TTClassWrapperMax.h"
+#include "ext.h"
+#include "z_dsp.h"
+#include "ext_strings.h"
 #include "buffer.h"
 
-static t_class *norm_class;
 
 typedef struct _index{
-    t_pxobject 	l_obj;
-    t_symbol 	*l_sym;		// Current Buffer Name
-    t_buffer	*l_buf;		// Buffer Reference
+    t_pxobject		l_obj;
+	t_buffer_ref*	l_buffer;
 } t_norm;
 
 
 // Function & Method Prototypes
-void norm_dsp(t_norm *x, t_signal **sp, short *count);
+t_max_err norm_notify(t_norm *x, t_symbol *s, t_symbol *msg, void *sender, void *data);
+void norm_dblclick(t_norm *x);
 void norm_set(t_norm *x, t_symbol *s);
-void *norm_new(t_symbol *s);
+void* norm_new(t_symbol *s);
+void norm_free(t_norm *x);
 void norm_assist(t_norm *x, void *b, long m, long a, char *s);
 void norm_calc(t_norm *x);
+
+
+static t_class *norm_class;
 
 
 /*************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
-	t_class *c;
+	t_class* c = class_new("tap.buffer.norm~",(method)norm_new, (method)norm_free, sizeof(t_norm), (method)0L, A_SYM, 0);
 
-	c = class_new("tap.buffer.norm~",(method)norm_new, (method)dsp_free, sizeof(t_norm), 
-		(method)0L, A_SYM, 0);
-
-	common_symbols_init();										// Initialize TapTools
 	class_addmethod(c, (method)norm_calc,		"bang", A_LONG, 0L);
 	class_addmethod(c, (method)norm_set,		"set", A_SYM, 0L);
- 	class_addmethod(c, (method)norm_dsp, 		"dsp", A_CANT, 0L);		
 	class_addmethod(c, (method)norm_assist, 	"assist", A_CANT, 0L); 
+	class_addmethod(c, (method)norm_dblclick,	"dblclick",	A_CANT, 0);
+	class_addmethod(c, (method)norm_notify,		"notify",	A_CANT, 0);
 
-	class_dspinit(c);									// Setup object's class to work with MSP
-	class_register(_sym_box, c);
+	class_register(CLASS_BOX, c);
 	norm_class = c;
 	return 0;
 }
@@ -52,40 +53,31 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 /*************************************************************************************/
 // Object Creation Routine
 
-void *norm_new(t_symbol *s)
+void* norm_new(t_symbol* s)
 {
-    t_norm *x = (t_norm *)object_alloc(norm_class);	
-	if(x){
-	   	object_obex_store((void *)x, _sym_dumpout, (object *)outlet_new(x,NULL));	// dumpout	
-	    dsp_setup((t_pxobject *)x,1);					// Create Object and 1 Inlet (last argument)
-	    outlet_new((t_pxobject *)x, "signal");			// Create a signal Outlet
+    t_norm* x = (t_norm*)object_alloc(norm_class);	
 
-		x->l_sym = s;									// Buffer name argument	
-		defer_low(x, (method)norm_set,s,0,0L);			// By defering this method, we can guarantee
-														//	that the buffer has loaded before we try binding to it
-	}
-    return (x);											// Return the pointer
+	norm_set(x, s);									// Buffer name argument	
+    return x;
 }
 
+
+void norm_free(t_norm* x)
+{
+	object_free(x->l_buffer);
+}
 
 
 /*************************************************************************************/
 // Bound to input/inlet methods
 
-// Set Buffer Method - (also used by ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib method)
-void norm_set(t_norm *x, t_symbol *s)
+// Set Buffer Method
+void norm_set(t_norm *x, t_symbol *name)
 {
-	t_buffer *b;
-	
-	x->l_sym = s;
-	if ((b = (t_buffer *)(s->s_thing)) && ob_sym(b) == gensym("buffer~")){
-		x->l_buf = b;
-	} 
-	else 
-	{
-		object_error((t_object *)x, "no buffer~ %s", s->s_name);
-		x->l_buf = 0;
-	}
+	if (!x->l_buffer)
+		x->l_buffer = buffer_ref_new((t_object*)x, name);
+	else
+		buffer_ref_set(x->l_buffer, name);
 }
 
 
@@ -96,55 +88,44 @@ void norm_assist(t_norm *x, void *b, long msg, long arg, char *dst)
 }
 
 
-// norm point calculation
-void norm_calc(t_norm *x)
+// Handle notifications from the buffer~
+t_max_err norm_notify(t_norm *x, t_symbol *s, t_symbol *msg, void *sender, void *data)
 {
-	t_buffer *b = x->l_buf;							// Our Buffer
-	float *tab;										// Will point to our buffer's values
-	long i;
-	double current_samp = 0.0, mult_factor = 0.0;	// current sample value
-	long saveinuse;
-
-	if(x->l_buf == 0){
-		object_error((t_object *)x, "no buffer is bound to this object");
-		return;
-	}
-
-	// LOCK DOWN THE BUFFER
-	saveinuse = b->b_inuse;
-	b->b_inuse = true;
-
-
-	tab = b->b_samples;				// point tab to our sample values
-	
-	// FIND PEAK VALUE
-	for(i=0; i < b->b_size; i++){
-		if(fabs(tab[i]) > current_samp)
-			current_samp = fabs(tab[i]);
-	}
-
-	// FIND THE FACTOR
-	if(current_samp == 0){
-		object_error((t_object *)x, "buffer is empty, cannot normalize");
-		goto out;
-	}
-	mult_factor = 0.9999 / current_samp;
-
-	// SCALE THE VALUES
-	for(i=0; i < b->b_size; i++){
-		tab[i] *= mult_factor;
-	}
-out:
-	// UNLOCK THE BUFFER
-	b->b_inuse = saveinuse;
-		
-	// UPDATE FLAG
-	object_method((t_object*)b, gensym("dirty"));
+	return buffer_ref_notify(x->l_buffer, s, msg, sender, data);
 }
 
 
-// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib METHOD - USED ONLY FOR BINDING TO THE BUFFER
-void norm_dsp(t_norm *x, t_signal **sp, short *count)
+// Open the buffer~ view window
+void norm_dblclick(t_norm *x)
 {
-	norm_set(x, x->l_sym);
+	buffer_view(buffer_ref_getobject(x->l_buffer));
+}
+
+
+// Normalize the buffer~ content
+void norm_calc(t_norm *x)
+{
+	t_buffer_obj	*b = buffer_ref_getobject(x->l_buffer);
+	t_float			*tab = buffer_locksamples(b);
+	
+	if (tab) {
+		long 	channelcount = buffer_getchannelcount(b);
+		long 	framecount = buffer_getframecount(b);
+		long	samplecount = channelcount * framecount;	
+		long 	i;
+		double	current_samp = 0.0, mult_factor = 0.0;	// current sample value
+	
+		for (i=0; i < samplecount; i++) {				// FIND PEAK VALUE
+			if (fabs(tab[i]) > current_samp)
+				current_samp = fabs(tab[i]);
+		}
+
+		if (current_samp > 0.0) {
+			mult_factor = 0.9999 / current_samp; 		// FIND THE FACTOR
+			for (i=0; i < samplecount; i++)				// SCALE THE VALUES
+				tab[i] *= mult_factor;
+			buffer_setdirty(b);							// mark the buffer so that other objects know that there are updates
+		}
+		buffer_unlocksamples(b);
+	}	
 }
