@@ -1,3 +1,6 @@
 [submodule "Core"]
 	path = Core
 	url = git://github.com/jamoma/JamomaCore.git
+[submodule "MaxSDK"]
+	path = MaxSDK
+	url = git://github.com/Cycling74/max6-sdk
