@@ -54,7 +54,8 @@ static t_symbol *ps_hybrid;
 /************************************************************************************/
 // Main() Function
 
-void ext_main(void* r)
+
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 	
