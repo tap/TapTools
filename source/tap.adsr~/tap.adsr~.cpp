@@ -54,7 +54,7 @@ static t_symbol *ps_hybrid;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+void ext_main(void* r)
 {
 	t_class *c;
 	
