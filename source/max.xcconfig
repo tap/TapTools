@@ -71,7 +71,7 @@ GENERATE_PKGINFO_FILE = YES
 
 // Flags to enforce some build-time checks for the symbols used while not actually performing a hard link
 C74_SYM_LINKER_FLAGS = @$(C74SUPPORT)/max-includes/c74_linker_flags.txt
-C74_SYM_LINKER_FLAGS_MSP = -Wl,-U,_dsp_add,-U,_dsp_add64,-U,_z_add_signalmethod,-U,_z_dsp_free,-U,_z_dsp_setup,-U,_class_dspinit,-U,_buffer_getchannelcount,-U,_buffer_getframecount,-U,_buffer_getsamplerate,-U,_buffer_getmillisamplerate,-U,_buffer_locksamples,-U,_buffer_unlocksamples,-U,_buffer_ref_exists,-U,_buffer_ref_getobject,-U,_buffer_ref_new,-U,_buffer_ref_notify,-U,_buffer_setdirty,-U,_class_dspinitjbox,-U,_sys_getdspobjdspstate,-U,_sys_getdspstate,-U,_z_jbox_dsp_free,-U,_z_jbox_dsp_setup,-U,_dsp_resize,-U,_dspchain_start,-U,_dspchain_compile2,-U,_dspchain_tick,-U,_buffer_getinfo
+C74_SYM_LINKER_FLAGS_MSP = -Wl,-U,_dsp_add,-U,_dsp_add64,-U,_z_add_signalmethod,-U,_z_dsp_free,-U,_z_dsp_setup,-U,_class_dspinit,-U,_buffer_getchannelcount,-U,_buffer_getframecount,-U,_buffer_getsamplerate,-U,_buffer_getmillisamplerate,-U,_buffer_locksamples,-U,_buffer_unlocksamples,-U,_buffer_ref_exists,-U,_buffer_ref_getobject,-U,_buffer_ref_new,-U,_buffer_ref_notify,-U,_buffer_setdirty,-U,_class_dspinitjbox,-U,_sys_getdspobjdspstate,-U,_sys_getdspstate,-U,_z_jbox_dsp_free,-U,_z_jbox_dsp_setup,-U,_dsp_resize,-U,_dspchain_start,-U,_dspchain_compile2,-U,_dspchain_tick,-U,_buffer_getinfo,-U,_sys_getsr
 
 
 // hide all symbols by default
