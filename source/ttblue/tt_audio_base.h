@@ -79,7 +79,7 @@ enum{
 
 
 // Specification of our base class
-class TAPTOOLS_EXPORT tt_audio_base{
+class tt_audio_base{
 	private:
 		bool					is_initialized;				// Flag set by successful initialization
 		
