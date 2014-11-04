@@ -15,7 +15,7 @@ typedef struct _bits 				// Data Structure for this object
 	void 				*my_outlet[2];	// pointers to our outlets
 	t_symbol			*mode; 			// ATTRIBUTE: mode (stored as a symbol)
 	long				matrix_width;	// ATTRIBUTE: matrix_width (stored as long) - used by matrixctrl modes
-	Atom				bitlist[32];	// storage for output list
+	t_atom				bitlist[32];	// storage for output list
 	long				matrixlist[32];	// storage for matrixctrl mode
 } t_bits;
 
@@ -37,7 +37,7 @@ static t_symbol *ps_ints2matrixctrl;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {	
 	t_class *c;
 	
@@ -117,7 +117,7 @@ void bits_list(t_bits *x, t_symbol *msg, short argc, t_atom *argv)
 	int i, j;			// counters
 	long val = 0;		// Our bit-constructed number
 	long temp;
-	Atom templist[3];	// used in matrixctrl mode
+	t_atom templist[3];	// used in matrixctrl mode
 	
 	if(x->mode==ps_bits2ints){						// *** BIT-LIST TO INTEGER(LIST) MODE ***
 		for(i=(argc - 1); i>=0; i--){
