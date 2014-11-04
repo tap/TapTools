@@ -36,7 +36,7 @@ void sift_output (t_sift *x);									// Scheduled floating-point output
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 

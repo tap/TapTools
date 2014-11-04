@@ -17,13 +17,13 @@ typedef struct _mapper 				// Data Structure for this object
 	t_object	ob;								// REQUIRED: Our object
 	void		*myproxies[10];					// for proxy inlets
 	void 		*my_outlet[2];					// my outlet -- NOTE: the attribute dump outlet (2nd outlet) is INCLUDED
-	Atom		mylist[MAX_LIST_LENGTH];		// storage for output list
+	t_atom		mylist[MAX_LIST_LENGTH];		// storage for output list
 	short		mylistlen;						// how many elements in our list
 	
-	Atom		mapto[MAX_LIST_LENGTH];			// ATTRIBUTE: message to map the midi input to
+	t_atom		mapto[MAX_LIST_LENGTH];			// ATTRIBUTE: message to map the midi input to
 	long		maptolen;						// 			  number of list elements in mapto
 
-	Atom		includes[3];					// ATTRIBUTE: store a list of flags for what to include
+	t_atom		includes[3];					// ATTRIBUTE: store a list of flags for what to include
 	long		includeslen;					// 			  number of list elements in includes
 
 	long 		channel;						// ATTRIBUTE: channel
@@ -59,7 +59,7 @@ static t_symbol *ps_program;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {	
 	t_class *c;
 

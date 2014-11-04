@@ -12,7 +12,7 @@
 static t_class *this_class;				// Required. Global pointing to this class 
 
 typedef struct _prime{				// Data structure for this object 
-	Object	p_ob;					// Must always be the first field; used by Max 
+	t_object	p_ob;					// Must always be the first field; used by Max
 	void	*right_inlet;
 	long 	p_value;				// Value from which to determine next prime number
 	void 	*p_out;					// Pointer to outlet. need one for each outlet 
@@ -30,7 +30,7 @@ void	prime_assist(t_prime *prime, void *b, long m, long a, char *s); 	// assista
 /*********************************************************/
 //Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 

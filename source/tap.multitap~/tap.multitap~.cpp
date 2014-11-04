@@ -46,7 +46,7 @@ t_max_err attr_set_gain(t_multitap *x, void *attr, long argc, t_atom *argv);
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 	

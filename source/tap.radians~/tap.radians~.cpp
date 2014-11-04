@@ -22,9 +22,7 @@ typedef struct _radians{
 
 
 // Prototypes for methods: need a method for each incoming message type:
-t_int *radians_perform(t_int *w);
 void radians_perform64(t_radians *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);										// An MSP Perform (signal) Method
-void radians_dsp(t_radians *x, t_signal **sp, short *count);
 void radians_dsp64(t_radians *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);			// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
 void radians_assist(t_radians *x, void *b, long m, long a, char *s);	// Assistance Method
 void *radians_new(t_symbol *msg, short argc, t_atom *argv);				// New Object Creation Method
@@ -36,7 +34,7 @@ void radians_free(t_radians *x);
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 
@@ -44,7 +42,6 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
 		(method)0L, A_GIMME, 0);
 
 		common_symbols_init();														// Initialize TapTools
-	class_addmethod(c, (method)radians_dsp, 			"dsp", A_CANT, 0L);		
 	class_addmethod(c, (method)radians_dsp64, "dsp64", A_CANT, 0);
     class_addmethod(c, (method)radians_float, 			"float", A_FLOAT, 0L);	// Input as double
     class_addmethod(c, (method)radians_assist, 			"assist", A_CANT, 0L); 
@@ -144,70 +141,15 @@ void radians_free(t_radians *x)
 }
 
 
-// Perform (signal) Method - delay is a constant (not a signal)
-t_int *radians_perform(t_int *w)
-{
-	t_float *in, value, *out;
-	int n;
-
-	t_radians *x = (t_radians *)(w[1]);		
-	in = (t_float *)(w[2]);
-	out = (t_float *)(w[3]);
-	n = (int)(w[4]);
-	
-	if (x->x_obj.z_disabled) goto out;
-		
-	switch(x->radians_mode){
-		case 0:
-			while(--n){
-				value = *++in;										// Input
-				//value = value * (3.141593 / (x->radians_sr * 0.5));	// hz to radians
-				value = x->tt->hertz_to_radians(value);
-				*++out = value;
-			}
-			break;
-		case 1:
-			while(--n){
-				value = *++in;										// Input
-				//value = (value * x->radians_sr) / 6.283186; 		// radians to hz
-				value = x->tt->radians_to_hertz(value);
-				*++out = value;
-			}
-			break;
-		case 2:
-			while(--n){
-				value = *++in;										// Input
-				//value = (value * 3.141593) / 180.;
-				value = x->tt->degrees_to_radians(value);
-				*++out = value;
-			}
-			break;
-		case 3:
-			while(--n){
-				value = *++in;										// Input
-				//value = (value * 180.) / 3.141593;
-				value = x->tt->radians_to_degrees(value);
-				*++out = value;
-			}
-			break;
-	}
-out:
-	return (w+5);
-}
-
-
 void radians_perform64(t_radians *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
 	double *in, value, *out;
 	int n;
 
-	
 	in = ins[0];
 	out = outs[0];
 	n = sampleframes;
 	
-	if (x->x_obj.z_disabled) goto out;
-		
 	switch(x->radians_mode){
 		case 0:
 			while(--n){
@@ -244,16 +186,6 @@ void radians_perform64(t_radians *x, t_object *dsp64, double **ins, long numins,
 	}
 out:
 	return;
-}
-
-
-
-// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
-void radians_dsp(t_radians *x, t_signal **sp, short *count)
-{
-	x->tt->set_sr(sp[0]->s_sr);		// update the sample rate
-	if (count[0])					// only add to the chain if a signal is connected
-		dsp_add(radians_perform, 4, x, sp[0]->s_vec-1, sp[1]->s_vec-1, sp[0]->s_n + 1);
 }
 
 

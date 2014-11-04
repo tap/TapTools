@@ -24,11 +24,11 @@ static t_class *s_loader_class;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	s_loader_class = class_new((char*)"tap.loader",(method)loader_new, (method)NULL, sizeof(t_loader), (method)NULL, A_GIMME, 0);
 	class_register(CLASS_NOBOX, s_loader_class);
-	post("TapTools 4                                            Version 4.0 b2 | 74objects.com");
+	post("TapTools 4.1 | 74objects.com");
 }
 
 

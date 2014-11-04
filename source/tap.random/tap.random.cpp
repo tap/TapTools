@@ -27,7 +27,7 @@ void taprandom_assist(t_taprandom *taprandom, void *b, long m, long a, char *s);
 /*********************************************************/
 //Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 

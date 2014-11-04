@@ -10,7 +10,7 @@
 
 extern "C" TTErr TTLoadJamomaExtension_EffectsLib(void);
 
-int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {	
 	WrappedClassOptionsPtr	options = new WrappedClassOptions;
 	WrappedClassPtr			c = NULL;	

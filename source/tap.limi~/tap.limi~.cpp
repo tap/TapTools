@@ -11,7 +11,7 @@
 extern "C" TTErr TTLoadJamomaExtension_EffectsLib(void);
 extern "C" TTErr TTLoadJamomaExtension_FilterLib(void);
 
-int TTCLASSWRAPPERMAX_EXPORT main(void)
+int C74_EXPORT main(void)
 {
 	WrappedClassPtr	w;
 	
