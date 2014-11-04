@@ -26,7 +26,7 @@ typedef struct _list_index
 // Prototypes for methods: need a method for each incoming message type:
 void *tap_list_index_new(t_symbol *msg, short argc, t_atom *argv);
 void tap_list_index_assist(t_list_index *x, void *b, long msg, long arg, char *dst);
-void tap_list_index_anything(t_list_index *x, Symbol *msg, short argc, t_atom *argv);
+void tap_list_index_anything(t_list_index *x, t_symbol *msg, short argc, t_atom *argv);
 
 // Class Globals
 static t_class *list_index_class;							// Required. Global pointing to this class
@@ -36,7 +36,7 @@ static t_symbol *ps_indexed2list, *ps_list2indexed;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 
