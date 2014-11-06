@@ -35,7 +35,7 @@ static t_class *jit_sum_class;
 /**************************************************************************************/
 // MAIN
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {	
 	long attrflags = 0;
 	t_class *c;
@@ -137,7 +137,7 @@ void jit_sum_jit_matrix(t_jit_sum *x, t_symbol *s, long argc, t_atom *argv)
 			jit_object_method(matrix, _sym_getdata, &in_mdata);
 			
 			if(!in_mdata) { 
-				jit_error_sym(x, gensym("err_calculate"));
+				//jit_error_sym(x, gensym("err_calculate"));
 				jit_object_method(matrix, _sym_lock, in_savelock);
 				goto out;
 			}
@@ -158,7 +158,7 @@ void jit_sum_jit_matrix(t_jit_sum *x, t_symbol *s, long argc, t_atom *argv)
 			jit_object_method(matrix, _sym_lock, in_savelock);				
 			max_jit_obex_dumpout(x, gensym("done"), 0, 0L);			
 		} else {
-			jit_error_sym(x, gensym("err_calculate"));
+			//jit_error_sym(x, gensym("err_calculate"));
 		}
 	}
 out:
@@ -417,7 +417,7 @@ void jit_sum_change_calculate_ndim(t_jit_sum *x, t_jit_matrix_info *in_minfo, ch
 		
 		// Check for problems
 		if (!old_mdata){ 
-			jit_error_sym(x,  gensym("err_calculate"));
+			//jit_error_sym(x,  gensym("err_calculate"));
 			jit_object_method(old_matrix, _sym_lock, savelock);
 			goto bye;
 		}

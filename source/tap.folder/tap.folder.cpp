@@ -31,10 +31,9 @@ static t_class *s_folder_class;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c = class_new("tap.folder",(method)folder_new, (method)folder_free, sizeof(t_folder), (method)0L, A_GIMME, 0);
-
 	
 	common_symbols_init();
 
@@ -52,7 +51,8 @@ extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
     class_addmethod(c, (method)tap_folder_assist, 		"assist",	A_CANT, 0);
 	class_addmethod(c, (method)stdinletinfo,			"inletinfo",A_CANT, 0);
 
-class_register(_sym_box, c); 	s_folder_class = c;
+	class_register(_sym_box, c);
+	s_folder_class = c;
 }
 
 

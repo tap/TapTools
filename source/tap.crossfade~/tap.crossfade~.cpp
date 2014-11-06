@@ -46,7 +46,7 @@ extern "C" TT_EXTENSION_EXPORT TTErr TTLoadJamomaExtension_Crossfade(void);
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 	

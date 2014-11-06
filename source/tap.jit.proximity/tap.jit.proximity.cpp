@@ -33,7 +33,7 @@ static t_class *proximity_class;
 /**************************************************************************************/
 // MAIN
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	long attrflags = 0;
 	t_class *c;
@@ -130,7 +130,7 @@ void proximity_coords(t_proximity *x, double xin, double yin)
 		
 		// ERROR HANDLING FOR DATALESS MATRICES
 		if (!in_bp) { 
-			jit_error_sym(x, gensym("err_calculate"));
+			//jit_error_sym(x, gensym("err_calculate"));
 			jit_object_method(matrix, _sym_lock,in_savelock);
 			goto out;
 		}
@@ -163,7 +163,7 @@ void proximity_coords(t_proximity *x, double xin, double yin)
 		jit_object_method(matrix, _sym_lock,in_savelock);		
 	}
 	else{
-		jit_error_sym(x, gensym("err_calculate"));
+		//jit_error_sym(x, gensym("err_calculate"));
 	}
 out:
 	return;

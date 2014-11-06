@@ -46,7 +46,7 @@ t_class		*change_class;			// Required. Global pointing to this class
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 

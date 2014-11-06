@@ -112,7 +112,7 @@ static t_class *max_jit_colortrack_class;		// pointer to this class
 /**************************************************************************************/
 // MAIN
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {	
 	long attrflags = 0;
 	t_class *c;

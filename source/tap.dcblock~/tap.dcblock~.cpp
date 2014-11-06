@@ -10,10 +10,10 @@
 
 extern "C" TTErr TTLoadJamomaExtension_FilterLib(void);
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	WrappedClassPtr	w;
-	ClassPtr		c;
+	t_class*		c;
 	TTErr			err;
 	
 	TTLoadJamomaExtension_FilterLib();

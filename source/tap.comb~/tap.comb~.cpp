@@ -57,7 +57,7 @@ static t_class*	s_comb_class = NULL;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class* c = class_new("tap.comb~", (method)comb_new, (method)comb_free, sizeof(t_comb), (method)0L, A_GIMME, 0);
 

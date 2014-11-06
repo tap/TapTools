@@ -33,7 +33,7 @@ void *max_jit_kernel_class;
 
 /**************************************************************************************/
 // MAIN
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {	
 	void *p,*q;
 	

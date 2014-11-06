@@ -47,7 +47,7 @@ static t_symbol*	ps_buffer_modified;
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c = class_new("tap.buffer.record~",(method)record_new, (method)dsp_free, sizeof(t_record), (method)0L, A_GIMME, 0);
 

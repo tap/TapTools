@@ -13,7 +13,7 @@ typedef struct _fftlist
 	t_pxobject	x_obj;				// Header;  Must always be the first field; used by MSP
 	int 		s_bins;		    			// Value from the typed in argument
    	void 		*fftlist_out;				// Pointer to outlet. need one for each outlet 
-   	Atom 		fft_compiled[MAXSIZE];		// Compiled list of spectral data - based on MSP's FFT limit of 4096
+   	t_atom 		fft_compiled[MAXSIZE];		// Compiled list of spectral data - based on MSP's FFT limit of 4096
    	float 		fftlist_mult;				// scaling factor
    	long 		fftlist_nyquist;			// truncate at nyquist?
    	long 		fftlist_autopoll;			// Automatically spit the data?
@@ -32,7 +32,7 @@ void fftlist_free(t_fftlist *x);									//
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 

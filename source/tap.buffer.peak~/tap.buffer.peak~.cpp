@@ -41,7 +41,7 @@ static t_symbol*	ps_buffer_modified;
 /*************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 	

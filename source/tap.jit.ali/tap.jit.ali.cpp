@@ -54,7 +54,7 @@ static t_symbol *ps_jit_matrix;
 /**************************************************************************************/
 // MAIN
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {	
 	long attrflags = 0;
 	t_class *c;
@@ -129,7 +129,7 @@ void *ali_new(t_symbol *s, long argc, t_atom *argv)
 		x->data_widthclip = 0;
 		x->space_matrix = _sym_nothing;
 		x->data_matrix = _sym_nothing;
-		x->out_matrix = jit_symbol_unique();
+		x->out_matrix = symbol_unique();
 		
 		attr_args_process(x,argc,argv); //handle attribute args	
 		
@@ -226,7 +226,7 @@ void ali_coords(t_ali *x, double xin, double yin)
 		
 		// ERROR HANDLING
 		if (!in_bp) { 
-			jit_error_sym(x, gensym("err_calculate"));
+			//jit_error_sym(x, gensym("err_calculate"));
 			jit_object_method(matrix,_sym_lock,in_savelock);
 			goto out;
 		}
@@ -246,7 +246,7 @@ void ali_coords(t_ali *x, double xin, double yin)
 			
 			// SOME KIND OF ERROR HANDLING
 			if (!data_in_bp) { 
-				jit_error_sym(x, gensym("err_calculate"));
+				//jit_error_sym(x, gensym("err_calculate"));
 				jit_object_method(data_matrix, _sym_lock, data_in_savelock);
 				goto out;
 			}
@@ -258,7 +258,7 @@ void ali_coords(t_ali *x, double xin, double yin)
 			}
 		}
 		else{
-			jit_error_sym(x, gensym("err_calculate"));
+			//jit_error_sym(x, gensym("err_calculate"));
 			goto out;
 		}
 	
@@ -294,7 +294,7 @@ void ali_coords(t_ali *x, double xin, double yin)
 			
 			// Check for problems
 			if (!out_bp){ 
-				jit_error_sym(x, gensym("err_calculate"));
+				//jit_error_sym(x, gensym("err_calculate"));
 				jit_object_method(out_matrix, _sym_lock,out_savelock);
 				goto out;
 			}
@@ -302,7 +302,7 @@ void ali_coords(t_ali *x, double xin, double yin)
 
 			for(i=0; i< TTClip(data_depthclip, 1L, data_dim[1]); i++){	// for the y size of the data matrix
 				temp = JIT_3D_GET_FLOAT32(in_bp,&in_minfo,0,coors[0],coors[1], i);								
-				jit_atom_setfloat(&(my_val[i]),temp);
+				atom_setfloat(&(my_val[i]),temp);
 				sum += temp;
 			}
 			
@@ -335,7 +335,7 @@ void ali_coords(t_ali *x, double xin, double yin)
 			else{
 				for(i=0; i < TTClip(data_dim[0],1L,MAX_LIST_SIZE); i++){		// LIST OUTPUT
 					temp = JIT_2D_GET_FLOAT32(out_bp, &out_minfo, 0, i, 0);
-					jit_atom_setfloat(&(x->outlist[i]),temp);
+					atom_setfloat(&(x->outlist[i]),temp);
 				}
 				outlet_list(x->outlet[0], 0L, i, &x->outlist[0]);
 			}
@@ -345,7 +345,7 @@ cleanup:
 		jit_object_method(data_matrix, _sym_lock,in_savelock);
 		jit_object_method(out_matrix, _sym_lock,in_savelock);			
 	} else {
-		jit_error_sym(x, gensym("err_calculate"));
+		//jit_error_sym(x, gensym("err_calculate"));
 	}
 out:
 	return;

@@ -60,7 +60,7 @@ double perform_interpolation(t_elixir *x, short inletNumber);
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 
@@ -171,8 +171,8 @@ void elixir_list(t_elixir *x, t_symbol *s, short argc, t_atom *argv)
 {	
 	short inlet = x->x_obj.z_in;
 
-	x->elixir_time[inlet] = atom_getfloatarg(1,argc,argv);	
-	elixir_doit(x, atom_getfloatarg(0,argc,argv), inlet, 1);
+	x->elixir_time[inlet] = atom_getfloat(argv+1);
+	elixir_doit(x, atom_getfloat(argv), inlet, 1);
 }
 
 

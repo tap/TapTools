@@ -18,28 +18,29 @@ typedef struct _fftnorm			// Data Structure for this object
 } t_fftnorm;
 
 // Prototypes for methods: need a method for each incoming message type
-void *fftnorm_new(long value);									// New Object Creation Method
-t_int *fftnorm_perform(t_int *w);								// An MSP Perform (signal) Method
-void fftnorm_dsp(t_fftnorm *x, t_signal **sp, short *count);			// ../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Method
-void fftnorm_assist(t_fftnorm *x, void *b, long m, long a, char *s);		// Assistance Method
+void *fftnorm_new(long value);
+t_int *fftnorm_perform(t_int *w);
+void fftnorm_dsp(t_fftnorm *x, t_signal **sp, short *count);
+void fftnorm_assist(t_fftnorm *x, void *b, long m, long a, char *s);
 
 /************************************************************************************/
 // Main() Function
 
-extern "C" int TTCLASSWRAPPERMAX_EXPORT main(void)
+extern "C" int C74_EXPORT main(void)
 {
 	t_class *c;
 
 	c = class_new("tap.fft.normalize~",(method)fftnorm_new, (method)dsp_free, sizeof(t_fftnorm), 
 		(method)0L, A_LONG, 0);
 
-		common_symbols_init();										// Initialize TapTools
+	common_symbols_init();
  	class_addmethod(c, (method)fftnorm_dsp, 	"dsp", A_CANT, 0L);		
 	class_addmethod(c, (method)fftnorm_assist, 	"assist", A_CANT, 0L); 
 	class_addmethod(c, (method)stdinletinfo,	"inletinfo",	A_CANT, 0);
 
-	class_dspinit(c);									// Setup object's class to work with MSP
-class_register(_sym_box, c); 	fftnorm_class = c;
+	class_dspinit(c);
+	class_register(_sym_box, c);
+	fftnorm_class = c;
 }
 
 
