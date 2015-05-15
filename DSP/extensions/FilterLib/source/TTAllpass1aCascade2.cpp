@@ -1,0 +1,90 @@
+/** @file
+ *
+ * @ingroup dspFilterLib
+ *
+ * @brief #TTAllpass1aCascade2 is a first-order filter cascade
+ *
+ * @details
+ *
+ * @authors Timothy Place, Trond Lossius
+ *
+ * @copyright Copyright © 2010, Timothy Place @n
+ * This code is licensed under the terms of the "New BSD License" @n
+ * http://creativecommons.org/licenses/BSD/
+ */
+
+
+#include "TTAllpass1aCascade2.h"
+
+#define thisTTClass			TTAllpass1aCascade2
+#define thisTTClassName		"allpass.1a.cascade2"
+#define thisTTClassTags		"dspFilterLib, audio, processor, filter, allpass, cascade"
+
+#ifdef TT_PLATFORM_WIN
+#include <Algorithm>
+#endif
+
+TT_AUDIO_CONSTRUCTOR,
+	mAlpha0(0),
+	mAlpha1(0)
+{
+	TTChannelCount initialMaxNumChannels = arguments;
+
+	addAttribute(Alpha0, kTypeFloat64);
+	addAttribute(Alpha1, kTypeFloat64);
+	
+	addMessage(clear);
+	addUpdates(MaxNumChannels);
+
+	setAttributeValue(kTTSym_maxNumChannels,	initialMaxNumChannels);
+	setProcessMethod(processAudio);
+}
+
+
+TTAllpass1aCascade2::~TTAllpass1aCascade2()
+{
+	;
+}
+
+
+TTErr TTAllpass1aCascade2::updateMaxNumChannels(const TTValue& oldMaxNumChannels, TTValue&)
+{
+	mX1.resize(mMaxNumChannels);
+	mD2.resize(mMaxNumChannels);
+	mY1.resize(mMaxNumChannels);
+	clear();
+	return kTTErrNone;
+}
+
+
+TTErr TTAllpass1aCascade2::clear()
+{
+	mX1.assign(mMaxNumChannels, 0.0);
+	mD2.assign(mMaxNumChannels, 0.0);
+	mY1.assign(mMaxNumChannels, 0.0);
+	return kTTErrNone;
+}
+
+
+TTErr TTAllpass1aCascade2::calculateValue(const TTFloat64& x, TTFloat64& y, TTPtrSizedInt channel)
+{
+	TTFloat64 p;
+	
+	p = mX1[channel] + mAlpha0 * (x - mD2[channel]);
+	y = mD2[channel] + mAlpha1 * (p - mY1[channel]);
+	
+	TTZeroDenormal(y);
+	TTZeroDenormal(p);
+	mY1[channel] = y;
+	mD2[channel] = p;
+	mX1[channel] = x;
+	
+	return kTTErrNone;
+}
+
+
+TTErr TTAllpass1aCascade2::processAudio(TTAudioSignalArrayPtr inputs, TTAudioSignalArrayPtr outputs)
+{
+	TT_WRAP_CALCULATE_METHOD(calculateValue);
+}
+
