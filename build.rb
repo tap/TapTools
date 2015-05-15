@@ -16,6 +16,10 @@ ENV['JAMOMAPROJECT'] = projectName
 @fail_array = Array.new
 @zerolink = false
 
+Dir.chdir "#{glibdir}/Core"
+load "build.rb"
+
+
 Dir.chdir "#{glibdir}/Core/Shared"
 
 require "#{glibdir}/Core/Shared/jamomalib.rb"
@@ -24,7 +28,7 @@ create_logs(@projectName)
 zero_count
 build_project("#{glibdir}/objectivemax/MaxObject", "MaxObject.xcodeproj", "Deployment", true, nil, false)
 
-#load "build.rb"
+
 require "#{glibdir}/max-sdk/source/build.rb"
 
 build_projects_for_dir("#{glibdir}/source")
