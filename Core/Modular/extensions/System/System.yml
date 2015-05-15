@@ -1,0 +1,16 @@
+#defines:
+#  - SHEDULER_DEBUG
+
+sources:
+  - ../../library/source/TTClock.cpp
+  - source/System.cpp
+    
+includes:
+  - "."
+  - "includes"
+  - "../../library/includes"
+  - "../../../../Core/Foundation/library/includes"
+
+libraries:
+  - FOUNDATION
+  - win winmm.lib
