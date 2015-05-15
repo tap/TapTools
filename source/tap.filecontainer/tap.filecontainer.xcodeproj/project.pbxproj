@@ -14,7 +14,7 @@
 
 /* Begin PBXFileReference section */
 		2273EE491A03F14F0057B483 /* max.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = max.xcconfig; path = ../max.xcconfig; sourceTree = "<group>"; };
-		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../MaxSDK/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
+		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../max-sdk/source/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
 		22DFD4FD1A0C2A3B001C00BD /* tap.filecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tap.filecontainer.cpp; sourceTree = "<group>"; };
 		22DFD4FF1A0C2AE7001C00BD /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = ../../../../../../../../../System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		2FBBEAE508F335360078DB84 /* tap.filecontainer.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tap.filecontainer.mxo; sourceTree = BUILT_PRODUCTS_DIR; };

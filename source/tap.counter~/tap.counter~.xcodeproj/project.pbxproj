@@ -14,7 +14,7 @@
 /* Begin PBXFileReference section */
 		2215698E1A0987FF000AB4B0 /* tap.counter~.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "tap.counter~.cpp"; sourceTree = "<group>"; };
 		2273EE491A03F14F0057B483 /* max.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = max.xcconfig; path = ../max.xcconfig; sourceTree = "<group>"; };
-		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../MaxSDK/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
+		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../max-sdk/source/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
 		2FBBEAE508F335360078DB84 /* tap.counter~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "tap.counter~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 

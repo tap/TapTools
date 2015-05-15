@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		221569911A09881A000AB4B0 /* tap.crossfade~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 221569901A09881A000AB4B0 /* tap.crossfade~.cpp */; };
+		222CFB311B06539E00CAF83D /* libCrossfade.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 222CFB301B06539E00CAF83D /* libCrossfade.a */; };
 		2273EE4D1A03F19E0057B483 /* commonsyms.c in Sources */ = {isa = PBXBuildFile; fileRef = 2273EE4C1A03F19E0057B483 /* commonsyms.c */; };
 		2273EE511A03F38D0057B483 /* libJamomaDSP.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2273EE501A03F38D0057B483 /* libJamomaDSP.a */; };
 		2273EE531A03F3A20057B483 /* libJamomaFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2273EE521A03F3A20057B483 /* libJamomaFoundation.a */; };
@@ -15,8 +16,9 @@
 
 /* Begin PBXFileReference section */
 		221569901A09881A000AB4B0 /* tap.crossfade~.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "tap.crossfade~.cpp"; sourceTree = "<group>"; };
+		222CFB301B06539E00CAF83D /* libCrossfade.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libCrossfade.a; path = ../../Core/DSP/extensions/Crossfade/build/libCrossfade.a; sourceTree = "<group>"; };
 		2273EE491A03F14F0057B483 /* max.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = max.xcconfig; path = ../max.xcconfig; sourceTree = "<group>"; };
-		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../MaxSDK/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
+		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../max-sdk/source/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
 		2273EE501A03F38D0057B483 /* libJamomaDSP.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libJamomaDSP.a; path = ../../Core/DSP/library/build/libJamomaDSP.a; sourceTree = "<group>"; };
 		2273EE521A03F3A20057B483 /* libJamomaFoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libJamomaFoundation.a; path = ../../Core/Foundation/library/build/libJamomaFoundation.a; sourceTree = "<group>"; };
 		2FBBEAE508F335360078DB84 /* tap.crossfade~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "tap.crossfade~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -27,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				222CFB311B06539E00CAF83D /* libCrossfade.a in Frameworks */,
 				2273EE531A03F3A20057B483 /* libJamomaFoundation.a in Frameworks */,
 				2273EE511A03F38D0057B483 /* libJamomaDSP.a in Frameworks */,
 			);
@@ -43,6 +46,7 @@
 				221569901A09881A000AB4B0 /* tap.crossfade~.cpp */,
 				2273EE521A03F3A20057B483 /* libJamomaFoundation.a */,
 				2273EE501A03F38D0057B483 /* libJamomaDSP.a */,
+				222CFB301B06539E00CAF83D /* libCrossfade.a */,
 				19C28FB4FE9D528D11CA2CBB /* Products */,
 			);
 			name = iterator;
@@ -171,6 +175,7 @@
 					/Users/tim/Code/TapTools/Core/DSP/extensions/GeneratorLib/build,
 					/Users/tim/Code/TapTools/Core/DSP/library/build,
 					/Users/tim/Code/TapTools/Core/Foundation/library/build,
+					/Users/tim/code/TapTools/Core/DSP/extensions/Crossfade/build,
 				);
 				OTHER_LDFLAGS = (
 					"$(C74_SYM_LINKER_FLAGS)",
@@ -191,6 +196,7 @@
 					/Users/tim/Code/TapTools/Core/DSP/extensions/GeneratorLib/build,
 					/Users/tim/Code/TapTools/Core/DSP/library/build,
 					/Users/tim/Code/TapTools/Core/Foundation/library/build,
+					/Users/tim/code/TapTools/Core/DSP/extensions/Crossfade/build,
 				);
 				OTHER_LDFLAGS = (
 					"$(C74_SYM_LINKER_FLAGS)",

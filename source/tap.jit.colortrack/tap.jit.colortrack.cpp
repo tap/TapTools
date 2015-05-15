@@ -10,6 +10,7 @@
 #include "TTClassWrapperMax.h"
 #include "jit.common.h"
 #include <math.h>
+#include "../ttblue/tt_audio_base.h"
 
 #define NUM_PLANES 4
 #define	ALPHA 0
@@ -753,8 +754,8 @@ void rgb2hsl(uchar red, uchar green, uchar blue, short *hue, short *saturation, 
 void colortrack_sethue(t_max_jit_colortrack *x, short tracker_num, short value)
 {
 	x->hue[tracker_num] = TTClip(value, (short)0, (short)359);
-	x->min[tracker_num][HUE] = TTOneWrap(x->hue[tracker_num] - x->hue_variation[tracker_num], 0L, 359L);
-	x->max[tracker_num][HUE] = TTOneWrap(x->hue[tracker_num] + x->hue_variation[tracker_num], 0L, 359L);	
+	x->min[tracker_num][HUE] = tt_audio_base::onewrap(x->hue[tracker_num] - x->hue_variation[tracker_num], 0L, 359L);
+	x->max[tracker_num][HUE] = tt_audio_base::onewrap(x->hue[tracker_num] + x->hue_variation[tracker_num], 0L, 359L);	
 	if(x->min[tracker_num][HUE] > x->max[tracker_num][HUE])
 		x->hue_check[tracker_num] = 1;
 	else
@@ -764,8 +765,8 @@ void colortrack_sethue(t_max_jit_colortrack *x, short tracker_num, short value)
 void colortrack_sethuevar(t_max_jit_colortrack *x, short tracker_num, short value)
 {
 	x->hue_variation[tracker_num] = TTClip(value, (short)0, (short)359);
-	x->min[tracker_num][HUE] = TTOneWrap(x->hue[tracker_num] - x->hue_variation[tracker_num], 0L, 359L);
-	x->max[tracker_num][HUE] = TTOneWrap(x->hue[tracker_num] + x->hue_variation[tracker_num], 0L, 359L);	
+	x->min[tracker_num][HUE] = tt_audio_base::onewrap(x->hue[tracker_num] - x->hue_variation[tracker_num], 0L, 359L);
+	x->max[tracker_num][HUE] = tt_audio_base::onewrap(x->hue[tracker_num] + x->hue_variation[tracker_num], 0L, 359L);
 	if(x->min[tracker_num][HUE] > x->max[tracker_num][HUE])
 		x->hue_check[tracker_num] = 1;
 	else

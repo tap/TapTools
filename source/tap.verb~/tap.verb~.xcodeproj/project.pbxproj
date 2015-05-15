@@ -16,7 +16,7 @@
 		221569381A0961BF000AB4B0 /* tap.verb~.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "tap.verb~.cpp"; sourceTree = "<group>"; };
 		2215693A1A0961C9000AB4B0 /* tt_audio_base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tt_audio_base.cpp; path = ../ttblue/tt_audio_base.cpp; sourceTree = "<group>"; };
 		2273EE491A03F14F0057B483 /* max.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = max.xcconfig; path = ../max.xcconfig; sourceTree = "<group>"; };
-		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../MaxSDK/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
+		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../max-sdk/source/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
 		2FBBEAE508F335360078DB84 /* tap.verb~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "tap.verb~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 

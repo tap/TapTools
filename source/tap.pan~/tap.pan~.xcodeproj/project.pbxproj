@@ -20,7 +20,7 @@
 		221569681A097E9C000AB4B0 /* TTClassWrapperMax.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TTClassWrapperMax.cpp; path = ../TTClassWrapperMax.cpp; sourceTree = "<group>"; };
 		2215696A1A097EB3000AB4B0 /* libEffectsLib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libEffectsLib.a; path = ../../Core/DSP/extensions/EffectsLib/build/libEffectsLib.a; sourceTree = "<group>"; };
 		2273EE491A03F14F0057B483 /* max.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = max.xcconfig; path = ../max.xcconfig; sourceTree = "<group>"; };
-		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../MaxSDK/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
+		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../max-sdk/source/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
 		2273EE501A03F38D0057B483 /* libJamomaDSP.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libJamomaDSP.a; path = ../../Core/DSP/library/build/libJamomaDSP.a; sourceTree = "<group>"; };
 		2273EE521A03F3A20057B483 /* libJamomaFoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libJamomaFoundation.a; path = ../../Core/Foundation/library/build/libJamomaFoundation.a; sourceTree = "<group>"; };
 		2FBBEAE508F335360078DB84 /* tap.pan~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "tap.pan~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		221569931A09883E000AB4B0 /* tap.dcblock~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 221569921A09883E000AB4B0 /* tap.dcblock~.cpp */; };
 		221569951A09885E000AB4B0 /* TTClassWrapperMax.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 221569941A09885E000AB4B0 /* TTClassWrapperMax.cpp */; };
+		222CFB2F1B06538300CAF83D /* libFilterLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 222CFB2E1B06538300CAF83D /* libFilterLib.a */; };
 		2273EE4D1A03F19E0057B483 /* commonsyms.c in Sources */ = {isa = PBXBuildFile; fileRef = 2273EE4C1A03F19E0057B483 /* commonsyms.c */; };
 		2273EE511A03F38D0057B483 /* libJamomaDSP.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2273EE501A03F38D0057B483 /* libJamomaDSP.a */; };
 		2273EE531A03F3A20057B483 /* libJamomaFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2273EE521A03F3A20057B483 /* libJamomaFoundation.a */; };
@@ -17,8 +18,9 @@
 /* Begin PBXFileReference section */
 		221569921A09883E000AB4B0 /* tap.dcblock~.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "tap.dcblock~.cpp"; sourceTree = "<group>"; };
 		221569941A09885E000AB4B0 /* TTClassWrapperMax.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TTClassWrapperMax.cpp; path = ../TTClassWrapperMax.cpp; sourceTree = "<group>"; };
+		222CFB2E1B06538300CAF83D /* libFilterLib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFilterLib.a; path = ../../Core/DSP/extensions/FilterLib/build/libFilterLib.a; sourceTree = "<group>"; };
 		2273EE491A03F14F0057B483 /* max.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = max.xcconfig; path = ../max.xcconfig; sourceTree = "<group>"; };
-		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../MaxSDK/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
+		2273EE4C1A03F19E0057B483 /* commonsyms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commonsyms.c; path = "../../max-sdk/source/c74support/max-includes/common/commonsyms.c"; sourceTree = "<group>"; };
 		2273EE501A03F38D0057B483 /* libJamomaDSP.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libJamomaDSP.a; path = ../../Core/DSP/library/build/libJamomaDSP.a; sourceTree = "<group>"; };
 		2273EE521A03F3A20057B483 /* libJamomaFoundation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libJamomaFoundation.a; path = ../../Core/Foundation/library/build/libJamomaFoundation.a; sourceTree = "<group>"; };
 		2FBBEAE508F335360078DB84 /* tap.dcblock~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "tap.dcblock~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -31,6 +33,7 @@
 			files = (
 				2273EE531A03F3A20057B483 /* libJamomaFoundation.a in Frameworks */,
 				2273EE511A03F38D0057B483 /* libJamomaDSP.a in Frameworks */,
+				222CFB2F1B06538300CAF83D /* libFilterLib.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +49,7 @@
 				221569941A09885E000AB4B0 /* TTClassWrapperMax.cpp */,
 				2273EE521A03F3A20057B483 /* libJamomaFoundation.a */,
 				2273EE501A03F38D0057B483 /* libJamomaDSP.a */,
+				222CFB2E1B06538300CAF83D /* libFilterLib.a */,
 				19C28FB4FE9D528D11CA2CBB /* Products */,
 			);
 			name = iterator;
@@ -175,6 +179,7 @@
 					/Users/tim/Code/TapTools/Core/DSP/extensions/GeneratorLib/build,
 					/Users/tim/Code/TapTools/Core/DSP/library/build,
 					/Users/tim/Code/TapTools/Core/Foundation/library/build,
+					/Users/tim/code/TapTools/Core/DSP/extensions/FilterLib/build,
 				);
 				OTHER_LDFLAGS = (
 					"$(C74_SYM_LINKER_FLAGS)",
@@ -195,6 +200,7 @@
 					/Users/tim/Code/TapTools/Core/DSP/extensions/GeneratorLib/build,
 					/Users/tim/Code/TapTools/Core/DSP/library/build,
 					/Users/tim/Code/TapTools/Core/Foundation/library/build,
+					/Users/tim/code/TapTools/Core/DSP/extensions/FilterLib/build,
 				);
 				OTHER_LDFLAGS = (
 					"$(C74_SYM_LINKER_FLAGS)",

@@ -10,6 +10,7 @@
 #include "ext_globalsymbol.h"
 #include "buffer.h"
 #include "ext_atomic.h"
+#include "../ttblue/tt_audio_base.h"
 
 #define MAX_FADE_SIZE 256
 
@@ -227,7 +228,7 @@ t_int *record_perform(t_int *w)
 
 
 		// 1. find the final destination, increment it, and write it to the correct location 
-		index_wrap = TTOneWrap((long)(frame_index - fade), 0L, frames - 1);		// index is in the range of 0 to frames-1
+		index_wrap = tt_audio_base::onewrap((long)(frame_index - fade), 0L, frames - 1);		// index is in the range of 0 to frames-1
 		if (nc > 1) 
 			index_wrap = index_wrap * (nc) + chan;
 		tab[index_wrap] = tab[index_wrap] + increment_steps[fade -1];	// take the value at the index (wrapped for the length of the fade) and increment it
@@ -241,7 +242,7 @@ t_int *record_perform(t_int *w)
 		
 		// 4. increment all of the values and then write them to the buffer
 		for (i=0;i < fade - 1;i++) {
-			index_wrap = TTOneWrap((long)(frame_index - i), 0L, frames - 1);
+			index_wrap = tt_audio_base::onewrap((long)(frame_index - i), 0L, frames - 1);
 			if(nc > 1) 
 				index_wrap = index_wrap * (nc) + chan;
 			tab[index_wrap] = tab[index_wrap] + increment_steps[i];

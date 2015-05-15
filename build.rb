@@ -16,15 +16,19 @@ ENV['JAMOMAPROJECT'] = projectName
 @fail_array = Array.new
 @zerolink = false
 
-Dir.chdir "#{glibdir}/../../Jamoma/Core/Shared"
+Dir.chdir "#{glibdir}/Core/Shared"
 
-require "#{glibdir}/../../Jamoma/Core/Shared/jamomalib.rb"
+require "#{glibdir}/Core/Shared/jamomalib.rb"
 
 create_logs(@projectName)
 zero_count
 build_project("#{glibdir}/objectivemax/MaxObject", "MaxObject.xcodeproj", "Deployment", true, nil, false)
 
-load "build.rb"
+#load "build.rb"
+require "#{glibdir}/max-sdk/source/build.rb"
+
+build_projects_for_dir("#{glibdir}/source")
+
 
 `rm -rf "#{glibdir}"/TapTools/extensions/tap.loader.*`
 `mv "#{glibdir}"/TapTools/externals/tap.loader.* "#{glibdir}"/TapTools/extensions`
