@@ -1,0 +1,3 @@
+[submodule "source/jamoma2"]
+	path = source/jamoma2
+	url = https://github.com/jamoma/jamoma2.git
