@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -wKU
+#!/usr/bin/ruby -wU
 # encoding: utf-8
 
 glibdir = "."
@@ -16,7 +16,9 @@ ENV['JAMOMAPROJECT'] = projectName
 @fail_array = Array.new
 @zerolink = false
 
-Dir.chdir "#{glibdir}/Core"
+Dir.chdir "#{glibdir}/Core/Foundation"
+load "build.rb"
+Dir.chdir "#{glibdir}/Core/DSP"
 load "build.rb"
 
 
