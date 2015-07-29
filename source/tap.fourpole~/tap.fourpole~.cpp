@@ -144,7 +144,7 @@ t_max_err fourpole_getfrequency(t_fourpole* x, void* attr, long* argc, t_atom** 
 
 t_max_err fourpole_setresonance(t_fourpole* x, void* attr, long argc, t_atom* argv)
 {
-	x->filter->frequency = atom_getfloat(argv);
+	x->filter->q = atom_getfloat(argv);
 	return MAX_ERR_NONE;
 }
 
