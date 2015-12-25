@@ -34,7 +34,6 @@
 		22EF264E1B6916800013FA2E /* JamomaLowpassFourPole.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JamomaLowpassFourPole.h; sourceTree = "<group>"; };
 		22EF264F1B6916800013FA2E /* JamomaObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JamomaObject.h; sourceTree = "<group>"; };
 		22EF26501B6916800013FA2E /* JamomaSample.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JamomaSample.h; sourceTree = "<group>"; };
-		22EF26511B6916800013FA2E /* JamomaSymbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JamomaSymbol.h; sourceTree = "<group>"; };
 		22EF26521B6916800013FA2E /* JamomaValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JamomaValue.h; sourceTree = "<group>"; };
 		22EF26531B6916800013FA2E /* JamomaWhiteNoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JamomaWhiteNoise.h; sourceTree = "<group>"; };
 		22EF26621B69168A0013FA2E /* example.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = example.cpp; sourceTree = "<group>"; };
@@ -167,7 +166,6 @@
 				22EF264E1B6916800013FA2E /* JamomaLowpassFourPole.h */,
 				22EF264F1B6916800013FA2E /* JamomaObject.h */,
 				22EF26501B6916800013FA2E /* JamomaSample.h */,
-				22EF26511B6916800013FA2E /* JamomaSymbol.h */,
 				22EF26521B6916800013FA2E /* JamomaValue.h */,
 				22EF26531B6916800013FA2E /* JamomaWhiteNoise.h */,
 			);
