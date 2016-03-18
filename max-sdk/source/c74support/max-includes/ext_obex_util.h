@@ -8,6 +8,8 @@
 #ifndef _EXT_OBEX_UTIL_H_
 #define _EXT_OBEX_UTIL_H_
 
+#include <cstdarg>
+
 BEGIN_USING_C_LINKAGE
 
 // symbol macros which may be swapped to use common symbol pointers for performance

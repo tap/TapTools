@@ -57,7 +57,7 @@ extern "C" int C74_EXPORT main(void)
 
 	class_dspinit(c);									// Setup object's class to work with MSP
 	class_register(CLASS_BOX, c);
-	s_fourpole_class = c; 
+	s_fourpole_class = c;
 }
 
 
@@ -144,7 +144,7 @@ t_max_err fourpole_getfrequency(t_fourpole* x, void* attr, long* argc, t_atom** 
 
 t_max_err fourpole_setresonance(t_fourpole* x, void* attr, long argc, t_atom* argv)
 {
-	x->filter->q = atom_getfloat(argv);
+	x->filter->resonance = atom_getfloat(argv);
 	return MAX_ERR_NONE;
 }
 
@@ -155,7 +155,7 @@ t_max_err fourpole_getresonance(t_fourpole* x, void* attr, long* argc, t_atom** 
 	if (!(*argv)) // otherwise use memory passed in
 		*argv = (t_atom*)sysmem_newptr(sizeof(t_atom) * (*argc));
 
-	atom_setfloat(*argv, x->filter->q);
+	atom_setfloat(*argv, x->filter->resonance);
 	return MAX_ERR_NONE;
 }
 
