@@ -30,9 +30,9 @@ build_script:
 # deploy_script:
 #  - ps: c:\projects\JamomaMax\script\deploy-appveyor.ps1
 
-# artifacts:
+artifacts:
 #   - name: Jamoma for Max - Windows $(platform)
 #     path: JamomaMax-*.zip
-#   - name: Log files
-#     path: '*.log'
+  - name: Log files
+    path: '*.log'
 
