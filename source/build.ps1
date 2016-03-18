@@ -10,5 +10,5 @@ if ( $env:PLATFORM -eq "x64" ) {
 mkdir build
 cd build
 
-$env:CMAKE -G $env:CMAKE_GENERATOR $env:CUSTOM_FLAG -DCMAKE_BUILD_TYPE=Release .. > c:\projects\TapTools\configure.log
-$env:CMAKE --build . --config Release > c:\projects\TapTools\build.log
+c:\projects\TapTools\cmake-3.4.1-win32-x86\bin\cmake.exe -G $env:CMAKE_GENERATOR $env:CUSTOM_FLAG -DCMAKE_BUILD_TYPE=Release .. > c:\projects\TapTools\configure.log
+c:\projects\TapTools\cmake-3.4.1-win32-x86\bin\cmake.exe --build . --config Release > c:\projects\TapTools\build.log
