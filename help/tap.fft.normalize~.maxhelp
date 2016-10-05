@@ -156,6 +156,7 @@
 						"showontab" : 1,
 						"boxes" : [ 							{
 								"box" : 								{
+									"color" : [ 0.741176, 0.356863, 0.047059, 1.0 ],
 									"id" : "obj-3",
 									"maxclass" : "newobj",
 									"numinlets" : 3,
@@ -335,7 +336,6 @@
 							}
 , 							{
 								"box" : 								{
-									"color" : [ 0.741176, 0.356863, 0.047059, 1.0 ],
 									"id" : "obj-15",
 									"maxclass" : "newobj",
 									"numinlets" : 2,
@@ -368,7 +368,7 @@
 									"filename" : "helpdetails.js",
 									"id" : "obj-2",
 									"ignoreclick" : 1,
-									"jsarguments" : [ "tap.fft.list~" ],
+									"jsarguments" : [ "tap.fft.normalize~" ],
 									"maxclass" : "jsui",
 									"numinlets" : 1,
 									"numoutlets" : 1,
