@@ -48,11 +48,6 @@
 
 	<attributelist>
 
-		<attribute name='autopoll' get='1' set='1' type='long' size='1' >
-			<digest>automatically output any time a new frame is complete</digest>
-			<description>automatically output any time a new frame is complete. </description>
-		</attribute>
-
 		<attribute name='mult' get='1' set='1' type='float64' size='1' >
 			<digest>Factor by which to multiply values</digest>
 			<description>Factor by which to multiply values. </description>
@@ -61,6 +56,11 @@
 		<attribute name='nyquist' get='1' set='1' type='long' size='1' >
 			<digest>Limit output list to run from zero to the nyquist frequency</digest>
 			<description>Limit output list to run from zero to the nyquist frequency. </description>
+		</attribute>
+
+		<attribute name='autopoll' get='1' set='1' type='long' size='1' >
+			<digest>automatically output any time a new frame is complete</digest>
+			<description>automatically output any time a new frame is complete. </description>
 		</attribute>
 
 		<attribute name='framesize' get='1' set='1' type='long' size='1' >
