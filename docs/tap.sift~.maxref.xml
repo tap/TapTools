@@ -41,6 +41,11 @@
 
 	<attributelist>
 
+		<attribute name='high_priority' get='1' set='1' type='long' size='1' >
+			<digest>Deliver results in the high-priority scheduler thread</digest>
+			<description>Deliver results in the high-priority scheduler thread. If set to false then deliver results in the main thread. </description>
+		</attribute>
+
 		<attribute name='value' get='1' set='1' type='float64' size='1' >
 			<digest>Value to sift out of the incoming signal</digest>
 			<description>Value to sift out of the incoming signal. </description>

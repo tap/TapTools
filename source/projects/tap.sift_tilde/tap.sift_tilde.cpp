@@ -31,6 +31,13 @@ public:
 		description { "Value to sift out of the incoming signal." }
 	};
 
+	attribute<bool> high_priority { this, "high_priority", true,
+		description {
+			"Deliver results in the high-priority scheduler thread. "
+			"If set to false then deliver results in the main thread. "
+		}
+	};
+
 	void operator()(sample x) {
 		if (x != value && x != m_last) {
 			m_fifo.try_enqueue(x);
@@ -40,15 +47,27 @@ public:
 	}
 
 	timer deliverer { this, MIN_FUNCTION {
-		number x;
-		while(m_fifo.try_dequeue(x))
-			output.send(x);
+		if (high_priority)
+			drain_the_fifo();
+		else
+			deferrer.set();
+		return {};
+	}};
+
+	queue deferrer { this, MIN_FUNCTION {
+		drain_the_fifo();
 		return {};
 	}};
 
 private:
 	sample			m_last { 0.0 }; ///< last value output
 	fifo<number>	m_fifo { 100 };	///< queue with space for 100 items
+
+	void drain_the_fifo() {
+		number x;
+		while(m_fifo.try_dequeue(x))
+			output.send(x);
+	}
 };
 
 MIN_EXTERNAL(tap_sift_tilde);
