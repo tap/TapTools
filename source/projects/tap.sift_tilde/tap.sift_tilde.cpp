@@ -6,16 +6,7 @@
 
 #include "c74_min.h"
 
-//	We know that our FIFO will be filled in one thread and drained in another thread.
-//	For the FIFO to be sane, the size cannot change while being written-to or read-from in another thread.
-//
-//	This we must introduce locks.
-//	Or we can use a lock-free queue.
-
-#include "readerwriterqueue/readerwriterqueue.h"
-
 using namespace c74::min;
-using queue = moodycamel::ReaderWriterQueue<number>;
 
 class tap_sift_tilde : public object<tap_sift_tilde>, public sample_operator<1,0> {
 public:
@@ -56,8 +47,8 @@ public:
 	}};
 
 private:
-	sample	m_last { 0.0 }; ///< last value output
-	queue	m_fifo { 100 };	///< queue with space for 100 items
+	sample			m_last { 0.0 }; ///< last value output
+	fifo<number>	m_fifo { 100 };	///< queue with space for 100 items
 };
 
 MIN_EXTERNAL(tap_sift_tilde);
