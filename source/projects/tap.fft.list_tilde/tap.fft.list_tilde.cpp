@@ -56,7 +56,7 @@ public:
 	};
 
 
-	message bang { this, "bang", "Output the frame of data.",
+	message<> bang { this, "bang", "Output the frame of data.",
 		MIN_FUNCTION {
 			output.send(to_atoms(m_last));
 			return {};
