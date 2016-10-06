@@ -18,7 +18,7 @@ public:
 	
 	inlet	input	{ this, "(signal) frames of output from the fft~ object" };
 	inlet	index	{ this, "(signal) index of the frames from the fft~ object" };
-	outlet	output	{ this, "(list) frames formatted as lists" };
+	outlet<>	output	{ this, "(list) frames formatted as lists" };
 //	outlet<fifo::scheduler>	output
 
 	argument<number> framesize_arg	{ this, "framesize", "The number of bins in each FFT frame.",

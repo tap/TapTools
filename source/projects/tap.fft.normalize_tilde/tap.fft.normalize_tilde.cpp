@@ -19,8 +19,8 @@ public:
 	inlet	real_in	{ this, "(signal) real input from fft~" };
 	inlet	imag_in	{ this, "(signal) imaginary input from fft~" };
 	inlet	index	{ this, "(signal) index from fft~" };
-	outlet	real_out{ this, "(signal) normalized real output", "signal" };
-	outlet	imag_out{ this, "(signal) normalized imaginary output", "signal" };
+	outlet<>	real_out{ this, "(signal) normalized real output", "signal" };
+	outlet<>	imag_out{ this, "(signal) normalized imaginary output", "signal" };
 
 	argument<number> framesize_arg	{ this, "framesize", "The number of bins in each FFT frame.",
 		MIN_ARGUMENT_FUNCTION {
