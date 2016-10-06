@@ -16,9 +16,9 @@ public:
 	MIN_AUTHOR		{ "Timothy Place" };
 	MIN_RELATED		{ "fft~, tap.fft.list~" };
 	
-	inlet	real_in	{ this, "(signal) real input from fft~" };
-	inlet	imag_in	{ this, "(signal) imaginary input from fft~" };
-	inlet	index	{ this, "(signal) index from fft~" };
+	inlet<>		real_in	{ this, "(signal) real input from fft~" };
+	inlet<>		imag_in	{ this, "(signal) imaginary input from fft~" };
+	inlet<>		index	{ this, "(signal) index from fft~" };
 	outlet<>	real_out{ this, "(signal) normalized real output", "signal" };
 	outlet<>	imag_out{ this, "(signal) normalized imaginary output", "signal" };
 

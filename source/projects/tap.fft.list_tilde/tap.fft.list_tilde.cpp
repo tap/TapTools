@@ -16,8 +16,8 @@ public:
 	MIN_AUTHOR		{ "Timothy Place" };
 	MIN_RELATED		{ "fft~, tap.fft.binmodulator~" };
 	
-	inlet	input	{ this, "(signal) frames of output from the fft~ object" };
-	inlet	index	{ this, "(signal) index of the frames from the fft~ object" };
+	inlet<>		input	{ this, "(signal) frames of output from the fft~ object" };
+	inlet<>		index	{ this, "(signal) index of the frames from the fft~ object" };
 	outlet<>	output	{ this, "(list) frames formatted as lists" };
 //	outlet<fifo::scheduler>	output
 

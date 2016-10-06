@@ -18,7 +18,7 @@ public:
 	MIN_AUTHOR		{ "Timothy Place" };
 	MIN_RELATED		{ "edge~, snapshot~, ==~" };
 	
-	inlet	input	{ this, "(signal) to be sifted" };
+	inlet<>		input	{ this, "(signal) to be sifted" };
 	outlet<>	output	{ this, "(numbers) remaining values after the sift" };
 
 	argument<number> value_arg	{ this, "value", "Initial value to sift out from the incoming signal.",
