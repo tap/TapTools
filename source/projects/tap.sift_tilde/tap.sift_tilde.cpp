@@ -46,7 +46,7 @@ public:
 		m_last = x;
 	}
 
-	timer deliverer { this, MIN_FUNCTION {
+	timer<> deliverer { this, MIN_FUNCTION {
 		if (high_priority)
 			drain_the_fifo();
 		else
@@ -54,7 +54,7 @@ public:
 		return {};
 	}};
 
-	queue deferrer { this, MIN_FUNCTION {
+	queue<> deferrer { this, MIN_FUNCTION {
 		drain_the_fifo();
 		return {};
 	}};

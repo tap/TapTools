@@ -77,7 +77,7 @@ public:
 	}
 
 
-	timer deliverer { this, MIN_FUNCTION {
+	timer<> deliverer { this, MIN_FUNCTION {
 		bang();
 		return {};
 	}};

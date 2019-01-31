@@ -39,13 +39,7 @@ public:
 	};
 
 	
-	
-	buffer_reference m_buffer { this,
-		MIN_FUNCTION {
-			//length.touch();
-			return {};
-		}
-	};
+	buffer_reference m_buffer { this };
 	
 	
 	message<> m_int { this, "int", "Turn on/off recording.",
