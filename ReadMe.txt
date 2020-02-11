@@ -1,6 +1,5 @@
 TAPTOOLS
 By Timothy Place
-http://74objects.com/
 
 Version 4 beta 2
 26 April 2013
