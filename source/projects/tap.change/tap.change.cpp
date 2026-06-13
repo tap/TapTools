@@ -103,8 +103,8 @@ private:
         if (input.size() != m_previous.size())
             return false;
         for (size_t i = 0; i < input.size(); ++i) {
-            const max::t_atom& a = input[i];
-            const max::t_atom& b = m_previous[i];
+            const c74::max::t_atom& a = input[i];
+            const c74::max::t_atom& b = m_previous[i];
             if (a.a_type != b.a_type || a.a_w.w_obj != b.a_w.w_obj)
                 return false;
         }
