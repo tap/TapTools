@@ -282,6 +282,42 @@ tap.bits_IS_TOP_LEVEL:STATIC=OFF
 tap.bits_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.bits
 
 //Value Computed by CMake
+tap.buffer.peak_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.buffer.peak_tilde
+
+//The name to give to the external output file/directory
+tap.buffer.peak_tilde_EXTERN_OUTPUT_NAME:STRING=tap.buffer.peak~
+
+//Value Computed by CMake
+tap.buffer.peak_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.buffer.peak_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.buffer.peak_tilde
+
+//Value Computed by CMake
+tap.buffer.record_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.buffer.record_tilde
+
+//The name to give to the external output file/directory
+tap.buffer.record_tilde_EXTERN_OUTPUT_NAME:STRING=tap.buffer.record~
+
+//Value Computed by CMake
+tap.buffer.record_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.buffer.record_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.buffer.record_tilde
+
+//Value Computed by CMake
+tap.buffer.snap_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.buffer.snap_tilde
+
+//The name to give to the external output file/directory
+tap.buffer.snap_tilde_EXTERN_OUTPUT_NAME:STRING=tap.buffer.snap~
+
+//Value Computed by CMake
+tap.buffer.snap_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.buffer.snap_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.buffer.snap_tilde
+
+//Value Computed by CMake
 tap.change_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.change
 
 //The name to give to the external output file/directory
@@ -674,7 +710,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=29
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=32
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -731,6 +767,12 @@ tap.autothru_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 tap.biquadcalc_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.bits_EXTERN_OUTPUT_NAME
 tap.bits_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.buffer.peak_tilde_EXTERN_OUTPUT_NAME
+tap.buffer.peak_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.buffer.record_tilde_EXTERN_OUTPUT_NAME
+tap.buffer.record_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.buffer.snap_tilde_EXTERN_OUTPUT_NAME
+tap.buffer.snap_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.change_EXTERN_OUTPUT_NAME
 tap.change_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.comb_tilde_EXTERN_OUTPUT_NAME

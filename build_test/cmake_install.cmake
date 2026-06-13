@@ -64,6 +64,21 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/home/user/TapTools/build_test/source/projects/tap.buffer.peak_tilde/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/home/user/TapTools/build_test/source/projects/tap.buffer.record_tilde/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/home/user/TapTools/build_test/source/projects/tap.buffer.snap_tilde/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/home/user/TapTools/build_test/source/projects/tap.change/cmake_install.cmake")
 endif()
 
