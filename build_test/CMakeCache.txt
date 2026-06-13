@@ -294,6 +294,18 @@ tap.change_IS_TOP_LEVEL:STATIC=OFF
 tap.change_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.change
 
 //Value Computed by CMake
+tap.comb_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.comb_tilde
+
+//The name to give to the external output file/directory
+tap.comb_tilde_EXTERN_OUTPUT_NAME:STRING=tap.comb~
+
+//Value Computed by CMake
+tap.comb_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.comb_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.comb_tilde
+
+//Value Computed by CMake
 tap.count_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.count_tilde
 
 //The name to give to the external output file/directory
@@ -650,7 +662,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=27
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=28
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -709,6 +721,8 @@ tap.biquadcalc_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 tap.bits_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.change_EXTERN_OUTPUT_NAME
 tap.change_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.comb_tilde_EXTERN_OUTPUT_NAME
+tap.comb_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.count_tilde_EXTERN_OUTPUT_NAME
 tap.count_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.counter_tilde_EXTERN_OUTPUT_NAME
