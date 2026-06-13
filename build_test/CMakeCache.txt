@@ -390,6 +390,18 @@ tap.dcblock_tilde_IS_TOP_LEVEL:STATIC=OFF
 tap.dcblock_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.dcblock_tilde
 
 //Value Computed by CMake
+tap.fourpole_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.fourpole_tilde
+
+//The name to give to the external output file/directory
+tap.fourpole_tilde_EXTERN_OUTPUT_NAME:STRING=tap.fourpole~
+
+//Value Computed by CMake
+tap.fourpole_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.fourpole_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.fourpole_tilde
+
+//Value Computed by CMake
 tap.gang_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.gang
 
 //The name to give to the external output file/directory
@@ -710,7 +722,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=32
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=33
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -785,6 +797,8 @@ tap.counter_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 tap.crossfade_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.dcblock_tilde_EXTERN_OUTPUT_NAME
 tap.dcblock_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.fourpole_tilde_EXTERN_OUTPUT_NAME
+tap.fourpole_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.gang_EXTERN_OUTPUT_NAME
 tap.gang_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.inquisitor_EXTERN_OUTPUT_NAME
