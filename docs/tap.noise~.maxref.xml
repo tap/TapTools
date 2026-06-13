@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.noise~" module="msp" category="TapTools, MSP Generators">
+
+	<digest>
+		Generate various colors of noise
+	</digest>
+
+	<description>
+		The <o>tap.noise~</o> object 
+		generates various types of noise in the signal domain.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Generator</metadata>
+	</metadatalist>
+
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="int" size="1">
+			<description>
+				The color of the noise to generate.  Options are white, pink, brown, and blue.
+			</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="noise~"/>
+		<seealso name="pink~"/>
+		<seealso name="tap.noise~"/>
+	</seealsolist>
+
+	
+</c74object>

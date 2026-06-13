@@ -233,6 +233,9 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
   `position` attribute). Self-contained — no `min-lib`, no shared lookup-table
   global. New Min patterns exercised: `samples<N>` multi-output, attribute
   `setter` caching, `has_signal_connection()`.
+- ✅ **`tap.noise~`** — white / pink / brown / blue / gaussian noise generator,
+  faithful port of Jamoma's TTNoise colouring filters. First generator
+  (`sample_operator<0,1>`); gaussian via std normal distribution.
 
 **Convention (tilde objects):** MSP objects whose Max name ends in `~` must have
 their **project folder and `.cpp` named with `_tilde`** (e.g.
