@@ -227,6 +227,12 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
   exact `TTPrime` stepping; `tap.list.index` improves on the original (correctly
   handles symbol-leading lists). Ported reference pages + help patchers from the
   legacy package.
+- ✅ **DSP batch** — `tap.random` (control RNG, faithful LCG), `tap.crossfade~`
+  and `tap.pan~` (equal-power / linear / square-root curves computed directly
+  from Jamoma's "calculate" formulas, position drivable by a signal inlet or the
+  `position` attribute). Self-contained — no `min-lib`, no shared lookup-table
+  global. New Min patterns exercised: `samples<N>` multi-output, attribute
+  `setter` caching, `has_signal_connection()`.
 
 **Convention (tilde objects):** MSP objects whose Max name ends in `~` must have
 their **project folder and `.cpp` named with `_tilde`** (e.g.

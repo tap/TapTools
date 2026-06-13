@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.random" module="max" category="TapTools, Math">
+
+	<digest>
+		Floating-point random number generator
+	</digest>
+
+	<description>
+		The <o>tap.random</o> object 
+		is the control-domain equivalent of the <o>tap.noise~</o> object.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Math</metadata>
+		<metadata name="tag">Generator</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="bang">
+			<arglist/>
+			<description>Generate a new random number and send it out.</description>
+		</method>
+	</methodlist>
+		
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.noise~"/>
+		<seealso name="random"/>
+	</seealsolist>
+
+	
+</c74object>
