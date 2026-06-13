@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.list.index" module="max" category="TapTools, Lists">
+
+	<digest>
+		Construct or decompose lists by element
+	</digest>
+
+	<description>
+		The <o>tap.list.index</o> object 
+		Depending on the mode, tap.list.index will take index/value pairs and insert the value into the list at that index, 
+		then triggering the new list to be output.
+
+		It also works in reverse. 
+		It can take a list, and then iterate through each item of the list sending out pairs with the index number 
+		and the list item at that index.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">List Processing</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		
+		<method name="list">
+			<arglist>
+				<arg name="input" type="list" optional="0" id="0" />
+			</arglist>
+			<description>A list beginning with a number.</description>
+		</method>
+		
+		<method name="anything">
+			<arglist><arg name="input" type="list" optional="0" id="0" /></arglist>
+			<description>A list beginning with a symbol.</description>
+		</method>
+		
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="int" size="1">
+			<description>Options are indexed2list and list2indexed.</description>
+		</attribute>
+		<attribute name="offset" get="1" set="1" type="int" size="1">
+			<description>Shift the index numbers at which items are inserted into the list.</description>
+		</attribute>
+		<attribute name="onebased" get="1" set="1" type="int" size="1">
+			<description>
+				When set to 1 this object indexes beginning with index number 1 rather than index number 0.
+			</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.unpack"/>
+		<seealso name="zl"/>
+	</seealsolist>
+
+	
+</c74object>

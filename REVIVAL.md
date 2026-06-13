@@ -222,6 +222,11 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
   reference page (`docs/`) + help patcher (`help/`) + package layout. DSP is
   portable C++ (faithful to Jamoma's R=0.9997); `bypass`/`mute`/`clear`
   preserved.
+- ✅ **Tier-1 batch** — `tap.prime`, `tap.sieve`, `tap.list.index`, `tap.bits`,
+  each with object + reference page + help patcher. `tap.prime` ports Jamoma's
+  exact `TTPrime` stepping; `tap.list.index` improves on the original (correctly
+  handles symbol-leading lists). Ported reference pages + help patchers from the
+  legacy package.
 
 **Convention (tilde objects):** MSP objects whose Max name ends in `~` must have
 their **project folder and `.cpp` named with `_tilde`** (e.g.
