@@ -54,9 +54,10 @@ private:
     int                   m_length { 0 };
 
     void process(const atoms& args) {
-        const int bias = static_cast<int>(offset) + (onebased ? 1 : 0);
+        const int    bias = static_cast<int>(offset) + (onebased ? 1 : 0);
+        const symbol m    = mode;
 
-        if (mode == "indexed2list") {
+        if (m == "indexed2list") {
             if (args.size() > 1) {
                 int idx = static_cast<int>(args[0]) - bias;
                 idx     = std::clamp(idx, 0, c_max_length - 1);

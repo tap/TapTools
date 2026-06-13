@@ -35,7 +35,8 @@ public:
 
     message<> number { this, "int", "Explode an integer into a list of bits (ints2bits mode).",
         MIN_FUNCTION {
-            if (mode == "ints2bits") {
+            const symbol m = mode;
+            if (m == "ints2bits") {
                 long  value = static_cast<long>(args[0]);
                 atoms out(32);
                 for (int i = 0; i < 32; ++i) {
@@ -53,9 +54,10 @@ public:
 
     message<> list_msg { this, "list", "Pack a list of bits, or format integers for a matrixctrl.",
         MIN_FUNCTION {
-            const long argc = static_cast<long>(args.size());
+            const long   argc = static_cast<long>(args.size());
+            const symbol m    = mode;
 
-            if (mode == "bits2ints") {
+            if (m == "bits2ints") {
                 long val = 0;
                 for (long i = argc - 1; i >= 0; --i) {
                     const long bit = static_cast<long>(args[i]);
@@ -63,7 +65,7 @@ public:
                 }
                 m_out.send(val);
             }
-            else if (mode == "ints2matrixctrl") {
+            else if (m == "ints2matrixctrl") {
                 const int width = std::clamp(static_cast<int>(matrix_width), 2, 31);
                 for (long j = 0; j < argc; ++j) {
                     long value = static_cast<long>(args[j]);
@@ -73,7 +75,7 @@ public:
                     }
                 }
             }
-            else if (mode == "matrixctrl2ints") {
+            else if (m == "matrixctrl2ints") {
                 m_dump.send("error", "matrixctrl2ints mode is not yet implemented");
             }
             else {
