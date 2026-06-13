@@ -271,16 +271,40 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
   faithful port of tt_comb). All DSP is portable C++; the LFO is computed directly
   from a phase accumulator (equivalent to the original wavetable). Compile-verified
   against the toolchain; **audio behavior still needs runtime validation in Max.**
+- ✅ **`tap.pulsesub~`** (Tier 2, was deferred) — phasor → duty-cycle offset → ADSR
+  → multiply, as one `sample_operator`. Resolved now that the ADSR exists.
+- ✅ **Tier-3 batch (delays / dynamics / filters)** —
+  `tap.multitap~` (circular-buffer multitap delay, per-tap delay/gain via vector
+  attributes), `tap.limi~` (stereo look-ahead limiter w/ DC blocker + pre/post gain,
+  faithful port of tt_limiter), `tap.fourpole~` (4-pole Moog ladder — **reimplemented**,
+  since the 2015 original's jamoma2 `LowpassFourPole` source is not in the repo).
+- ✅ **Tier-3 batch (buffers)** — `tap.buffer.peak~`, `tap.buffer.snap~`,
+  `tap.buffer.record~`, all rebuilt on Min's `buffer_reference`/`buffer_lock`
+  (binding, `set`, notifications, and `dirty()` handled by the framework).
+  `snap~`/`record~` write/read in the audio thread via `buffer_lock<true>`.
+- ✅ **Tier-3 batch (FFT, for use inside pfft~)** — `tap.fft.normalize~` (per-bin
+  normalize; the original's dead DC/Nyquist halving is implemented as intended) and
+  `tap.fft.list~` (spectral frame → list, gathered on the audio thread and emitted
+  via a `queue`).
+
+**Latent-bug fixes made along the way (all noted in-file):** `tap.random~`
+per-vector→per-sample edge test; `tap.buffer.snap~` post-clamp loop that could
+never terminate; `tap.fft.normalize~` 0.49-biased equality that disabled the
+DC/Nyquist halving; `tap.comb~` undefined-when-unset feedback/decay coupling.
+
+**Still TODO — the heaviest Tier-3 multi-component objects (5):**
+`tap.verb~` (reverb: up/downsample + dcblock + limiter + clip + copy + core),
+`tap.shift~` (pitch shifter: delay + phasor + window + gain + offset),
+`tap.procrastinate~` (cascading delay, similar component set),
+`tap.elixir~` (variable-inlet 2–10 gain mixer with per-inlet slew), and
+`tap.fft.binmodulator~` (multi-LFO FFT-bin modulator). Each is a several-component
+port; they're the remaining work for the next pass.
 
 **Established Min patterns now available for the rest of Tier 3:** dynamically
 created outlets + `vector_operator` (for variable I/O like the buffer/FFT
-objects), SPSC ring buffer + `queue` for audio→control hand-off, and per-vector
-coefficient updates inside `vector_operator`.
-
-**Deferred (still pending, with reasons):**
-- ⏸ **`tap.pulsesub~`** — a composite of Jamoma's `adsr` + `phasor` + `operator`.
-  Now unblocked (`tap.adsr~` is done) — the remaining work is a phasor + the
-  duty-cycle offset wired to the ADSR. Next up.
+objects), SPSC ring buffer + `queue` for audio→control hand-off, per-vector
+coefficient updates inside `vector_operator`, and `buffer_reference`/`buffer_lock`
+for buffer~ access.
 
 **Convention (tilde objects):** MSP objects whose Max name ends in `~` must have
 their **project folder and `.cpp` named with `_tilde`** (e.g.
