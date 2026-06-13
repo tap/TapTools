@@ -426,6 +426,18 @@ tap.inquisitor_IS_TOP_LEVEL:STATIC=OFF
 tap.inquisitor_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.inquisitor
 
 //Value Computed by CMake
+tap.limi_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.limi_tilde
+
+//The name to give to the external output file/directory
+tap.limi_tilde_EXTERN_OUTPUT_NAME:STRING=tap.limi~
+
+//Value Computed by CMake
+tap.limi_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.limi_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.limi_tilde
+
+//Value Computed by CMake
 tap.list.index_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.list.index
 
 //The name to give to the external output file/directory
@@ -734,7 +746,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=34
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=35
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -815,6 +827,8 @@ tap.fourpole_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 tap.gang_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.inquisitor_EXTERN_OUTPUT_NAME
 tap.inquisitor_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.limi_tilde_EXTERN_OUTPUT_NAME
+tap.limi_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.list.index_EXTERN_OUTPUT_NAME
 tap.list.index_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.multitap_tilde_EXTERN_OUTPUT_NAME
