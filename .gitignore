@@ -1,6 +1,12 @@
 Makefile
 *.o
+build/
 build
+
+# Modern CMake build output (root-level). Does not affect the legacy TapTools/externals package.
+/externals/
+/extensions/
+
 #externals
 #extensions
 
