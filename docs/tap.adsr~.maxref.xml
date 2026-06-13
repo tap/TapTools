@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.adsr~" module="msp" category="TapTools, MSP Generators">
+
+	<digest>
+		An ADSR envelope generator
+	</digest>
+
+	<description>
+		The <o>tap.adsr~</o> object 
+		generates a signal-rate envelope and may be triggered at either signal rate or control rate.
+		More information about ADSR envelopes is available on <a href="http://en.wikipedia.org/wiki/ADSR">this Wikipedia article</a>.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Time</metadata>
+		<metadata name="tag">Generator</metadata>
+		<metadata name="tag">64-bit</metadata>
+	</metadatalist>
+
+	
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" name="INLET_NAME">
+			<digest>Trigger an envelope to begin.</digest>
+		</inlet>
+	</inletlist>
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" name="OUTLET_NAME">
+			<digest>Audio signal: the generated envelope.</digest>
+		</outlet>
+		<outlet id="1" name="OUTLET_NAME">
+			<digest>Dumpout: for accessing object state.</digest>
+		</outlet>
+	</outletlist>
+
+	
+	<!--MESSAGES
+	<methodlist>
+
+		<method name="int">
+			<arglist>
+				<arg name="input" type="int" optional="0" id="0" />
+			</arglist>
+			<description>The absolute(non-negative) value of the input is sent out the output.</description>
+		</method>
+		
+		<method name="float">
+			<arglist>
+				<arg name="input" type="float" optional="0" id="0" />
+			</arglist>
+			<description>Converted to <m>int</m>, unless <o>abs</o> has a float argument. </description>
+		</method>
+		
+	</methodlist>
+	-->
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="attack" get="1" set="1" type="float" size="1">
+			<digest>Attack time in milliseconds</digest>
+		</attribute>
+
+		<attribute name="decay" get="1" set="1" type="float" size="1">
+			<digest>Decay time in milliseconds</digest>
+		</attribute>
+
+		<attribute name="sustain" get="1" set="1" type="float" size="1">
+			<digest>Sustain time in milliseconds</digest>
+		</attribute>
+
+		<attribute name="release" get="1" set="1" type="float" size="1">
+			<digest>Release time in milliseconds</digest>
+		</attribute>
+
+		<attribute name="mode" get="1" set="1" type="symbol" size="1">
+			<digest>Determine the shape of the envelope</digest>
+			<description>Determines the shape of the envelope. The two options are <m>linear</m> and <m>exponential</m>.</description>
+		</attribute>
+
+		<attribute name="trigger" get="1" set="1" type="int" size="1">
+			<digest>Trigger a note on or off when no signal is connected to the inlet</digest>
+			<description>Triggers a note to on or off when no signal is connected to the inlet. If a signal is connected (also a 0 or 1) it overrides this attribute.</description>
+		</attribute>
+
+	</attributelist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.pulsesub~"/>
+		<seealso name="adsr~"/>
+		<seealso name="function"/>
+	</seealsolist>
+
+	
+</c74object>
