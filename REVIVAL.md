@@ -256,15 +256,31 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
   patterns exercised: `queue` deferral, the `dspsetup` message, the `patcher` API,
   and mixed signal + non-signal outlets. **Every object in this batch was verified
   to compile cleanly with the CMake/Min toolchain.**
+- ✅ **`tap.adsr~`** (Tier 3) — attack/decay/sustain/release envelope generator,
+  faithful port of Jamoma's TTAdsr (linear / exponential / hybrid curves),
+  triggered by the `trigger` attribute or a signal crossing 0.5. Defaults to
+  hybrid (the original's true audible default). Unblocks `tap.pulsesub~`.
+- ✅ **`tap.sift~`** — both original modes via a `vector_operator` whose single
+  outlet is created (signal vs control) to match the mode argument at
+  instantiation; the float-dump mode uses an SPSC ring buffer drained on the main
+  thread by a `queue`. (Resolved the deferral noted below.)
+- ✅ **Tier-3 batch (filters)** — `tap.rotate` (3D coordinate rotation, pure data
+  object), `tap.svf~` (stereo Chamberlin state-variable filter + vector-rate LFO +
+  portamento ramp — the ttblue tt_svf/tt_lfo/tt_ramp trio folded into one
+  `vector_operator`), `tap.comb~` (IIR comb with a lowpass in the feedback loop,
+  faithful port of tt_comb). All DSP is portable C++; the LFO is computed directly
+  from a phase accumulator (equivalent to the original wavetable). Compile-verified
+  against the toolchain; **audio behavior still needs runtime validation in Max.**
+
+**Established Min patterns now available for the rest of Tier 3:** dynamically
+created outlets + `vector_operator` (for variable I/O like the buffer/FFT
+objects), SPSC ring buffer + `queue` for audio→control hand-off, and per-vector
+coefficient updates inside `vector_operator`.
 
 **Deferred (still pending, with reasons):**
-- ⏸ **`tap.sift~`** — its mode argument selects between a float-dump outlet (queued,
-  control-rate) and a signal outlet; the two interfaces don't map cleanly onto Min's
-  fixed outlet declarations, so it needs a dedicated design pass rather than a
-  mechanical port.
-- ⏸ **`tap.pulsesub~`** — the original is a composite of Jamoma's `adsr` + `phasor`
-  + `operator`; a faithful port depends on first porting the ADSR envelope generator
-  (the Tier-3 `tap.adsr~`). Deferred until ADSR lands.
+- ⏸ **`tap.pulsesub~`** — a composite of Jamoma's `adsr` + `phasor` + `operator`.
+  Now unblocked (`tap.adsr~` is done) — the remaining work is a phasor + the
+  duty-cycle offset wired to the ADSR. Next up.
 
 **Convention (tilde objects):** MSP objects whose Max name ends in `~` must have
 their **project folder and `.cpp` named with `_tilde`** (e.g.
