@@ -223,6 +223,13 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
   portable C++ (faithful to Jamoma's R=0.9997); `bypass`/`mute`/`clear`
   preserved.
 
+**Convention (tilde objects):** MSP objects whose Max name ends in `~` must have
+their **project folder and `.cpp` named with `_tilde`** (e.g.
+`source/projects/tap.dcblock_tilde/tap.dcblock_tilde.cpp`). The SDK maps the
+project name back to `~` for the output binary, so the object still loads in Max
+as `tap.dcblock~`, and its `docs/` + `help/` files keep the `~` name. This
+applies to every remaining tilde object (`tap.noise~`, `tap.svf~`, …).
+
 **Package layout:** the repo root is now the Min-DevKit-style package
 (`externals/`, `docs/`, `help/`, generated `package-info.json`). The legacy
 `TapTools/` subfolder and the dead `Core/` (old Jamoma), `max-sdk/`, `build.rb`,
