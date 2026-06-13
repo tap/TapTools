@@ -199,3 +199,32 @@ now that Jamoma is also dormant:
 ### Suggested first proof-of-life object
 `tap.change` or `tap.prime` — Tier 1, no audio, minimal surface, exercises the
 whole toolchain (build → package → load in Max) without DSP distractions.
+
+---
+
+## 7. Progress log
+
+**Foundation decision (locked):** Build on **Min as a thin wrapper only** — Min
+handles the Max plumbing (inlets/outlets, attributes, messages, the DSP perform
+loop), while **all DSP is written as plain portable C++** with **no dependency on
+`min-lib`**. Rationale: `min-api` + `max-sdk-base` are actively maintained (last
+commit 2026-03-24) and compile clean against the current toolchain, but `min-lib`
+is the under-maintained piece. Keeping DSP portable means shallow lock-in — the
+wrapper is a small, swappable shim if Min ever stalls. Standard: **C++20**.
+Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Actions.
+
+- ✅ **Modern build foundation** — root `CMakeLists.txt`, `min-api` submodule,
+  GitHub Actions CI (mac+win), universal-binary verification. Replaces the
+  retired Ruby/Xcode + Travis build. Dead `jamoma2` submodule removed.
+- ✅ **`tap.change`** (Tier 1) — first object; proof of life. CI green; macOS
+  binary verified universal.
+- ✅ **`tap.dcblock~`** (Tier 2, DSP) — first full **vertical slice**: object +
+  reference page (`docs/`) + help patcher (`help/`) + package layout. DSP is
+  portable C++ (faithful to Jamoma's R=0.9997); `bypass`/`mute`/`clear`
+  preserved.
+
+**Package layout:** the repo root is now the Min-DevKit-style package
+(`externals/`, `docs/`, `help/`, generated `package-info.json`). The legacy
+`TapTools/` subfolder and the dead `Core/` (old Jamoma), `max-sdk/`, `build.rb`,
+`.travis.yml`, and stale `.mxo` binaries remain for now and will be pruned once
+enough objects are migrated.

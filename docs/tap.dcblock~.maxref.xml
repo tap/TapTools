@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.dcblock~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		Filter out DC offsets
+	</digest>
+
+	<description>
+		The <o>tap.dcblock~</o> object is a lightweight DC-offset filter (a one-pole / one-zero
+		high-pass filter). For multichannel signals, wrap it in an <o>mc.</o> operator.
+	</description>
+
+
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">Timothy Place</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Filter</metadata>
+	</metadatalist>
+
+
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" type="signal">
+			<digest>Audio signal to be filtered</digest>
+		</inlet>
+	</inletlist>
+
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" type="signal">
+			<digest>The DC-blocked audio signal</digest>
+		</outlet>
+	</outletlist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="clear">
+			<arglist/>
+			<description>Clear out the feedback memory of the object.
+				Useful for resetting the filter if it has blown up.</description>
+		</method>
+	</methodlist>
+
+
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="bypass" get="1" set="1" type="int" size="1">
+			<description>Pass the input through unprocessed.</description>
+		</attribute>
+
+		<attribute name="mute" get="1" set="1" type="int" size="1">
+			<description>Silence the output.</description>
+		</attribute>
+
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="onepole~"/>
+		<seealso name="biquad~"/>
+		<seealso name="filtercoeff~"/>
+	</seealsolist>
+
+
+</c74object>
