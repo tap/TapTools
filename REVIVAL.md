@@ -236,6 +236,35 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
 - ✅ **`tap.noise~`** — white / pink / brown / blue / gaussian noise generator,
   faithful port of Jamoma's TTNoise colouring filters. First generator
   (`sample_operator<0,1>`); gaussian via std normal distribution.
+- ✅ **Tier-1 completion** — `tap.route` (flexible router; searchstring is now a
+  single `symbol` attribute since Min only specializes `vector<int>`/`vector<number>`
+  attributes, not `vector<symbol>`), `tap.gang` (4-in/4-out deferred fan-out via
+  per-outlet `queue`, with change-detection breaking feedback loops),
+  `tap.radians~` (hz/radians/degrees converter; signal + float outlet, sample rate
+  from `samplerate()`), `tap.inquisitor` (queries another object's attributes via
+  the Min `patcher`/`box` patcher API — no Jamoma), `tap.biquadcalc` (RBJ Audio EQ
+  Cookbook coefficient calculator, control-rate). Each with reference page + help
+  patcher ported from the legacy package.
+- ✅ **Tier-2 DSP batch** — `tap.split~` (range router, `sample_operator<3,3>`,
+  limits drivable by signal or float/attribute), `tap.autothru~` (auto
+  pass-through via `has_signal_connection()`), `tap.width~` (pulse-width meter in
+  ms), `tap.count~` (gated sample counter), `tap.counter~` (signal-transition
+  counter), `tap.zerox~` (zero-crossing counter — faithful port of Jamoma's
+  TTZerocross, `sample_operator<1,2>`), `tap.random~` (signal-triggered S&H RNG;
+  the original's per-vector edge test is fixed to per-sample so every zero→non-zero
+  transition fires). All DSP is portable C++ — no `min-lib`, no Jamoma. New Min
+  patterns exercised: `queue` deferral, the `dspsetup` message, the `patcher` API,
+  and mixed signal + non-signal outlets. **Every object in this batch was verified
+  to compile cleanly with the CMake/Min toolchain.**
+
+**Deferred (still pending, with reasons):**
+- ⏸ **`tap.sift~`** — its mode argument selects between a float-dump outlet (queued,
+  control-rate) and a signal outlet; the two interfaces don't map cleanly onto Min's
+  fixed outlet declarations, so it needs a dedicated design pass rather than a
+  mechanical port.
+- ⏸ **`tap.pulsesub~`** — the original is a composite of Jamoma's `adsr` + `phasor`
+  + `operator`; a faithful port depends on first porting the ADSR envelope generator
+  (the Tier-3 `tap.adsr~`). Deferred until ADSR lands.
 
 **Convention (tilde objects):** MSP objects whose Max name ends in `~` must have
 their **project folder and `.cpp` named with `_tilde`** (e.g.

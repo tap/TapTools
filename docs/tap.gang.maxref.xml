@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.gang" module="max" category="TapTools, Control">
+
+	<digest>
+		link objects together
+	</digest>
+
+	<description>
+		This object provides a mechanism by which many objects can be connected and all of them be kept up to date.
+ 		One special thing about gang is that the 2nd inlet is optimized for connections to the pp object, 
+		so that it is prioritized in the case where input is received at multiple inlets before the queue is serviced.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Routing</metadata>
+		<metadata name="tag">Control</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="int">
+			<arglist><arg name="input" type="int" optional="0" id="0" /></arglist>
+			<description>Integer input.</description>
+		</method>
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>Float input.</description>
+		</method>
+		<method name="list">
+			<arglist><arg name="input" type="int" optional="0" id="0" /></arglist>
+			<description>List input.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="buddy"/>
+	</seealsolist>
+
+	
+</c74object>

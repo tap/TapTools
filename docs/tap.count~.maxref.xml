@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.count~" module="msp" category="TapTools, MSP Functions">
+
+	<digest>
+		Count samples
+	</digest>
+
+	<description>
+		<o>tap.count~</o> counts samples, like MSP's <o>count~</o> object. 
+		The biggest difference is that on/off is set as a signal.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="reset">
+			<arglist/>
+			<description>Reset the counter to the low bound.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+
+		<attribute name="low_bound" get="1" set="1" type="int" size="1">
+			<description>The low bound for the counter.</description>
+		</attribute>
+
+		<attribute name="high_bound" get="1" set="1" type="int" size="1">
+			<description>The high bound for the counter.</description>
+		</attribute>
+
+		<attribute name="active" get="1" set="1" type="int" size="1">
+			<description>
+				Turns the counter on or off.
+			</description>
+		</attribute>
+
+		<attribute name="autoreset" get="1" set="1" type="int" size="1">
+			<description>
+				When autoreset is 1, then the counter is reset automatically when the ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib is turned on.
+			</description>
+		</attribute>
+
+		<attribute name="loop" get="1" set="1" type="int" size="1">
+			<description>
+				When loop is 1, the counter loops back to the low bound and starts counting again whenever it reaches the high bound.
+			</description>
+		</attribute>
+
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.counter~"/>
+		<seealso name="count~"/>
+	</seealsolist>
+
+	
+</c74object>

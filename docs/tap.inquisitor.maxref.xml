@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.inquisitor" module="max" category="TapTools, Control, Patching, Right-to-Left">
+
+	<digest>
+		Interrogate another object about its attributes.
+	</digest>
+
+	<description>
+		The <o>tap.inquisitor</o> object can interrogate a named object in the same patcher as itself to find out 
+		what attributes are present, and the values of those attributes.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Utility</metadata>
+	</metadatalist>
+
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="name" get="1" set="1" type="symbol" size="1">
+			<description>
+				The name of the object to interrogate.  The named object must be in the same patcher as the tap.inquisitor object.
+			</description>
+		</attribute>
+
+	</attributelist>
+	
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="attrui"/>
+		<seealso name="getattr"/>
+	</seealsolist>
+
+	
+</c74object>

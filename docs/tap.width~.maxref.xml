@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.width~" module="msp" category="TapTools, MSP Analysis">
+
+	<digest>
+		Measure pulse width
+	</digest>
+
+	<description>
+		The <o>tap.width~</o> object provides the ability to determine the duty cycle of a rectangular or pulse wave.
+		It essentially the opposite of the standard <o>train~</o> object which produces a pulse wave.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Effect</metadata>
+	</metadatalist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tapin~"/>
+		<seealso name="tapout~"/>
+		<seealso name="tap.multitap~"/>
+		<seealso name="delay~"/>
+	</seealsolist>
+
+	
+</c74object>

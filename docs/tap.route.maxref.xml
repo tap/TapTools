@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.route" module="max" category="TapTools, Control">
+
+	<digest>
+		A more flexible route object
+	</digest>
+
+	<description>
+		The <o>tap.route</o> object 
+		has the ability to route messages to different outlets based not only on the first element of a list,
+		but based on any specified element of the list.
+		It can also perform routing based on a partial match of an element in a list.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">List Processing</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="list">
+			<arglist><arg name="input" type="list" optional="0" id="0" /></arglist>
+			<description>List input beginning with a number.</description>
+		</method>
+		<method name="anything">
+			<arglist><arg name="input" type="list" optional="0" id="0" /></arglist>
+			<description>List input beginning with a symbol.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="searchstring" get="1" set="1" type="symbol" size="1">
+			<description>The text that needs to match for the incoming messages to be
+				sent out the first outlet.
+			</description>
+		</attribute>
+		<attribute name="searchpositions" get="1" set="1" type="list" size="1">
+			<description>A list of numbers specify the list indices at which symbols should be
+				compared to see if the input should be classified as a match.
+			</description>
+		</attribute>
+		<attribute name="partialmatch" get="1" set="1" type="int" size="1">
+			<description>When set to 1, the object can compare the beginnings of symbols.
+				When set to zero, the object compares only entire symbols (which is faster).
+			</description>
+		</attribute>
+	</attributelist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="route"/>
+	</seealsolist>
+
+	
+</c74object>

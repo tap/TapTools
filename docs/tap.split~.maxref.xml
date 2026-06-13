@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.split~" module="msp" category="TapTools, MSP Analysis, MSP Routing">
+
+	<digest>
+		Audio version of the Max split object
+	</digest>
+
+	<description>
+		The <o>tap.split~</o> object 
+		implements a signal version of the standard Max <o>split</o> object.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Analysis</metadata>
+		<metadata name="tag">Routing</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="lowbound" type="float" optional="1">
+			<description>The initial low bound for matched sample values.</description>
+		</objarg>
+		<objarg name="highbound" type="float" optional="1">
+			<description>The initial high bound for matched sample values.</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--MESSAGES-->
+	<methodlist>	
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>
+				Change the bounds that determine the matching range for the input signal. 
+			</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="split"/>
+	</seealsolist>
+
+	
+</c74object>
