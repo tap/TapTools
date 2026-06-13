@@ -438,6 +438,18 @@ tap.list.index_IS_TOP_LEVEL:STATIC=OFF
 tap.list.index_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.list.index
 
 //Value Computed by CMake
+tap.multitap_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.multitap_tilde
+
+//The name to give to the external output file/directory
+tap.multitap_tilde_EXTERN_OUTPUT_NAME:STRING=tap.multitap~
+
+//Value Computed by CMake
+tap.multitap_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.multitap_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.multitap_tilde
+
+//Value Computed by CMake
 tap.noise_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.noise_tilde
 
 //The name to give to the external output file/directory
@@ -722,7 +734,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=33
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=34
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -805,6 +817,8 @@ tap.gang_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 tap.inquisitor_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.list.index_EXTERN_OUTPUT_NAME
 tap.list.index_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.multitap_tilde_EXTERN_OUTPUT_NAME
+tap.multitap_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.noise_tilde_EXTERN_OUTPUT_NAME
 tap.noise_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.pan_tilde_EXTERN_OUTPUT_NAME
