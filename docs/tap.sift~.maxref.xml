@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.sift~" module="msp" category="TapTools, MSP System">
+
+	<digest>
+		Sift out desired samples and send at control-rate
+	</digest>
+
+	<description>
+		The <o>tap.sift~</o> object 
+		processes an MSP audio signal and only lets the desired sample value(s) pass through.
+		The value(s) that is/are passed through are done so in the control domain.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Analysis</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="value" type="int" optional="1">
+			<description>Sets the initial value which is sifted out from the rest.</description>
+		</objarg>
+		<objarg name="mode" type="int" optional="1">
+			<description>Sets the initial mode (signal or floating-point output).</description>
+		</objarg>
+	</objarglist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="snapshot~"/>
+	</seealsolist>
+
+	
+</c74object>
