@@ -109,6 +109,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/home/user/TapTools/build_test/source/projects/tap.fft.normalize_tilde/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/home/user/TapTools/build_test/source/projects/tap.fourpole_tilde/cmake_install.cmake")
 endif()
 

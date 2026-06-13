@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.fft.normalize~" module="msp" category="TapTools, MSP FFT">
+
+	<digest>
+		Normalize an FFT
+	</digest>
+
+	<description>
+		Normalizing an FFT is not the same as normalizing time-domain audio representations. 
+		In MSP, the normalization normally takes place in the ifft~ object, 
+		but if you're simply doing analysis (as in this patch) you should normalize the FFT before using it. 
+		For more information on normalizing FFTs check <a href="http://www.dspguide.com/">The ../../../../../Jamoma/Core/DSP/library/build/JamomaDSP.dylib Guide</a>.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Spectral</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="numbins" type="int" optional="0">
+			<description>The number of bins in the fft analysis.</description>
+		</objarg>
+	</objarglist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.fft.list~"/>
+	</seealsolist>
+
+	
+</c74object>
