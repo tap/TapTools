@@ -81,6 +81,7 @@ all: source/projects/tap.prime/all
 all: source/projects/tap.radians_tilde/all
 all: source/projects/tap.random/all
 all: source/projects/tap.random_tilde/all
+all: source/projects/tap.rotate/all
 all: source/projects/tap.route/all
 all: source/projects/tap.sieve/all
 all: source/projects/tap.sift_tilde/all
@@ -108,6 +109,7 @@ preinstall: source/projects/tap.prime/preinstall
 preinstall: source/projects/tap.radians_tilde/preinstall
 preinstall: source/projects/tap.random/preinstall
 preinstall: source/projects/tap.random_tilde/preinstall
+preinstall: source/projects/tap.rotate/preinstall
 preinstall: source/projects/tap.route/preinstall
 preinstall: source/projects/tap.sieve/preinstall
 preinstall: source/projects/tap.sift_tilde/preinstall
@@ -135,6 +137,7 @@ clean: source/projects/tap.prime/clean
 clean: source/projects/tap.radians_tilde/clean
 clean: source/projects/tap.random/clean
 clean: source/projects/tap.random_tilde/clean
+clean: source/projects/tap.rotate/clean
 clean: source/projects/tap.route/clean
 clean: source/projects/tap.sieve/clean
 clean: source/projects/tap.sift_tilde/clean
@@ -412,6 +415,21 @@ source/projects/tap.random_tilde/preinstall:
 # Recursive "clean" directory target.
 source/projects/tap.random_tilde/clean: source/projects/tap.random_tilde/CMakeFiles/tap.random_tilde.dir/clean
 .PHONY : source/projects/tap.random_tilde/clean
+
+#=============================================================================
+# Directory level rules for directory source/projects/tap.rotate
+
+# Recursive "all" directory target.
+source/projects/tap.rotate/all: source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/all
+.PHONY : source/projects/tap.rotate/all
+
+# Recursive "preinstall" directory target.
+source/projects/tap.rotate/preinstall:
+.PHONY : source/projects/tap.rotate/preinstall
+
+# Recursive "clean" directory target.
+source/projects/tap.rotate/clean: source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/clean
+.PHONY : source/projects/tap.rotate/clean
 
 #=============================================================================
 # Directory level rules for directory source/projects/tap.route
@@ -972,13 +990,39 @@ source/projects/tap.random_tilde/CMakeFiles/tap.random_tilde.dir/clean:
 .PHONY : source/projects/tap.random_tilde/CMakeFiles/tap.random_tilde.dir/clean
 
 #=============================================================================
+# Target rules for target source/projects/tap.rotate/CMakeFiles/tap.rotate.dir
+
+# All Build rule for target.
+source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/all:
+	$(MAKE) $(MAKESILENT) -f source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/build.make source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/depend
+	$(MAKE) $(MAKESILENT) -f source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/build.make source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=37,38 "Built target tap.rotate"
+.PHONY : source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/all
+
+# Build rule for subdir invocation for target.
+source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/TapTools/build_test/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/TapTools/build_test/CMakeFiles 0
+.PHONY : source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/rule
+
+# Convenience name for target.
+tap.rotate: source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/rule
+.PHONY : tap.rotate
+
+# clean rule for target.
+source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/clean:
+	$(MAKE) $(MAKESILENT) -f source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/build.make source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/clean
+.PHONY : source/projects/tap.rotate/CMakeFiles/tap.rotate.dir/clean
+
+#=============================================================================
 # Target rules for target source/projects/tap.route/CMakeFiles/tap.route.dir
 
 # All Build rule for target.
 source/projects/tap.route/CMakeFiles/tap.route.dir/all:
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.route/CMakeFiles/tap.route.dir/build.make source/projects/tap.route/CMakeFiles/tap.route.dir/depend
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.route/CMakeFiles/tap.route.dir/build.make source/projects/tap.route/CMakeFiles/tap.route.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=37,38 "Built target tap.route"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=39,40 "Built target tap.route"
 .PHONY : source/projects/tap.route/CMakeFiles/tap.route.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1004,7 +1048,7 @@ source/projects/tap.route/CMakeFiles/tap.route.dir/clean:
 source/projects/tap.sieve/CMakeFiles/tap.sieve.dir/all:
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.sieve/CMakeFiles/tap.sieve.dir/build.make source/projects/tap.sieve/CMakeFiles/tap.sieve.dir/depend
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.sieve/CMakeFiles/tap.sieve.dir/build.make source/projects/tap.sieve/CMakeFiles/tap.sieve.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=39,40 "Built target tap.sieve"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=41,42 "Built target tap.sieve"
 .PHONY : source/projects/tap.sieve/CMakeFiles/tap.sieve.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1030,7 +1074,7 @@ source/projects/tap.sieve/CMakeFiles/tap.sieve.dir/clean:
 source/projects/tap.sift_tilde/CMakeFiles/tap.sift_tilde.dir/all:
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.sift_tilde/CMakeFiles/tap.sift_tilde.dir/build.make source/projects/tap.sift_tilde/CMakeFiles/tap.sift_tilde.dir/depend
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.sift_tilde/CMakeFiles/tap.sift_tilde.dir/build.make source/projects/tap.sift_tilde/CMakeFiles/tap.sift_tilde.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=41,42 "Built target tap.sift_tilde"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=43,44 "Built target tap.sift_tilde"
 .PHONY : source/projects/tap.sift_tilde/CMakeFiles/tap.sift_tilde.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1056,7 +1100,7 @@ source/projects/tap.sift_tilde/CMakeFiles/tap.sift_tilde.dir/clean:
 source/projects/tap.split_tilde/CMakeFiles/tap.split_tilde.dir/all:
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.split_tilde/CMakeFiles/tap.split_tilde.dir/build.make source/projects/tap.split_tilde/CMakeFiles/tap.split_tilde.dir/depend
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.split_tilde/CMakeFiles/tap.split_tilde.dir/build.make source/projects/tap.split_tilde/CMakeFiles/tap.split_tilde.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=43,44 "Built target tap.split_tilde"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=45,46 "Built target tap.split_tilde"
 .PHONY : source/projects/tap.split_tilde/CMakeFiles/tap.split_tilde.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1082,7 +1126,7 @@ source/projects/tap.split_tilde/CMakeFiles/tap.split_tilde.dir/clean:
 source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir/all:
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir/build.make source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir/depend
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir/build.make source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=45,46 "Built target tap.width_tilde"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=47,48 "Built target tap.width_tilde"
 .PHONY : source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1108,7 +1152,7 @@ source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir/clean:
 source/projects/tap.zerox_tilde/CMakeFiles/tap.zerox_tilde.dir/all:
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.zerox_tilde/CMakeFiles/tap.zerox_tilde.dir/build.make source/projects/tap.zerox_tilde/CMakeFiles/tap.zerox_tilde.dir/depend
 	$(MAKE) $(MAKESILENT) -f source/projects/tap.zerox_tilde/CMakeFiles/tap.zerox_tilde.dir/build.make source/projects/tap.zerox_tilde/CMakeFiles/tap.zerox_tilde.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=47,48 "Built target tap.zerox_tilde"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/TapTools/build_test/CMakeFiles --progress-num=49,50 "Built target tap.zerox_tilde"
 .PHONY : source/projects/tap.zerox_tilde/CMakeFiles/tap.zerox_tilde.dir/all
 
 # Build rule for subdir invocation for target.

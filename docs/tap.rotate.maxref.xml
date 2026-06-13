@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.rotate" module="max" category="TapTools, Math">
+
+	<digest>
+		Transform a 3D point about an axis
+	</digest>
+
+	<description>
+		The <o>tap.rotate</o> object rotates the coordinates of 3d point (or points) around another 3d point.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">Math</metadata>
+	</metadatalist>
+
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="cartopol"/>
+		<seealso name="poltocar"/>
+	</seealsolist>
+
+	
+</c74object>

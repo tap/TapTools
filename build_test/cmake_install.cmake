@@ -134,6 +134,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/home/user/TapTools/build_test/source/projects/tap.rotate/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/home/user/TapTools/build_test/source/projects/tap.route/cmake_install.cmake")
 endif()
 

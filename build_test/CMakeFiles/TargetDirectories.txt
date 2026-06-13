@@ -73,6 +73,10 @@
 /home/user/TapTools/build_test/source/projects/tap.random_tilde/CMakeFiles/test.dir
 /home/user/TapTools/build_test/source/projects/tap.random_tilde/CMakeFiles/edit_cache.dir
 /home/user/TapTools/build_test/source/projects/tap.random_tilde/CMakeFiles/rebuild_cache.dir
+/home/user/TapTools/build_test/source/projects/tap.rotate/CMakeFiles/tap.rotate.dir
+/home/user/TapTools/build_test/source/projects/tap.rotate/CMakeFiles/test.dir
+/home/user/TapTools/build_test/source/projects/tap.rotate/CMakeFiles/edit_cache.dir
+/home/user/TapTools/build_test/source/projects/tap.rotate/CMakeFiles/rebuild_cache.dir
 /home/user/TapTools/build_test/source/projects/tap.route/CMakeFiles/tap.route.dir
 /home/user/TapTools/build_test/source/projects/tap.route/CMakeFiles/test.dir
 /home/user/TapTools/build_test/source/projects/tap.route/CMakeFiles/edit_cache.dir
