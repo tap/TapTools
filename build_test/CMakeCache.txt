@@ -618,6 +618,18 @@ tap.route_IS_TOP_LEVEL:STATIC=OFF
 tap.route_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.route
 
 //Value Computed by CMake
+tap.shift_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.shift_tilde
+
+//The name to give to the external output file/directory
+tap.shift_tilde_EXTERN_OUTPUT_NAME:STRING=tap.shift~
+
+//Value Computed by CMake
+tap.shift_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.shift_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.shift_tilde
+
+//Value Computed by CMake
 tap.sieve_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.sieve
 
 //The name to give to the external output file/directory
@@ -794,7 +806,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=39
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=40
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -907,6 +919,8 @@ tap.random_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 tap.rotate_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.route_EXTERN_OUTPUT_NAME
 tap.route_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.shift_tilde_EXTERN_OUTPUT_NAME
+tap.shift_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.sieve_EXTERN_OUTPUT_NAME
 tap.sieve_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.sift_tilde_EXTERN_OUTPUT_NAME
