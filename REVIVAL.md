@@ -324,7 +324,15 @@ as `tap.dcblock~`, and its `docs/` + `help/` files keep the `~` name. This
 applies to every remaining tilde object (`tap.noise~`, `tap.svf~`, …).
 
 **Package layout:** the repo root is now the Min-DevKit-style package
-(`externals/`, `docs/`, `help/`, generated `package-info.json`). The legacy
-`TapTools/` subfolder and the dead `Core/` (old Jamoma), `max-sdk/`, `build.rb`,
-`.travis.yml`, and stale `.mxo` binaries remain for now and will be pruned once
-enough objects are migrated.
+(`externals/`, `docs/`, `help/`, generated `package-info.json`).
+
+**Corpse pruned (step 5 done):** the dead trees have been removed now that all
+objects are migrated and the build is self-contained on `min-api` — gone are the
+old Jamoma `Core/`, the legacy `TapTools/` package (its docs/help were already
+copied into `docs/`+`help/`, and its `.mxo` binaries were i386/x86_64-only),
+`source/ttblue/`, every legacy `source/tap.*` wrapper, the old `max-sdk/` and
+`objectivemax/` SDK/framework trees, plus `build.rb` and `.travis.yml`. All of it
+is preserved in git history if any algorithm needs to be referenced again. The
+working tree now contains only the modern package: `CMakeLists.txt`, `source/min-api`
+(submodule), `source/projects/`, `docs/`, `help/`, `package-info.json.in`, and the
+GitHub Actions CI.

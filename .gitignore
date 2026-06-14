@@ -18,3 +18,5 @@ xcuserdata
 
 #TapTools/readme.txt
 #support/
+# local out-of-source test build
+build_test/
