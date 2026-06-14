@@ -300,11 +300,18 @@ reference pages/help were restored from git history after the prune.
   SQLite integration, which the Min package doesn't currently provide).
 
 **Remaining frontiers (each its own sub-effort):**
-- **Jitter family** (`tap.jit.ali/colortrack/kernel/proximity/sum`) — Min supports
-  Jitter (`matrix_operator` + the jit-includes), but these are 300–500-line raw
-  n-dimensional Jitter objects (change detection, internal matrices, matrix→value
-  output) that don't drop into the `matrix_operator` pattern cleanly. Source is in
-  git history; warrants a dedicated pass.
+- **Jitter family** — 3 of 5 done. The matrix→value (analysis) objects port cleanly
+  as plain Min objects that read a named `jit.matrix` through the Jitter API
+  (`c74::max`) — ✅ `tap.jit.sum` (sum all cells), ✅ `tap.jit.proximity` (nearest 2D
+  point), ✅ `tap.jit.ali` (Ali Momeni proximity-weighted interpolation, list-output
+  mode). They compile against the toolchain (JitterAPI links on the mac/win CI; only
+  the object compile is checked on Linux). Still open:
+    - `tap.jit.colortrack` — a 1073-line HSL colour tracker (4 trackers, 24 hue/sat/
+      brightness attributes, RGB→HSL, bounds/centroid/size). Same plain-object
+      pattern, but large; a focused pass.
+    - `tap.jit.kernel` — a matrix→matrix radial-kernel **generator**; needs Min's
+      `matrix_operator`/MOP path (with the original's plane/column quirks resolved),
+      not the plain-object pattern used for the others.
 - **Resurrection candidates** (`tap.sustain~`, `tap.vocoder~`, `tap.nr~`,
   `tap.spectra~`, `tap.delay~`/`tap.delay`, …) — no surviving source; reconstruct
   from the maxref docs (the simple delays are tagged Obsolete; the spectral ones are
