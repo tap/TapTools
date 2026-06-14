@@ -282,23 +282,27 @@ Targets: **macOS universal (arm64+x86_64) + Windows**, via CMake + GitHub Action
   `tap.buffer.record~`, all rebuilt on Min's `buffer_reference`/`buffer_lock`
   (binding, `set`, notifications, and `dirty()` handled by the framework).
   `snap~`/`record~` write/read in the audio thread via `buffer_lock<true>`.
-- ✅ **Tier-3 batch (FFT, for use inside pfft~)** — `tap.fft.normalize~` (per-bin
-  normalize; the original's dead DC/Nyquist halving is implemented as intended) and
-  `tap.fft.list~` (spectral frame → list, gathered on the audio thread and emitted
-  via a `queue`).
+**Tier-3 batch (mixers / FFT / pitch):** `tap.elixir~` (variable-inlet 2–10
+equal-gain crossfade mixer with per-inlet slew; dynamic inlets),
+`tap.fft.binmodulator~` (per-bin LFO modulation inside pfft~), and `tap.shift~`
+(two-grain Welch-windowed delay-line pitch shifter — the exact 256-point padded
+Welch table is embedded and mirrored to 512). Compile-verified; audio behavior
+needs runtime validation in Max.
 
 **Latent-bug fixes made along the way (all noted in-file):** `tap.random~`
 per-vector→per-sample edge test; `tap.buffer.snap~` post-clamp loop that could
 never terminate; `tap.fft.normalize~` 0.49-biased equality that disabled the
 DC/Nyquist halving; `tap.comb~` undefined-when-unset feedback/decay coupling.
 
-**Still TODO — the heaviest Tier-3 multi-component objects (5):**
-`tap.verb~` (reverb: up/downsample + dcblock + limiter + clip + copy + core),
-`tap.shift~` (pitch shifter: delay + phasor + window + gain + offset),
-`tap.procrastinate~` (cascading delay, similar component set),
-`tap.elixir~` (variable-inlet 2–10 gain mixer with per-inlet slew), and
-`tap.fft.binmodulator~` (multi-LFO FFT-bin modulator). Each is a several-component
-port; they're the remaining work for the next pass.
+**Still TODO — the two heaviest Tier-3 objects (2):**
+- `tap.procrastinate~` — a multi-voice **cascaded** pitch-shifter/delay: each voice
+  is a `tap.shift~`-style unit (phasor + two windowed delay taps) feeding the next,
+  with per-voice gain (mixer) and stereo pan, plus a `randomize_parameters` step that
+  draws each voice's shift/delay/gain/pan from configurable ranges. The `tap.shift~`
+  building blocks are done; this adds the voice cascade, panning, and randomization.
+- `tap.verb~` — a reverb built from up/downsampling + DC blocker + limiter + clip +
+  copy around a reverb network (the core algorithm still needs locating in ttblue).
+  The largest single object; warrants its own focused pass.
 
 **Established Min patterns now available for the rest of Tier 3:** dynamically
 created outlets + `vector_operator` (for variable I/O like the buffer/FFT
