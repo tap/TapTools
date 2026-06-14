@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.procrastinate~" module="msp" category="TapTools, MSP Modifiers">
+
+	<digest>
+		Cascading delay-based audio effect
+	</digest>
+
+	<description>
+		The <o>tap.pack</o> object 
+		The procrastinate effect is a cascade of pitch-shifting delays, whose variables can be randomized. 
+		Before the effect can be used, ranges for each of the parameters should be set 
+		(in the help patcher, for example, just click the bang button to set everything). 
+		Then click the 'generate_parameters' message and the object will generate random values 
+		(in your specified ranges) for the parameters.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Time</metadata>
+		<metadata name="tag">Effect</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="bang">
+			<arglist/>
+			<description>The same thing as the 'generate_parameters' method.</description>
+		</method>
+		<method name="generate_parameters">
+			<arglist/>
+			<description>
+				Using the criteria specified by the attributes, 
+				generate parameter values and update the processing engine.
+			</description>
+		</method>
+		<method name="clear">
+			<arglist/>
+			<description>Reset the history of the delay lines.</description>
+		</method>
+		<method name="shift_ratio">
+			<arglist>
+				<arg name="delayunit" type="int" optional="0" id="0" />
+				<arg name="shiftamount" type="float" optional="0" id="1" />
+			</arglist>
+			<description>Directly control the amount of pitch-shift in a specified delay unit.</description>
+		</method>
+		<method name="window">
+			<arglist>
+				<arg name="delayunit" type="int" optional="0" id="0" />
+				<arg name="delayamount" type="float" optional="0" id="1" />
+			</arglist>
+			<description>Directly control the delay time in a specified delay unit.</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="gain_range" get="1" set="1" type="int" size="1">
+			<description>
+				Set this attribute using a list of three numbers: the delay unit number [1,4], 
+				the low bound of the range (in dB), and the high bound of the range (in dB).
+			</description>
+		</attribute>
+		<attribute name="pan_range" get="1" set="1" type="int" size="1">
+			<description>
+				Set this attribute using a list of three numbers: the delay unit number [1,4], 
+				the low bound of the range [0.0, 1.0], and the high bound of the range [0.0, 1.0].
+			</description>
+		</attribute>
+		<attribute name="shift_range" get="1" set="1" type="int" size="1">
+			<description>
+				Set this attribute using a list of three numbers: the delay unit number [1,4], 
+				the low bound of the range (a frequency ratio), and the high bound of the range (a frequency ratio).
+			</description>
+		</attribute>
+		<attribute name="delay_range" get="1" set="1" type="int" size="1">
+			<description>
+				Set this attribute using a list of three numbers: the delay unit number [1,4], 
+				the low bound of the range (in ms), and the high bound of the range (in ms).
+			</description>
+		</attribute>
+		<attribute name="mute" get="1" set="1" type="int" size="1">
+			<description>
+				Silence the processing.
+			</description>
+		</attribute>
+	</attributelist>
+	
+	
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.delay~"/>
+	</seealsolist>
+
+	
+</c74object>
