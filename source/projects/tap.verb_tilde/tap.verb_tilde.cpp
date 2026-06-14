@@ -6,10 +6,9 @@
 ///             through a Schroeder allpass and an output lowpass, then crossfaded with the dry signal
 ///             and gain-scaled. Two independent cores (left/right), decorrelated by the original's
 ///             prime-"deviate" of each delay, give a stereo image. DSP is portable C++ (no Jamoma).
-/// @note       This first port covers the reverb core plus the DC blocker and clip stages. The
-///             optional look-ahead limiter and the internal oversampling (downsample/upsample) stages
-///             of the original wrapper are not yet included (the limiter defaulted on; with sane
-///             decay settings the core is stable without it).
+/// @note       This port covers the reverb core plus the DC blocker, the (default-on) stereo
+///             look-ahead limiter, and the clip stage. The original wrapper's internal oversampling
+///             (downsample/upsample) is not included; it defaulted off, so the default sound matches.
 /// @author     Timothy Place
 /// @copyright  Copyright 2003-2026 Timothy Place. Distributed under the New BSD License.
 
@@ -254,17 +253,37 @@ public:
     attribute<bool> clip { this, "clip", false,
         description { "Hard-clip the output to +/-1." }
     };
+    attribute<bool> limit { this, "limit", true,
+        description { "Apply a look-ahead limiter to the output." }
+    };
+    attribute<number> limiter_threshold { this, "limiter_threshold", 0.0,
+        setter { MIN_FUNCTION { m_lim_threshold = db_to_amp(args[0]); return args; } },
+        description { "Limiter threshold in decibels." }
+    };
+    attribute<int> limiter_lookahead { this, "limiter_lookahead", 100,
+        setter { MIN_FUNCTION {
+            m_lim_lookahead = std::clamp(static_cast<int>(args[0]), 1, c_lim_size - 1);
+            m_lim_recip     = 1.0 / static_cast<double>(m_lim_lookahead);
+            return { m_lim_lookahead };
+        }},
+        description { "Limiter look-ahead in samples (1-255)." }
+    };
+    attribute<number> limiter_release { this, "limiter_release", 1000.0,
+        setter { MIN_FUNCTION { m_lim_release = args[0]; set_recover(); return args; } },
+        description { "Limiter release time in milliseconds." }
+    };
     attribute<bool> bypass { this, "bypass", false, description { "Pass the input through unprocessed." } };
     attribute<bool> mute   { this, "mute", false, description { "Silence the output." } };
 
     message<> clear { this, "clear", "Clear the reverb's internal state.",
-        MIN_FUNCTION { m_l.clear(); m_r.clear(); return {}; }
+        MIN_FUNCTION { m_l.clear(); m_r.clear(); reset_limiter(); return {}; }
     };
 
     message<> dspsetup { this, "dspsetup", "Allocate buffers and recompute for the current sample rate.",
         MIN_FUNCTION {
             m_l.prepare(samplerate());
             m_r.prepare(samplerate());
+            reset_limiter();
             push_all();
             return {};
         }
@@ -273,6 +292,7 @@ public:
     verb(const atoms& = {}) {
         m_l.prepare(samplerate());
         m_r.prepare(samplerate());
+        reset_limiter();
     }
 
     samples<2> operator()(sample in_l, sample in_r) {
@@ -294,6 +314,8 @@ public:
             ol = dc_block(ol, m_dc_l);
             or_ = dc_block(or_, m_dc_r);
         }
+        if (limit)
+            limit_stereo(ol, or_);
         if (clip) {
             ol = std::clamp(ol, -1.0, 1.0);
             or_ = std::clamp(or_, -1.0, 1.0);
@@ -325,6 +347,77 @@ private:
             c->set_modfreq(modfreq);
             c->set_moddepth(moddepth);
         }
+    }
+
+    // --- stereo look-ahead limiter (exponential recovery), matching tap.limi~ ---
+    static constexpr int c_lim_size { 256 };
+
+    double m_lim_threshold { 1.0 };
+    int    m_lim_lookahead { 100 };
+    double m_lim_recip { 1.0 / 100.0 };
+    double m_lim_release { 1000.0 };
+    double m_lim_recover { 0.0 };
+    double m_lim_buf1[c_lim_size] {};
+    double m_lim_buf2[c_lim_size] {};
+    double m_lim_gain[c_lim_size] {};
+    long   m_lim_bp { 0 };
+    double m_lim_last { 1.0 };
+
+    void set_recover() {
+        m_lim_recover = 1000.0 / (m_lim_release * samplerate());
+        if (m_lim_recover == 0.0)
+            m_lim_recover = 1000.0 / (100000.0 * samplerate());
+        m_lim_recover *= 0.707;    // exponential
+    }
+
+    void reset_limiter() {
+        for (int i = 0; i < c_lim_size; ++i) {
+            m_lim_buf1[i] = 0.0;
+            m_lim_buf2[i] = 0.0;
+            m_lim_gain[i] = 1.0;
+        }
+        m_lim_bp = 0;
+        m_lim_last = 1.0;
+        set_recover();
+    }
+
+    void limit_stereo(double& l, double& r) {
+        m_lim_buf1[m_lim_bp] = l;
+        m_lim_buf2[m_lim_bp] = r;
+
+        const double peak   = std::max(std::abs(l), std::abs(r));
+        const double rising = m_lim_last + m_lim_recover * ((m_lim_last > 0.01) ? m_lim_last : 1.0);
+        double       maybe  = (rising > m_lim_threshold) ? m_lim_threshold : rising;
+        m_lim_gain[m_lim_bp] = maybe;
+
+        if (peak * maybe > m_lim_threshold) {
+            const double curgain = m_lim_threshold / peak;
+            const double inc     = m_lim_threshold - curgain;
+            double acc  = 0.0;
+            bool   stop = false;
+            for (int i = 0; !stop && i < m_lim_lookahead; ++i) {
+                long ind = m_lim_bp - i;
+                if (ind < 0)
+                    ind += c_lim_size;
+                const double newgain = curgain + inc * (acc * acc);
+                if (newgain < m_lim_gain[ind])
+                    m_lim_gain[ind] = newgain;
+                else
+                    stop = true;
+                acc += m_lim_recip;
+            }
+        }
+
+        long bbp = m_lim_bp - m_lim_lookahead;
+        if (bbp < 0)
+            bbp += c_lim_size;
+
+        l = m_lim_buf1[bbp] * m_lim_gain[bbp];
+        r = m_lim_buf2[bbp] * m_lim_gain[bbp];
+
+        m_lim_last = m_lim_gain[m_lim_bp];
+        if (++m_lim_bp >= c_lim_size)
+            m_lim_bp = 0;
     }
 };
 
