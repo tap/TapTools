@@ -289,6 +289,30 @@ equal-gain crossfade mixer with per-inlet slew; dynamic inlets),
 Welch table is embedded and mirrored to 512). Compile-verified; audio behavior
 needs runtime validation in Max.
 
+**Infrastructure objects:** ✅ `tap.midimapper` (MIDI-message remapper, pure
+control logic) and ✅ `tap.folder` (filesystem make/delete/copy/move —
+**modernized** onto portable `std::filesystem`, replacing the original's
+AppleScript + Win32-shell code; `unzip` dropped, no portable std support). Their
+reference pages/help were restored from git history after the prune.
+- ⏸ `tap.loader` — a package-loader shim; **obsolete** under the modern Max package
+  system (externals auto-load), so intentionally not ported.
+- ⏸ `tap.filecontainer` — bundles files into a SQLite container; deferred (needs a
+  SQLite integration, which the Min package doesn't currently provide).
+
+**Remaining frontiers (each its own sub-effort):**
+- **Jitter family** (`tap.jit.ali/colortrack/kernel/proximity/sum`) — Min supports
+  Jitter (`matrix_operator` + the jit-includes), but these are 300–500-line raw
+  n-dimensional Jitter objects (change detection, internal matrices, matrix→value
+  output) that don't drop into the `matrix_operator` pattern cleanly. Source is in
+  git history; warrants a dedicated pass.
+- **Resurrection candidates** (`tap.sustain~`, `tap.vocoder~`, `tap.nr~`,
+  `tap.spectra~`, `tap.delay~`/`tap.delay`, …) — no surviving source; reconstruct
+  from the maxref docs (the simple delays are tagged Obsolete; the spectral ones are
+  distinctive but large).
+- **`tap.filter~`** — the open question of building a unified standalone multichannel
+  filter that could absorb several individual filter objects.
+- **`tap.verb~` oversampling** and SQLite for `tap.filecontainer` — minor polish.
+
 **Latent-bug fixes made along the way (all noted in-file):** `tap.random~`
 per-vector→per-sample edge test; `tap.buffer.snap~` post-clamp loop that could
 never terminate; `tap.fft.normalize~` 0.49-biased equality that disabled the
