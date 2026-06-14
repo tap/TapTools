@@ -402,6 +402,18 @@ tap.elixir_tilde_IS_TOP_LEVEL:STATIC=OFF
 tap.elixir_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.elixir_tilde
 
 //Value Computed by CMake
+tap.fft.binmodulator_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.fft.binmodulator_tilde
+
+//The name to give to the external output file/directory
+tap.fft.binmodulator_tilde_EXTERN_OUTPUT_NAME:STRING=tap.fft.binmodulator~
+
+//Value Computed by CMake
+tap.fft.binmodulator_tilde_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+tap.fft.binmodulator_tilde_SOURCE_DIR:STATIC=/home/user/TapTools/source/projects/tap.fft.binmodulator_tilde
+
+//Value Computed by CMake
 tap.fft.list_tilde_BINARY_DIR:STATIC=/home/user/TapTools/build_test/source/projects/tap.fft.list_tilde
 
 //The name to give to the external output file/directory
@@ -782,7 +794,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=38
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=39
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -859,6 +871,8 @@ tap.crossfade_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 tap.dcblock_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.elixir_tilde_EXTERN_OUTPUT_NAME
 tap.elixir_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: tap.fft.binmodulator_tilde_EXTERN_OUTPUT_NAME
+tap.fft.binmodulator_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.fft.list_tilde_EXTERN_OUTPUT_NAME
 tap.fft.list_tilde_EXTERN_OUTPUT_NAME-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: tap.fft.normalize_tilde_EXTERN_OUTPUT_NAME
