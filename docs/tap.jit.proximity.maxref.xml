@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+ 
+<c74object name="tap.jit.proximity" module="jit" category="TapTools, Jitter, Interface, Control">
+
+	<digest>
+		Finds the nearest point
+	</digest>
+
+	<description>
+		The <o>tap.jit.proximity</o> object 
+ 		looks at a matrix containing pairs of coordinates and returns the pair that is nearest to the input coords. 
+		It can be used to create custom interfaces.
+	</description>
+
+	
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Jitter</metadata>
+		<metadata name="tag">Interface</metadata>
+	</metadatalist>
+
+	
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="coords">
+			<arglist>
+				<arg name="x" type="float" optional="0" id="0" />
+				<arg name="y" type="float" optional="0" id="0" />
+			</arglist>
+			<description>
+				Perform a look up in the matrix and return the nearest pair of coordinates in the matrix.
+			</description>
+		</method>
+	</methodlist>
+	
+	
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="name" get="1" set="1" type="symbol" size="1">
+			<description>The name of the matrix containing the coordinate sets to reference.</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="jsui"/>
+	</seealsolist>
+
+	
+</c74object>
