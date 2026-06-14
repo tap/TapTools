@@ -294,15 +294,21 @@ per-vector→per-sample edge test; `tap.buffer.snap~` post-clamp loop that could
 never terminate; `tap.fft.normalize~` 0.49-biased equality that disabled the
 DC/Nyquist halving; `tap.comb~` undefined-when-unset feedback/decay coupling.
 
-**Still TODO — the two heaviest Tier-3 objects (2):**
-- `tap.procrastinate~` — a multi-voice **cascaded** pitch-shifter/delay: each voice
-  is a `tap.shift~`-style unit (phasor + two windowed delay taps) feeding the next,
-  with per-voice gain (mixer) and stereo pan, plus a `randomize_parameters` step that
-  draws each voice's shift/delay/gain/pan from configurable ranges. The `tap.shift~`
-  building blocks are done; this adds the voice cascade, panning, and randomization.
-- `tap.verb~` — a reverb built from up/downsampling + DC blocker + limiter + clip +
-  copy around a reverb network (the core algorithm still needs locating in ttblue).
-  The largest single object; warrants its own focused pass.
+**Tier 3 is complete.** The final two — the heaviest objects — are done:
+- ✅ `tap.procrastinate~` — four `tap.shift~`-style voices chained in cascade, each
+  with a randomized pitch ratio / delay / gain / equal-power pan drawn from
+  configurable ranges (regenerated on bang). Embeds the padded-Welch window.
+- ✅ `tap.verb~` — stereo Moorer-style reverb reconstructed from tt_verb: an 18-tap
+  early-reflection pattern → six LFO-modulated comb filters (damping lowpass in each
+  feedback loop) → Schroeder allpass → output lowpass → equal-power dry/wet mix →
+  gain, with DC-block and clip stages. Two prime-"deviated" cores give the stereo
+  image. *Not yet included from the original wrapper:* the optional look-ahead
+  limiter and the internal oversampling (downsample/upsample) — a follow-up polish.
+
+All ~48 core objects across Tiers 1–3 are now ported and compile-verified against
+the Min/Max SDK toolchain. **Runtime validation in Max remains the outstanding
+step** for the DSP objects (the filters, delays, pitch shifters, and reverb in
+particular).
 
 **Established Min patterns now available for the rest of Tier 3:** dynamically
 created outlets + `vector_operator` (for variable I/O like the buffer/FFT

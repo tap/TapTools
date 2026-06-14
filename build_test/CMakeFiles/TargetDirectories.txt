@@ -153,6 +153,10 @@
 /home/user/TapTools/build_test/source/projects/tap.svf_tilde/CMakeFiles/test.dir
 /home/user/TapTools/build_test/source/projects/tap.svf_tilde/CMakeFiles/edit_cache.dir
 /home/user/TapTools/build_test/source/projects/tap.svf_tilde/CMakeFiles/rebuild_cache.dir
+/home/user/TapTools/build_test/source/projects/tap.verb_tilde/CMakeFiles/tap.verb_tilde.dir
+/home/user/TapTools/build_test/source/projects/tap.verb_tilde/CMakeFiles/test.dir
+/home/user/TapTools/build_test/source/projects/tap.verb_tilde/CMakeFiles/edit_cache.dir
+/home/user/TapTools/build_test/source/projects/tap.verb_tilde/CMakeFiles/rebuild_cache.dir
 /home/user/TapTools/build_test/source/projects/tap.width_tilde/CMakeFiles/tap.width_tilde.dir
 /home/user/TapTools/build_test/source/projects/tap.width_tilde/CMakeFiles/test.dir
 /home/user/TapTools/build_test/source/projects/tap.width_tilde/CMakeFiles/edit_cache.dir
