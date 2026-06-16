@@ -14,16 +14,12 @@ using namespace c74::min;
 
 
 class crossfade : public object<crossfade>, public sample_operator<3, 1> {
-private:
-    static constexpr double c_half_pi { 1.57079632679489661923 };
-
-    // Cached state — declared before the attributes so it is initialized before their setters run.
-    bool   m_equal_power { true };
-    double m_position    { 0.5 };
-    double m_weight_a    { 1.0 };
-    double m_weight_b    { 0.0 };
-
 public:
+    // The shape and mode attributes are integer-indexed enums, matching the original object and
+    // the help patcher's umenus (which send the menu index).
+    enum class shapes : int { equalpower, linear, enum_count };
+    enum class modes  : int { lookuptable, calculate, enum_count };
+
     MIN_DESCRIPTION { "Crossfade between two signals. The position runs from 0 (input A) to 1 "
                       "(input B), using either an equal-power or a linear curve." };
     MIN_TAGS    { "filters" };
@@ -35,24 +31,23 @@ public:
     inlet<>  m_in_pos { this, "(signal/float) crossfade position, 0 (A) to 1 (B)" };
     outlet<> m_out    { this, "(signal) the crossfaded output", "signal" };
 
-    attribute<symbol> shape { this, "shape", "equalpower",
-        range { "equalpower", "linear" },
-        setter { MIN_FUNCTION {
-            m_equal_power = !(args[0] == "linear");
-            update_weights();
-            return args;
-        }},
-        description { "Crossfade curve: equalpower or linear." }
+    enum_map shapes_range = { "equalpower", "linear" };
+    enum_map modes_range  = { "lookuptable", "calculate" };
+
+    attribute<shapes> shape { this, "shape", shapes::equalpower, shapes_range,
+        description { "Crossfade curve: equal-power or linear." }
+    };
+
+    attribute<modes> mode { this, "mode", modes::lookuptable, modes_range,
+        description { "Computation method. Provided for compatibility with the original object; "
+                      "both settings produce identical results in this implementation, which "
+                      "always computes the curve directly." }
     };
 
     attribute<number> position { this, "position", 0.5,
         range { 0.0, 1.0 },
-        setter { MIN_FUNCTION {
-            m_position = MIN_CLAMP(static_cast<double>(args[0]), 0.0, 1.0);
-            update_weights();
-            return { m_position };
-        }},
-        description { "Crossfade position, from 0 (input A) to 1 (input B)." }
+        description { "Crossfade position, from 0 (input A) to 1 (input B). "
+                      "Overridden by a signal connected to the right inlet." }
     };
 
     message<threadsafe::yes> number { this, "number", "Set the crossfade position (0..1).",
@@ -60,16 +55,12 @@ public:
     };
 
     sample operator()(sample a, sample b, sample pos = 0.5) {
-        double wa = m_weight_a;
-        double wb = m_weight_b;
-        if (m_in_pos.has_signal_connection())
-            weights_for(MIN_CLAMP(pos, 0.0, 1.0), wa, wb);
-        return a * wa + b * wb;
-    }
+        double p = m_in_pos.has_signal_connection() ? static_cast<double>(pos)
+                                                    : static_cast<double>(position);
+        p = MIN_CLAMP(p, 0.0, 1.0);
 
-private:
-    void weights_for(double p, double& wa, double& wb) const {
-        if (m_equal_power) {
+        double wa, wb;
+        if (shape == shapes::equalpower) {
             const double rad = p * c_half_pi;
             wa = std::cos(rad);
             wb = std::sin(rad);
@@ -78,11 +69,11 @@ private:
             wa = 1.0 - p;
             wb = p;
         }
+        return a * wa + b * wb;
     }
 
-    void update_weights() {
-        weights_for(m_position, m_weight_a, m_weight_b);
-    }
+private:
+    static constexpr double c_half_pi { 1.57079632679489661923 };
 };
 
 

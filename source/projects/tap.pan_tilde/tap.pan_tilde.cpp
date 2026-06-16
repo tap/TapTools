@@ -2,7 +2,7 @@
 /// @brief      tap.pan~ — stereo panner.
 /// @details    Pans a mono signal between left and right outputs. The position runs from -1 (hard
 ///             left) through 0 (center) to 1 (hard right); internally this maps to 0..1 and drives
-///             an equal-power (cos/sin), square-root, or linear gain curve. Faithful to Jamoma's
+///             an equal-power (cos/sin), linear, or square-root gain curve. Faithful to Jamoma's
 ///             TTPanorama "calculate" formulas. Position may be driven by the second (signal)
 ///             inlet, or set via the `position` attribute / a float.
 /// @author     Timothy Place
@@ -15,18 +15,12 @@ using namespace c74::min;
 
 
 class pan : public object<pan>, public sample_operator<2, 2> {
-private:
-    static constexpr double c_half_pi { 1.57079632679489661923 };
-
-    enum shape_type { equal_power = 0, linear = 1, square_root = 2 };
-
-    // Cached state — declared before the attributes so it is initialized before their setters run.
-    int    m_shape    { equal_power };
-    double m_position { 0.0 };       // -1 (left) .. 1 (right)
-    double m_weight_l { 0.0 };
-    double m_weight_r { 0.0 };
-
 public:
+    // Integer-indexed enums, matching the help patcher's umenus (which send the menu index).
+    // The shape order matches the original object: equalpower(0), linear(1), squareroot(2).
+    enum class shapes : int { equalpower, linear, squareroot, enum_count };
+    enum class modes  : int { lookuptable, calculate, enum_count };
+
     MIN_DESCRIPTION { "Stereo panner. Pan a mono signal between the left and right outputs using a "
                       "position from -1 (left) through 0 (center) to 1 (right)." };
     MIN_TAGS    { "filters" };
@@ -38,29 +32,23 @@ public:
     outlet<> m_out_l  { this, "(signal) left output", "signal" };
     outlet<> m_out_r  { this, "(signal) right output", "signal" };
 
-    attribute<symbol> shape { this, "shape", "equalpower",
-        range { "equalpower", "squareroot", "linear" },
-        setter { MIN_FUNCTION {
-            if (args[0] == "linear")
-                m_shape = linear;
-            else if (args[0] == "squareroot")
-                m_shape = square_root;
-            else
-                m_shape = equal_power;
-            update_weights();
-            return args;
-        }},
-        description { "Panning curve: equalpower, squareroot, or linear." }
+    enum_map shapes_range = { "equalpower", "linear", "squareroot" };
+    enum_map modes_range  = { "lookuptable", "calculate" };
+
+    attribute<shapes> shape { this, "shape", shapes::equalpower, shapes_range,
+        description { "Panning curve: equalpower, linear, or squareroot." }
+    };
+
+    attribute<modes> mode { this, "mode", modes::lookuptable, modes_range,
+        description { "Computation method. Provided for compatibility with the original object; "
+                      "both settings produce identical results in this implementation, which "
+                      "always computes the curve directly." }
     };
 
     attribute<number> position { this, "position", 0.0,
         range { -1.0, 1.0 },
-        setter { MIN_FUNCTION {
-            m_position = MIN_CLAMP(static_cast<double>(args[0]), -1.0, 1.0);
-            update_weights();
-            return { m_position };
-        }},
-        description { "Pan position, from -1 (left) through 0 (center) to 1 (right)." }
+        description { "Pan position, from -1 (left) through 0 (center) to 1 (right). "
+                      "Overridden by a signal connected to the right inlet." }
     };
 
     message<threadsafe::yes> number { this, "number", "Set the pan position (-1..1).",
@@ -68,26 +56,23 @@ public:
     };
 
     samples<2> operator()(sample x, sample pos = 0.0) {
-        double wl = m_weight_l;
-        double wr = m_weight_r;
-        if (m_in_pos.has_signal_connection())
-            weights_for(MIN_CLAMP(pos, -1.0, 1.0), wl, wr);
-        return { x * wl, x * wr };
-    }
+        double p = m_in_pos.has_signal_connection() ? static_cast<double>(pos)
+                                                    : static_cast<double>(position);
+        p = MIN_CLAMP(p, -1.0, 1.0);
+        const double scaled = 0.5 * (p + 1.0);    // map -1..1 to 0..1
 
-private:
-    void weights_for(double p, double& wl, double& wr) const {
-        const double scaled = 0.5 * (p + 1.0);     // map -1..1 to 0..1
-        switch (m_shape) {
-            case linear:
+        double        wl, wr;
+        const shapes  s = shape;
+        switch (s) {
+            case shapes::linear:
                 wl = 1.0 - scaled;
                 wr = scaled;
                 break;
-            case square_root:
+            case shapes::squareroot:
                 wl = std::sqrt(1.0 - scaled);
                 wr = std::sqrt(scaled);
                 break;
-            case equal_power:
+            case shapes::equalpower:
             default: {
                 const double rad = scaled * c_half_pi;
                 wl = std::cos(rad);
@@ -95,11 +80,11 @@ private:
                 break;
             }
         }
+        return { x * wl, x * wr };
     }
 
-    void update_weights() {
-        weights_for(m_position, m_weight_l, m_weight_r);
-    }
+private:
+    static constexpr double c_half_pi { 1.57079632679489661923 };
 };
 
 
