@@ -1,7 +1,9 @@
 # TapTools Revival — Inventory & Plan
 
 > Working document for bringing TapTools back to life in 2026.
-> Status as of 2026-06-13. Branch: `claude/taptools-revival-xtc276`.
+> Status as of 2026-06-17. The revival work has been consolidated into `main`
+> (Tiers 1–3 + infrastructure + 3/5 Jitter; legacy preserved on the `legacy`
+> branch). See §8 for the `taptools-min` reconciliation.
 
 ## 1. Where things actually stand
 
@@ -312,10 +314,11 @@ reference pages/help were restored from git history after the prune.
     - `tap.jit.kernel` — a matrix→matrix radial-kernel **generator**; needs Min's
       `matrix_operator`/MOP path (with the original's plane/column quirks resolved),
       not the plain-object pattern used for the others.
-- **Resurrection candidates** (`tap.sustain~`, `tap.vocoder~`, `tap.nr~`,
-  `tap.spectra~`, `tap.delay~`/`tap.delay`, …) — no surviving source; reconstruct
-  from the maxref docs (the simple delays are tagged Obsolete; the spectral ones are
-  distinctive but large).
+- **Resurrection candidates** (`tap.vocoder~`, `tap.nr~`, `tap.spectra~`,
+  `tap.delay~`/`tap.delay`, …) — no surviving source; reconstruct from the maxref
+  docs (the simple delays are tagged Obsolete; the spectral ones are distinctive but
+  large). (`tap.sustain~` is no longer in this list — source was recovered from the
+  `taptools-min` archive and ported; see §8.)
 - **`tap.filter~`** — the open question of building a unified standalone multichannel
   filter that could absorb several individual filter objects.
 - **`tap.verb~` oversampling** and SQLite for `tap.filecontainer` — minor polish.
@@ -367,3 +370,52 @@ is preserved in git history if any algorithm needs to be referenced again. The
 working tree now contains only the modern package: `CMakeLists.txt`, `source/min-api`
 (submodule), `source/projects/`, `docs/`, `help/`, `package-info.json.in`, and the
 GitHub Actions CI.
+
+---
+
+## 8. The `taptools-min` reconciliation (2026-06-17)
+
+A second, previously-unknown Min port surfaced: **`taptools-min`** — an official
+Cycling '74 effort (`github.com/Cycling74/taptools.git`, 2016–2019), since
+**deleted upstream**. The only surviving copy is now preserved as the
+**`taptools-min` branch** of this repo (pushed for archival; an independent history
+with no shared base with `main`). It contained 7 Min-ported objects plus prototypes.
+This revival had already independently re-ported **6 of the 7**, so a per-object
+diff decided which implementation wins:
+
+| Object | Outcome |
+|--------|---------|
+| `tap.fft.list~` | **Keep revival** — taptools-min had an out-of-bounds write and dropped the dumpout outlet. |
+| `tap.fft.normalize~` | **Keep revival** — both math-correct; revival adds a divide-by-zero guard. |
+| `tap.elixir~` | **Keep revival** — taptools-min was broken (wrong gain model, OOB for >2 channels) *and* depended on `min-lib`. |
+| `tap.buffer.snap~` | **Keep revival** — taptools-min had a `wrap`-vs-clamp bug and dropped multichannel / `mode` / `channel` / dumpout. |
+| `tap.sift~` | **Keep revival + graft** — added the `high_priority` attribute and a scheduler-thread `timer` delivery path (faithful to the original's clock-based delivery), keeping the main-thread `queue` as the low-priority option. |
+| `tap.buffer.record~` | **Keep revival; optimization deferred** — taptools-min's power-of-two ring-buffer fade is faster for large fades, but bit-equivalence to the current (correct, faithful) shift-based fade was not cleanly established and the win is marginal at typical fade sizes. Not worth risking a working recorder; revisit with a proper equivalence/perf test if large-fade performance becomes a need. |
+
+**New from `taptools-min`:**
+- ✅ **`tap.sustain~`** — the one genuinely unique object (capture recent audio →
+  trim to zero-crossings → crossfaded forward/backward sustaining loop). Ported onto
+  the current toolchain (C++20 `std::numbers` instead of MSVC-fragile `M_PI_2`;
+  initialized/guarded voice state so it is safe to instantiate before the first
+  capture). **EXPERIMENTAL** — the 2019 source was an in-development single-voice
+  prototype (multi-voice / `rise` still stubbed). Reference page ported; no help
+  patcher yet. Provenance noted in-file; relicensed to the package's New BSD with
+  attribution (originally Cycling '74 / MIT — flag for the author if stricter notice
+  retention is wanted).
+- 📋 **`tap.sustain1~`…`tap.sustain4~` redesign** (+ `tap.sustain.voice.maxpat`,
+  `tap.sustain.analyze/calc/find.js`) — a later Max-abstraction reimagining of
+  sustain. Left in the `taptools-min` archive branch as design input for a future
+  proper `tap.sustain~`.
+- 📋 **`tap.autowah~`, `tap.selfconvolve~`** — help-patcher-only prototypes (no C++
+  source ever existed); ideas for future objects, in the archive branch.
+
+**Test harness adopted:** the Catch-based `min-object-unittest.cmake` is now wired
+up (first real test: `tap.sift_tilde_test.cpp`, guarding the new `high_priority`
+default), and CI runs `ctest` on macOS. taptools-min's own test files were empty
+stubs; this is the first actual coverage. Pattern established for the rest.
+
+**Platform floor raised:** minimum is now **macOS 11** (tracking Max 9; also
+required by `std::filesystem` in `tap.folder`) and **`max_version_min` 9.0**. macOS
+11 is set globally via a `-mmacosx-version-min=11.0` compile/link flag in the root
+`CMakeLists.txt`, since Min's `min-pretarget.cmake` force-pins the deployment target
+to 10.11 and CMake has no per-target deployment property.
