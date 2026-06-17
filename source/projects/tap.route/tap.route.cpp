@@ -55,7 +55,9 @@ public:
 private:
     std::string search_text() const {
         const symbol s = searchstring;
-        return std::string(s);
+        // Go through c_str(): symbol has both operator std::string() and operator const char*(),
+        // which makes a direct std::string conversion ambiguous under MSVC.
+        return std::string(s.c_str());
     }
 
     // Render an incoming atom as the string we will compare against the search text.
@@ -63,7 +65,7 @@ private:
         switch (a.type()) {
             case message_type::int_argument:    return std::to_string(static_cast<int>(a));
             case message_type::float_argument:  return std::to_string(static_cast<double>(a));
-            case message_type::symbol_argument: return static_cast<std::string>(static_cast<symbol>(a));
+            case message_type::symbol_argument: return std::string(static_cast<symbol>(a).c_str());
             default:                            return {};
         }
     }

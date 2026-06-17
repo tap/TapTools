@@ -18,6 +18,14 @@ if (APPLE)
         set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "macOS architectures" FORCE)
         message(STATUS "CMAKE_OSX_ARCHITECTURES set to ${CMAKE_OSX_ARCHITECTURES}")
     endif ()
+
+    # Minimum macOS is 11.0, tracking Max 9's system requirement (and required by C++ features
+    # such as std::filesystem). Min's min-pretarget.cmake force-pins CMAKE_OSX_DEPLOYMENT_TARGET
+    # to 10.11 in every object, and CMake has no per-target deployment property, so we can't set
+    # it through that variable. Append the deployment flag globally instead — it propagates to
+    # every target added below, and the later flag wins on the compile/link command line.
+    add_compile_options(-mmacosx-version-min=11.0)
+    add_link_options(-mmacosx-version-min=11.0)
 endif ()
 
 # Min-DevKit package helpers (defines SUBDIRLIST, packaging, etc.)

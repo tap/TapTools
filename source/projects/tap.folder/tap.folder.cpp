@@ -78,7 +78,9 @@ public:
 
 private:
     static fs::path path_of(const atom& a) {
-        return fs::path(static_cast<std::string>(static_cast<symbol>(a)));
+        // Go through c_str(): symbol has both operator std::string() and operator const char*(),
+        // which makes a direct std::string conversion ambiguous under MSVC.
+        return fs::path(static_cast<symbol>(a).c_str());
     }
 
     bool require(const atoms& args, size_t n, const char* name) {

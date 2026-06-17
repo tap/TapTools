@@ -9,7 +9,7 @@
 	"os" : {
 		"macintosh" : {
 			"platform" : [ "x64", "aarch64" ],
-			"min_version" : "none"
+			"min_version" : "11.0"
 		},
 		"windows" : {
 			"platform" : [ "x64" ],
