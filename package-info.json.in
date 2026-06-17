@@ -1,0 +1,26 @@
+{
+	"name" : "@C74_PACKAGE_NAME@",
+	"version" : "@GIT_VERSION_MAJ@.@GIT_VERSION_MIN@.@GIT_VERSION_SUB@",
+	"author" : "Timothy Place",
+	"description" : "A potpourri of objects for Max.",
+	"homepatcher" : "",
+	"max_version_min" : "8.0",
+	"max_version_max" : "none",
+	"os" : {
+		"macintosh" : {
+			"platform" : [ "x64", "aarch64" ],
+			"min_version" : "11.0"
+		},
+		"windows" : {
+			"platform" : [ "x64" ],
+			"min_version" : "none"
+		}
+	},
+	"package_extra" : {
+		"reverse_domain" : "com.74objects",
+		"copyright" : "Copyright (c) 1999-2026 Timothy Place",
+		"add_verinfo" : true
+	},
+	"website" : "https://github.com/tap/TapTools",
+	"tags" : []
+}

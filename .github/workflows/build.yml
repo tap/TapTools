@@ -1,0 +1,62 @@
+name: build
+
+# Builds the modern (Min-based) TapTools externals on macOS and Windows.
+# This is the "proof of life" CI that replaces the retired Travis/Xcode build.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure (universal arm64 + x86_64)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Verify externals are universal
+        run: |
+          set -e
+          ls -la externals
+          for mxo in externals/*.mxo; do
+            bin="$mxo/Contents/MacOS/$(basename "$mxo" .mxo)"
+            echo "== $mxo =="
+            lipo -info "$bin"
+            lipo -info "$bin" | grep -q "arm64" && lipo -info "$bin" | grep -q "x86_64" \
+              || { echo "ERROR: $bin is not universal"; exit 1; }
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: taptools-macos
+          path: externals/*.mxo
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure
+        run: cmake -S . -B build -A x64
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: List externals
+        run: dir externals
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: taptools-windows
+          path: externals/*.mxe64
