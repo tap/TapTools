@@ -2,7 +2,7 @@
 
 > Working document for bringing TapTools back to life in 2026.
 > Status as of 2026-06-17. The revival work has been consolidated into `main`
-> (Tiers 1–3 + infrastructure + 3/5 Jitter; legacy preserved on the `legacy`
+> (Tiers 1–3 + infrastructure + all 5 Jitter objects; legacy preserved on the `legacy`
 > branch). See §8 for the `taptools-min` reconciliation.
 
 ## 1. Where things actually stand
@@ -123,8 +123,8 @@ source. Strong candidates to **resurrect from docs + git history** if still usef
 
 | Object | What it did | Revive? (first take) |
 |--------|-------------|----------------------|
-| `tap.delay~` | Sample-accurate delay | ✅ classic, useful |
-| `tap.delay` | Delay lists/symbols/numbers | ✅ useful |
+| `tap.delay~` | Sample-accurate delay | ✅ **done** (reconstructed from docs) |
+| `tap.delay` | Delay lists/symbols/numbers | ✅ **done** (reconstructed from docs) |
 | `tap.sustain~` | Sample-and-loop sounds | ✅ distinctive |
 | `tap.vocoder~` | 24-band vocoder | ✅ high-value |
 | `tap.spectra~` | Spectral remapping | ✅ distinctive |
@@ -302,23 +302,28 @@ reference pages/help were restored from git history after the prune.
   SQLite integration, which the Min package doesn't currently provide).
 
 **Remaining frontiers (each its own sub-effort):**
-- **Jitter family** — 3 of 5 done. The matrix→value (analysis) objects port cleanly
-  as plain Min objects that read a named `jit.matrix` through the Jitter API
-  (`c74::max`) — ✅ `tap.jit.sum` (sum all cells), ✅ `tap.jit.proximity` (nearest 2D
-  point), ✅ `tap.jit.ali` (Ali Momeni proximity-weighted interpolation, list-output
-  mode). They compile against the toolchain (JitterAPI links on the mac/win CI; only
-  the object compile is checked on Linux). Still open:
-    - `tap.jit.colortrack` — a 1073-line HSL colour tracker (4 trackers, 24 hue/sat/
-      brightness attributes, RGB→HSL, bounds/centroid/size). Same plain-object
-      pattern, but large; a focused pass.
-    - `tap.jit.kernel` — a matrix→matrix radial-kernel **generator**; needs Min's
-      `matrix_operator`/MOP path (with the original's plane/column quirks resolved),
-      not the plain-object pattern used for the others.
-- **Resurrection candidates** (`tap.vocoder~`, `tap.nr~`, `tap.spectra~`,
-  `tap.delay~`/`tap.delay`, …) — no surviving source; reconstruct from the maxref
-  docs (the simple delays are tagged Obsolete; the spectral ones are distinctive but
-  large). (`tap.sustain~` is no longer in this list — source was recovered from the
-  `taptools-min` archive and ported; see §8.)
+- **Jitter family — ✅ 5 of 5 done.** The matrix→value (analysis) objects are plain
+  Min objects that read a named `jit.matrix` through the Jitter API (`c74::max`) — ✅
+  `tap.jit.sum` (sum all cells), ✅ `tap.jit.proximity` (nearest 2D point), ✅
+  `tap.jit.ali` (Ali Momeni proximity-weighted interpolation), ✅ `tap.jit.colortrack`
+  (4-tracker HSL colour tracker — full RGB→HSL, hue-wrap, bounds/centroid/size, all 36
+  attributes preserved). The matrix→matrix object uses the MOP path — ✅ `tap.jit.kernel`
+  (radial-kernel **generator** built on Min's `matrix_operator<>` as a no-input MOP; the
+  original's off-by-one out-of-bounds column write is fixed by the proper MOP cell
+  routing). All five compile against the toolchain (JitterAPI links on the mac/win CI;
+  the object compile is verified on Linux/GCC too). **Runtime validation in Max still
+  pending** for the two new ones.
+- **Resurrection candidates** — the two classic delays are now done: ✅ `tap.delay~`
+  (sample-accurate audio delay line, circular buffer, ms delay drivable by the right
+  inlet or `@delay`, `clear`/`dspsetup`) and ✅ `tap.delay` (control-rate single-pending
+  message delay via Min `timer`, faithful to the original `delay`-based abstraction) —
+  both reconstructed from their surviving maxref docs (no source survived). Still open:
+  the spectral set (`tap.vocoder~`, `tap.nr~`, `tap.spectra~`) — distinctive but large
+  fresh builds from docs only; a dedicated effort each. (`tap.sustain~` was recovered
+  from the `taptools-min` archive — see §8.)
+  > **Doc cleanup flagged:** the legacy `tap.delay.maxref.xml` carries copy-pasted
+  > filter boilerplate attributes (`clip`/`coefficients`/`gain`) that don't belong to a
+  > delay; ported verbatim but **not** implemented. Trim the maxref when convenient.
 - **`tap.filter~`** — the open question of building a unified standalone multichannel
   filter that could absorb several individual filter objects.
 - **`tap.verb~` oversampling** and SQLite for `tap.filecontainer` — minor polish.
@@ -359,6 +364,28 @@ applies to every remaining tilde object (`tap.noise~`, `tap.svf~`, …).
 
 **Package layout:** the repo root is now the Min-DevKit-style package
 (`externals/`, `docs/`, `help/`, generated `package-info.json`).
+
+**Jitter completion + delay resurrection + test coverage (2026-06-17, batch 2):**
+- ✅ **Jitter family complete (5/5).** `tap.jit.colortrack` (full 4-tracker HSL port —
+  integer RGB→HSL, hue-wheel wrap, bounding-box/centroid/size, all 36 attributes,
+  dumpout outlet; `ttblue`'s `onewrap` ported inline) and `tap.jit.kernel` (radial-kernel
+  generator on Min's `matrix_operator<>` as a no-matrix-input MOP; the original's
+  off-by-one column write — which wrote to `x = -1` out of bounds — is eliminated by
+  per-cell MOP routing). Docs + help ported from `legacy` for both.
+- ✅ **`tap.delay~` / `tap.delay` resurrected** from their maxref docs (no source
+  survived) — see the frontiers note above for the implemented surface and the
+  flagged maxref-boilerplate cleanup.
+- ✅ **Unit-test coverage expanded** from 1 object to 10. New Catch tests with real
+  input→output assertions (not just instantiation) for `tap.dcblock~` (filter
+  recurrence, bypass/mute/clear), `tap.radians~` (all four conversions), `tap.zerox~`
+  (per-sample trigger + normalized count), `tap.prime` (sequence + `next_prime`),
+  `tap.sieve`, `tap.bits` (pack/explode round-trips), `tap.list.index`, `tap.change`,
+  and `tap.biquadcalc` (RBJ coefficients vs. independently-computed references). `ctest`
+  is green: **10/10 passing.**
+- **Toolchain note:** `tap.crossfade~` and `tap.pan~` (pre-existing) don't compile under
+  Linux/**GCC** (a `-Wchanges-meaning` + enum-`operator==` quirk in the `shapes`/`modes`
+  enum pattern); they build fine under the CI clang/MSVC toolchains. Worth a small
+  GCC-clean pass if local Linux builds are ever wanted, but not a CI blocker.
 
 **Corpse pruned (step 5 done):** the dead trees have been removed now that all
 objects are migrated and the build is self-contained on `min-api` — gone are the

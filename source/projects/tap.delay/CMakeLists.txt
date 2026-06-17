@@ -1,4 +1,4 @@
-# Copyright 2008-2026 Timothy Place. Distributed under the New BSD License.
+# Copyright 1999-2026 Timothy Place. Distributed under the New BSD License.
 
 cmake_minimum_required(VERSION 3.19)
 
@@ -23,11 +23,9 @@ add_library(
 
 include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)
 
-# TapTools targets C++20. Min's posttarget pins the standard to C++17, so override it here.
+# TapTools targets C++20. Min's posttarget pins the standard to C++17, so override it here
+# (this runs after the include above).
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
-
-# Catch-based unit tests (built when the _test.cpp is present; run via ctest).
-include(${C74_MIN_API_DIR}/test/min-object-unittest.cmake)

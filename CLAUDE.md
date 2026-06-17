@@ -7,10 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 TapTools is a collection of Max/MSP externals (roots back to 1999), revived in 2026 off a dead
 toolchain (old Jamoma C++ library, Ruby/Xcode build, Travis CI, Intel-only binaries) onto a modern
 one (Min SDK + CMake + GitHub Actions). The bulk of the port is done and consolidated on `main`:
-Tiers 1–3, infrastructure, and 3/5 Jitter objects. **`REVIVAL.md` is the authoritative roadmap** —
+Tiers 1–3, infrastructure, and all 5 Jitter objects. **`REVIVAL.md` is the authoritative roadmap** —
 read it for the per-object status, the tier plan (Tier 1 utility → Tier 2 simple DSP → Tier 3
-complex DSP → Jitter), the remaining frontiers (the two large Jitter objects, resurrection
-candidates, runtime validation in Max), and the rationale behind the decisions below. Keep its
+complex DSP → Jitter), the remaining frontiers (the spectral resurrection candidates —
+`tap.vocoder~`/`tap.nr~`/`tap.spectra~` — and runtime validation in Max), and the rationale behind
+the decisions below. Keep its
 progress log current as objects land.
 
 ## Repo layout & branches
