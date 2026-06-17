@@ -318,9 +318,25 @@ reference pages/help were restored from git history after the prune.
   inlet or `@delay`, `clear`/`dspsetup`) and ✅ `tap.delay` (control-rate single-pending
   message delay via Min `timer`, faithful to the original `delay`-based abstraction) —
   both reconstructed from their surviving maxref docs (no source survived). Still open:
-  the spectral set (`tap.vocoder~`, `tap.nr~`, `tap.spectra~`) — distinctive but large
-  fresh builds from docs only; a dedicated effort each. (`tap.sustain~` was recovered
-  from the `taptools-min` archive — see §8.)
+  the **spectral set** — but a closer look (the surviving `.maxpat` abstractions on
+  `legacy`) shows these are **not** standalone DSP externals to "rebuild from docs."
+  They are `pfft~`/patcher **abstractions over a chain of other un-ported objects**, so
+  each is really a mini sub-project:
+    - `tap.spectra~` → a `pfft~ tap.spectra.pfft` subpatcher (the actual spectral
+      remapping) plus `tap.typecheck~`. The subpatcher uses `fftin~`/`fftout~` +
+      `tap.scale~` to reorder bins. Closest to restorable — but needs `tap.scale~` and
+      `tap.typecheck~`, neither of which is ported.
+    - `tap.nr~` → wraps `pfft~ tap.xnr~` — and `tap.xnr~` (the spectral noise-reduction
+      DSP external) has **no surviving source**. Blocked on rebuilding `tap.xnr~`.
+    - `tap.vocoder~` → an abstraction wrapping a real `tap.vocoder~` **external** (the
+      24-band channel vocoder DSP, **no surviving source**) plus `tap.avg~`, `tap.thru`,
+      `tap.typecheck~`. Blocked on reimplementing the vocoder DSP from scratch.
+  > **Decision needed.** Faithfully resurrecting `tap.nr~`/`tap.vocoder~` means
+  > *reimplementing* lost DSP externals (`tap.xnr~`, the vocoder filterbank) — a fresh
+  > design, not a port — plus reviving the small support objects (`tap.scale~`,
+  > `tap.typecheck~`, `tap.avg~`, `tap.thru`). Scope/fidelity is the author's call; do
+  > not fabricate these blind. `tap.spectra~` is the most tractable starting point.
+  (`tap.sustain~` was recovered from the `taptools-min` archive — see §8.)
   > **Doc cleanup flagged:** the legacy `tap.delay.maxref.xml` carries copy-pasted
   > filter boilerplate attributes (`clip`/`coefficients`/`gain`) that don't belong to a
   > delay; ported verbatim but **not** implemented. Trim the maxref when convenient.

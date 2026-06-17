@@ -46,25 +46,17 @@
 			<arglist><arg name="input" type="symbol" optional="0" id="0" /></arglist>
 			<description>Any symbol.</description>
 		</method>
+		<method name="stop">
+			<description>Cancel the pending delayed message.</description>
+		</method>
 	</methodlist>
 	
 	
 	<!--ATTRIBUTES-->
 	<attributelist>
 
-		<attribute name="clip" get="1" set="1" type="float" size="1">
-			<description>This sets a clipping range for the internal feedback to prevent the filter from "blowing up."</description>
-		</attribute>
-
-		<attribute name="coefficients" get="1" set="1" type="float" size="1">
-			<description>A list that specifies the coefficients for each of the poles in the filter.</description>
-		</attribute>
-
-		<attribute name="gain" get="1" set="1" type="float" size="1">
-			<description>
-				The gain attribute scales the internal feedback in the object. 
-				You should keep this between 0.0 and less-than 1.0.
-			</description>
+		<attribute name="delaytime" get="1" set="1" type="float" size="1">
+			<description>The delay time in milliseconds. Also settable via the right inlet. Clamped to be non-negative.</description>
 		</attribute>
 
 	</attributelist>
