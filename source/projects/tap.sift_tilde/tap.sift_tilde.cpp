@@ -37,6 +37,12 @@ public:
         MIN_ARGUMENT_FUNCTION { value = arg; }
     };
 
+    attribute<bool> high_priority { this, "high_priority", true,
+        description { "Deliver the float output from the high-priority scheduler thread (true, the "
+                      "default — matching the original object) or defer it to the main thread "
+                      "(false). Only affects the default float-output mode." }
+    };
+
     argument<int> mode_arg { this, "mode", "Output mode: 0 = float output (default), 1 = signal output." };
 
     sift(const atoms& args = {}) {
@@ -77,7 +83,7 @@ public:
                 m_hold = v;
             }
             if (changed)
-                m_drain.set();
+                m_deliver.delay(0);
         }
     }
 
@@ -92,6 +98,17 @@ private:
     double            m_ring[c_qmax] {};
     std::atomic<long> m_qhead { 0 };
     std::atomic<long> m_qtail { 0 };
+
+    // The timer fires on the high-priority scheduler thread. When high_priority is true we drain
+    // there directly (faithful to the original's clock-based delivery); otherwise we hand off to the
+    // main-thread queue. The ring is single-producer (audio) / single-consumer (whichever drains).
+    timer<> m_deliver { this, MIN_FUNCTION {
+        if (high_priority)
+            drain();
+        else
+            m_drain.set();
+        return {};
+    } };
 
     queue<> m_drain { this, MIN_FUNCTION { drain(); return {}; } };
 
