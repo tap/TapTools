@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.vocoder~" module="msp" category="TapTools, MSP Filters, MSP Modifiers">
+
+	<digest>
+		Basic 24-band vocoder
+	</digest>
+
+	<description>
+		The <o>tap.vocoder~</o> object is a basic 24-band channel vocoder. A bank of log-spaced
+		bandpass filters analyses the <b>modulator</b> (left inlet, e.g. a voice); a per-band
+		envelope follower tracks each band's amplitude and shapes the matching band of the
+		<b>carrier</b> (right inlet, e.g. a synthesizer). The result imposes the modulator's
+		spectral envelope onto the carrier.
+	</description>
+
+
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Effect</metadata>
+		<metadata name="tag">Envelope</metadata>
+	</metadatalist>
+
+
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" type="signal">
+			<digest>Modulator — the spectral-envelope source (e.g. a voice).</digest>
+		</inlet>
+		<inlet id="1" type="signal">
+			<digest>Carrier — the signal to be shaped (e.g. a synthesizer).</digest>
+		</inlet>
+	</inletlist>
+
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" type="signal">
+			<digest>The vocoded output.</digest>
+		</outlet>
+	</outletlist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="clear">
+			<description>Reset all filter and envelope-follower state.</description>
+		</method>
+	</methodlist>
+
+
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="q" get="1" set="1" type="float" size="1">
+			<description>The Q factor (resonance) shared by all of the resonant bandpass filters. Higher values give narrower, more "robotic" bands. Default 20.</description>
+		</attribute>
+		<attribute name="response_interval" get="1" set="1" type="float" size="1">
+			<description>The envelope-follower analysis period for the excitation stage, in milliseconds. Shorter values track the modulator more sharply; longer values smooth it. Default 20.</description>
+		</attribute>
+		<attribute name="gain" get="1" set="1" type="float" size="1">
+			<description>Linear makeup gain applied to the summed output. Default 1.</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.svf~"/>
+		<seealso name="tap.comb~"/>
+		<seealso name="vocoder~"/>
+	</seealsolist>
+
+</c74object>

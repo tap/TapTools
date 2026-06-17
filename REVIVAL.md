@@ -326,16 +326,22 @@ reference pages/help were restored from git history after the prune.
       remapping) plus `tap.typecheck~`. The subpatcher uses `fftin~`/`fftout~` +
       `tap.scale~` to reorder bins. Closest to restorable — but needs `tap.scale~` and
       `tap.typecheck~`, neither of which is ported.
-    - `tap.nr~` → wraps `pfft~ tap.xnr~` — and `tap.xnr~` (the spectral noise-reduction
-      DSP external) has **no surviving source**. Blocked on rebuilding `tap.xnr~`.
-    - `tap.vocoder~` → an abstraction wrapping a real `tap.vocoder~` **external** (the
-      24-band channel vocoder DSP, **no surviving source**) plus `tap.avg~`, `tap.thru`,
-      `tap.typecheck~`. Blocked on reimplementing the vocoder DSP from scratch.
-  > **Decision needed.** Faithfully resurrecting `tap.nr~`/`tap.vocoder~` means
-  > *reimplementing* lost DSP externals (`tap.xnr~`, the vocoder filterbank) — a fresh
-  > design, not a port — plus reviving the small support objects (`tap.scale~`,
-  > `tap.typecheck~`, `tap.avg~`, `tap.thru`). Scope/fidelity is the author's call; do
-  > not fabricate these blind. `tap.spectra~` is the most tractable starting point.
+    - `tap.nr~` → originally wrapped `pfft~ tap.xnr~` (no surviving source). **Decision:
+      reinvent as a self-contained external** rather than restore the pfft chain — in
+      progress.
+    - ✅ `tap.vocoder~` — **reinvented** as a self-contained standalone external (the
+      original was a real external; the abstraction just added smoothing/gain around it).
+      A bank of 24 log-spaced (50 Hz–12 kHz) RBJ constant-0 dB-peak bandpass biquads
+      analyses the modulator (left inlet); a per-band one-pole envelope follower (period
+      = `response_interval` ms) shapes the matching carrier band (right inlet); bands are
+      summed to the output. Honours the documented `q` and `response_interval` attributes
+      (made `number`, not the original's odd `symbol` registration) plus a practical
+      `gain`. DSP smoke-tested (silence→silence; a band tone passes). Help patcher ported
+      from the legacy abstraction — **needs runtime rework in Max** for the standalone
+      object. Audio quality still needs runtime validation.
+  > **Decision (author, 2026-06-17): reinvent the lost spectral DSP** rather than defer.
+  > `tap.vocoder~` done; `tap.nr~` next. `tap.spectra~` remains the patcher-restore path
+  > (needs `tap.scale~`/`tap.typecheck~`).
   (`tap.sustain~` was recovered from the `taptools-min` archive — see §8.)
   > **Doc cleanup flagged:** the legacy `tap.delay.maxref.xml` carries copy-pasted
   > filter boilerplate attributes (`clip`/`coefficients`/`gain`) that don't belong to a
