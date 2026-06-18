@@ -126,3 +126,11 @@ forces the test target to C++17, so tests can't use C++20-only features.
 Beyond unit tests, "tested" still also means: builds on both platforms, the macOS binary is
 universal (enforced in CI via `lipo`), and it loads/behaves correctly in Max against its help patcher
 — the DSP objects in particular still need runtime validation in Max.
+
+For that in-Max validation there is now a **runtime-test harness** under `runtime-tests/`:
+Cycling '74's [`max-test`](https://github.com/Cycling74/max-test) (vendored as a submodule) plus our
+own `*.maxtest.maxpat` patchers in `runtime-tests/patchers/` (generate starters with
+`runtime-tests/make_maxtest.py`). Unlike the Catch tests (mock kernel), these load the real objects
+in Max and assert on actual behavior via `test.assert`/`test.sample~`/`test.terminate`, automatable
+over OSC with the bundled Ruby runner. It requires a **licensed Max install**, so it's a local on-Mac
+gate, not CI. See `runtime-tests/README.md`.

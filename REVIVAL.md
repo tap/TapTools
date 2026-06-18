@@ -298,8 +298,13 @@ AppleScript + Win32-shell code; `unzip` dropped, no portable std support). Their
 reference pages/help were restored from git history after the prune.
 - ⏸ `tap.loader` — a package-loader shim; **obsolete** under the modern Max package
   system (externals auto-load), so intentionally not ported.
-- ⏸ `tap.filecontainer` — bundles files into a SQLite container; deferred (needs a
-  SQLite integration, which the Min package doesn't currently provide).
+- ✅ `tap.filecontainer` — bundles files into a SQLite-backed container. Ported on Min;
+  no SQLite needed to be vendored — like the original it drives **Max's built-in
+  `sqlite` object** via the C API (`object_new_typed(CLASS_NOBOX, "sqlite", …)` +
+  `execstring`). Schemas, BLOB import/export, and all messages reproduced; the
+  temp-folder + file-moddate handling is reimplemented on `std::filesystem` (the
+  moddate restore is best-effort and wants a Max audition). Docs/help restored from
+  legacy.
 
 **Remaining frontiers (each its own sub-effort):**
 - **Jitter family — ✅ 5 of 5 done.** The matrix→value (analysis) objects are plain
@@ -357,9 +362,20 @@ reference pages/help were restored from git history after the prune.
   > **Doc cleanup flagged:** the legacy `tap.delay.maxref.xml` carries copy-pasted
   > filter boilerplate attributes (`clip`/`coefficients`/`gain`) that don't belong to a
   > delay; ported verbatim but **not** implemented. Trim the maxref when convenient.
-- **`tap.filter~`** — the open question of building a unified standalone multichannel
-  filter that could absorb several individual filter objects.
-- **`tap.verb~` oversampling** and SQLite for `tap.filecontainer` — minor polish.
+- ✅ **`tap.filter~`** — built as a new unified multimode filter: a Transposed-Direct-Form-II
+  biquad driven by the RBJ Audio EQ Cookbook coefficients (the same set `tap.biquadcalc`
+  uses), with a `mode` `attribute<symbol>` selecting lowpass/highpass/bandpass(×2)/notch/
+  allpass/peaking/low-/high-shelf, plus `frequency` (signal- or float-driven), `q`, and
+  `gain`. Per-vector coefficient recompute with per-sample linear smoothing to avoid zipper
+  noise; `clear`/`dspsetup` handled. Single-channel (`mc.` for multichannel). New maxref +
+  unit test (16 assertions vs. analytic RBJ references).
+- ✅ **`tap.verb~` oversampling** — the deferred internal oversampling stage is in. An
+  `oversampling` attribute (factors 1/2/4/8, **default 1 = true bypass, bit-identical to
+  before**) runs the reverb cores at `host_sr × factor` with an anti-imaging upsample and a
+  4-stage one-pole anti-aliasing downsample. *Deviation:* the legacy `downsample` ran the
+  core at a **lower** rate with no antialiasing; this is inverted to genuine oversampling
+  (cleaner feedback) per the roadmap — documented in-file. Wants a Max audition for the
+  >1× sound.
 
 **Latent-bug fixes made along the way (all noted in-file):** `tap.random~`
 per-vector→per-sample edge test; `tap.buffer.snap~` post-clamp loop that could
@@ -420,6 +436,23 @@ applies to every remaining tilde object (`tap.noise~`, `tap.svf~`, …).
   enum pattern); they build fine under the CI clang/MSVC toolchains. Worth a small
   GCC-clean pass if local Linux builds are ever wanted, but not a CI blocker.
 
+**Polish batch + runtime-test harness (2026-06-18, batch 3):**
+- ✅ **`tap.verb~` oversampling**, ✅ **`tap.sustain~` multi-voice + rise**, ✅
+  **`tap.filecontainer`** ported (Max native `sqlite` object via the C API), and ✅ a new
+  unified **`tap.filter~`** (RBJ multimode biquad). See the frontiers/§8 notes for each.
+  `tap.sustain~` graduates from EXPERIMENTAL single-voice to a 5-voice round-robin bank
+  with per-voice equal-power rise. Unit tests added for verb~/filter~/sustain~ (the suite
+  is now **24/24 green**); filecontainer is runtime-only (DB needs a live Max).
+- ✅ **Runtime test harness wired up.** Cycling '74's [`max-test`](https://github.com/Cycling74/max-test)
+  is vendored as a submodule under `runtime-tests/` (with `max-test-config.json`, a
+  `make_maxtest.py` patcher generator, two starter `*.maxtest.maxpat` examples, and a
+  `README.md`). This is the path to closing the **runtime validation in Max** gap: the
+  Catch tests run against a mock kernel, whereas max-test loads the real objects in Max and
+  asserts on actual (audio) behavior via `test.assert`/`test.sample~`/`test.terminate`,
+  automatable over OSC with the bundled Ruby runner. It needs a licensed Max install, so it
+  stays a **local on-Mac gate** (CI would need a self-hosted macOS runner with Max) — and
+  the example patchers, generated headless, want a first open-in-Max verification.
+
 **Corpse pruned (step 5 done):** the dead trees have been removed now that all
 objects are migrated and the build is self-contained on `min-api` — gone are the
 old Jamoma `Core/`, the legacy `TapTools/` package (its docs/help were already
@@ -457,11 +490,17 @@ diff decided which implementation wins:
   trim to zero-crossings → crossfaded forward/backward sustaining loop). Ported onto
   the current toolchain (C++20 `std::numbers` instead of MSVC-fragile `M_PI_2`;
   initialized/guarded voice state so it is safe to instantiate before the first
-  capture). **EXPERIMENTAL** — the 2019 source was an in-development single-voice
-  prototype (multi-voice / `rise` still stubbed). Reference page ported; no help
-  patcher yet. Provenance noted in-file; relicensed to the package's New BSD with
-  attribution (originally Cycling '74 / MIT — flag for the author if stricter notice
-  retention is wanted).
+  capture). Ported onto the current toolchain; **multi-voice + `rise` now implemented**
+  (batch 3): a 5-voice round-robin/oldest-first bank (`voices` attribute, 1–5) summed at
+  the output, each voice with its own capture buffer, loop, fade, and a one-shot
+  equal-power `rise` fade-in. (The `taptools-min` archive turned out NOT to contain the
+  sustain source or the `sustain1~…4~`/`.js` redesign patchers §8 referenced, so the
+  polyphony model is a clean documented reconstruction.) Reference page corrected (its
+  digest was copy-pasted boilerplate); still **no help patcher**, and the DSP **feel still
+  wants a Max audition** (rise/fade timing, zero-crossing trim quality, headroom as voices
+  stack). Provenance noted in-file; relicensed to the package's New BSD with attribution
+  (originally Cycling '74 / MIT — flag for the author if stricter notice retention is
+  wanted).
 - 📋 **`tap.sustain1~`…`tap.sustain4~` redesign** (+ `tap.sustain.voice.maxpat`,
   `tap.sustain.analyze/calc/find.js`) — a later Max-abstraction reimagining of
   sustain. Left in the `taptools-min` archive branch as design input for a future

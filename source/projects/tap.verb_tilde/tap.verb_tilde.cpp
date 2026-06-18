@@ -7,8 +7,18 @@
 ///             and gain-scaled. Two independent cores (left/right), decorrelated by the original's
 ///             prime-"deviate" of each delay, give a stereo image. DSP is portable C++ (no Jamoma).
 /// @note       This port covers the reverb core plus the DC blocker, the (default-on) stereo
-///             look-ahead limiter, and the clip stage. The original wrapper's internal oversampling
-///             (downsample/upsample) is not included; it defaulted off, so the default sound matches.
+///             look-ahead limiter, the clip stage, and internal oversampling. Oversampling runs the
+///             reverb core at an integer multiple (1/2/4/8) of the host rate; it defaults to 1 (off),
+///             so the default sound matches the legacy object exactly.
+/// @note       Oversampling deviation from the legacy wrapper: the original tap.verb~ exposed a
+///             "downsample" attribute that ran the core at a *lower* rate (sr/factor) using a crude
+///             sample-and-hold decimator (tt_downsample) and a zero-order-hold reconstructor
+///             (tt_upsample) — no antialiasing at all. That direction (run cheaper/grungier) is
+///             inverted here to true oversampling (run the core at a *higher* rate for cleaner,
+///             alias-suppressed feedback), per the revival roadmap. The crude SAH filters are
+///             therefore replaced with a clean, documented antialiasing path: gain-compensated
+///             zero-stuff + a cascaded one-pole lowpass on the way up, and a matching lowpass +
+///             decimation on the way down (cutoff at the host Nyquist).
 /// @author     Timothy Place
 /// @copyright  Copyright 2003-2026 Timothy Place. Distributed under the New BSD License.
 
@@ -46,6 +56,29 @@ double deviate(double value_ms, double sr) {
 }
 
 double db_to_amp(double db) { return std::pow(10.0, db * 0.05); }
+
+// A small cascade of one-pole lowpass stages, used as the antialiasing/anti-imaging filter for
+// the oversampling path. A 4-stage cascade gives a steep-enough rolloff to suppress images and
+// aliasing for the 2x/4x/8x factors offered here while staying cheap and unconditionally stable.
+struct aa_filter {
+    static constexpr int k_stages = 4;
+    double state[k_stages] {};
+    double coef { 0.5 };
+
+    // cutoff_hz at sample rate sr (the oversampled rate); one-pole coefficient.
+    void set(double cutoff_hz, double sr) {
+        coef = std::clamp(cutoff_hz * 2.0 / sr, 0.0, 1.0);
+    }
+    void clear() { for (auto& s : state) s = 0.0; }
+
+    double process(double x) {
+        for (int i = 0; i < k_stages; ++i) {
+            state[i] = x * coef + state[i] * (1.0 - coef);
+            x = state[i];
+        }
+        return x;
+    }
+};
 
 // One mono Moorer reverb core.
 class verb_core {
@@ -200,6 +233,11 @@ constexpr std::array<double, 6> verb_core::k_delay_mult;
 
 
 class verb : public object<verb>, public sample_operator<2, 2> {
+    // Declared first so it is initialized before any attribute setter can run during construction.
+    // Guards reconfigure_oversampling() from touching cores that aren't built yet; the constructor
+    // body flips it true and performs the initial configuration.
+    bool m_ready { false };
+
 public:
     MIN_DESCRIPTION { "A stereo algorithmic reverb (Moorer-style: early reflections + six modulated "
                       "comb filters + allpass + damping), with a dry/wet mix and output gain." };
@@ -272,17 +310,38 @@ public:
         setter { MIN_FUNCTION { m_lim_release = args[0]; set_recover(); return args; } },
         description { "Limiter release time in milliseconds." }
     };
+    attribute<int> oversampling { this, "oversampling", 1,
+        setter { MIN_FUNCTION {
+            int v = static_cast<int>(args[0]);
+            // Snap to the legacy factor set {1, 2, 4, 8}; anything else rounds down to the nearest.
+            if      (v >= 8) v = 8;
+            else if (v >= 4) v = 4;
+            else if (v >= 2) v = 2;
+            else             v = 1;
+            m_oversampling = v;
+            if (m_ready)   // skip during attribute construction; constructor calls it once cores exist
+                reconfigure_oversampling();
+            return { v };
+        }},
+        description { "Internal oversampling factor (1, 2, 4, or 8). When >1 the reverb core runs at "
+                     "that multiple of the host sample rate, with antialiasing up/downsampling around "
+                     "it [default: 1 = off]." }
+    };
     attribute<bool> bypass { this, "bypass", false, description { "Pass the input through unprocessed." } };
     attribute<bool> mute   { this, "mute", false, description { "Silence the output." } };
 
     message<> clear { this, "clear", "Clear the reverb's internal state.",
-        MIN_FUNCTION { m_l.clear(); m_r.clear(); reset_limiter(); return {}; }
+        MIN_FUNCTION {
+            m_l.clear(); m_r.clear();
+            m_up_l.clear(); m_up_r.clear(); m_down_l.clear(); m_down_r.clear();
+            reset_limiter();
+            return {};
+        }
     };
 
     message<> dspsetup { this, "dspsetup", "Allocate buffers and recompute for the current sample rate.",
         MIN_FUNCTION {
-            m_l.prepare(samplerate());
-            m_r.prepare(samplerate());
+            reconfigure_oversampling();
             reset_limiter();
             push_all();
             return {};
@@ -290,8 +349,8 @@ public:
     };
 
     verb(const atoms& = {}) {
-        m_l.prepare(samplerate());
-        m_r.prepare(samplerate());
+        m_ready = true;
+        reconfigure_oversampling();
         reset_limiter();
     }
 
@@ -301,8 +360,28 @@ public:
         if (bypass)
             return { in_l, in_r };
 
-        double wl = m_l.process(in_l, er);
-        double wr = m_r.process(in_r, er);
+        double wl, wr;
+        if (m_oversampling == 1) {
+            // Factor 1: bypass the resampler entirely so the path is bit-identical to no oversampling.
+            wl = m_l.process(in_l, er);
+            wr = m_r.process(in_r, er);
+        }
+        else {
+            // Upsample by zero-stuffing (gain-compensated so the passband level is preserved), run
+            // the core once per oversampled subsample, then decimate through the anti-aliasing filter.
+            const int    N = m_oversampling;
+            const double g = static_cast<double>(N);   // zero-stuff gain compensation
+            for (int k = 0; k < N; ++k) {
+                const double xl = (k == 0) ? in_l * g : 0.0;
+                const double xr = (k == 0) ? in_r * g : 0.0;
+                const double ul = m_up_l.process(xl);
+                const double ur = m_up_r.process(xr);
+                const double cl = m_l.process(ul, er);
+                const double cr = m_r.process(ur, er);
+                wl = m_down_l.process(cl);   // running the decimation lowpass on every subsample;
+                wr = m_down_r.process(cr);   // the value retained after the last subsample is the output
+            }
+        }
 
         // equal-power dry/wet mix
         const double wet_g = std::sin(m_mix * 1.57079632679489661923);
@@ -330,6 +409,28 @@ private:
     double    m_mix { 1.0 };
     double    m_gain { 1.0 };
     dc_state  m_dc_l, m_dc_r;
+
+    // --- oversampling ---
+    int       m_oversampling { 1 };
+    aa_filter m_up_l, m_up_r;       // anti-imaging lowpass after zero-stuffing (upsample)
+    aa_filter m_down_l, m_down_r;   // anti-aliasing lowpass before decimation (downsample)
+
+    // Re-prepare the reverb cores for the (possibly oversampled) core rate and set the
+    // antialiasing filter cutoffs. Called from the constructor, dspsetup, and on factor change.
+    void reconfigure_oversampling() {
+        const double host_sr = samplerate();
+        const double core_sr = host_sr * static_cast<double>(m_oversampling);
+
+        m_l.prepare(core_sr);
+        m_r.prepare(core_sr);
+        push_all();
+
+        // Cutoff at (just under) the host Nyquist so images/aliasing above it are suppressed.
+        const double cutoff = host_sr * 0.45;
+        for (auto* f : { &m_up_l, &m_up_r, &m_down_l, &m_down_r })
+            f->set(cutoff, core_sr);
+        m_up_l.clear(); m_up_r.clear(); m_down_l.clear(); m_down_r.clear();
+    }
 
     static double dc_block(double x, dc_state& s) {
         const double y = x - s.x1 + 0.9997 * s.y1;

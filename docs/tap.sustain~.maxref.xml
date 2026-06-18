@@ -6,8 +6,8 @@
 
 <c74object name='tap.sustain~' category='buffer'>
 
-	<digest>Snap a time to the nearest zero-crossing location in a buffer</digest>
-	<description>Snap a time to the nearest zero-crossing location in a buffer. </description>
+	<digest>Capture recent audio into seamless sustaining loops</digest>
+	<description>Continuously records its signal input. On a bang the most recently recorded material is captured into a voice, trimmed to significant-power zero-crossings at both ends, and played back as a crossfaded forward/backward loop so it sustains without clicks. A bank of voices is allocated round-robin so successive bangs stack overlapping loops, each rising in over the rise time. </description>
 
 
 	<!--METADATA-->
@@ -30,13 +30,13 @@
 	<methodlist>
 
 		<method name='clear'>
-			<digest>Erase all voices</digest>
-			<description>Erase all voices. </description>
+			<digest>Erase all captured loops</digest>
+			<description>Erase all captured loops (every voice) and reset the round-robin allocation cursor. </description>
 		</method>
 
 		<method name='bang'>
-			<digest>Sustain pedal pressed</digest>
-			<description>Sustain pedal pressed. 127 = fully pressed, 0 = released, 64 = half-pressed. </description>
+			<digest>Capture a sustaining loop</digest>
+			<description>Capture the most recently recorded audio into a sustaining loop, allocated into the next voice round-robin so it overlaps any voices already sounding. </description>
 		</method>
 
 	</methodlist>
@@ -53,7 +53,17 @@
 
 		<attribute name='length' get='1' set='1' type='float64' size='1' >
 			<digest>Maximum length of the captured loop in milliseconds</digest>
-			<description>Maximum length of the captured loop in milliseconds. </description>
+			<description>Maximum length of the captured loop in milliseconds. Changing this restarts the recording buffer. </description>
+		</attribute>
+
+		<attribute name='rise' get='1' set='1' type='float64' size='1' >
+			<digest>Per-voice fade-in time in milliseconds</digest>
+			<description>Time over which each newly captured voice grows to full power, in milliseconds. Applied independently per voice as a one-shot fade-in when it starts sustaining, so a stacked voice swells in under the others rather than clicking in. </description>
+		</attribute>
+
+		<attribute name='voices' get='1' set='1' type='int' size='1' >
+			<digest>Number of overlapping sustaining voices</digest>
+			<description>Number of overlapping sustaining voices (1-5, default 5). Each bang captures into the next voice round-robin, so up to this many loops can stack before the oldest is recycled. </description>
 		</attribute>
 
 	</attributelist>

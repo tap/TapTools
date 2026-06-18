@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.filter~" module="msp" category="TapTools, MSP Filters">
+
+	<digest>
+		A unified multimode audio filter
+	</digest>
+
+	<description>
+		The <o>tap.filter~</o> object is a single flexible biquad filter whose type (mode) is
+		selectable at runtime. It implements the full set of Robert Bristow-Johnson "Audio EQ
+		Cookbook" responses &#8212; lowpass, highpass, bandpass, bandpass_constant_peak, notch,
+		allpass, peaking, lowshelf, and highshelf &#8212; sharing one set of frequency, Q, and gain
+		controls. The cutoff/center frequency can be modulated at audio rate by a signal in the
+		second inlet. For multichannel use, wrap the object in an <o>mc.</o> operator.
+	</description>
+
+
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">Timothy Place</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Filters</metadata>
+	</metadatalist>
+
+
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" type="signal">
+			<digest>Audio input to be filtered</digest>
+		</inlet>
+		<inlet id="1" type="signal/float">
+			<digest>Cutoff / center frequency in Hz (signal-rate modulation or a float)</digest>
+		</inlet>
+	</inletlist>
+
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" type="signal">
+			<digest>The filtered audio output</digest>
+		</outlet>
+	</outletlist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+
+		<method name="clear">
+			<arglist />
+			<description>Reset the filter's internal state (flush the delay memory). Useful if the
+			filter blows up.</description>
+		</method>
+
+		<method name="signal">
+			<arglist />
+			<description>In the left inlet, the audio signal to filter. In the right inlet, a signal
+			drives the cutoff/center frequency for audio-rate modulation.</description>
+		</method>
+
+	</methodlist>
+
+
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="mode" get="1" set="1" type="symbol" size="1">
+			<description>The filter type. One of: lowpass, highpass, bandpass,
+			bandpass_constant_peak, notch, allpass, peaking, lowshelf, or highshelf. May be changed
+			at runtime.</description>
+		</attribute>
+		<attribute name="frequency" get="1" set="1" type="float64" size="1">
+			<description>The cutoff / center frequency of the filter, in Hz. Defaults to 1000.</description>
+		</attribute>
+		<attribute name="q" get="1" set="1" type="float64" size="1">
+			<description>The Q (resonance / narrowness / steepness) of the filter. For the shelf
+			types this value is reused as the shelf slope S. Defaults to 0.707.</description>
+		</attribute>
+		<attribute name="gain" get="1" set="1" type="float64" size="1">
+			<description>Gain in decibels, applied by the peaking, lowshelf, and highshelf types.
+			Defaults to 0.</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.svf~"/>
+		<seealso name="tap.biquadcalc"/>
+		<seealso name="biquad~"/>
+		<seealso name="filtergraph~"/>
+		<seealso name="cascade~"/>
+		<seealso name="onepole~"/>
+		<seealso name="reson~"/>
+	</seealsolist>
+
+
+</c74object>

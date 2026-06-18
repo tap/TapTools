@@ -47,8 +47,8 @@
 		<attribute name="use_early_reflections" get="1" set="1" type="integer">
 			<description>Toggles on/off early-reflections [default = 1 (on)].</description>
 		</attribute>
-		<attribute name="delay" get="1" set="1" type="float">
-			<description>Delay time in milliseconds. Relates to room size / how quickly echo density builds up in the reverberator [default: 100 ms].</description>
+		<attribute name="oversampling" get="1" set="1" type="integer">
+			<description>Internal oversampling factor (1, 2, 4, or 8). When greater than 1 the reverb core runs at that multiple of the host sample rate, with antialiasing up/downsampling filters around it, for cleaner alias-suppressed feedback at the cost of CPU. A value of 1 bypasses the resampler so the sound is unchanged. Values outside the allowed set round down to the nearest factor [default: 1 (off)].</description>
 		</attribute>
 	</attributelist>
 	
