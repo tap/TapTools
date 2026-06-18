@@ -1,7 +1,7 @@
 # TapTools Revival — Inventory & Plan
 
 > Working document for bringing TapTools back to life in 2026.
-> Status as of 2026-06-17. The revival work has been consolidated into `main`
+> Status as of 2026-06-18. The revival work has been consolidated into `main`
 > (Tiers 1–3 + infrastructure + all 5 Jitter objects; legacy preserved on the `legacy`
 > branch). See §8 for the `taptools-min` reconciliation.
 
@@ -47,6 +47,13 @@ is currently Jamoma-free. Every shipping audio/utility object needs decoupling.
 
 ## 2. Currently in source (need Jamoma decoupling)
 
+> **Status: ✅ all of §2 is done.** Every object in the tables below — all of Tier 1–3,
+> all 5 Jitter objects, and the infrastructure set (`tap.midimapper`, `tap.folder`,
+> `tap.filecontainer`) — has been ported off Jamoma onto Min. `tap.loader` was
+> intentionally dropped (obsolete). The tables are kept as the original inventory; see
+> §7 for the per-object completion log. (Note: `tap.filecontainer` does **not** use
+> `ttblue` — it drives Max's native `sqlite` object — and `ttblue`/`Core/` were pruned.)
+
 Effort tiers below are a **first-pass estimate** pending per-object code review.
 "Cut" = reimplement the DSP/logic directly on the Max SDK.
 
@@ -86,7 +93,7 @@ Effort tiers below are a **first-pass estimate** pending per-object code review.
 |--------|--------------|
 | `tap.svf~` | State-variable filter w/ LFO modulation |
 | `tap.comb~` | Comb filter with filtered feedback |
-| `tap.fourpole~` | 4-pole ladder filter *(already on jamoma2 — will re-cut standalone)* |
+| `tap.fourpole~` | 4-pole ladder filter *(✅ re-cut standalone — the 2015 jamoma2 source was gone)* |
 | `tap.rotate` | (revived 2015) |
 | `tap.verb~` | Reverb |
 | `tap.limi~` | Look-ahead limiter |
@@ -125,10 +132,10 @@ source. Strong candidates to **resurrect from docs + git history** if still usef
 |--------|-------------|----------------------|
 | `tap.delay~` | Sample-accurate delay | ✅ **done** (reconstructed from docs) |
 | `tap.delay` | Delay lists/symbols/numbers | ✅ **done** (reconstructed from docs) |
-| `tap.sustain~` | Sample-and-loop sounds | ✅ distinctive |
-| `tap.vocoder~` | 24-band vocoder | ✅ high-value |
-| `tap.spectra~` | Spectral remapping | ✅ distinctive |
-| `tap.nr~` | Spectral noise reduction | ✅ high-value |
+| `tap.sustain~` | Sample-and-loop sounds | ✅ **done** (from `taptools-min`; multi-voice — §8) |
+| `tap.vocoder~` | 24-band vocoder | ✅ **done** (reinvented standalone) |
+| `tap.spectra~` | Spectral remapping | ✅ **done** (reinvented standalone) |
+| `tap.nr~` | Spectral noise reduction | ✅ **done** (reinvented standalone) |
 | `tap.5comb~` | 5× comb filter | maybe |
 | `tap.adapt~` | (audio processor) | review |
 | `tap.buffer.record2~` | Smooth buffer recording (v2) | merge into `tap.buffer.record~`? |
@@ -161,7 +168,7 @@ now that Jamoma is also dormant:
 |---------------------|-----------------|-------------|
 | `tap.colorspace` | `j.unit` (Jamoma) | ⚠️ Jamoma dormant — candidate to bring back |
 | `tap.decibels~` | `atodb~`/`dbtoa~` (native) or `j.unit~` | native covers it |
-| `tap.onepole~` / `twopole~` / `fourpole~` | `tap.filter~` | `tap.filter~` itself isn't in source — see below |
+| `tap.onepole~` / `twopole~` / `fourpole~` | `tap.filter~` | ✅ `tap.filter~` now built (unified multimode biquad — see §7); `tap.fourpole~` also stands alone |
 | `tap.average~` | `average~` (native) | native covers it |
 | `tap.degrade~` | `degrade~` (native) | native covers it |
 | `tap.diff` | `gen~` | native covers it |
@@ -170,11 +177,11 @@ now that Jamoma is also dormant:
 | `tap.xml.sax` | `mxj` XmlParse | obsolete |
 | `tap.svn` | (dropped) | obsolete |
 
-> **Open thread — `tap.filter~`:** the changelog touts it as the flagship
-> multichannel filter that replaced onepole/twopole/fourpole, but it is **not in
-> the current source tree** and has no maxref. It likely lived in Jamoma
-> (`j.filter~`?). Worth deciding whether to rebuild a unified `tap.filter~`
-> standalone — it could absorb several of the individual filter objects.
+> **Resolved — `tap.filter~`:** ✅ built (batch 3). A unified multimode RBJ biquad
+> (lowpass/highpass/bandpass×2/notch/allpass/peaking/low-+high-shelf) with a
+> `mode`/`frequency`/`q`/`gain` surface — the standalone replacement for the old
+> Jamoma flagship. It can absorb the individual filter objects over time. New maxref
+> + unit test; still wants a Max audition.
 
 > **Jamoma repatriation:** a deeper pass over the vendored `Core/` Jamoma
 > modules (Foundation/DSP/AudioGraph/Modular) can identify `j.*` objects that
@@ -359,9 +366,9 @@ reference pages/help were restored from git history after the prune.
   > and **need runtime rework in Max** for the standalone objects; audio quality across
   > all three needs Max validation.
   (`tap.sustain~` was recovered from the `taptools-min` archive — see §8.)
-  > **Doc cleanup flagged:** the legacy `tap.delay.maxref.xml` carries copy-pasted
+  > **Doc cleanup — ✅ done (batch 2):** the legacy `tap.delay.maxref.xml` had copy-pasted
   > filter boilerplate attributes (`clip`/`coefficients`/`gain`) that don't belong to a
-  > delay; ported verbatim but **not** implemented. Trim the maxref when convenient.
+  > delay; they were removed and the real `delaytime` attribute + `stop` message documented.
 - ✅ **`tap.filter~`** — built as a new unified multimode filter: a Transposed-Direct-Form-II
   biquad driven by the RBJ Audio EQ Cookbook coefficients (the same set `tap.biquadcalc`
   uses), with a `mode` `attribute<symbol>` selecting lowpass/highpass/bandpass(×2)/notch/
@@ -390,8 +397,8 @@ DC/Nyquist halving; `tap.comb~` undefined-when-unset feedback/decay coupling.
   early-reflection pattern → six LFO-modulated comb filters (damping lowpass in each
   feedback loop) → Schroeder allpass → output lowpass → equal-power dry/wet mix →
   gain, with DC-block and clip stages. Two prime-"deviated" cores give the stereo
-  image. *Not yet included from the original wrapper:* the optional look-ahead
-  limiter and the internal oversampling (downsample/upsample) — a follow-up polish.
+  image. The optional look-ahead limiter and the internal oversampling (both deferred
+  initially) have since been added — see the `tap.verb~ oversampling` note above.
 
 All ~48 core objects across Tiers 1–3 are now ported and compile-verified against
 the Min/Max SDK toolchain. **Runtime validation in Max remains the outstanding
@@ -521,3 +528,41 @@ required by `std::filesystem` in `tap.folder`) and **`max_version_min` 9.0**. ma
 11 is set globally via a `-mmacosx-version-min=11.0` compile/link flag in the root
 `CMakeLists.txt`, since Min's `min-pretarget.cmake` force-pins the deployment target
 to 10.11 and CMake has no per-target deployment property.
+
+---
+
+## 9. Remaining open items
+
+Everything in §2 (all Tier 1–3 + Jitter + infrastructure), the delays, and the
+spectral set is **done and compile-verified**. What's left:
+
+**1. Runtime validation in Max (the headline gap).** All DSP is compile- and
+unit-tested against a mock kernel but not yet auditioned in a live Max. Priorities,
+roughly by risk: the reinvented spectral trio (`tap.vocoder~`/`tap.nr~`/`tap.spectra~`),
+`tap.sustain~` (multi-voice feel/headroom), `tap.verb~` (the new >1× oversampling),
+`tap.filter~` (sweeps/stability), the delays, and `tap.filecontainer` (DB round-trip +
+best-effort moddate restore). The `runtime-tests/` (max-test) harness is the vehicle —
+**first verify the two generated example patchers in Max**, then extend patcher coverage
+to these objects.
+
+**2. Missing / provisional help patchers.** `tap.sustain~` and `tap.filter~` have **no
+help patcher**. The spectral trio's help patchers are the *legacy `pfft~` abstractions*
+and **need rework** for the new self-contained objects.
+
+**3. Resurrection candidates still open** (§3, all "maybe/review"):
+`tap.5comb~`, `tap.adapt~`, `tap.buffer.record2~` (merge into `tap.buffer.record~`?),
+`tap.smooth`, `tap.deviate`, `tap.semitone2ratio`, `tap.string.sub`, `tap.thru`/`tap.thru~`,
+`tap.decay_calc`; and the retired **Jitter** ones (`tap.jit.delay`, `tap.jit.motion`/`+`/`2`,
+`tap.jit.grayscale`, `tap.jit.pan`, `tap.jit.getattributes`). None are committed to yet.
+
+**4. Repatriation (§5).** `tap.colorspace` (its replacement `j.unit` is Jamoma-dormant) is
+a candidate to bring back; plus the broader `j.*` survey flagged in §5.
+
+**5. Toolchain.** GCC-clean pass for `tap.crossfade~`/`tap.pan~` (the `enum class`
+attribute quirk) — Linux-local-dev nicety, not a CI blocker.
+
+**6. Deferred optimization.** `tap.buffer.record~` power-of-two ring-buffer fade (§8).
+
+**7. Release engineering.** A versioned GitHub release + Max Package Manager submission;
+and, later, automating the runtime tests on a self-hosted macOS runner (feasible — an
+unlicensed Max runs patchers; the blocker is GUI/activation, not licensing).
