@@ -16,10 +16,13 @@ using namespace c74::min;
 
 class pan : public object<pan>, public sample_operator<2, 2> {
 public:
-    // Integer-indexed enums, matching the help patcher's umenus (which send the menu index).
-    // The shape order matches the original object: equalpower(0), linear(1), squareroot(2).
-    enum class shapes : int { equalpower, linear, squareroot, enum_count };
-    enum class modes  : int { lookuptable, calculate, enum_count };
+    // Named indices for the integer-valued shape/mode attributes (order matches the original
+    // object: equalpower(0), linear(1), squareroot(2)). Stored as plain `int` (not `enum class`)
+    // attributes: the help patcher's umenus send the menu index, which an `attribute<int>` takes
+    // directly. (An `attribute<enum class>` is cleaner in the inspector but does not compile under
+    // GCC — min-api's `atom::operator==` has no enum overload.)
+    enum shapes : int { equalpower, linear, squareroot };
+    enum modes  : int { lookuptable, calculate };
 
     MIN_DESCRIPTION { "Stereo panner. Pan a mono signal between the left and right outputs using a "
                       "position from -1 (left) through 0 (center) to 1 (right)." };
@@ -32,17 +35,14 @@ public:
     outlet<> m_out_l  { this, "(signal) left output", "signal" };
     outlet<> m_out_r  { this, "(signal) right output", "signal" };
 
-    enum_map shapes_range = { "equalpower", "linear", "squareroot" };
-    enum_map modes_range  = { "lookuptable", "calculate" };
-
-    attribute<shapes> shape { this, "shape", shapes::equalpower, shapes_range,
-        description { "Panning curve: equalpower, linear, or squareroot." }
+    attribute<int> shape { this, "shape", equalpower, range { equalpower, squareroot },
+        description { "Panning curve: 0 = equalpower, 1 = linear, 2 = squareroot." }
     };
 
-    attribute<modes> mode { this, "mode", modes::lookuptable, modes_range,
-        description { "Computation method. Provided for compatibility with the original object; "
-                      "both settings produce identical results in this implementation, which "
-                      "always computes the curve directly." }
+    attribute<int> mode { this, "mode", lookuptable, range { lookuptable, calculate },
+        description { "Computation method (0 = lookup table, 1 = calculate). Provided for "
+                      "compatibility with the original object; both settings produce identical "
+                      "results in this implementation, which always computes the curve directly." }
     };
 
     attribute<number> position { this, "position", 0.0,
@@ -51,7 +51,7 @@ public:
                       "Overridden by a signal connected to the right inlet." }
     };
 
-    message<threadsafe::yes> number { this, "number", "Set the pan position (-1..1).",
+    message<threadsafe::yes> m_number { this, "number", "Set the pan position (-1..1).",
         MIN_FUNCTION { position = args; return {}; }
     };
 
@@ -61,18 +61,18 @@ public:
         p = MIN_CLAMP(p, -1.0, 1.0);
         const double scaled = 0.5 * (p + 1.0);    // map -1..1 to 0..1
 
-        double        wl, wr;
-        const shapes  s = shape;
+        double     wl, wr;
+        const int  s = shape;
         switch (s) {
-            case shapes::linear:
+            case linear:
                 wl = 1.0 - scaled;
                 wr = scaled;
                 break;
-            case shapes::squareroot:
+            case squareroot:
                 wl = std::sqrt(1.0 - scaled);
                 wr = std::sqrt(scaled);
                 break;
-            case shapes::equalpower:
+            case equalpower:
             default: {
                 const double rad = scaled * c_half_pi;
                 wl = std::cos(rad);

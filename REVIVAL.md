@@ -545,9 +545,15 @@ best-effort moddate restore). The `runtime-tests/` (max-test) harness is the veh
 **first verify the two generated example patchers in Max**, then extend patcher coverage
 to these objects.
 
-**2. Missing / provisional help patchers.** `tap.sustain~` and `tap.filter~` have **no
-help patcher**. The spectral trio's help patchers are the *legacy `pfft~` abstractions*
-and **need rework** for the new self-contained objects.
+**2. Help patchers.** ✅ `tap.sustain~` and `tap.filter~` now have help patchers (authored
+headless from the maxref + templates; **want a first open-in-Max check**). The spectral
+trio's help patchers are still the *legacy `pfft~` abstractions* and **need rework** for the
+new self-contained objects. *Pre-existing shared-asset gap found & partly fixed:* the help
+patchers reference shared bpatchers that were dropped in the prune — ✅ restored
+`tap.badge.maxpat` (referenced by 50+ patchers) and `tap.jit.ali.kernel-assist.maxpat` from
+`legacy`; still missing is `tap.help.dac~.maxpat` (9 refs, no recoverable source — author a
+simple replacement or swap those patchers to plain `ezdac~`). `demosound.maxpat` is a stock
+Max abstraction (fine).
 
 **3. Resurrection candidates still open** (§3, all "maybe/review"):
 `tap.5comb~`, `tap.adapt~`, `tap.buffer.record2~` (merge into `tap.buffer.record~`?),
@@ -558,8 +564,13 @@ and **need rework** for the new self-contained objects.
 **4. Repatriation (§5).** `tap.colorspace` (its replacement `j.unit` is Jamoma-dormant) is
 a candidate to bring back; plus the broader `j.*` survey flagged in §5.
 
-**5. Toolchain.** GCC-clean pass for `tap.crossfade~`/`tap.pan~` (the `enum class`
-attribute quirk) — Linux-local-dev nicety, not a CI blocker.
+**5. Toolchain.** ✅ **Done — the whole tree now builds under Linux/GCC.** The `enum class`
+attribute quirk in `tap.crossfade~`/`tap.pan~` is fixed by storing `shape`/`mode` as
+`attribute<int>` (with named index constants) instead of `attribute<enum class>` — the
+help-patcher umenu-index path is preserved exactly. (Root cause: min-api's `atom::operator==`
+has no enum overload; GCC rejects it where clang accepts a templated conversion.) Also fixed
+the `-Wchanges-meaning` shadow by renaming the `number` message member. Both objects gained
+unit tests (now testable for the first time, guarding the curve selection).
 
 **6. Deferred optimization.** `tap.buffer.record~` power-of-two ring-buffer fade (§8).
 
