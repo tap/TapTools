@@ -322,10 +322,12 @@ reference pages/help were restored from git history after the prune.
   `legacy`) shows these are **not** standalone DSP externals to "rebuild from docs."
   They are `pfft~`/patcher **abstractions over a chain of other un-ported objects**, so
   each is really a mini sub-project:
-    - `tap.spectra~` → a `pfft~ tap.spectra.pfft` subpatcher (the actual spectral
-      remapping) plus `tap.typecheck~`. The subpatcher uses `fftin~`/`fftout~` +
-      `tap.scale~` to reorder bins. Closest to restorable — but needs `tap.scale~` and
-      `tap.typecheck~`, neither of which is ported.
+    - ✅ `tap.spectra~` — **reinvented** as a self-contained external (originally a
+      `pfft~ tap.spectra.pfft` subpatcher that used `tap.scale~` to reorder bins). Same
+      in-house STFT as `tap.nr~`; each output bin k takes its value from input bin
+      round(k·`remap`) with Hermitian mirroring (identity at remap=1, stretch/compress
+      otherwise). Unit-tested for identity reconstruction and for spectral displacement
+      at remap≠1. maxref rewritten; help patcher ported (needs runtime rework).
     - ✅ `tap.nr~` — **reinvented** as a self-contained external (originally wrapped
       `pfft~ tap.xnr~`; no surviving source). Runs its **own STFT** — an in-house radix-2
       FFT with a Hann window at 4× overlap and COLA-normalised overlap-add — so no `pfft~`
@@ -345,8 +347,12 @@ reference pages/help were restored from git history after the prune.
       from the legacy abstraction — **needs runtime rework in Max** for the standalone
       object. Audio quality still needs runtime validation.
   > **Decision (author, 2026-06-17): reinvent the lost spectral DSP** rather than defer.
-  > `tap.vocoder~` and `tap.nr~` done. Only `tap.spectra~` remains — the patcher-restore
-  > path (needs the small `tap.scale~`/`tap.typecheck~` support objects revived).
+  > **Done — the entire spectral set (`tap.vocoder~`, `tap.nr~`, `tap.spectra~`) is now
+  > reinvented as self-contained externals.** The original `pfft~` chains and their
+  > support objects (`tap.scale~`, `tap.typecheck~`, `tap.avg~`, `tap.thru`, `tap.xnr~`)
+  > were bypassed rather than revived. The three help patchers are the legacy abstractions
+  > and **need runtime rework in Max** for the standalone objects; audio quality across
+  > all three needs Max validation.
   (`tap.sustain~` was recovered from the `taptools-min` archive — see §8.)
   > **Doc cleanup flagged:** the legacy `tap.delay.maxref.xml` carries copy-pasted
   > filter boilerplate attributes (`clip`/`coefficients`/`gain`) that don't belong to a
