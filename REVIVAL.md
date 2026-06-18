@@ -449,9 +449,12 @@ applies to every remaining tilde object (`tap.noise~`, `tap.svf~`, …).
   `README.md`). This is the path to closing the **runtime validation in Max** gap: the
   Catch tests run against a mock kernel, whereas max-test loads the real objects in Max and
   asserts on actual (audio) behavior via `test.assert`/`test.sample~`/`test.terminate`,
-  automatable over OSC with the bundled Ruby runner. It needs a licensed Max install, so it
-  stays a **local on-Mac gate** (CI would need a self-hosted macOS runner with Max) — and
-  the example patchers, generated headless, want a first open-in-Max verification.
+  automatable over OSC with the bundled Ruby runner. It needs a Max **install** but **not a
+  paid license** — the standalone "Max Runtime" was dropped in Max 7, and since then
+  unlicensed Max runs patchers indefinitely (only *saving* is disabled), and the runner only
+  runs them. So it stays a **local on-Mac gate** for now, with CI feasible later on a
+  self-hosted macOS runner (gated by Max's GUI/activation, not by licensing). The example
+  patchers, generated headless, want a first open-in-Max verification.
 
 **Corpse pruned (step 5 done):** the dead trees have been removed now that all
 objects are migrated and the build is self-contained on `min-api` — gone are the

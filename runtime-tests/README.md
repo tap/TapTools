@@ -33,8 +33,12 @@ instead of `snapshot~`), `test.equals` (tolerant float compare),
 
 ## First-time setup (one-time, on your Mac)
 
-The harness needs the **full Max application** installed — it cannot run in CI or
-in a headless container. After cloning TapTools:
+The harness needs the **Max application** installed (it can't run in a headless
+container). A **paid license is not required to *run* patchers**: the standalone
+"Max Runtime" was discontinued in Max 7, and since then unlicensed Max runs (and
+even edits) patchers indefinitely — only *saving* is disabled after the 30-day
+demo. The max-test runner only ever runs patchers, so an unlicensed Max install is
+sufficient. After cloning TapTools:
 
 ```sh
 git submodule update --init --recursive          # pulls in runtime-tests/max-test
@@ -85,8 +89,13 @@ python3 runtime-tests/make_maxtest.py     # regenerates the bundled examples
 
 ## CI
 
-Running these in GitHub Actions would require a licensed Max install on the
-runner, which the SDK CI does not currently provision — so runtime tests stay a
-**local, on-Mac** gate for now (the Catch unit tests + the universal-binary `lipo`
-check remain the automated CI gates). Wiring a self-hosted macOS runner with Max
-installed is the path to automating this later; tracked as a follow-up.
+These can't run on GitHub-hosted runners (they don't ship Max), so for now runtime
+tests are a **local, on-Mac** gate — the Catch unit tests + the universal-binary
+`lipo` check remain the automated CI gates.
+
+Automating them later is feasible, and **not** blocked by licensing: an unlicensed
+Max can run patchers (see setup above), so no paid seat is needed on the runner.
+The real frictions are practical — Max is a GUI app that wants a logged-in GUI
+session (and a first-run activation prompt), and it must be installed on the
+runner. The path is therefore a **self-hosted macOS runner** with Max pre-installed
+and a GUI session available, driving `ruby test.rb`. Tracked as a follow-up.
