@@ -548,12 +548,13 @@ to these objects.
 **2. Help patchers.** ✅ `tap.sustain~` and `tap.filter~` now have help patchers (authored
 headless from the maxref + templates; **want a first open-in-Max check**). The spectral
 trio's help patchers are still the *legacy `pfft~` abstractions* and **need rework** for the
-new self-contained objects. *Pre-existing shared-asset gap found & partly fixed:* the help
+new self-contained objects. *Pre-existing shared-asset gap found & fixed:* the help
 patchers reference shared bpatchers that were dropped in the prune — ✅ restored
 `tap.badge.maxpat` (referenced by 50+ patchers) and `tap.jit.ali.kernel-assist.maxpat` from
-`legacy`; still missing is `tap.help.dac~.maxpat` (9 refs, no recoverable source — author a
-simple replacement or swap those patchers to plain `ezdac~`). `demosound.maxpat` is a stock
-Max abstraction (fine).
+`legacy`, and ✅ **recreated `tap.help.dac~.maxpat`** (9 refs; the repo history only had an
+older `gain~`/`meter~` form, so it was rebuilt to spec: 2 L/R inlets, a horizontal stereo
+`live.meter~`, a local `dac~` toggle, text, 2 pass-through outlets — wants an open-in-Max
+check). `demosound.maxpat` is a stock Max abstraction (fine).
 
 **3. Resurrection candidates still open** (§3, all "maybe/review"):
 `tap.5comb~`, `tap.adapt~`, `tap.buffer.record2~` (merge into `tap.buffer.record~`?),
