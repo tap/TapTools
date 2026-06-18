@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet href="./_c74_ref.xsl" type="text/xsl"?>
+
+<c74object name="tap.nr~" module="msp" category="TapTools, MSP Filters, MSP FFT, MSP Modifiers">
+
+	<digest>
+		Spectral noise reduction
+	</digest>
+
+	<description>
+		The <o>tap.nr~</o> object implements a spectral expander/gate that silences FFT bins whose
+		magnitude falls below a threshold. Unlike the original, this version is <b>self-contained</b>
+		— it runs its own short-time Fourier transform internally, so it does not need to be hosted
+		inside a <o>pfft~</o>. Latency is one FFT frame.
+	</description>
+
+
+	<!--METADATA-->
+	<metadatalist>
+		<metadata name="author">74 Objects</metadata>
+		<metadata name="tag">TapTools</metadata>
+		<metadata name="tag">Audio</metadata>
+		<metadata name="tag">Spectral</metadata>
+	</metadatalist>
+
+
+	<!--ARGUMENTS-->
+	<objarglist>
+		<objarg name="fftsize" type="int" optional="1">
+			<description>The FFT size (a power of two). Defaults to 1024.</description>
+		</objarg>
+	</objarglist>
+
+
+	<!--INLETS-->
+	<inletlist>
+		<inlet id="0" type="signal">
+			<digest>Signal input. A float in this inlet sets the threshold.</digest>
+		</inlet>
+		<inlet id="1" type="float">
+			<digest>Sets how gradually the threshold engages (the gate slope).</digest>
+		</inlet>
+	</inletlist>
+
+
+	<!--OUTLETS-->
+	<outletlist>
+		<outlet id="0" type="signal">
+			<digest>The de-noised output.</digest>
+		</outlet>
+	</outletlist>
+
+
+	<!--MESSAGES-->
+	<methodlist>
+		<method name="float">
+			<arglist><arg name="input" type="float" optional="0" id="0" /></arglist>
+			<description>A float in the left inlet sets the threshold. A float in the right inlet sets how gradually the threshold will be engaged.</description>
+		</method>
+		<method name="clear">
+			<description>Reset the internal STFT buffers.</description>
+		</method>
+	</methodlist>
+
+
+	<!--ATTRIBUTES-->
+	<attributelist>
+		<attribute name="threshold" get="1" set="1" type="float" size="1">
+			<description>Linear-amplitude threshold. Bins below this level are attenuated; bins above it pass. 0 disables the gate (the output then reconstructs the input). Default 0.01.</description>
+		</attribute>
+		<attribute name="slope" get="1" set="1" type="float" size="1">
+			<description>How gradually the gate engages across the threshold (a soft knee). Low values fade gently; high values approach a hard gate; 0 passes everything. Default 2.</description>
+		</attribute>
+	</attributelist>
+
+
+	<!--SEEALSO-->
+	<seealsolist>
+		<seealso name="tap.gate~"/>
+		<seealso name="pfft~"/>
+	</seealsolist>
+
+</c74object>

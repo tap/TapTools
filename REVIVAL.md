@@ -326,9 +326,14 @@ reference pages/help were restored from git history after the prune.
       remapping) plus `tap.typecheck~`. The subpatcher uses `fftin~`/`fftout~` +
       `tap.scale~` to reorder bins. Closest to restorable — but needs `tap.scale~` and
       `tap.typecheck~`, neither of which is ported.
-    - `tap.nr~` → originally wrapped `pfft~ tap.xnr~` (no surviving source). **Decision:
-      reinvent as a self-contained external** rather than restore the pfft chain — in
-      progress.
+    - ✅ `tap.nr~` — **reinvented** as a self-contained external (originally wrapped
+      `pfft~ tap.xnr~`; no surviving source). Runs its **own STFT** — an in-house radix-2
+      FFT with a Hann window at 4× overlap and COLA-normalised overlap-add — so no `pfft~`
+      host is needed. Each frame's bins below `threshold` are attenuated with a `slope`
+      soft-knee. **Unit-tested for perfect reconstruction** (gate open ⇒ output equals
+      input delayed by one FFT frame, &lt;1e-6) and for below-threshold attenuation.
+      Latency = one FFT frame. maxref rewritten; help patcher ported from the legacy
+      abstraction (needs runtime rework). Audio quality still needs Max validation.
     - ✅ `tap.vocoder~` — **reinvented** as a self-contained standalone external (the
       original was a real external; the abstraction just added smoothing/gain around it).
       A bank of 24 log-spaced (50 Hz–12 kHz) RBJ constant-0 dB-peak bandpass biquads
@@ -340,8 +345,8 @@ reference pages/help were restored from git history after the prune.
       from the legacy abstraction — **needs runtime rework in Max** for the standalone
       object. Audio quality still needs runtime validation.
   > **Decision (author, 2026-06-17): reinvent the lost spectral DSP** rather than defer.
-  > `tap.vocoder~` done; `tap.nr~` next. `tap.spectra~` remains the patcher-restore path
-  > (needs `tap.scale~`/`tap.typecheck~`).
+  > `tap.vocoder~` and `tap.nr~` done. Only `tap.spectra~` remains — the patcher-restore
+  > path (needs the small `tap.scale~`/`tap.typecheck~` support objects revived).
   (`tap.sustain~` was recovered from the `taptools-min` archive — see §8.)
   > **Doc cleanup flagged:** the legacy `tap.delay.maxref.xml` carries copy-pasted
   > filter boilerplate attributes (`clip`/`coefficients`/`gain`) that don't belong to a
