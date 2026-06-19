@@ -14,6 +14,12 @@ Companion files:
 - [`05-commercial-era-hipno.md`](05-commercial-era-hipno.md) — the commercial years: Silicon Prairie → Electrotap → 74 Objects, the registration model, Hipno, Darwin Grosse, the Teabox.
 - [`06-community-forums-recovery.md`](06-community-forums-recovery.md) — community footprint: the McGill Max listserv archive, forum threads, reception, and a 26-item Wayback target list.
 - [`07-revival-second-life.md`](07-revival-second-life.md) — **the 2026 revival** (act 4: resurrection); summarizes `REVIVAL.md` (authored by Tim Place, on `main`).
+- [`08-git-history-chronicle.md`](08-git-history-chronicle.md) — the complete git history across all branches: the 2014 "great pruning," the four modernization attempts, the authorship arc, the pre-2014 gap.
+- [`09-deep-web-recovery-round2.md`](09-deep-web-recovery-round2.md) — deeper search recovery: Jade, version-by-version reception, Hipno/Pluggo, the Teabox, interviews, current footprint.
+
+**Bridge artifacts (to unlock what this environment can't reach):**
+- [`10-source-checklist.md`](10-source-checklist.md) — consolidated, prioritized primary-source checklist for a **local / unrestricted-network** pass (Wayback + fetch), with what to capture and which gaps each item closes.
+- [`11-interview-guide.md`](11-interview-guide.md) — structured prompts for the **pre-2014 texture only Tim remembers** (the perishable memory-capture; 30 prompts across the four acts).
 
 > **Note on web access:** the Wayback Machine and most direct page-fetches are blocked from this environment; **WebSearch** carried the recovery and surfaced page *content* via snippets. Search-derived facts are confidence-tagged in each file. A future Wayback-enabled or forum-logged-in pass should work the target list in `06-`.
 
