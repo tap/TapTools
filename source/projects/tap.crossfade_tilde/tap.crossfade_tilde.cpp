@@ -15,10 +15,12 @@ using namespace c74::min;
 
 class crossfade : public object<crossfade>, public sample_operator<3, 1> {
 public:
-    // The shape and mode attributes are integer-indexed enums, matching the original object and
-    // the help patcher's umenus (which send the menu index).
-    enum class shapes : int { equalpower, linear, enum_count };
-    enum class modes  : int { lookuptable, calculate, enum_count };
+    // Named indices for the integer-valued shape/mode attributes. These are stored as plain
+    // `int` (not `enum class`) attributes: the help patcher's umenus send the menu index, and an
+    // `attribute<int>` accepts that directly. (An `attribute<enum class>` would be cleaner in the
+    // inspector but does not compile under GCC — min-api's `atom::operator==` has no enum overload.)
+    enum shapes : int { equalpower, linear };
+    enum modes  : int { lookuptable, calculate };
 
     MIN_DESCRIPTION { "Crossfade between two signals. The position runs from 0 (input A) to 1 "
                       "(input B), using either an equal-power or a linear curve." };
@@ -31,17 +33,14 @@ public:
     inlet<>  m_in_pos { this, "(signal/float) crossfade position, 0 (A) to 1 (B)" };
     outlet<> m_out    { this, "(signal) the crossfaded output", "signal" };
 
-    enum_map shapes_range = { "equalpower", "linear" };
-    enum_map modes_range  = { "lookuptable", "calculate" };
-
-    attribute<shapes> shape { this, "shape", shapes::equalpower, shapes_range,
-        description { "Crossfade curve: equal-power or linear." }
+    attribute<int> shape { this, "shape", equalpower, range { equalpower, linear },
+        description { "Crossfade curve: 0 = equal-power, 1 = linear." }
     };
 
-    attribute<modes> mode { this, "mode", modes::lookuptable, modes_range,
-        description { "Computation method. Provided for compatibility with the original object; "
-                      "both settings produce identical results in this implementation, which "
-                      "always computes the curve directly." }
+    attribute<int> mode { this, "mode", lookuptable, range { lookuptable, calculate },
+        description { "Computation method (0 = lookup table, 1 = calculate). Provided for "
+                      "compatibility with the original object; both settings produce identical "
+                      "results in this implementation, which always computes the curve directly." }
     };
 
     attribute<number> position { this, "position", 0.5,
@@ -50,7 +49,7 @@ public:
                       "Overridden by a signal connected to the right inlet." }
     };
 
-    message<threadsafe::yes> number { this, "number", "Set the crossfade position (0..1).",
+    message<threadsafe::yes> m_number { this, "number", "Set the crossfade position (0..1).",
         MIN_FUNCTION { position = args; return {}; }
     };
 
@@ -60,7 +59,7 @@ public:
         p = MIN_CLAMP(p, 0.0, 1.0);
 
         double wa, wb;
-        if (shape == shapes::equalpower) {
+        if (shape == equalpower) {
             const double rad = p * c_half_pi;
             wa = std::cos(rad);
             wb = std::sin(rad);

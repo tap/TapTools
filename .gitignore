@@ -2,6 +2,8 @@ Makefile
 *.o
 build/
 build
+# Any out-of-source build directory (build/, build-gcc/, build-tests/, …)
+build*/
 
 # Modern CMake build output (root-level). Does not affect the legacy TapTools/externals package.
 /externals/

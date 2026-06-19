@@ -5,6 +5,10 @@ cmake_minimum_required(VERSION 3.19)
 set(C74_MIN_API_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../min-api)
 include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 
+#############################################################
+# MAX EXTERNAL
+#############################################################
+
 include_directories("${C74_INCLUDES}")
 
 set(SOURCES
@@ -19,9 +23,8 @@ add_library(
 
 include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)
 
+# TapTools targets C++20. Min's posttarget pins the standard to C++17, so override it here.
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
-
-include(${C74_MIN_API_DIR}/test/min-object-unittest.cmake)
