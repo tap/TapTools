@@ -1,0 +1,24 @@
+// cppcheck suppressions for the RtAudio fork.
+//
+// Each entry MUST carry a justification. "It's noisy" is not a justification;
+// prefer fixing. Format: <id>  (optionally :<file>:<line>)
+
+// System / SDK headers are not ours to fix and are not always present on the
+// analysis host.
+missingIncludeSystem
+
+// RtAudio is built as a single translation unit per backend; many backend
+// helper functions are legitimately unused when analyzing one API at a time.
+unusedFunction
+
+// Each concrete RtApi* backend destructor calls its own overridden
+// closeStream() to release resources. This is an intentional, long-standing
+// pattern across all 8 backends; the call resolves within the (most-derived)
+// destructing object as designed. Restructuring every backend to avoid the
+// generic warning would add risk without behavioral benefit.
+virtualCallInConstructor
+
+// cppcheck's default-language heuristic occasionally mis-parses the C++
+// `namespace rt { ... }` block in the public header as C. The file is valid
+// C++ (verified by the compiler warning jobs).
+syntaxError:RtAudio.h

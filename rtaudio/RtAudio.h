@@ -823,45 +823,48 @@ protected:
 
   // A protected structure used for buffer conversion.
   struct ConvertInfo {
-    int channels;
-    int inJump, outJump;
-    RtAudioFormat inFormat, outFormat;
+    int channels = 0;
+    int inJump = 0, outJump = 0;
+    RtAudioFormat inFormat = 0, outFormat = 0;
     std::vector<int> inOffset;
     std::vector<int> outOffset;
   };
 
   // A protected structure for audio streams.
+  //
+  // All scalar members are given in-class default initializers matching the
+  // values set by RtApi::clearStreamInfo(), so a freshly constructed stream is
+  // always in a well-defined state even before clearStreamInfo() is called.
   struct RtApiStream {
-    unsigned int deviceId[2];  // Playback and record, respectively.
-    void *apiHandle;           // void pointer for API specific stream handle information
-    StreamMode mode;           // OUTPUT, INPUT, or DUPLEX.
-    StreamState state;         // STOPPED, RUNNING, or CLOSED
-    char *userBuffer[2];       // Playback and record, respectively.
-    char *deviceBuffer;
-    bool doConvertBuffer[2];   // Playback and record, respectively.
-    bool userInterleaved;
-    bool deviceInterleaved[2]; // Playback and record, respectively.
-    bool doByteSwap[2];        // Playback and record, respectively.
-    unsigned int sampleRate;
-    unsigned int bufferSize;
-    unsigned int nBuffers;
-    unsigned int nUserChannels[2];    // Playback and record, respectively.
-    unsigned int nDeviceChannels[2];  // Playback and record channels, respectively.
-    unsigned int channelOffset[2];    // Playback and record, respectively.
-    unsigned long latency[2];         // Playback and record, respectively.
-    RtAudioFormat userFormat;
-    RtAudioFormat deviceFormat[2];    // Playback and record, respectively.
+    unsigned int deviceId[2] = { 11111, 11111 }; // Playback and record, respectively.
+    void *apiHandle = 0;            // void pointer for API specific stream handle information
+    StreamMode mode = UNINITIALIZED; // OUTPUT, INPUT, or DUPLEX.
+    StreamState state = STREAM_CLOSED; // STOPPED, RUNNING, or CLOSED
+    char *userBuffer[2] = { 0, 0 }; // Playback and record, respectively.
+    char *deviceBuffer = 0;
+    bool doConvertBuffer[2] = { false, false }; // Playback and record, respectively.
+    bool userInterleaved = true;
+    bool deviceInterleaved[2] = { true, true }; // Playback and record, respectively.
+    bool doByteSwap[2] = { false, false };      // Playback and record, respectively.
+    unsigned int sampleRate = 0;
+    unsigned int bufferSize = 0;
+    unsigned int nBuffers = 0;
+    unsigned int nUserChannels[2] = { 0, 0 };   // Playback and record, respectively.
+    unsigned int nDeviceChannels[2] = { 0, 0 }; // Playback and record channels, respectively.
+    unsigned int channelOffset[2] = { 0, 0 };   // Playback and record, respectively.
+    unsigned long latency[2] = { 0, 0 };        // Playback and record, respectively.
+    RtAudioFormat userFormat = 0;
+    RtAudioFormat deviceFormat[2] = { 0, 0 };   // Playback and record, respectively.
     StreamMutex mutex;
     CallbackInfo callbackInfo;
     ConvertInfo convertInfo[2];
-    double streamTime;         // Number of elapsed seconds since the stream started.
+    double streamTime = 0.0;        // Number of elapsed seconds since the stream started.
 
 #if defined(HAVE_GETTIMEOFDAY)
-    struct timeval lastTickTimestamp;
+    struct timeval lastTickTimestamp = {};
 #endif
 
-    RtApiStream()
-    :apiHandle(0), deviceBuffer(0) {} // { device[0] = std::string(); device[1] = std::string(); }
+    RtApiStream() {}
   };
 
   typedef S24 Int24;

@@ -1,0 +1,32 @@
+# clang-tidy configuration for the RtAudio fork.
+#
+# This is intentionally curated rather than "everything on": RtAudio is a
+# large, long-lived C codebase wearing a C++ jacket, so blanket checks produce
+# mostly noise. The set below targets real correctness/perf smells while
+# excluding checks that fight the existing (deliberate) style.
+#
+# In CI this currently runs in *reporting* mode (findings are surfaced as an
+# artifact, not build failures). As findings are burned down, individual
+# checks can be promoted to WarningsAsErrors.
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-equals-default,
+  modernize-use-bool-literals,
+  readability-misleading-indentation,
+  readability-redundant-control-flow,
+  readability-non-const-parameter,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-signed-char-misuse
+
+# Only diagnose our own headers, not system / backend SDK headers.
+HeaderFilterRegex: '(RtAudio|rtaudio_c)\.h$'
+
+WarningsAsErrors: ''
+
+FormatStyle: none

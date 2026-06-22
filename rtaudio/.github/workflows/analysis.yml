@@ -1,0 +1,99 @@
+name: Static Analysis
+
+# Static analysis & hygiene gates for the RtAudio fork. Complements the build
+# matrix in ci.yml. All jobs drive scripts/static-analysis.sh so the exact same
+# checks can be reproduced locally:  scripts/static-analysis.sh <target>
+#
+# NOTE: when this tree lives under a subdirectory (e.g. TapTools/rtaudio), move
+# this file to the repository root's .github/workflows/ for it to run, or set a
+# `defaults.run.working-directory`. In a standalone rtaudio repo it works as-is.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  warnings:
+    name: Compiler warnings (-Werror)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ clang \
+            libasound2-dev libpulse-dev libjack-jackd2-dev
+      - name: warnings (g++ and clang++, all Linux backends)
+        run: ./scripts/static-analysis.sh warnings
+
+  cppcheck:
+    name: cppcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck \
+            libasound2-dev libpulse-dev libjack-jackd2-dev
+      - name: cppcheck
+        run: ./scripts/static-analysis.sh cppcheck
+
+  clang-tidy:
+    name: clang-tidy (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy \
+            libasound2-dev libpulse-dev libjack-jackd2-dev
+      - name: clang-tidy
+        # Advisory for now: surfaces findings as an artifact without failing
+        # the build. Set CLANG_TIDY_STRICT=1 to gate once findings are burned down.
+        run: ./scripts/static-analysis.sh clang-tidy
+      - name: upload clang-tidy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-tidy-report
+          path: clang-tidy-report.txt
+
+  sanitizers:
+    name: ASan + UBSan (headless probe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ \
+            libasound2-dev libpulse-dev libjack-jackd2-dev pkg-config
+      - name: sanitizers
+        # OSS omitted here (no OSSv4 runtime libs on the runner); it is still
+        # covered by the warnings + cppcheck jobs.
+        env:
+          RTAUDIO_APIS: "alsa pulse jack"
+        run: ./scripts/static-analysis.sh sanitizers
+
+  valgrind:
+    name: Valgrind (probe leak check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ valgrind libasound2-dev
+      - name: build audioprobe
+        run: g++ -std=c++11 -g -O0 -I. -D__LINUX_ALSA__ RtAudio.cpp tests/audioprobe.cpp -lasound -lpthread -o audioprobe
+      - name: valgrind
+        # The probe path allocates/frees the RtAudio object and enumerates
+        # devices; check it is leak-clean. No audio hardware is required.
+        run: |
+          valgrind --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=definite \
+            --show-leak-kinds=definite ./audioprobe

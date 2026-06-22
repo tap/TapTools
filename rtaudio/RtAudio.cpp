@@ -91,7 +91,11 @@ std::string convertCharPointerToStdString(const wchar_t* text)
   return nret;
 #else
   std::string result;
-  char dest[MB_CUR_MAX];
+  // MB_LEN_MAX is the (compile-time) maximum bytes a single multibyte
+  // character can occupy in any locale, so it safely bounds wctomb() output
+  // while avoiding a variable-length array (non-standard in C++, rejected by
+  // MSVC and warned about by clang's -Wvla-cxx-extension).
+  char dest[MB_LEN_MAX];
   // get number of wide characters in text
   const size_t length = wcslen(text);
   for (size_t i = 0; i < length; i++) {
@@ -332,7 +336,7 @@ public:
   std::vector<std::pair<std::string, unsigned int>> deviceIdPairs_;
   
   void probeDevices( void ) override;
-  bool probeDeviceInfo( RtAudio::DeviceInfo &info, std::string name );
+  bool probeDeviceInfo( RtAudio::DeviceInfo &info, const std::string &name );
   bool probeDeviceOpen( unsigned int deviceId, StreamMode mode, unsigned int channels, 
                         unsigned int firstChannel, unsigned int sampleRate,
                         RtAudioFormat format, unsigned int *bufferSize,
@@ -2618,7 +2622,7 @@ void RtApiJack :: probeDevices( void )
       port = (char *) ports[ nChannels ];
       iColon = port.find(":");
       if ( iColon != std::string::npos ) {
-        port = port.substr( 0, iColon );
+        port.resize( iColon );
         if ( port != previousPort ) {
           portNames.push_back( port );
           nDevices++;
@@ -2971,14 +2975,14 @@ bool RtApiJack :: probeDeviceOpen( unsigned int deviceId, StreamMode mode, unsig
   char label[64];
   if ( mode == OUTPUT ) {
     for ( unsigned int i=0; i<stream_.nUserChannels[0]; i++ ) {
-      snprintf( label, 64, "outport %d", i );
+      snprintf( label, 64, "outport %u", i );
       handle->ports[0][i] = jack_port_register( handle->client, (const char *)label,
                                                 JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0 );
     }
   }
   else {
     for ( unsigned int i=0; i<stream_.nUserChannels[1]; i++ ) {
-      snprintf( label, 64, "inport %d", i );
+      snprintf( label, 64, "inport %u", i );
       handle->ports[1][i] = jack_port_register( handle->client, (const char *)label,
                                                 JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0 );
     }
@@ -8039,7 +8043,7 @@ void RtApiAlsa :: probeDevices( void )
   }
 }
 
-bool RtApiAlsa :: probeDeviceInfo( RtAudio::DeviceInfo& info, std::string name )
+bool RtApiAlsa :: probeDeviceInfo( RtAudio::DeviceInfo& info, const std::string &name )
 {
   int result, openMode = SND_PCM_ASYNC;
   snd_pcm_stream_t stream;
@@ -8993,11 +8997,11 @@ void RtApiAlsa :: callbackEvent()
     if ( stream_.deviceInterleaved[1] )
       result = snd_pcm_readi( handle[1], buffer, stream_.bufferSize );
     else {
-      void *bufs[channels];
+      std::vector<void *> bufs( channels );
       size_t offset = stream_.bufferSize * formatBytes( format );
       for ( int i=0; i<channels; i++ )
         bufs[i] = (void *) (buffer + (i * offset));
-      result = snd_pcm_readn( handle[1], bufs, stream_.bufferSize );
+      result = snd_pcm_readn( handle[1], bufs.data(), stream_.bufferSize );
     }
 
     if ( result < (int) stream_.bufferSize ) {
@@ -9063,11 +9067,11 @@ void RtApiAlsa :: callbackEvent()
     if ( stream_.deviceInterleaved[0] )
       result = snd_pcm_writei( handle[0], buffer, stream_.bufferSize );
     else {
-      void *bufs[channels];
+      std::vector<void *> bufs( channels );
       size_t offset = stream_.bufferSize * formatBytes( format );
       for ( int i=0; i<channels; i++ )
         bufs[i] = (void *) (buffer + (i * offset));
-      result = snd_pcm_writen( handle[0], bufs, stream_.bufferSize );
+      result = snd_pcm_writen( handle[0], bufs.data(), stream_.bufferSize );
     }
 
     if ( result < (int) stream_.bufferSize ) {
