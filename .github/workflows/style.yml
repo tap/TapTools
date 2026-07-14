@@ -1,0 +1,25 @@
+name: Tap House Style
+
+# Enforces the shared Tap House Rules: a drift check against the canonical TapHouse configs and a
+# clang-format check over the kernel's own sources. (Layout only — naming and mandatory braces are
+# enforced by .clang-tidy, which runs against the wrapper compile database in tap/taptools-max.)
+on: [push, pull_request]
+
+jobs:
+  drift:
+    # Fails if this repo's .clang-format/.clang-tidy/STYLE.md diverge from TapHouse.
+    # TapHouse v2 (pinned by commit SHA until the v2 tag is created).
+    uses: tap/taphouse/.github/workflows/drift-check.yml@ff71d8146754e5e35374cfe0d191e0983219da3b
+    with:
+      ref: ff71d8146754e5e35374cfe0d191e0983219da3b
+
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format-18
+      - name: clang-format check
+        run: >
+          clang-format-18 --dry-run --Werror
+          $(git ls-files 'include/*.h' 'tests/*.cpp' 'tools/*.cpp' 'tools/*.h' 'bench/*.cpp')
