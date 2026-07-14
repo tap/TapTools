@@ -1,7 +1,7 @@
 # TapTools kernel
 
-The portable DSP library behind the TapTools Max package: header-only, plain C++ (C++17
-minimum), **no Max SDK, no min-api, no Jamoma**. One self-contained header per object under
+The portable DSP library behind the TapTools Max package: header-only, plain C++20, **no Max SDK,
+no min-api, no Jamoma**. One self-contained header per object under
 `include/taptools/`, everything in the `taptools` namespace. The TapTools Max externals are thin
 [Min](https://github.com/Cycling74/min-api) shims over these kernels — the same split AmbiTap
 uses (AmbiTap = kernel library, AmbiTap-Max = wrappers).
@@ -59,8 +59,8 @@ is its own repository, the Max package pins it as a git submodule and points
 ## Rules
 
 - Kernels depend on the C++ standard library only. Anything Max-specific belongs in the wrapper.
-- Keep headers **C++17-clean**: the wrapper `.cpp`s include them and the min-api unit-test
-  harness compiles those at C++17.
+- Headers are **C++20**. The consuming Max wrapper `.cpp`s and their min-api unit tests compile at
+  C++20 as well, so C++20 features are fair game.
 - Sharing code *between* kernels is allowed here (that's much of the point — e.g. the radix-2
   FFT duplicated between `conv_engine.h` and `tap.nr~` should consolidate here); the Max-side
   "each object is self-contained" rule applies to the wrapper package, not to the kernel.

@@ -15,7 +15,7 @@ add_library(taptools_capi SHARED taptools_capi.cpp)
 target_include_directories(taptools_capi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 
 set_target_properties(taptools_capi PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
     OUTPUT_NAME taptools_capi
     CXX_VISIBILITY_PRESET hidden)
