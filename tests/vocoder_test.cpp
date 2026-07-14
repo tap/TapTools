@@ -74,7 +74,7 @@ SCENARIO("a silent modulator lets the output decay to silence") {
             late_peak = std::max(late_peak, std::abs(out));
         }
     }
-    REQUIRE(warm_peak > 1e-6);          // the warm-up actually produced signal
+    REQUIRE(warm_peak > 1e-6);             // the warm-up actually produced signal
     REQUIRE(late_peak < 1e-4 * warm_peak); // and it decayed away
 }
 
