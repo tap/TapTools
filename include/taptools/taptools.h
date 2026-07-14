@@ -8,8 +8,13 @@
 #pragma once
 
 #include "conv_engine.h"
+#include "fft.h"
 #include "grm_comb.h"
 #include "grm_pitchaccum.h"
 #include "ladder.h"
+#include "nr.h"
+#include "spectra.h"
+#include "stft.h"
 #include "svf.h"
 #include "vco.h"
+#include "vocoder.h"
