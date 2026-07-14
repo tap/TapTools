@@ -30,13 +30,14 @@
 #include <cmath>
 #include <vector>
 
+#include "fft.h" // the shared radix-2 FFT (formerly a private copy of this exact routine)
+
 namespace taptools {
 
     class conv_engine {
       public:
-        static constexpr double k_pi       = 3.14159265358979323846;
-        static constexpr int    k_paths    = 4;
-        static constexpr int    k_channels = 2;
+        static constexpr int k_paths    = 4;
+        static constexpr int k_channels = 2;
 
         // Allocate all buffers for the given partition size and maximum partition count. Must be called
         // where the audio thread is not running concurrently (i.e. from dspsetup). Resets all state and
@@ -119,7 +120,7 @@ namespace taptools {
                             }
                         }
                     }
-                    fft(m_fre, m_fim, false);
+                    fft::transform(m_fre, m_fim, false);
                     std::copy(m_fre.begin(), m_fre.end(), Hre + p * m_fftsize);
                     std::copy(m_fim.begin(), m_fim.end(), Him + p * m_fftsize);
                 }
@@ -158,7 +159,7 @@ namespace taptools {
                     m_fim[j]           = 0.0;
                     m_fim[m_block + j] = 0.0;
                 }
-                fft(m_fre, m_fim, false);
+                fft::transform(m_fre, m_fim, false);
                 std::copy(m_fre.begin(), m_fre.end(), m_fdl_re[ch].data() + cur * m_fftsize);
                 std::copy(m_fim.begin(), m_fim.end(), m_fdl_im[ch].data() + cur * m_fftsize);
                 std::copy(m_inblk[ch].begin(), m_inblk[ch].end(), m_prev[ch].begin());
@@ -204,59 +205,13 @@ namespace taptools {
                     }
                 }
 
-                fft(m_are, m_aim, true);
+                fft::transform(m_are, m_aim, true);
                 for (int j = 0; j < m_block; ++j) {
                     m_outblk[oc][j] = m_are[m_block + j]; // overlap-save: discard the aliased first half
                 }
             }
 
             m_fdl = (cur + 1) % m_max_parts;
-        }
-
-        // In-place iterative radix-2 Cooley–Tukey FFT (same routine as tap.nr~). `inverse` divides by N.
-        static void fft(std::vector<double>& re, std::vector<double>& im, bool inverse) {
-            const int n = static_cast<int>(re.size());
-
-            for (int i = 1, j = 0; i < n; ++i) {
-                int bit = n >> 1;
-                for (; j & bit; bit >>= 1) {
-                    j ^= bit;
-                }
-                j ^= bit;
-                if (i < j) {
-                    std::swap(re[i], re[j]);
-                    std::swap(im[i], im[j]);
-                }
-            }
-
-            for (int len = 2; len <= n; len <<= 1) {
-                const double ang = 2.0 * k_pi / len * (inverse ? 1.0 : -1.0);
-                const double wr  = std::cos(ang);
-                const double wi  = std::sin(ang);
-                for (int i = 0; i < n; i += len) {
-                    double cwr = 1.0, cwi = 0.0;
-                    for (int k = 0; k < len / 2; ++k) {
-                        const double vr     = re[i + k + len / 2] * cwr - im[i + k + len / 2] * cwi;
-                        const double vi     = re[i + k + len / 2] * cwi + im[i + k + len / 2] * cwr;
-                        const double ur     = re[i + k];
-                        const double ui     = im[i + k];
-                        re[i + k]           = ur + vr;
-                        im[i + k]           = ui + vi;
-                        re[i + k + len / 2] = ur - vr;
-                        im[i + k + len / 2] = ui - vi;
-                        const double ncwr   = cwr * wr - cwi * wi;
-                        cwi                 = cwr * wi + cwi * wr;
-                        cwr                 = ncwr;
-                    }
-                }
-            }
-
-            if (inverse) {
-                for (int i = 0; i < n; ++i) {
-                    re[i] /= n;
-                    im[i] /= n;
-                }
-            }
         }
 
         int m_block{0};     // partition (block) size = latency in samples

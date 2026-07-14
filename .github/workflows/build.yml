@@ -1,0 +1,30 @@
+name: build
+
+# Builds the portable TapTools DSP kernel and runs its Catch2 unit tests on all three desktop
+# platforms. The kernel is header-only C++17 with no Max/min-api dependency, so this is the
+# correctness gate for the DSP itself (the Max wrapper package, tap/taptools-max, has its own CI).
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure

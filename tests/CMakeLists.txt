@@ -12,6 +12,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_executable(taptools_kernel_tests
+    fft_test.cpp
     conv_engine_test.cpp
 )
 target_link_libraries(taptools_kernel_tests PRIVATE TapTools::taptools Catch2::Catch2WithMain)
