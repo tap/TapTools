@@ -1,7 +1,7 @@
 # Copyright 2002-2026 Timothy Place. Distributed under the New BSD License.
 #
 # TapTools kernel — the portable DSP library behind the TapTools Max package.
-# Header-only, plain C++ (C++17 minimum): no Max SDK, no min-api, no Jamoma. The kernels live
+# Header-only, plain C++20: no Max SDK, no min-api, no Jamoma. The kernels live
 # under include/taptools/, one self-contained header per object, in the `taptools` namespace.
 #
 # This is a complete standalone CMake project (the AmbiTap / AmbiTap-Max pattern): it lives in
@@ -29,7 +29,7 @@ option(TAPTOOLS_INSTALL "Generate install and package-export rules" ${TAPTOOLS_K
 
 add_library(taptools INTERFACE)
 add_library(TapTools::taptools ALIAS taptools)
-target_compile_features(taptools INTERFACE cxx_std_17)
+target_compile_features(taptools INTERFACE cxx_std_20)
 target_include_directories(taptools INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
