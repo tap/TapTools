@@ -29,10 +29,13 @@ Plus, all Max-free:
   Wrapper-level tests (attributes, Min plumbing) stay with the externals on the min-api harness
   in the Max package.
 - **`tools/render/`** — offline WAV renderers (`ladder_render`, `vco_render`, `grm_comb_render`,
-  `grm_pitchaccum_render`) for listening checks outside Max.
-- **`tools/capi/`** — a small C ABI (`taptools_capi`) over the kernels for non-C++ consumers.
+  `grm_pitchaccum_render`, `autowah_render`) for listening checks outside Max.
+- **`tools/capi/`** — a small C ABI (`taptools_capi`) over the kernels for non-C++ consumers:
+  `conv_engine`, `svf`, `ladder`, `vco`, and `autowah`.
 - **`notebooks/`** — Jupyter verification notebooks driving the *actual shipping DSP* through the
-  C ABI via ctypes (`taptools_py.py`).
+  C ABI via ctypes (`taptools_py.py`): `convolution_reverb.ipynb`, `svf.ipynb`, `ladder.ipynb`,
+  `vco.ipynb`, and `autowah_validation.ipynb` (the hardware-calibration harness for the Snow
+  White model — its last section ingests reamped recordings of the real pedal).
 - **`bench/`** — CPU benchmarks and the per-machine regression ratchet (see `bench/README.md`).
 
 ## Build & test

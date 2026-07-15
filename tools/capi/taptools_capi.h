@@ -4,8 +4,10 @@
 ///
 ///        Conventions: plain C types only; the caller owns all arrays and sizes them. Handle-based
 ///        functions return 0 on success and -1 on any error (bad argument, unconfigured engine).
-///        No global state. Currently exposes tap.convolve~'s conv_engine (uniformly-partitioned
-///        overlap-save convolution).
+///        No global state. Exposes tap.convolve~'s conv_engine (uniformly-partitioned overlap-save
+///        convolution) plus the parameter-indexed kernels behind tap.svf~, tap.ladder~, tap.vco~,
+///        and tap.autowah~ (param indices and mode/solver/waveform constants match the enums in
+///        each kernel header; ..._set() takes the kernel's param_index).
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright 2003-2026 Timothy Place.
 
@@ -49,6 +51,76 @@ TAPTOOLS_API int taptools_conv_process(taptools_conv engine, const double* inL, 
 TAPTOOLS_API int taptools_conv_block_size(taptools_conv engine);     // partition size (= latency)
 TAPTOOLS_API int taptools_conv_max_partitions(taptools_conv engine); // capacity in partitions
 TAPTOOLS_API int taptools_conv_has_ir(taptools_conv engine);         // 1 if an IR is published, else 0
+
+// ---- tap.svf~ (taptools::svf::svf_filter, mono) -----------------------------------------------
+
+typedef void* taptools_svf;
+
+TAPTOOLS_API taptools_svf taptools_svf_create(void);
+TAPTOOLS_API void         taptools_svf_destroy(taptools_svf h);
+TAPTOOLS_API int          taptools_svf_prepare(taptools_svf h, double sr);
+TAPTOOLS_API int          taptools_svf_set(taptools_svf h, int param, double value); // svf::param_index
+TAPTOOLS_API int          taptools_svf_set_mode(taptools_svf h, int mode);           // svf::filter_mode
+TAPTOOLS_API int          taptools_svf_set_order(taptools_svf h, int order);         // 2, 4, or 8
+TAPTOOLS_API int          taptools_svf_set_circuit(taptools_svf h, int circuit);     // svf::circuit_mode
+TAPTOOLS_API int          taptools_svf_set_oversample(taptools_svf h, int os);       // 1, 2, or 4
+TAPTOOLS_API int          taptools_svf_set_smooth_ms(taptools_svf h, double ms);
+TAPTOOLS_API int          taptools_svf_clear(taptools_svf h);
+TAPTOOLS_API int          taptools_svf_process(taptools_svf h, const double* in, double* out, int n);
+/// Per-sample signal-rate cutoff (Hz) — the external's right-inlet path.
+TAPTOOLS_API int taptools_svf_process_mod(taptools_svf h, const double* in, const double* cutoff_hz, double* out,
+                                          int n);
+
+// ---- tap.ladder~ (taptools::ladder::ladder_filter) --------------------------------------------
+
+typedef void* taptools_ladder;
+
+TAPTOOLS_API taptools_ladder taptools_ladder_create(void);
+TAPTOOLS_API void            taptools_ladder_destroy(taptools_ladder h);
+TAPTOOLS_API int             taptools_ladder_prepare(taptools_ladder h, double sr);
+TAPTOOLS_API int             taptools_ladder_set(taptools_ladder h, int param, double value); // ladder::param_index
+TAPTOOLS_API int             taptools_ladder_set_mode(taptools_ladder h, int mode);           // ladder::filter_mode
+TAPTOOLS_API int             taptools_ladder_set_solver(taptools_ladder h, int solver);       // ladder::solver_mode
+TAPTOOLS_API int             taptools_ladder_set_oversample(taptools_ladder h, int os);       // 1, 2, or 4
+TAPTOOLS_API int             taptools_ladder_set_smooth_ms(taptools_ladder h, double ms);
+TAPTOOLS_API int             taptools_ladder_clear(taptools_ladder h);
+TAPTOOLS_API int             taptools_ladder_process(taptools_ladder h, const double* in, double* out, int n);
+TAPTOOLS_API int taptools_ladder_process_mod(taptools_ladder h, const double* in, const double* cutoff_hz, double* out,
+                                             int n);
+
+// ---- tap.vco~ (taptools::vco::vco_osc) ---------------------------------------------------------
+
+typedef void* taptools_vco;
+
+TAPTOOLS_API taptools_vco taptools_vco_create(void);
+TAPTOOLS_API void         taptools_vco_destroy(taptools_vco h);
+TAPTOOLS_API int          taptools_vco_prepare(taptools_vco h, double sr);
+TAPTOOLS_API int          taptools_vco_set(taptools_vco h, int param, double value); // vco::param_index
+TAPTOOLS_API int          taptools_vco_set_seed(taptools_vco h, unsigned int seed);
+TAPTOOLS_API int          taptools_vco_set_smooth_ms(taptools_vco h, double ms);
+TAPTOOLS_API int          taptools_vco_clear(taptools_vco h);
+TAPTOOLS_API int          taptools_vco_process(taptools_vco h, double* out, int n);
+/// Through-zero FM (Hz) and/or hard-sync inputs, either may be NULL.
+TAPTOOLS_API int taptools_vco_process_mod(taptools_vco h, const double* fm_hz, const double* sync, double* out, int n);
+
+// ---- tap.autowah~ (taptools::autowah::wah_filter) ----------------------------------------------
+
+typedef void* taptools_wah;
+
+TAPTOOLS_API taptools_wah taptools_wah_create(void);
+TAPTOOLS_API void         taptools_wah_destroy(taptools_wah h);
+TAPTOOLS_API int          taptools_wah_prepare(taptools_wah h, double sr);
+TAPTOOLS_API int          taptools_wah_set(taptools_wah h, int param, double value); // autowah::param_index
+TAPTOOLS_API int          taptools_wah_set_mode(taptools_wah h, int mode);           // autowah::filter_mode
+TAPTOOLS_API int          taptools_wah_set_rectifier(taptools_wah h, int rect);      // autowah::rectifier_mode
+TAPTOOLS_API int          taptools_wah_set_smooth_ms(taptools_wah h, double ms);
+/// Morph to a preset slot (0-based; 0-3 are the factory voicings) over `seconds`.
+TAPTOOLS_API int taptools_wah_recall(taptools_wah h, int slot, double seconds);
+TAPTOOLS_API int taptools_wah_clear(taptools_wah h);
+/// Process n samples. `key` (sidechain) may be NULL to track `in`; `env_out` (sweep, 0..1) and
+/// `cutoff_out` (Hz) may be NULL, or receive the per-sample control trajectories for analysis.
+TAPTOOLS_API int taptools_wah_process(taptools_wah h, const double* in, const double* key, double* out, double* env_out,
+                                      double* cutoff_out, int n);
 
 #ifdef __cplusplus
 }
