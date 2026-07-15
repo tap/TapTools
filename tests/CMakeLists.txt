@@ -12,6 +12,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_executable(taptools_kernel_tests
+    autowah_test.cpp
     fft_test.cpp
     nr_test.cpp
     spectra_test.cpp

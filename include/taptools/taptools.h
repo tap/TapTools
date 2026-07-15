@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "autowah.h"
 #include "conv_engine.h"
 #include "fft.h"
 #include "grm_comb.h"
