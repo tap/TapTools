@@ -15,6 +15,7 @@ same either way.
 
 | Kernel | Max object | Contents |
 |---|---|---|
+| `include/taptools/autowah.h` | `tap.autowah~` | Snow White-style envelope filter (`taptools::autowah`) |
 | `include/taptools/ladder.h` | `tap.ladder~` | ZDF Moog-style ladder (`taptools::ladder`) |
 | `include/taptools/svf.h` | `tap.svf~` | Simper/Cytomic morphing SVF (`taptools::svf`) |
 | `include/taptools/vco.h` | `tap.vco~` | Virtual-analog oscillator (`taptools::vco`) |
