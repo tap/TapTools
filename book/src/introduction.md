@@ -31,6 +31,11 @@ The book is organized the way a patch is:
   (`tap.5comb~`) and the pitch-accumulating shimmer loop (`tap.pitchaccum~`).
 - **Part IV — The spectral set**: the 24-band vocoder (`tap.vocoder~`), the
   per-bin spectral gate (`tap.nr~`), and the bin remapper (`tap.spectra~`).
+- **Part V — The machine, file by file**: the SampleRateTap-style deep dives —
+  one chapter per kernel header, deriving the math, reviewing the code, and
+  recording *why* each algorithm is written the way it is, alternatives and
+  all. Parts I–IV are for driving the objects; Part V is for trusting them —
+  or changing them.
 
 More chapters land as objects mature; the utility and Jitter objects live in
 their reference pages, where they belong.

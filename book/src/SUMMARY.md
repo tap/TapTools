@@ -23,3 +23,15 @@
 - [Making the machine talk](vocoder.md)
 - [A gate for every bin](nr.md)
 - [The spectrum, re-plumbed](spectra.md)
+
+# Part V — The machine, file by file
+
+- [Solving the filter on paper: svf.h](machine/svf.md)
+- [The nonlinear loop: ladder.h](machine/ladder.md)
+- [The master phase and its corrections: vco.h](machine/vco.md)
+- [Detector, law, and a borrowed filter: autowah.h](machine/autowah.md)
+- [Convolution without compromise: conv_engine.h](machine/conv.md)
+- [Ring time as the truth: grm_comb.h](machine/comb.md)
+- [Grains that sum to one: grm_pitchaccum.h](machine/pitchaccum.md)
+- [Two banks and a multiplier: vocoder.h](machine/vocoder.md)
+- [One STFT, three effects: fft.h, stft.h, nr.h, spectra.h](machine/spectral.md)
