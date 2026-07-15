@@ -50,9 +50,14 @@ namespace taptools {
         constexpr double k_warp_coef_max     = 0.85;    // |allpass coefficient| at warp == 100 (negative c:
                                                         // dispersion sits in the audible partial range and
                                                         // stretches upper partials sharp, stiff-string-like)
-        constexpr double k_dc_block_r        = 0.999;   // in-loop DC blocker pole (~7 Hz corner @ 48k)
-        constexpr double k_wet_norm          = 0.2;     // 1/k_voices wet-sum normalization
-        constexpr double k_default_smooth_ms = 20.0;    // anti-zipper ramp for direct setters
+        constexpr double k_dc_block_r = 0.999;          // in-loop DC blocker pole (~7 Hz corner @ 48k)
+        // The raw blocker (1 - z^-1)/(1 - R z^-1) peaks at 2/(1+R) > 1 at Nyquist; normalizing by
+        // (1+R)/2 caps its gain at exactly 1, so the loop gain is bounded by fb alone and the loop
+        // is strictly contractive for fb < 1 at every setting (found while proving boundedness for
+        // the book's machine chapter: unnormalized, res 100 + lp wide open could swell ~0.2 dB/s).
+        constexpr double k_dc_block_norm     = (1.0 + k_dc_block_r) * 0.5;
+        constexpr double k_wet_norm          = 0.2;  // 1/k_voices wet-sum normalization
+        constexpr double k_default_smooth_ms = 20.0; // anti-zipper ramp for direct setters
         constexpr double k_pi                = 3.14159265358979323846;
 
         enum param_index : int {
@@ -148,7 +153,7 @@ namespace taptools {
 
                 m_lp_state = anti_denormal(m_lp_state + lp_a * (delayed - m_lp_state));
 
-                const double dc_out = m_lp_state - m_dc_x1 + k_dc_block_r * m_dc_y1;
+                const double dc_out = k_dc_block_norm * (m_lp_state - m_dc_x1) + k_dc_block_r * m_dc_y1;
                 m_dc_x1             = m_lp_state;
                 m_dc_y1             = anti_denormal(dc_out);
 
@@ -426,6 +431,15 @@ namespace taptools {
                 m_derived_dirty = true;
             }
 
+            // Magnitude of the normalized DC blocker at normalized frequency w — used to keep the
+            // res -> ring-time calibration exact at each voice's fundamental (the blocker slightly
+            // attenuates low fundamentals; uncompensated, that shortens the ring). Bounded by 1.
+            static double dc_block_gain(double w) {
+                const double num = 2.0 - 2.0 * std::cos(w);
+                const double den = 1.0 - 2.0 * k_dc_block_r * std::cos(w) + k_dc_block_r * k_dc_block_r;
+                return k_dc_block_norm * std::sqrt(num / std::max(den, 1e-30));
+            }
+
             // Exact phase delay (in samples) of the first-order allpass (c + z^-1)/(1 + c z^-1) at
             // normalized frequency w. Used to keep each voice's fundamental in tune under warp.
             static double allpass_phase_delay(double c, double w) {
@@ -470,7 +484,13 @@ namespace taptools {
                     }
                     else {
                         const double rt60 = k_rt60_min * std::pow(k_rt60_max / k_rt60_min, res_eff * 0.01);
-                        m_fb[v]           = std::min(std::pow(10.0, -3.0 * d_total / (rt60 * m_sr)), k_fb_max);
+                        // Compensate the blocker's gain at the fundamental (same philosophy as the
+                        // warp phase compensation above) so the per-pass level really is the RT60
+                        // target; the k_fb_max clamp keeps the loop contractive regardless, since
+                        // the normalized blocker never exceeds unity at any frequency.
+                        const double dc_g = dc_block_gain(2.0 * k_pi * f / m_sr);
+                        const double tgt  = std::pow(10.0, -3.0 * d_total / (rt60 * m_sr));
+                        m_fb[v]           = std::min(tgt / std::max(dc_g, 0.5), k_fb_max);
                     }
 
                     // exact one-pole coefficient (tap.comb~ used the cruder hz*2/sr approximation)
