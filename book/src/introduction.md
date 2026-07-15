@@ -19,6 +19,18 @@ Each chapter makes the same promises:
 - **Trade-offs are stated as trades.** Knobs that buy something always pay with
   something; the chapters try to name both sides.
 
-Chapters land as objects mature. First up: the virtual-analog oscillator,
-`tap.vco~` — including its analog-character section and the honest recipe for
-the "three oscillators into a ladder" sound everyone actually wants it for.
+The book is organized the way a patch is:
+
+- **Part I — Sources**: the virtual-analog oscillator, `tap.vco~`, including
+  its analog-character section and the honest Moog recipe.
+- **Part II — Filters**: the morphing Simper SVF (`tap.svf~`), the transistor
+  ladder (`tap.ladder~`), and the envelope filter modeled on the Snow White
+  AutoWah (`tap.autowah~`) — with its hardware-calibration harness.
+- **Part III — Strings, rooms, and spirals**: exact true-stereo convolution
+  (`tap.convolve~`) and the two GRM Tools recreations — the tuned comb bank
+  (`tap.5comb~`) and the pitch-accumulating shimmer loop (`tap.pitchaccum~`).
+- **Part IV — The spectral set**: the 24-band vocoder (`tap.vocoder~`), the
+  per-bin spectral gate (`tap.nr~`), and the bin remapper (`tap.spectra~`).
+
+More chapters land as objects mature; the utility and Jitter objects live in
+their reference pages, where they belong.
