@@ -1,0 +1,12 @@
+# CMake build trees (README/docs use build/, build-kernel/, build_capi/; keep any build* local)
+build*/
+
+# Python (the notebooks + ctypes bridge)
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
