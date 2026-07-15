@@ -1,0 +1,14 @@
+[book]
+title = "Tools on Tap"
+description = "A field guide to the TapTools objects — what each one is for, what its knobs trade, and how to drive it well."
+authors = ["The TapTools project"]
+language = "en"
+src = "src"
+
+[build]
+create-missing = false
+
+[output.html]
+default-theme = "rust"
+git-repository-url = "https://github.com/tap/TapTools"
+site-url = "/TapTools/book/"
