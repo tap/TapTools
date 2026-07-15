@@ -111,28 +111,39 @@ actual corner lands near fc/π, a factor-of-three tuning error on a *labeled*
 frequency knob. Faithful porting stops where the parameter lies about its
 units.
 
-**The DC blocker** (`y = x − x1 + R·y1`, R = `k_dc_block_r` = 0.999, ~7 Hz
-corner at 48 kHz) replaces the legacy `tap.comb~` hard ±1 autoclip — the
-file's most consequential retirement. The clipper existed to stop runaway;
-but a clipper in a resonant loop *is* a distortion stage, and at high
-resonance — precisely where the GRM sound lives — the legacy object audibly
-distorted. The modern argument: cap fb below unity (`k_fb_max = 0.99999`)
-and kill the loop's DC transmission (the blocker's zero at z = 1), and the
-linear loop contracts — no limiter needed, so res 100 rings clean.
+**The DC blocker** (`y = norm·(x − x1) + R·y1`, R = `k_dc_block_r` = 0.999,
+norm = `k_dc_block_norm` = (1+R)/2, ~7 Hz corner at 48 kHz) replaces the
+legacy `tap.comb~` hard ±1 autoclip — the file's most consequential
+retirement. The clipper existed to stop runaway; but a clipper in a resonant
+loop *is* a distortion stage, and at high resonance — precisely where the
+GRM sound lives — the legacy object audibly distorted. The modern argument:
+cap fb below unity (`k_fb_max` = 0.99999), kill the loop's DC transmission
+(the blocker's zero at z = 1), and the linear loop contracts — no limiter
+needed, so res 100 rings clean.
 
-Honesty requires the fine print on "contracts." The DC blocker is not
-passive: |H_dc| peaks at 2/(1+R) ≈ 1.0005 toward Nyquist, and with the loop
-lowpass wide open (`lp` = 20 kHz at 48 kHz) the product |H_lp·H_dc| reaches
-≈ 1.00021 near 450 Hz. So at the very top of the res range, where fb
-saturates at `k_fb_max`, a voice tuned into that band sits a hair *past*
-unity — measured on the kernel, a 440 Hz voice at res 100 with `lp` open
-swells at roughly +0.2 dB per second. Musically that corner is "rings
-forever" (the file's stated intent); closing `lp` below ≈ 13.5 kHz, or any
-res below the cap, restores strict contraction. The airtight inequality is
-fb·|H_lp·H_dc| < 1, not fb < 1 alone. The "res 100 with res master 2"
-scenario pins the practical claim: two seconds at the most extreme reachable
-setting stays bounded (peak < 10) and still ringing — bounded where the
-clipper would have been *distorting*.
+The `norm` factor is this chapter's own contribution, and the story is worth
+a paragraph. The raw blocker `(1 − z⁻¹)/(1 − R·z⁻¹)` is not passive: its
+magnitude peaks at 2/(1+R) ≈ 1.0005 toward Nyquist. While proving the
+contraction claim for the first edition of this chapter, the measurement
+came back *false* in one corner: with the loop lowpass wide open the product
+|H_lp·H_dc| crossed unity near 450 Hz, and a voice tuned there at res 100 —
+where fb saturates at the cap — measurably swelled at ~+0.2 dB per second.
+The fix is the normalization: scaling the blocker by (1+R)/2 pins its peak
+gain at exactly 1 (the zero at DC is untouched), so with the allpass at unit
+magnitude and the one-pole lowpass ≤ 1, the loop gain is bounded by fb alone
+and **fb < 1 now really is the airtight inequality**. A kernel test pins the
+formerly-failing corner: 450 Hz, res 100, `lp` at 20 kHz, twelve seconds of
+ring-out, decaying window over window.
+
+The normalization has a side effect the file also pays for: the blocker now
+slightly attenuates each voice's *fundamental* (a few parts in 10⁴ at mid
+frequencies, more for very low voices), which — uncompensated — would shave
+the top off long ring times. So `update_derived` divides the RT60-derived fb
+by `dc_block_gain(ω₀)`, the blocker's magnitude at the voice's fundamental —
+the same pay-the-fundamental-back philosophy as the warp compensation below,
+and clamped to `k_fb_max` so the contraction bound survives. The second new
+kernel scenario pins the payoff: an impulse-excited voice at res 50 measures
+its RT60 within 10 % of the map's 1.41 s target.
 
 ## `warp`: dispersion, and paying the fundamental back
 
