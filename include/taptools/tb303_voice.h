@@ -33,11 +33,30 @@
 ///               legato: no retrigger, and the pitch glides through the hardware's fixed
 ///               ~60 ms RC lag (Open303's slideTime). Note: slide is pulled forward from
 ///               plan slice 3 because the note contract requires legato semantics from day one.
-///             - Accent, slice-2 scope: an accented trigger (depth 0..1, scaled by the `accent`
-///               knob) shortens the MEG as above and boosts the VCA level (up to 2x at full
-///               knob and depth). The C13 accent-sweep capacitor (the across-notes "wow") and
-///               its resonance-pot scaling are DELIBERATELY NOT HERE YET — they are plan
-///               slice 3, the coupling that finishes the machine.
+///             - Accent: an accented trigger (depth 0..1, scaled by the `accent` knob)
+///               shortens the MEG as above, boosts the VCA level (up to 2x at full knob and
+///               depth), and drives the ACCENT SWEEP CIRCUIT — the C13 capacitor (slice 3,
+///               the coupling that finishes the machine). Circuit (Devil Fish, "the accent
+///               sweep circuit"): the accented MEG passes a diode + 47k into the resonance
+///               pot's second section (100k, 1 uF to ground at the CW end), whose wiper feeds
+///               a 100k mixing resistor into the cutoff summing node. Modeled:
+///                 * the diode charges the cap only upward (tau ~= 47k*1uF = 47 ms), and the
+///                   cap discharges through the ~100-200k output path (tau ~150 ms nominal —
+///                   the across-notes memory). Closely spaced accents find residual charge,
+///                   so successive sweeps peak HIGHER — the build-up ("wow"); the charge also
+///                   bleeds into following plain notes as it drains, like the hardware's
+///                   always-connected summing node.
+///                 * the cutoff contribution combines a direct MEG term reduced by the cap
+///                   voltage (Devil Fish's "~100/147 of the MEG minus the capacitor voltage"
+///                   — what rounds the first accent's curve) with the cap voltage itself:
+///                   sweep_oct = k_accent_sweep_oct * res_mix *
+///                               (k_accent_direct*max(A*meg - c13, 0) + c13),  A = knob*depth
+///                 * res_mix = 0.3 + 0.7*min(resonance, 1): the pot is ganged with resonance,
+///                   so accent quacks harder at high resonance — hardware behavior.
+///               The sweep injects into the cutoff sum DIRECTLY, bypassing envmod (as in the
+///               circuit): accents sweep even with envmod at zero. k_accent_sweep_oct = 2 and
+///               the 0.4 direct weight are informed approximations pending the slice-4 render
+///               calibration; the RC taus are component-derived.
 ///
 ///             As in the other TapTools kernels: per-sample linear ramps on every parameter, a
 ///             16-slot preset-morph engine, allocation-free after prepare(), setters safe while
@@ -74,6 +93,10 @@ namespace taptools {
         constexpr double k_env_up            = 2.0 / 3.0; // Open303 envUpFraction
         constexpr double k_envmod_octaves    = 4.0;       // full-envmod sweep span (informed approx., see header)
         constexpr double k_slide_ms          = 60.0;      // pitch CV RC lag (Open303 slideTime)
+        constexpr double k_c13_charge_ms     = 47.0;      // accent-sweep cap charge: 47k * 1uF (Devil Fish)
+        constexpr double k_c13_discharge_ms  = 150.0;     // discharge via the ~100-200k output path, nominal
+        constexpr double k_accent_sweep_oct  = 2.0;       // full-charge sweep span (informed approx., see header)
+        constexpr double k_accent_direct     = 0.4;       // direct-MEG weight in the sweep sum
         constexpr double k_pre_hpf_hz        = 44.486;    // pre-filter coupling high-pass (Open303)
         constexpr double k_post_hpf_hz       = 24.167;    // post-filter coupling high-pass (Open303)
         constexpr double k_default_smooth_ms = 20.0;
@@ -156,6 +179,8 @@ namespace taptools {
                 m_vca_decay   = decay_coef(k_vca_decay_ms);
                 m_vca_release = decay_coef(k_vca_release_ms);
                 m_slide_coef  = one_pole_coef(k_slide_ms);
+                m_c13_charge  = one_pole_coef(k_c13_charge_ms);
+                m_c13_drain   = one_pole_coef(k_c13_discharge_ms);
                 m_pre_hp.set(k_pre_hpf_hz, m_sr);
                 m_post_hp.set(k_post_hpf_hz, m_sr);
                 clear();
@@ -169,6 +194,7 @@ namespace taptools {
                 m_meg = m_vca = 0.0;
                 m_meg_rising = m_vca_rising = false;
                 m_note_accent               = 0.0;
+                m_c13                       = 0.0;
                 m_pitch                     = m_pitch_target;
                 m_osc.clear();
                 m_filter.clear();
@@ -206,6 +232,9 @@ namespace taptools {
 
             void note_off() { m_gate = false; }
             bool gate() const { return m_gate; }
+
+            /// The accent-sweep capacitor's current charge (0..~1) — the across-notes memory.
+            double accent_charge() const { return m_c13; }
 
             // -- modes (not part of the morphable parameter set) --------------------------------------------
 
@@ -313,9 +342,24 @@ namespace taptools {
                 step_env(m_meg, m_meg_rising, m_meg_attack, decay_coef(meg_decay_ms));
                 step_env(m_vca, m_vca_rising, m_vca_attack, m_gate ? m_vca_decay : m_vca_release);
 
-                // envelope-modulated cutoff: 2/3 of the sweep above the knob, 1/3 below (the gimmick)
-                const double sweep  = m_ramp[p_envmod].current * k_envmod_octaves;
-                const double fc_eff = m_ramp[p_cutoff].current * std::exp2(sweep * (m_meg - (1.0 - k_env_up)));
+                // the accent sweep circuit: diode-gated charge onto C13, slow drain (the wow memory)
+                const double acc_amt = m_ramp[p_accent].current * m_note_accent;
+                const double drive   = acc_amt * m_meg;
+                if (drive > m_c13) {
+                    m_c13 += (drive - m_c13) * m_c13_charge;
+                }
+                m_c13 -= m_c13 * m_c13_drain;
+                m_c13 = (m_c13 < 1e-15) ? 0.0 : m_c13;
+
+                // envelope-modulated cutoff: 2/3 of the sweep above the knob, 1/3 below (the gimmick),
+                // plus the accent sweep injected directly (bypassing envmod), scaled by the ganged
+                // resonance-pot section
+                const double sweep   = m_ramp[p_envmod].current * k_envmod_octaves;
+                const double res_mix = 0.3 + 0.7 * std::min(m_ramp[p_resonance].current, 1.0);
+                const double acc_oct =
+                    k_accent_sweep_oct * res_mix * (k_accent_direct * std::max(drive - m_c13, 0.0) + m_c13);
+                const double fc_eff =
+                    m_ramp[p_cutoff].current * std::exp2(sweep * (m_meg - (1.0 - k_env_up)) + acc_oct);
 
                 // oscillator -> coupling HPF -> diode ladder -> coupling HPF -> VCA
                 const double osc      = m_osc.process_at(hz);
@@ -440,6 +484,10 @@ namespace taptools {
             double m_meg_attack{0.05}, m_vca_attack{0.05};
             double m_vca_decay{0.9999}, m_vca_release{0.99};
             double m_slide_coef{0.001};
+
+            // accent-sweep circuit state (C13)
+            double m_c13{0.0};
+            double m_c13_charge{0.001}, m_c13_drain{0.0001};
 
             // DSP blocks
             vco::vco_osc        m_osc;
