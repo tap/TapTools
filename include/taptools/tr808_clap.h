@@ -31,6 +31,13 @@
 ///             Both models share the family trigger contract (accent = trigger-bus voltage,
 ///             scaling the envelope drive) and the seeded deterministic noise source.
 ///
+///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852):
+///             clap tail tau 45 -> 100 ms — the chart's "~100 ms" reads as the audible
+///             class, while the real tail measures ~375 ms to -40 dB (ours now 388) —
+///             and band-pass Q 0.82 -> 1.0 (centroid residual +17% -> +11%). Maracas:
+///             added the ~15 kHz low-pass (centroid 16.2 -> 11.2 kHz vs 10.9 measured);
+///             t40 +13% residual.
+///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
 /// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
@@ -50,17 +57,18 @@ namespace taptools {
         // dual op-amp and the schematic shows a second section (C136/R372 area); modeled as
         // two cascaded identical sections, which matches the measured rolloff above the band.
         constexpr double k_cp_bp_hz = 2060.0;
-        constexpr double k_cp_bp_q  = 0.82;
+        constexpr double k_cp_bp_q  = 1.0;
 
         // Figure 13 timing: three sawtooth teeth across the 30 ms window.
         constexpr int    k_cp_teeth      = 3;
         constexpr double k_cp_tooth_ms   = 10.0;
-        constexpr double k_cp_tooth_tau  = 4e-3;  // per-tooth decay (fit to Fig. 13 trace 7)
-        constexpr double k_cp_tail_tau   = 45e-3; // reverberation decay (fit to p.14 ~100 ms)
-        constexpr double k_cp_tail_level = 0.4;   // tail level relative to the teeth
+        constexpr double k_cp_tooth_tau  = 4e-3;   // per-tooth decay (fit to Fig. 13 trace 7)
+        constexpr double k_cp_tail_tau   = 100e-3; // reverberation decay (see calibration note)
+        constexpr double k_cp_tail_level = 0.4;    // tail level relative to the teeth
 
         // Maracas (behavioral, see header): bright burst.
         constexpr double k_ma_hp_hz = 5500.0;
+        constexpr double k_ma_lp_hz = 15000.0;
         constexpr double k_ma_att_s = 0.4e-3;
         constexpr double k_ma_tau_s = 7e-3;
 
@@ -86,9 +94,12 @@ namespace taptools {
 
                 m_ma_hp1.prepare(sample_rate);
                 m_ma_hp2.prepare(sample_rate);
+                m_ma_lp.prepare(sample_rate);
                 const double tau = 1.0 / (2.0 * k_pi * k_ma_hp_hz);
                 m_ma_hp1.set(tau, 0.0, tau, 1.0);
                 m_ma_hp2.set(tau, 0.0, tau, 1.0);
+                const double tau_lp = 1.0 / (2.0 * k_pi * k_ma_lp_hz);
+                m_ma_lp.set(0.0, 1.0, tau_lp, 1.0);
 
                 m_ma_env.prepare(sample_rate);
                 m_ma_env.set_times(k_ma_att_s, k_ma_tau_s);
@@ -100,6 +111,7 @@ namespace taptools {
                 m_bp_z1 = m_bp_z2 = m_bp2_z1 = m_bp2_z2 = 0.0;
                 m_ma_hp1.reset();
                 m_ma_hp2.reset();
+                m_ma_lp.reset();
                 m_ma_env.reset();
                 m_noise.reset();
                 m_tooth_env = m_tail_env = 0.0;
@@ -142,7 +154,8 @@ namespace taptools {
                 const double n = m_noise.process();
 
                 if (m_model == model_maracas) {
-                    const double y = swing_vca(m_ma_hp2.process(m_ma_hp1.process(n)), m_ma_env.process());
+                    const double y =
+                        swing_vca(m_ma_lp.process(m_ma_hp2.process(m_ma_hp1.process(n))), m_ma_env.process());
                     return y * m_level * k_ma_out_scale;
                 }
 
@@ -188,7 +201,7 @@ namespace taptools {
             int    m_teeth_left{0}, m_tooth_timer{0};
 
             // maracas path
-            first_order m_ma_hp1, m_ma_hp2;
+            first_order m_ma_hp1, m_ma_hp2, m_ma_lp;
             decay_env   m_ma_env;
 
             white_noise m_noise;

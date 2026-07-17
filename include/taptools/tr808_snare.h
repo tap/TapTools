@@ -17,7 +17,8 @@
 ///                              rings shorter — like a real drum's upper mode)
 ///             - Snappy: the shared white noise -> ~4 kHz high-pass (C66/C67 0.0018 uF with
 ///               R201 22k / R202 47k around Q48/Q49) -> swing VCA driven by an RC decay
-///               envelope (C51 0.47 uF into R184+R185 30k -> tau ~14 ms), depth set by VR9.
+///               envelope (C51 0.47 uF into R184+R185 30k -> tau ~14 ms nominal; calibrated
+///               to 34 ms measured — see the §7.2 note), depth set by VR9.
 ///             - Mix: VR8 crossfades the two resonators; the snappy path sums after it; VR7 is
 ///               the output level (IC13 mixer).
 ///
@@ -32,6 +33,17 @@
 ///             linear (see swing_vca.h); the slight re-excitation of the resonators by the
 ///             snappy envelope (the composite-trigger path through Q47) is omitted, as in
 ///             Werner's model; accent maps to the common trigger bus voltage as in the kick.
+///
+///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852):
+///             fundamentals within 1.2% at every dial position, including the tone-max
+///             flip to the ~336 Hz mode. Calibrated: the snappy band-limit (two ~4.7 kHz
+///             low-pass sections after the schematic high-pass — the HP alone left the
+///             noise white to Nyquist, centroid ~15 kHz vs the measured ~5 kHz), the
+///             snappy envelope (tau 14 -> 34 ms: measured t40 ~155 ms), and the VR9 law
+///             (gain 42 with a ^1.5 dial taper, fit to the measured noise-power fraction
+///             across the dial). Residuals, documented: noise centroid +12-20%; the
+///             harmonic-only ring (tone max, snappy 0) decays ~2x faster than unit
+///             103852 (schematic values kept).
 ///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
@@ -67,9 +79,11 @@ namespace taptools {
         constexpr double k_sd_c57  = 6.8e-9;
 
         // Snappy noise path: ~4 kHz second-order high-pass (C66/C67 0.0018 uF with R201 22k /
-        // R202 47k), envelope tau = C51 * (R184 + R185) = 0.47 uF * 30k ~= 14 ms.
+        // R202 47k), then the calibrated band-limit low-pass pair; envelope tau nominal
+        // C51 * (R184 + R185) ~= 14 ms, calibrated to the measured 34 ms (§7.2 note).
         constexpr double k_sd_snappy_hp_hz = 4000.0;
-        constexpr double k_sd_snappy_tau_s = 14.1e-3;
+        constexpr double k_sd_snappy_lp_hz = 4700.0;
+        constexpr double k_sd_snappy_tau_s = 34e-3;
         constexpr double k_sd_snappy_att_s = 0.2e-3;
 
         // Trigger bus (family convention, as the kick): accent rides the pulse voltage.
@@ -81,7 +95,10 @@ namespace taptools {
         constexpr double k_sd_out_scale = 1.0 / 17.0;
         // Snappy path gain at snappy = 1 in the mixer's volt units (VR9 span; set against the
         // p.14 chart balance and reference recordings). The envelope already rides the accent.
-        constexpr double k_sd_snappy_gain = 24.0;
+        constexpr double k_sd_snappy_gain = 42.0;
+        // VR9 dial taper (calibration fit): the hardware's snappy pot moves most of its
+        // range in the upper half of the dial.
+        constexpr double k_sd_snappy_taper = 1.5;
 
         /// The TR-808 snare drum voice. prepare(), set the panel, trigger(accent), process().
         class snare {
@@ -119,9 +136,14 @@ namespace taptools {
 
                 m_noise_hp1.prepare(sample_rate);
                 m_noise_hp2.prepare(sample_rate);
+                m_noise_lp.prepare(sample_rate);
                 const double tau = 1.0 / (2.0 * k_pi * k_sd_snappy_hp_hz);
                 m_noise_hp1.set(tau, 0.0, tau, 1.0);
                 m_noise_hp2.set(tau, 0.0, tau, 1.0);
+                const double tau_lp = 1.0 / (2.0 * k_pi * k_sd_snappy_lp_hz);
+                m_noise_lp.set(0.0, 1.0, tau_lp, 1.0);
+                m_noise_lp2.prepare(sample_rate);
+                m_noise_lp2.set(0.0, 1.0, tau_lp, 1.0);
 
                 set_tuning(m_tuning);
                 reset();
@@ -134,6 +156,8 @@ namespace taptools {
                 m_env.reset();
                 m_noise_hp1.reset();
                 m_noise_hp2.reset();
+                m_noise_lp.reset();
+                m_noise_lp2.reset();
                 m_noise.reset();
                 m_pulse_remaining = 0;
                 m_vtrig           = 0.0;
@@ -185,9 +209,10 @@ namespace taptools {
                 const double f      = m_fund.process(v_plus, 0.0, 0.0);
                 const double h      = m_harm.process(v_plus, 0.0, 0.0);
 
-                const double snap =
-                    swing_vca(m_noise_hp2.process(m_noise_hp1.process(m_noise.process())), m_env.process()) * m_snappy
-                    * k_sd_snappy_gain;
+                const double snap = swing_vca(m_noise_lp2.process(m_noise_lp.process(
+                                                  m_noise_hp2.process(m_noise_hp1.process(m_noise.process())))),
+                                              m_env.process())
+                                    * std::pow(m_snappy, k_sd_snappy_taper) * k_sd_snappy_gain;
 
                 const double mix = f * (1.0 - m_tone) + h * m_tone + snap;
                 return mix * m_level * k_sd_out_scale;
@@ -199,7 +224,7 @@ namespace taptools {
             bridged_t   m_fund, m_harm;
             decay_env   m_env;
             white_noise m_noise;
-            first_order m_shaper, m_noise_hp1, m_noise_hp2;
+            first_order m_shaper, m_noise_hp1, m_noise_hp2, m_noise_lp, m_noise_lp2;
 
             double m_tone{0.5}, m_snappy{0.5}, m_level{1.0};
             double m_tuning{1.0};

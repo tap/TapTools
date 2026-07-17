@@ -17,6 +17,14 @@
 ///             Family contract: trigger_closed(accent) / trigger_open(accent), accent = the
 ///             trigger-bus voltage; seeded per-unit oscillator spread; deterministic renders.
 ///
+///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852):
+///             CH tau 11 -> 16 ms (t40 75 ms vs 77 measured); OH decay dial within
+///             +-10% over its whole span with the chart classes kept. The per-path
+///             corners split: OH ~8.8 kHz (centroid within 7%), CH ~12 kHz — the
+///             closed hat still measures ~29% brighter than the shared-band model
+///             produces (its attack spectrum reaches above the 7.1 kHz band-pass), a
+///             known structural residual.
+///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
 /// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
@@ -32,15 +40,17 @@
 namespace taptools {
     namespace tr808 {
 
-        // Decay classes, behavioral fits to the p.14 chart (CH ~50 ms; OH 90/450/600 ms).
-        constexpr double k_hh_closed_tau_s   = 0.011;
+        // Decay classes: chart fits for the OH span (90/450/600 ms); CH calibrated to the
+        // measured t40 (see the §7.2 note).
+        constexpr double k_hh_closed_tau_s   = 0.016;
         constexpr double k_hh_open_tau_min_s = 0.020;
         constexpr double k_hh_open_tau_max_s = 0.130;
         constexpr double k_hh_choke_tau_s    = 0.0015; // Q23 terminates the OH decay
         constexpr double k_hh_att_s          = 0.3e-3;
 
         // Per-path brightening high-pass corner (the Q26/Q31 filters).
-        constexpr double k_hh_hp_hz = 6800.0;
+        constexpr double k_hh_hp_open_hz   = 8800.0;
+        constexpr double k_hh_hp_closed_hz = 12000.0;
 
         constexpr double k_hh_vtrig_min = 4.0;
         constexpr double k_hh_vtrig_max = 14.0;
@@ -56,9 +66,10 @@ namespace taptools {
                 m_bp.prepare(sample_rate, k_bank_bp2_hz, k_bank_bp_q);
                 m_hp_c.prepare(sample_rate);
                 m_hp_o.prepare(sample_rate);
-                const double tau = 1.0 / (2.0 * k_pi * k_hh_hp_hz);
-                m_hp_c.set(tau, 0.0, tau, 1.0);
-                m_hp_o.set(tau, 0.0, tau, 1.0);
+                const double tau_c = 1.0 / (2.0 * k_pi * k_hh_hp_closed_hz);
+                const double tau_o = 1.0 / (2.0 * k_pi * k_hh_hp_open_hz);
+                m_hp_c.set(tau_c, 0.0, tau_c, 1.0);
+                m_hp_o.set(tau_o, 0.0, tau_o, 1.0);
                 m_env_c.prepare(sample_rate);
                 m_env_o.prepare(sample_rate);
                 m_env_c.set_times(k_hh_att_s, k_hh_closed_tau_s);

@@ -113,11 +113,12 @@ SCENARIO("the reverberation tail carries the clap past the teeth (Q70 path)") {
     INFO("50-90 ms wash: tail " << wash_tail << " vs disconnected " << wash_dry);
     CHECK(wash_tail > 5.0 * wash_dry);
 
-    // Overall decay in the chart's ~100 ms class.
+    // Overall decay: the chart says ~100 ms, but a real unit's tail measures ~375 ms
+    // to -40 dB (Fischer set, unit 103852) — the calibrated class.
     const size_t t = decay_40db(y_tail);
     INFO("-40 dB at " << t / k_sr * 1000.0 << " ms");
-    CHECK(t > ms(60));
-    CHECK(t < ms(350));
+    CHECK(t > ms(250));
+    CHECK(t < ms(550));
 }
 
 SCENARIO("the clap is voiced by the schematic's ~2 kHz band-pass") {

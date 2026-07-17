@@ -10,10 +10,14 @@
 ///             2. Single-hit mode (`--hit VOICE [accent]`): one full-accent (or specified)
 ///                hit of `kick|snare|clap|maracas|hat|openhat|cymbal|cowbell|tom|conga|
 ///                rimshot|claves` — the stimulus for the golden-render comparisons against
-///                real-808 sample packs (TapTools-Max plans/tap.808.md §7.2).
+///                real-808 sample packs (TapTools-Max plans/tap.808.md §7.2). Repeatable
+///                `--set NAME VALUE` pairs set the voice's knobs (e.g. `--set tone 0.25
+///                --set decay 0.75`, `--set size 2`), so a calibration script can render
+///                the exact knob grid a reference sample set was recorded at — e.g. the
+///                Fischer/Technopolis 1994 set's 0/2.5/5/7.5/10 dial positions.
 ///
 ///             Usage: tr808_render [output-directory]
-///                    tr808_render --hit kick [accent] [output-directory]
+///                    tr808_render --hit kick [accent] [output-directory] [--set NAME VALUE]...
 /// @author     Timothy Place
 /// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
 
@@ -90,29 +94,79 @@ namespace {
         dst.insert(dst.end(), src.begin(), src.end());
     }
 
+    /// A knob setting from a `--set name value` argument pair.
+    struct knob {
+        std::string name;
+        double      value;
+    };
+
+    /// Apply `--set` knobs via a per-voice name->setter map; warns on unknown names so a
+    /// typo in a calibration script can't silently render defaults.
+    template <class Voice>
+    void apply_knobs(Voice& v, const std::vector<knob>& knobs,
+                     const std::vector<std::pair<std::string, std::function<void(Voice&, double)>>>& setters) {
+        for (const auto& k : knobs) {
+            bool found = false;
+            for (const auto& s : setters)
+                if (s.first == k.name) {
+                    s.second(v, k.value);
+                    found = true;
+                }
+            if (!found)
+                std::fprintf(stderr, "warning: no knob '%s' on this voice\n", k.name.c_str());
+        }
+    }
+
     /// One hit of a named voice at a given accent; empty on unknown name.
-    std::vector<double> single_hit(const std::string& name, double accent) {
+    std::vector<double> single_hit(const std::string& name, double accent, const std::vector<knob>& knobs) {
         if (name == "kick") {
             kick v;
             v.prepare(k_g_sr);
-            return take(1.5, [&] { v.trigger(accent); }, [&] { return v.process(); });
+            apply_knobs(v, knobs,
+                        {{"tone", [](kick& o, double x) { o.set_tone(x); }},
+                         {"decay", [](kick& o, double x) { o.set_decay(x); }},
+                         {"tuning", [](kick& o, double x) { o.set_tuning(x); }},
+                         {"attack", [](kick& o, double x) { o.set_attack(x); }},
+                         {"sigh", [](kick& o, double x) { o.set_sigh(x); }},
+                         {"pulse", [](kick& o, double x) { o.set_pulse_ms(x); }},
+                         {"level", [](kick& o, double x) { o.set_level(x); }}});
+            return take(3.0, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         if (name == "snare") {
             snare v;
             v.prepare(k_g_sr);
+            apply_knobs(v, knobs,
+                        {{"tone", [](snare& o, double x) { o.set_tone(x); }},
+                         {"snappy", [](snare& o, double x) { o.set_snappy(x); }},
+                         {"tuning", [](snare& o, double x) { o.set_tuning(x); }},
+                         {"seed", [](snare& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
+                         {"level", [](snare& o, double x) { o.set_level(x); }}});
             return take(0.6, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         if (name == "clap" || name == "maracas") {
             clap v;
             v.prepare(k_g_sr);
             v.set_model(name == "maracas" ? clap::model_maracas : clap::model_clap);
+            apply_knobs(v, knobs,
+                        {{"tail", [](clap& o, double x) { o.set_tail(x); }},
+                         {"seed", [](clap& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
+                         {"level", [](clap& o, double x) { o.set_level(x); }}});
             return take(0.6, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         if (name == "hat" || name == "openhat") {
             hat v;
             v.prepare(k_g_sr);
+            apply_knobs(v, knobs,
+                        {{"decay", [](hat& o, double x) { o.set_decay(x); }},
+                         {"tuning", [](hat& o, double x) { o.set_tuning(x); }},
+                         {"tolerance", [](hat& o, double x) { o.set_tolerance(x); }},
+                         {"seed", [](hat& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
+                         {"level", [](hat& o, double x) {
+                              o.set_closed_level(x);
+                              o.set_open_level(x);
+                          }}});
             return take(
-                1.0,
+                1.5,
                 [&] {
                     if (name == "openhat")
                         v.trigger_open(accent);
@@ -124,24 +178,42 @@ namespace {
         if (name == "cymbal") {
             cymbal v;
             v.prepare(k_g_sr);
-            return take(2.5, [&] { v.trigger(accent); }, [&] { return v.process(); });
+            apply_knobs(v, knobs,
+                        {{"tone", [](cymbal& o, double x) { o.set_tone(x); }},
+                         {"decay", [](cymbal& o, double x) { o.set_decay(x); }},
+                         {"tuning", [](cymbal& o, double x) { o.set_tuning(x); }},
+                         {"tolerance", [](cymbal& o, double x) { o.set_tolerance(x); }},
+                         {"seed", [](cymbal& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
+                         {"level", [](cymbal& o, double x) { o.set_level(x); }}});
+            return take(3.5, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         if (name == "cowbell") {
             cowbell v;
             v.prepare(k_g_sr);
-            return take(0.5, [&] { v.trigger(accent); }, [&] { return v.process(); });
+            apply_knobs(v, knobs,
+                        {{"tuning", [](cowbell& o, double x) { o.set_tuning(x); }},
+                         {"tolerance", [](cowbell& o, double x) { o.set_tolerance(x); }},
+                         {"seed", [](cowbell& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
+                         {"level", [](cowbell& o, double x) { o.set_level(x); }}});
+            return take(0.6, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         if (name == "tom" || name == "conga") {
             tom v;
             v.prepare(k_g_sr);
             v.set_model(name == "conga" ? tom::model_conga : tom::model_tom);
             v.set_size(1);
+            apply_knobs(v, knobs,
+                        {{"size", [](tom& o, double x) { o.set_size(static_cast<int>(x)); }},
+                         {"tuning", [](tom& o, double x) { o.set_tuning(x); }},
+                         {"seed", [](tom& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
+                         {"level", [](tom& o, double x) { o.set_level(x); }}});
             return take(0.8, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         if (name == "rimshot" || name == "claves") {
             rim v;
             v.prepare(k_g_sr);
             v.set_model(name == "claves" ? rim::model_claves : rim::model_rimshot);
+            apply_knobs(v, knobs, {{"level", [](rim& o, double x) { o.set_level(x); }}});
             return take(0.4, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         return {};
@@ -164,10 +236,9 @@ namespace {
             append(y, take(1.2, [&] { v.trigger(1.0); }, [&] { return v.process(); }));
             write_wav(dir + "/tr808_kick.wav", y, k_g_sr);
         }
-        { // snare: tone travel then snappy travel (level ridden down: snappy-max runs hot)
+        { // snare: tone travel then snappy travel
             snare v;
             v.prepare(k_g_sr);
-            v.set_level(0.65);
             std::vector<double> y;
             for (double t : {0.0, 0.5, 1.0}) {
                 v.set_tone(t);
@@ -316,9 +387,25 @@ namespace {
 int main(int argc, char** argv) {
     if (argc >= 3 && std::strcmp(argv[1], "--hit") == 0) {
         const std::string name   = argv[2];
-        const double      accent = argc >= 4 ? std::atof(argv[3]) : 1.0;
-        const std::string dir    = argc >= 5 ? argv[4] : ".";
-        auto              y      = single_hit(name, accent);
+        double            accent = 1.0;
+        std::string       dir    = ".";
+        std::vector<knob> knobs;
+        int               positional = 0;
+        for (int i = 3; i < argc; ++i) {
+            if (std::strcmp(argv[i], "--set") == 0 && i + 2 < argc) {
+                knobs.push_back({argv[i + 1], std::atof(argv[i + 2])});
+                i += 2;
+            }
+            else if (positional == 0) {
+                accent = std::atof(argv[i]);
+                ++positional;
+            }
+            else {
+                dir = argv[i];
+                ++positional;
+            }
+        }
+        auto y = single_hit(name, accent, knobs);
         if (y.empty()) {
             std::fprintf(stderr,
                          "unknown voice '%s' (kick|snare|clap|maracas|hat|openhat|cymbal|"

@@ -128,19 +128,21 @@ SCENARIO("tolerance spreads the bank per seed; zero tolerance is exact") {
     CHECK(same);
 }
 
-SCENARIO("the cymbal decay pot spans the chart's 350-1200 ms classes") {
+SCENARIO("the cymbal decay pot spans the measured ~0.65-2.7 s -40 dB range") {
+    // The chart's 350-1200 ms are knob classes, not -40 dB tails; a real unit measures
+    // ~0.65 s (pot minimum) to ~2.7 s (maximum) to -40 dB (Fischer set) — calibrated.
     auto         c1 = make(0.5, 0.0);
     auto         c2 = make(0.5, 1.0);
-    auto         y1 = render(c1, 3.0);
-    auto         y2 = render(c2, 3.0);
+    auto         y1 = render(c1, 3.5);
+    auto         y2 = render(c2, 3.5);
     const size_t t1 = decay_40db(y1);
     const size_t t2 = decay_40db(y2);
     INFO("-40 dB: decay 0 -> " << t1 / k_sr * 1000.0 << " ms, decay 1 -> " << t2 / k_sr * 1000.0 << " ms");
     CHECK(t1 < t2);
-    CHECK(t1 > ms(150));
-    CHECK(t1 < ms(700));
-    CHECK(t2 > ms(600));
-    CHECK(t2 < ms(2200));
+    CHECK(t1 > ms(400));
+    CHECK(t1 < ms(900));
+    CHECK(t2 > ms(2200));
+    CHECK(t2 < ms(3100));
 }
 
 SCENARIO("cymbal tone balances strike against body") {
@@ -189,8 +191,8 @@ SCENARIO("cymbal rendering is deterministic and silent at rest") {
         p = std::max(p, std::abs(q.process()));
     CHECK(p == 0.0);
 
-    auto c3     = make(0.5, 1.0);
-    auto y3     = render(c3, 4.0);
+    auto c3     = make(0.5, 0.3);
+    auto y3     = render(c3, 5.0);
     bool finite = true;
     for (double v : y3)
         finite = finite && std::isfinite(v);

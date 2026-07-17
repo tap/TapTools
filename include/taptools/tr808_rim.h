@@ -20,6 +20,14 @@
 ///             Family contract: trigger(accent) on the 4-14 V bus; deterministic (no noise
 ///             source in this channel).
 ///
+///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852): the
+///             rimshot re-voiced low-dominant (k_rs_hi_mix 0.08) — the real RS spectrum
+///             peaks at ~455 Hz (IC21's network), which an even sum buried under the
+///             hotter 1667 Hz network (impulse gain grows with fc.Q); measured dominant
+///             pitch now 451 Hz vs 468. Decay classes 10 -> 14 ms (RS) and 25 -> 62 ms
+///             (CL) for the measured 12.6 / 33.8 ms t40s (ours 11.8 / 33.4); claves
+///             pitch +2.3%.
+///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
 /// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
@@ -38,9 +46,13 @@ namespace taptools {
         // p.14 chart voicings.
         constexpr double k_rs_hi_hz   = 1667.0; // IC20 network, RS position
         constexpr double k_rs_lo_hz   = 455.0;  // IC21 (computes to 452 Hz from its parts)
-        constexpr double k_rs_decay_s = 0.010;
+        constexpr double k_rs_decay_s = 0.014;
         constexpr double k_cl_hz      = 2500.0;
-        constexpr double k_cl_decay_s = 0.025;
+        constexpr double k_cl_decay_s = 0.062;
+
+        // Resonator balance in the rimshot sum: the high network's impulse gain grows with
+        // fc·Q, so an even sum buries the ~455 Hz component the real rimshot is built on.
+        constexpr double k_rs_hi_mix = 0.08;
 
         // Resonator bridges (R308/R316-class values).
         constexpr double k_rim_r_bridge = 820e3;
@@ -58,7 +70,7 @@ namespace taptools {
         // compressing it) leaves the resonator far hotter than the rimshot sum; the hardware
         // brings both switch positions to comparable level at the mix bus. Trimmed so a
         // full-accent claves peaks at ~0.55 (measured), in the rimshot's neighborhood.
-        constexpr double k_cl_mix = 0.23;
+        constexpr double k_cl_mix = 0.095;
 
         /// The TR-808 rimshot/claves channel. `model` 0 = rimshot, 1 = claves.
         class rim {
@@ -108,7 +120,7 @@ namespace taptools {
                 const double drive = v_pulse * 0.02;
                 double       ring  = m_hi.process(drive, 0.0, 0.0);
                 if (m_model == model_rimshot) {
-                    ring += m_lo.process(drive, 0.0, 0.0);
+                    ring = ring * k_rs_hi_mix + m_lo.process(drive, 0.0, 0.0);
                 }
 
                 const double env = m_env.process();

@@ -25,6 +25,14 @@
 ///
 ///             Family contract: trigger(accent) on the 4-14 V bus; seeded determinism.
 ///
+///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852):
+///             decay classes re-fit to the measured -40 dB tails — toms 360/250/200 ms,
+///             congas 350/170/145 ms (the chart's 200/130/100 and 180/100/80 read as a
+///             hotter reference level) — bringing every size/tuning cell within +-11%.
+///             Tunings kept from the chart: fundamentals within +-4% at every dial
+///             position (low-conga dial-min -11%, their trim). Mix gains renormalized
+///             for the doubled Q.
+///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
 /// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
@@ -40,11 +48,12 @@
 namespace taptools {
     namespace tr808 {
 
-        // p.14 chart tuning spans [low, high] in Hz and decay classes (to -40 dB), per size.
+        // p.14 chart tuning spans [low, high] in Hz per size; decay classes calibrated to
+        // the measured -40 dB tails (see the §7.2 note).
         constexpr double k_tom_hz[3][2]     = {{80.0, 100.0}, {120.0, 160.0}, {165.0, 220.0}};
         constexpr double k_conga_hz[3][2]   = {{165.0, 220.0}, {250.0, 310.0}, {370.0, 455.0}};
-        constexpr double k_tom_decay_s[3]   = {0.200, 0.130, 0.100};
-        constexpr double k_conga_decay_s[3] = {0.180, 0.100, 0.080};
+        constexpr double k_tom_decay_s[3]   = {0.360, 0.250, 0.200};
+        constexpr double k_conga_decay_s[3] = {0.350, 0.170, 0.145};
 
         // The resonator bridge (R218/R276-class 2.2 M on the schematic); leg set per decay.
         constexpr double k_tomc_r_bridge = 2.2e6;
@@ -70,7 +79,7 @@ namespace taptools {
         // very different levels; the hardware evens them out with per-channel summing
         // resistors into the mix bus. Normalized so every channel's full-accent, knob-max
         // peak lands at ~0.9 (measured), keeping the family's output band consistent.
-        constexpr double k_tomc_mix[2][3] = {{0.87, 0.56, 0.43}, {0.23, 0.22, 0.17}};
+        constexpr double k_tomc_mix[2][3] = {{0.48, 0.29, 0.20}, {0.11, 0.13, 0.09}};
 
         /// The TR-808 tom/conga channel. `size` 0/1/2 = low/mid/high; `model` 0 = tom
         /// (with the noise layer), 1 = conga.
