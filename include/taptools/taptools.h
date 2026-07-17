@@ -8,6 +8,7 @@
 #pragma once
 
 #include "autowah.h"
+#include "bridged_t.h"
 #include "conv_engine.h"
 #include "fft.h"
 #include "grm_comb.h"
@@ -17,5 +18,6 @@
 #include "spectra.h"
 #include "stft.h"
 #include "svf.h"
+#include "tr808_kick.h"
 #include "vco.h"
 #include "vocoder.h"

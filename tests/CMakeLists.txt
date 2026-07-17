@@ -17,6 +17,7 @@ add_executable(taptools_kernel_tests
     grm_comb_test.cpp
     nr_test.cpp
     spectra_test.cpp
+    tr808_kick_test.cpp
     vco_test.cpp
     vocoder_test.cpp
     conv_engine_test.cpp
