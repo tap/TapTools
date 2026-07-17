@@ -54,6 +54,12 @@ namespace taptools {
 
         constexpr double k_rim_out_scale = 1.0 / 16.0;
 
+        // Claves summing balance: the CL network (higher fc, higher Q, and no tanh VCA
+        // compressing it) leaves the resonator far hotter than the rimshot sum; the hardware
+        // brings both switch positions to comparable level at the mix bus. Trimmed so a
+        // full-accent claves peaks at ~0.55 (measured), in the rimshot's neighborhood.
+        constexpr double k_cl_mix = 0.23;
+
         /// The TR-808 rimshot/claves channel. `model` 0 = rimshot, 1 = claves.
         class rim {
           public:
@@ -111,7 +117,7 @@ namespace taptools {
                     return std::tanh(ring * k_rs_drive * env) / k_rs_drive * m_level * k_rim_out_scale
                            * k_rim_vtrig_max;
                 }
-                return swing_vca(ring, env) * m_level * k_rim_out_scale;
+                return swing_vca(ring, env) * k_cl_mix * m_level * k_rim_out_scale;
             }
 
           private:

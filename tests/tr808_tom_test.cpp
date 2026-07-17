@@ -230,3 +230,18 @@ SCENARIO("tom accent scales monotonically; deterministic; silent at rest") {
     CHECK(finite);
     CHECK(peak(y4, y4.size() - static_cast<size_t>(0.05 * k_sr)) < 1e-6);
 }
+
+SCENARIO("tom family balance: every channel's full-accent peak sits in the family band") {
+    // Slice-5 polish pin: the per-channel summing gains (k_tomc_mix) keep all six
+    // size/model channels in a consistent band at any knob position, like the hardware's
+    // per-channel summing resistors into the mix bus.
+    for (int model : {tom::model_tom, tom::model_conga})
+        for (int size : {0, 1, 2})
+            for (double tuning : {0.0, 0.5, 1.0}) {
+                auto         t = make(size, model, tuning);
+                const double p = peak(render(t, 0.8));
+                INFO("model " << model << " size " << size << " tuning " << tuning << " peak " << p);
+                CHECK(p > 0.35);
+                CHECK(p < 1.0);
+            }
+}
