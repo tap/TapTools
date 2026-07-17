@@ -65,6 +65,13 @@ namespace taptools {
 
         constexpr double k_tomc_out_scale = 1.0 / 30.0;
 
+        // Per-channel summing balance. The bridged-T rings hotter as the tuning class rises
+        // (its impulse gain grows with fc and Q), so the six channels leave the resonator at
+        // very different levels; the hardware evens them out with per-channel summing
+        // resistors into the mix bus. Normalized so every channel's full-accent, knob-max
+        // peak lands at ~0.9 (measured), keeping the family's output band consistent.
+        constexpr double k_tomc_mix[2][3] = {{0.87, 0.56, 0.43}, {0.23, 0.22, 0.17}};
+
         /// The TR-808 tom/conga channel. `size` 0/1/2 = low/mid/high; `model` 0 = tom
         /// (with the noise layer), 1 = conga.
         class tom {
@@ -156,7 +163,7 @@ namespace taptools {
                     m_noise_env.process(); // keep envelope state moving for model switches
                 }
 
-                return (ring + noise) * m_level * k_tomc_out_scale;
+                return (ring + noise) * m_level * k_tomc_mix[m_model][m_size] * k_tomc_out_scale;
             }
 
           private:

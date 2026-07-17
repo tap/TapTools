@@ -149,3 +149,19 @@ SCENARIO("rim accent scales monotonically; deterministic; silent at rest") {
     CHECK(finite);
     CHECK(peak(y4, y4.size() - static_cast<size_t>(0.05 * k_sr)) < 1e-6);
 }
+
+SCENARIO("rim family balance: both switch positions peak in the family band") {
+    // Slice-5 polish pin: the claves trim (k_cl_mix) brings the hotter CL network into
+    // the rimshot's neighborhood, as the hardware's summing does.
+    auto         rs  = make();
+    auto         cl  = make(rim::model_claves);
+    const double prs = peak(render(rs, 0.4));
+    const double pcl = peak(render(cl, 0.4));
+    INFO("rimshot " << prs << " claves " << pcl);
+    CHECK(prs > 0.2);
+    CHECK(prs < 1.0);
+    CHECK(pcl > 0.2);
+    CHECK(pcl < 1.0);
+    CHECK(pcl < 3.0 * prs);
+    CHECK(prs < 3.0 * pcl);
+}
