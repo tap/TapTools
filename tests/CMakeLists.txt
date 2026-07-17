@@ -22,6 +22,8 @@ add_executable(taptools_kernel_tests
     tr808_hat_test.cpp
     tr808_cowbell_test.cpp
     tr808_kick_test.cpp
+    tr808_rim_test.cpp
+    tr808_tom_test.cpp
     tr808_snare_test.cpp
     vco_test.cpp
     vocoder_test.cpp

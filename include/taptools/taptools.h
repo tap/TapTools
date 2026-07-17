@@ -25,6 +25,8 @@
 #include "tr808_cymbal.h"
 #include "tr808_hat.h"
 #include "tr808_kick.h"
+#include "tr808_rim.h"
 #include "tr808_snare.h"
+#include "tr808_tom.h"
 #include "vco.h"
 #include "vocoder.h"
