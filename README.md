@@ -16,6 +16,7 @@ same either way.
 | Kernel | Max object | Contents |
 |---|---|---|
 | `include/taptools/autowah.h` | `tap.autowah~` | Snow White-style envelope filter (`taptools::autowah`) |
+| `include/taptools/diode_ladder.h` | `tap.diode~` | ZDF TB-303 diode ladder (`taptools::diode`) |
 | `include/taptools/ladder.h` | `tap.ladder~` | ZDF Moog-style ladder (`taptools::ladder`) |
 | `include/taptools/svf.h` | `tap.svf~` | Simper/Cytomic morphing SVF (`taptools::svf`) |
 | `include/taptools/vco.h` | `tap.vco~` | Virtual-analog oscillator (`taptools::vco`) |
@@ -28,8 +29,8 @@ Plus, all Max-free:
 - **`tests/`** — Catch2 unit tests for the kernels (fetched via FetchContent; run with `ctest`).
   Wrapper-level tests (attributes, Min plumbing) stay with the externals on the min-api harness
   in the Max package.
-- **`tools/render/`** — offline WAV renderers (`ladder_render`, `vco_render`, `grm_comb_render`,
-  `grm_pitchaccum_render`, `autowah_render`) for listening checks outside Max.
+- **`tools/render/`** — offline WAV renderers (`diode_render`, `ladder_render`, `vco_render`,
+  `grm_comb_render`, `grm_pitchaccum_render`, `autowah_render`) for listening checks outside Max.
 - **`tools/capi/`** — a small C ABI (`taptools_capi`) over the kernels for non-C++ consumers:
   `conv_engine`, `svf`, `ladder`, `vco`, and `autowah`.
 - **`notebooks/`** — Jupyter verification notebooks driving the *actual shipping DSP* through the

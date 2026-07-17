@@ -1,0 +1,13 @@
+{
+  "samplerate": 48000,
+  "cases": {
+    "fast.os1.static": { "ns_per_sample": 201.849 },
+    "fast.os2.static": { "ns_per_sample": 390.050 },
+    "fast.os4.static": { "ns_per_sample": 763.569 },
+    "fast.os2.mod": { "ns_per_sample": 412.615 },
+    "fast.os2.hot": { "ns_per_sample": 431.375 },
+    "exact.os2.static": { "ns_per_sample": 887.975 },
+    "exact.os2.mod": { "ns_per_sample": 929.729 },
+    "exact.os2.hot": { "ns_per_sample": 1414.623 }
+  }
+}
