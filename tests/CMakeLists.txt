@@ -26,6 +26,7 @@ add_executable(taptools_kernel_tests
     tr808_rim_test.cpp
     tr808_tom_test.cpp
     tr808_snare_test.cpp
+    tb303_voice_test.cpp
     vco_test.cpp
     vocoder_test.cpp
     conv_engine_test.cpp
