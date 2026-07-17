@@ -13,6 +13,7 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable(taptools_kernel_tests
     autowah_test.cpp
+    diode_ladder_test.cpp
     fft_test.cpp
     grm_comb_test.cpp
     nr_test.cpp
