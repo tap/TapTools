@@ -10,3 +10,7 @@ __pycache__/
 .DS_Store
 .vscode/
 .idea/
+
+# tr808 calibration notebook work dirs (downloaded reference set + renders)
+notebooks/_tr808_ref/
+notebooks/_tr808_ours/
