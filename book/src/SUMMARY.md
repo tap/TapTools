@@ -24,7 +24,12 @@
 - [A gate for every bin](nr.md)
 - [The spectrum, re-plumbed](spectra.md)
 
-# Part V — The machine, file by file
+# Part V — The rhythm section
+
+- [The acid machine](acid.md)
+- [The drum machine](drums.md)
+
+# Part VI — The machine, file by file
 
 - [Solving the filter on paper: svf.h](machine/svf.md)
 - [The nonlinear loop: ladder.h](machine/ladder.md)

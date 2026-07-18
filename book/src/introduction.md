@@ -31,7 +31,11 @@ The book is organized the way a patch is:
   (`tap.5comb~`) and the pitch-accumulating shimmer loop (`tap.pitchaccum~`).
 - **Part IV — The spectral set**: the 24-band vocoder (`tap.vocoder~`), the
   per-bin spectral gate (`tap.nr~`), and the bin remapper (`tap.spectra~`).
-- **Part V — The machine, file by file**: the SampleRateTap-style deep dives —
+- **Part V — The rhythm section**: the Roland recreations — the TB-303 voice,
+  its diode-ladder filter, and its sequencer (`tap.303~`, `tap.diode~`,
+  `tap.303.seq~`), and the eight TR-808 voice channels with their row
+  sequencer (`tap.808.*`, `tap.808.seq~`).
+- **Part VI — The machine, file by file**: the SampleRateTap-style deep dives —
   one chapter per kernel header, deriving the math, reviewing the code, and
   recording *why* each algorithm is written the way it is, alternatives and
   all. Parts I–IV are for driving the objects; Part V is for trusting them —
