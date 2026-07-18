@@ -44,6 +44,7 @@ namespace taptools {
         enum mode : int {
             mode_clean = 0, // pure linear multiply — bit-identical to *~
             mode_warm,      // one-transistor class-A stage (biased, slope-normalized tanh)
+            mode_swing,     // TR-808 swing-type VCA: symmetric (odd-harmonic) saturation
             k_num_modes
         };
 
@@ -73,20 +74,36 @@ namespace taptools {
         void set_dc_block(bool on) { m_dc_block = on; }
         bool dc_block() const { return m_dc_block; }
 
+        /// The TR-808 swing-type VCA's symmetric saturator, applied to an already-gained sample.
+        /// A differential-pair transconductance cell is an odd function, so it makes the "many high
+        /// harmonics" the Service Notes note (RS/CL VCA) with no DC — modeled here as unity-slope-at-0
+        /// tanh so quiet signals stay clean and hot signals compress (the character rides the
+        /// envelope). `drive <= 0` is the exact linear passthru, so the 808 noise voices default to
+        /// their calibrated linear model bit-for-bit. Static + shared: this is the one implementation
+        /// swing_vca.h (the voices) and mode_swing both route through.
+        static double swing_shape(double v, double drive) {
+            return drive > 0.0 ? std::tanh(drive * v) / drive : v;
+        }
+
         // -- processing -------------------------------------------------------------------------
 
-        /// The transistor-stage saturator applied to an already-gained sample. `clean` is the
-        /// identity, so upstream code that multiplies by its own gain gets a bit-identical passthru.
-        /// This is the shared primitive tb303_voice.h composes (with its own gain and coupling).
+        /// The circuit's saturator applied to an already-gained sample. `clean` is the identity, so
+        /// upstream code that multiplies by its own gain gets a bit-identical passthru. This is the
+        /// shared primitive tb303_voice.h composes (with its own gain and coupling).
         double shape(double v) const {
-            if (m_mode == mode_clean)
-                return v;
-            return (std::tanh(m_drive * v + m_bias) - m_off) * m_norm;
+            switch (m_mode) {
+                case mode_warm:
+                    return (std::tanh(m_drive * v + m_bias) - m_off) * m_norm;
+                case mode_swing:
+                    return swing_shape(v, m_drive);
+                default: // mode_clean
+                    return v;
+            }
         }
 
         /// The full standalone path: apply `gain`, run the circuit, and in `warm` mode couple the
-        /// output through the DC block (unless disabled). `gain` is a plain linear multiplier —
-        /// feed it a control signal, an envelope, or a constant.
+        /// output through the DC block (unless disabled — `swing` is symmetric and needs none).
+        /// `gain` is a plain linear multiplier — feed it a control signal, an envelope, or a constant.
         double process(double x, double gain) {
             const double s = shape(x * gain);
             if (m_mode == mode_warm && m_dc_block)

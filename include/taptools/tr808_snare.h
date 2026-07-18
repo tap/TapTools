@@ -29,10 +29,11 @@
 ///             K. J. Werner's TR-808 SD analysis). STOCK HERE IS THE LATER REVISION; the
 ///             `tuning` bend scales both resonators from there.
 ///
-///             Behavioral simplifications: the hardware VCA's harmonic generation is modeled
-///             linear (see swing_vca.h); the slight re-excitation of the resonators by the
-///             snappy envelope (the composite-trigger path through Q47) is omitted, as in
-///             Werner's model; accent maps to the common trigger bus voltage as in the kick.
+///             Behavioral simplifications: the hardware VCA's harmonic generation is linear by
+///             default, with an opt-in `drive` for the swing VCA's symmetric saturation (see
+///             swing_vca.h); the slight re-excitation of the resonators by the snappy envelope
+///             (the composite-trigger path through Q47) is omitted, as in Werner's model; accent
+///             maps to the common trigger bus voltage as in the kick.
 ///
 ///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852):
 ///             fundamentals within 1.2% at every dial position, including the tone-max
@@ -177,6 +178,13 @@ namespace taptools {
 
             // -- circuit bends (stock hardware at the defaults) ----------------------------
 
+            /// Swing-VCA drive on the snappy noise path (0 = the calibrated linear model,
+            /// bit-identical; > 0 engages the swing VCA's symmetric harmonic saturation — grit and
+            /// compression that ride the snappy envelope, hardest on the transient crack). See
+            /// swing_vca.h / vca.h swing_shape.
+            void   set_drive(double amount) { m_drive = std::max(0.0, amount); }
+            double drive() const { return m_drive; }
+
             /// Pitch as a ratio of the stock tuning (0.25..4): scales both resonators' arm
             /// capacitors together. 1.0 = the late-revision schematic (~173/336 Hz).
             void set_tuning(double ratio) {
@@ -211,7 +219,7 @@ namespace taptools {
 
                 const double snap = swing_vca(m_noise_lp2.process(m_noise_lp.process(
                                                   m_noise_hp2.process(m_noise_hp1.process(m_noise.process())))),
-                                              m_env.process())
+                                              m_env.process(), m_drive)
                                     * std::pow(m_snappy, k_sd_snappy_taper) * k_sd_snappy_gain;
 
                 const double mix = f * (1.0 - m_tone) + h * m_tone + snap;
@@ -228,6 +236,7 @@ namespace taptools {
 
             double m_tone{0.5}, m_snappy{0.5}, m_level{1.0};
             double m_tuning{1.0};
+            double m_drive{0.0}; // swing-VCA saturation on the snappy path; 0 = linear (default)
             double m_vtrig{0.0};
             int    m_pulse_remaining{0};
         };

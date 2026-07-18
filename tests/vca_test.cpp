@@ -143,6 +143,38 @@ SCENARIO("the warm circuit's output DC block sheds signal-dependent DC on AC mat
     }
 }
 
+SCENARIO("the swing circuit is the TR-808 symmetric harmonic saturator") {
+    THEN("swing_shape is the exact linear passthru at drive 0 (calibrated voices stay bit-identical)") {
+        for (double v : {-1.3, -0.4, 0.0, 0.25, 0.9, 1.6})
+            REQUIRE(taptools::vca::swing_shape(v, 0.0) == v);
+    }
+    THEN("with drive > 0 it is an odd function — symmetric, no even harmonics, no DC") {
+        for (double d : {0.5, 2.0, 6.0})
+            for (double v : {0.15, 0.6, 1.2})
+                REQUIRE(std::abs(taptools::vca::swing_shape(v, d) + taptools::vca::swing_shape(-v, d)) < 1e-12);
+    }
+    THEN("unity slope through zero (quiet signals near-clean) and compression on hot signals") {
+        const double d = 2.0;
+        REQUIRE(std::abs(taptools::vca::swing_shape(1e-4, d) - 1e-4) < 1e-7);
+        REQUIRE(std::abs(taptools::vca::swing_shape(1.5, d)) < 1.5);
+    }
+    GIVEN("a vca in swing mode") {
+        taptools::vca a;
+        a.prepare(k_sr);
+        a.set_mode(taptools::vca::mode_swing);
+        a.set_drive(2.0);
+        THEN("shape() routes through the shared swing_shape and needs no DC block (symmetric)") {
+            REQUIRE(a.shape(0.7) == taptools::vca::swing_shape(0.7, a.drive()));
+            // a symmetric shaper on a symmetric sweep has zero mean either way
+            double mean_on = 0.0;
+            int    n       = 0;
+            for (double ph = 0.0; ph < 2.0 * k_pi; ph += 0.001, ++n)
+                mean_on += a.process(std::sin(ph), 1.0);
+            REQUIRE(std::abs(mean_on / n) < 1e-3);
+        }
+    }
+}
+
 SCENARIO("drive and bias are live and reshape the curve") {
     taptools::vca a;
     a.prepare(k_sr);
