@@ -10,8 +10,9 @@
 ///             - The two oscillators are the metal bank's trimpot-tuned pair — 540 Hz (TM1,
 ///               Roland's "1.85 ms") and 800 Hz (TM2, "1.25 ms").
 ///             - The two-slope envelope: C9 (0.47 uF) gives a fast initial drop, C34 (1 uF)
-///               through R82 (33k) the ~33 ms tail — modeled as two summed RC decays. Overall
-///               decay lands in the p.14 chart's ~50 ms class.
+///               through R82 (33k) the tail (33 ms nominal; calibrated to the measured 88 ms
+///               — see the §7.2 note) — modeled as two summed RC decays. The chart's ~50 ms
+///               class is the audible clank; the -40 dB tail measures ~320 ms.
 ///             - The IC2 voicing filter: a band-pass centered ~860 Hz, derived from the
 ///               schematic's multiple-feedback values (R26 10k in, R25 470k feedback,
 ///               C30 0.0022 uF / C29 0.0033 uF): fc = 1/(2*pi*sqrt(R26*R25*C30*C29)). Its Q
@@ -19,6 +20,11 @@
 ///
 ///             Family contract: trigger(accent); seeded per-unit oscillator spread
 ///             (`tolerance`), tuning bend, deterministic renders.
+///
+///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852):
+///             R82/C34 tail tau 33 -> 88 ms — the chart's ~50 ms class is the clank, the
+///             real tail measures 322 ms to -40 dB (ours 324). Pitch -2.9% (800 Hz
+///             nominal pair vs 824 measured — inside the trimpot/tolerance spread).
 ///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
@@ -37,7 +43,7 @@ namespace taptools {
 
         // Two-slope envelope (see header): the fast C9 component and the R82/C34 tail.
         constexpr double k_cb_fast_tau_s = 0.0045;
-        constexpr double k_cb_tail_tau_s = 0.033;
+        constexpr double k_cb_tail_tau_s = 0.088;
         constexpr double k_cb_tail_level = 0.35; // tail level relative to the initial peak
         constexpr double k_cb_att_s      = 0.2e-3;
 

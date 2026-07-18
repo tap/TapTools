@@ -165,3 +165,39 @@ SCENARIO("hat accent scales monotonically; rendering is deterministic and bounde
         silent = std::max(silent, std::abs(q.process()));
     CHECK(silent == 0.0);
 }
+
+SCENARIO("the closed hat is brighter than the open ring (the sizzle blend)") {
+    // §7.2 calibration pin: the real CH reads far brighter than the shared 7.1 kHz band
+    // (unit 103852: CH centroid ~10.9 kHz vs OH ~8.0 kHz). The sizzle blend supplies the
+    // bank's raw upper harmonics per path; compare the paths' power above ~13 kHz with a
+    // cascaded one-pole high-pass replica (steep enough to discriminate).
+    auto hf_fraction = [](hat& h, bool open) {
+        if (open)
+            h.trigger_open(1.0);
+        else
+            h.trigger_closed(1.0);
+        const double tau   = 1.0 / (2.0 * 3.14159265358979323846 * 13000.0);
+        const double a     = tau / (tau + 1.0 / k_sr);
+        double       hp1_z = 0.0, hp2_z = 0.0, x_z = 0.0, hp1_prev = 0.0;
+        double       e_hp = 0.0, e_all = 0.0;
+        for (int i = 0; i < 24000; ++i) {
+            const double x   = h.process();
+            const double hp1 = a * (hp1_z + x - x_z);
+            const double hp2 = a * (hp2_z + hp1 - hp1_prev);
+            hp1_prev         = hp1;
+            hp1_z            = hp1;
+            hp2_z            = hp2;
+            x_z              = x;
+            e_hp += hp2 * hp2;
+            e_all += x * x;
+        }
+        return e_hp / e_all;
+    };
+    auto         h1       = make();
+    auto         h2       = make();
+    const double f_closed = hf_fraction(h1, false);
+    const double f_open   = hf_fraction(h2, true);
+    INFO("HF power fraction: closed " << f_closed << " vs open " << f_open);
+    CHECK(f_closed > 1.4 * f_open);
+    CHECK(f_open > 0.02);
+}

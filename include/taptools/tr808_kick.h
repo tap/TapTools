@@ -46,6 +46,14 @@
 ///             `sigh` scales the leakage current (0 disconnects the pitch sigh — the paper's §2
 ///             example bend).
 ///
+///             §7.2 calibration (2026-07-17), vs the Fischer/Technopolis 1994 sample set
+///             (a real unit, s/n 103852, individual outs, knob grid in the filenames;
+///             machines.hyperreal.org): no constant needed changing. Fundamental within
+///             2.4% at every tone/decay position (49.6 Hz measured vs 48.4-50.4 modeled);
+///             -40 dB decay endpoints within 6% (72 ms -> 2.36 s measured, 69 ms -> 2.42 s
+///             modeled); mid-dial decay within +-30% (dial-taper/unit tolerance, left
+///             uncalibrated).
+///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
 /// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.

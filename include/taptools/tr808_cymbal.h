@@ -26,6 +26,15 @@
 ///             constant here); seeded per-unit oscillator
 ///             spread (`tolerance`), tuning bend, deterministic renders.
 ///
+///             §7.2 calibration (2026-07-17), vs the Fischer 1994 set (unit 103852): the
+///             chart's 350-1200 ms are knob classes, not tails — the real -40 dB range
+///             measures ~0.65 s (pot min) to ~2.7 s (max). Calibrated: fixed-band taus
+///             0.09/0.15 -> 0.15/0.15 s, the decay pot's mid-band span 0.06-0.30 ->
+///             0.13-0.60 s (t40 now within ~+-15% across the tone x decay grid), the
+///             ~9 kHz high-band pre-emphasis, and the 0.45 body weight (centroids from
+///             -35..-53% to mostly within +-15%; tone-max residual ~-15%: the unit runs
+///             brighter than the shared-band model).
+///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
 /// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
@@ -42,17 +51,21 @@ namespace taptools {
     namespace tr808 {
 
         // Per-band decay time constants (behavioral fits to the p.14 chart; see header).
-        constexpr double k_cy_hi_tau_s      = 0.09; // "highest" strike band, fixed
-        constexpr double k_cy_mid_tau_min_s = 0.06; // VR2 fully counterclockwise
-        constexpr double k_cy_mid_tau_max_s = 0.30; // VR2 fully clockwise
+        constexpr double k_cy_hi_tau_s      = 0.15; // "highest" strike band, fixed
+        constexpr double k_cy_mid_tau_min_s = 0.13; // VR2 fully counterclockwise
+        constexpr double k_cy_mid_tau_max_s = 0.60; // VR2 fully clockwise
         constexpr double k_cy_lo_tau_s      = 0.15; // body band, fixed
-        constexpr double k_cy_att_s         = 0.4e-3;
+
+        // High-band pre-emphasis: the BP's lower skirt passes the oscillators' hot low
+        // fundamentals, darkening the band well below its nominal center.
+        constexpr double k_cy_hi_hp_hz = 9000.0;
+        constexpr double k_cy_att_s    = 0.4e-3;
 
         // Trigger bus: the cymbal's is narrowed to 7-14 V (paper §5).
         constexpr double k_cy_vtrig_min = 7.0;
         constexpr double k_cy_vtrig_max = 14.0;
 
-        constexpr double k_cy_out_scale = 1.9; // full-accent default-knob peak just under +-1
+        constexpr double k_cy_out_scale = 3.7; // full-accent default-knob peak just under +-1
 
         /// The TR-808 cymbal voice.
         class cymbal {
@@ -62,6 +75,9 @@ namespace taptools {
                 m_bank.prepare(sample_rate);
                 m_bp_hi.prepare(sample_rate, k_bank_bp2_hz, k_bank_bp_q);
                 m_bp_lo.prepare(sample_rate, k_bank_bp1_hz, k_bank_bp_q);
+                m_hi_hp.prepare(sample_rate);
+                const double tau_hp = 1.0 / (2.0 * k_pi * k_cy_hi_hp_hz);
+                m_hi_hp.set(tau_hp, 0.0, tau_hp, 1.0);
                 m_env_hi.prepare(sample_rate);
                 m_env_mid.prepare(sample_rate);
                 m_env_lo.prepare(sample_rate);
@@ -75,6 +91,7 @@ namespace taptools {
                 m_bank.reset();
                 m_bp_hi.reset();
                 m_bp_lo.reset();
+                m_hi_hp.reset();
                 m_env_hi.reset();
                 m_env_mid.reset();
                 m_env_lo.reset();
@@ -115,23 +132,24 @@ namespace taptools {
             double process() {
                 m_bank.process();
                 const double s  = m_bank.sum();
-                const double hi = m_bp_hi.process(s);
+                const double hi = m_hi_hp.process(m_bp_hi.process(s));
                 const double lo = m_bp_lo.process(s);
 
                 const double strike = swing_vca(hi, m_env_hi.process());
                 const double ring   = swing_vca(hi, m_env_mid.process());
                 const double body   = swing_vca(lo, m_env_lo.process());
 
-                const double mix = m_tone * (strike + 0.6 * ring) + (1.0 - m_tone) * (body + ring);
+                const double mix = m_tone * (strike + 0.6 * ring) + (1.0 - m_tone) * (0.45 * body + ring);
                 return mix * m_level * k_cy_out_scale;
             }
 
           private:
             double m_sr{48000.0};
 
-            metal_bank m_bank;
-            bandpass   m_bp_hi, m_bp_lo;
-            decay_env  m_env_hi, m_env_mid, m_env_lo;
+            metal_bank  m_bank;
+            bandpass    m_bp_hi, m_bp_lo;
+            first_order m_hi_hp;
+            decay_env   m_env_hi, m_env_mid, m_env_lo;
 
             double m_tone{0.5}, m_decay{0.5}, m_level{1.0};
             double m_vtrig{0.0};
