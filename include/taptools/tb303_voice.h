@@ -81,6 +81,18 @@
 ///             - Factory presets: slots 1..8 ship authored (classic squelch, deep sub,
 ///               screamer, rubber, knock, bloom, overdriven, glass); 9..16 are the defaults.
 ///               `recall` morphs to them out of the box.
+///             - Phase 2 — the transistor VCA (`vca` mode, svf.h two-circuit pattern):
+///               `vca_clean` (default) is the linear multiply, bit-identical to phase 1.
+///               `vca_warm` models the 303's one-transistor class-A VCA stage as a
+///               slope-normalized biased saturator applied AFTER the envelope gain and BEFORE
+///               the output coupling (the hardware order, so the coupling HPF absorbs the
+///               shaper's signal-dependent DC):
+///                   S(v) = (tanh(d*v + b) - tanh(b)) / (d*sech^2(b)),  d = 2.0, b = 0.3
+///               Unity slope at 0: quiet notes are essentially clean (a few % harmonic content at typical
+///               levels), hot accented notes pick up even harmonics (~11% h2 on a full-scale
+///               sine) and audible compression (~ -4 dB at full whack) that TRACK the envelope — the discrete-VCA
+///               warmth. d/b are informed constants (probe-calibrated for musical THD);
+///               schematic-derived values are an audition-time refinement.
 ///
 ///             As in the other TapTools kernels: per-sample linear ramps on every parameter, a
 ///             16-slot preset-morph engine, allocation-free after prepare(), setters safe while
@@ -162,6 +174,12 @@ namespace taptools {
         };
 
         enum waveform : int { wave_saw = 0, wave_square, k_num_waveforms };
+
+        enum vca_mode : int { vca_clean = 0, vca_warm, k_num_vca_modes };
+
+        // Phase-2 transistor-VCA saturator (see header): informed constants, probe-calibrated.
+        constexpr double k_vca_sat_drive = 2.0;
+        constexpr double k_vca_sat_bias  = 0.3;
 
         constexpr int k_factory_presets = 8; // slots 0..7 ship authored; 8..15 are defaults
 
@@ -319,6 +337,11 @@ namespace taptools {
             }
             int wave() const { return (m_ramp[p_waveform].target >= 0.5) ? wave_square : wave_saw; }
 
+            /// Phase-2 VCA circuit: vca_clean (linear, default — bit-identical to phase 1) or
+            /// vca_warm (the one-transistor stage's biased saturation; see the header).
+            void set_vca(int mode) { m_vca_mode = std::clamp(mode, 0, k_num_vca_modes - 1); }
+            int  vca() const { return m_vca_mode; }
+
             /// Deterministic per-unit component spread: `seed` picks the unit, `tolerance` (0..1)
             /// scales how far off nominal it is. tolerance 0 = the nominal schematic exactly.
             void set_seed(uint32_t seed) {
@@ -468,11 +491,18 @@ namespace taptools {
                     osc                  = saw + mix * (square - saw);
                 }
 
-                // -> coupling HPF -> diode ladder -> coupling HPF -> VCA
-                const double filtered = m_filter.process(m_pre_hp.tick(osc), fc_eff);
-                const double shaped   = m_post_hp.tick(filtered);
-
+                // -> coupling HPF -> diode ladder -> VCA -> output coupling
+                const double filtered     = m_filter.process(m_pre_hp.tick(osc), fc_eff);
                 const double accent_boost = 1.0 + m_ramp[p_accent].current * m_note_accent;
+
+                if (m_vca_mode == vca_warm) {
+                    // hardware order: the transistor stage saturates the enveloped signal, then the
+                    // output coupling removes the shaper's signal-dependent DC
+                    const double v = filtered * m_vca * accent_boost;
+                    const double s = (std::tanh(k_vca_sat_drive * v + k_vca_sat_bias) - m_vca_sat_off) * m_vca_sat_norm;
+                    return m_post_hp.tick(s) * m_out_gain;
+                }
+                const double shaped = m_post_hp.tick(filtered);
                 return shaped * m_vca * accent_boost * m_out_gain;
             }
 
@@ -585,19 +615,22 @@ namespace taptools {
             // Recompute the per-unit component offsets and every coefficient built on them.
             // tolerance 0 leaves the nominal schematic exactly (all factors 1, imperfect 0).
             void apply_unit_spread() {
-                const double t      = m_tolerance;
-                m_unit_tune_cents   = 8.0 * t * unit_draw(m_seed, 0);             // converter trim
-                m_unit_cutoff_scale = std::exp2(0.12 * t * unit_draw(m_seed, 1)); // VCF tracking
-                m_unit_env          = 1.0 + 0.10 * t * unit_draw(m_seed, 2);      // envelope caps
-                m_unit_vca          = 1.0 + 0.10 * t * unit_draw(m_seed, 3);
-                m_unit_slide        = 1.0 + 0.15 * t * unit_draw(m_seed, 4); // slide RC
-                m_unit_c13          = 1.0 + 0.15 * t * unit_draw(m_seed, 5); // accent-sweep RC
-                m_unit_attack       = 1.0 + 0.20 * t * unit_draw(m_seed, 6);
-                m_meg_attack        = attack_coef(k_meg_attack_ms);
-                m_vca_decay         = decay_coef(k_vca_decay_ms * m_unit_vca);
-                m_vca_release       = decay_coef(k_vca_release_ms);
-                m_c13_charge        = one_pole_coef(k_c13_charge_ms * m_unit_c13);
-                m_c13_drain         = one_pole_coef(k_c13_discharge_ms * m_unit_c13);
+                m_vca_sat_off        = std::tanh(k_vca_sat_bias);
+                const double sech_sq = 1.0 - m_vca_sat_off * m_vca_sat_off;
+                m_vca_sat_norm       = 1.0 / (k_vca_sat_drive * sech_sq);
+                const double t       = m_tolerance;
+                m_unit_tune_cents    = 8.0 * t * unit_draw(m_seed, 0);             // converter trim
+                m_unit_cutoff_scale  = std::exp2(0.12 * t * unit_draw(m_seed, 1)); // VCF tracking
+                m_unit_env           = 1.0 + 0.10 * t * unit_draw(m_seed, 2);      // envelope caps
+                m_unit_vca           = 1.0 + 0.10 * t * unit_draw(m_seed, 3);
+                m_unit_slide         = 1.0 + 0.15 * t * unit_draw(m_seed, 4); // slide RC
+                m_unit_c13           = 1.0 + 0.15 * t * unit_draw(m_seed, 5); // accent-sweep RC
+                m_unit_attack        = 1.0 + 0.20 * t * unit_draw(m_seed, 6);
+                m_meg_attack         = attack_coef(k_meg_attack_ms);
+                m_vca_decay          = decay_coef(k_vca_decay_ms * m_unit_vca);
+                m_vca_release        = decay_coef(k_vca_release_ms);
+                m_c13_charge         = one_pole_coef(k_c13_charge_ms * m_unit_c13);
+                m_c13_drain          = one_pole_coef(k_c13_discharge_ms * m_unit_c13);
                 m_osc.set_seed(m_seed);
                 m_osc.set_imperfect(0.6 * t); // waveform imperfection rides the same tolerance
                 push_filter_params();
@@ -629,6 +662,11 @@ namespace taptools {
             double m_meg_decay{0.9999}, m_meg_accent_decay{0.999};
             double m_vca_decay{0.9999}, m_vca_release{0.99};
             double m_slide_coef{0.001};
+
+            // phase-2 VCA circuit
+            int    m_vca_mode{vca_clean};
+            double m_vca_sat_off{0.291313};  // tanh(bias); recomputed in apply_unit_spread
+            double m_vca_sat_norm{0.546366}; // 1/(drive*sech^2(bias))
 
             // per-unit component spread (seed/tolerance)
             double m_unit_tune_cents{0.0};

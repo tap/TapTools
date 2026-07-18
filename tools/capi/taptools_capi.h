@@ -103,6 +103,47 @@ TAPTOOLS_API int          taptools_vco_process(taptools_vco h, double* out, int 
 /// Through-zero FM (Hz) and/or hard-sync inputs, either may be NULL.
 TAPTOOLS_API int taptools_vco_process_mod(taptools_vco h, const double* fm_hz, const double* sync, double* out, int n);
 
+// ---- tap.diode~ (taptools::diode::diode_filter) ------------------------------------------------
+
+typedef void* taptools_diode;
+
+TAPTOOLS_API taptools_diode taptools_diode_create(void);
+TAPTOOLS_API void           taptools_diode_destroy(taptools_diode h);
+TAPTOOLS_API int            taptools_diode_prepare(taptools_diode h, double sr);
+TAPTOOLS_API int            taptools_diode_set(taptools_diode h, int param, double value); // diode::param_index
+TAPTOOLS_API int            taptools_diode_set_solver(taptools_diode h, int solver);       // diode::solver_mode
+TAPTOOLS_API int            taptools_diode_set_oversample(taptools_diode h, int os);       // 1, 2, or 4
+TAPTOOLS_API int            taptools_diode_set_smooth_ms(taptools_diode h, double ms);
+TAPTOOLS_API int            taptools_diode_clear(taptools_diode h);
+TAPTOOLS_API int            taptools_diode_process(taptools_diode h, const double* in, double* out, int n);
+TAPTOOLS_API int taptools_diode_process_mod(taptools_diode h, const double* in, const double* cutoff_hz, double* out,
+                                            int n);
+
+// ---- tap.303~ (taptools::tb303::voice) ---------------------------------------------------------
+
+typedef void* taptools_tb303;
+
+TAPTOOLS_API taptools_tb303 taptools_tb303_create(void);
+TAPTOOLS_API void           taptools_tb303_destroy(taptools_tb303 h);
+TAPTOOLS_API int            taptools_tb303_prepare(taptools_tb303 h, double sr);
+TAPTOOLS_API int            taptools_tb303_set(taptools_tb303 h, int param, double value); // tb303::param_index
+TAPTOOLS_API int            taptools_tb303_set_vca(taptools_tb303 h, int mode);            // tb303::vca_mode
+TAPTOOLS_API int            taptools_tb303_set_solver(taptools_tb303 h, int solver);
+TAPTOOLS_API int            taptools_tb303_set_oversample(taptools_tb303 h, int os);
+TAPTOOLS_API int            taptools_tb303_set_seed(taptools_tb303 h, unsigned int seed);
+TAPTOOLS_API int            taptools_tb303_set_tolerance(taptools_tb303 h, double t);
+TAPTOOLS_API int            taptools_tb303_set_smooth_ms(taptools_tb303 h, double ms);
+/// Morph to a preset slot (0-based; 0-7 are the factory acid patches) over `seconds`.
+TAPTOOLS_API int taptools_tb303_recall(taptools_tb303 h, int slot, double seconds);
+TAPTOOLS_API int taptools_tb303_clear(taptools_tb303 h);
+/// The note interface (the melodic-voice contract): trigger with accent depth 0..1; a note_on
+/// while the gate is held slides (legato). set_pitch changes the target without gating.
+TAPTOOLS_API int    taptools_tb303_note_on(taptools_tb303 h, double midi_note, double accent);
+TAPTOOLS_API int    taptools_tb303_note_off(taptools_tb303 h);
+TAPTOOLS_API int    taptools_tb303_set_pitch(taptools_tb303 h, double midi_note);
+TAPTOOLS_API double taptools_tb303_accent_charge(taptools_tb303 h); // the C13 wow memory, 0..~1
+TAPTOOLS_API int    taptools_tb303_process(taptools_tb303 h, double* out, int n);
+
 // ---- tap.autowah~ (taptools::autowah::wah_filter) ----------------------------------------------
 
 typedef void* taptools_wah;

@@ -483,3 +483,59 @@ SCENARIO("factory presets ship in slots 1..8 and recall out of the box") {
     REQUIRE(d.v[tb::p_cutoff] == 1000.0);
     REQUIRE(d.v[tb::p_waveform] == 0.0);
 }
+
+SCENARIO("the warm VCA (phase 2): clean by default, transistor warmth on demand") {
+    auto play = [](int mode, double accent_depth) {
+        auto v = make();
+        v.set_vca(mode);
+        v.set_cutoff(2000.0);
+        v.set_envmod(0.3);
+        v.set_accent(1.0);
+        v.note_on(45.0, accent_depth);
+        return render(v, 0.6);
+    };
+
+    THEN("the default mode is clean") {
+        auto v = make();
+        REQUIRE(v.vca() == tb::vca_clean);
+    }
+    GIVEN("the same phrase played quiet and hot through both modes") {
+        // The nonlinearity must TRACK the envelope: the warm-vs-clean difference grows with
+        // level (the saw's own harmonics swamp per-harmonic comparisons, so measure the
+        // difference signal directly).
+        auto diff_ratio = [&](double depth) {
+            auto   clean = play(tb::vca_clean, depth);
+            auto   warm  = play(tb::vca_warm, depth);
+            double diff  = 0.0;
+            for (size_t i = 0; i < clean.size(); ++i) {
+                diff += (clean[i] - warm[i]) * (clean[i] - warm[i]);
+            }
+            return std::sqrt(diff / clean.size()) / (rms(clean, 0, clean.size()) + 1e-12);
+        };
+        const double quiet = diff_ratio(0.0);
+        const double hot   = diff_ratio(1.0);
+        THEN("quiet notes stay close to clean") {
+            REQUIRE(quiet < 0.10);
+        }
+        THEN("hot accented notes distort audibly more — the warmth rides the envelope") {
+            REQUIRE(hot > 0.08);
+            REQUIRE(hot > 1.6 * quiet);
+        }
+    }
+    GIVEN("a hot accented note through the warm stage") {
+        auto clean = play(tb::vca_clean, 1.0);
+        auto warm  = play(tb::vca_warm, 1.0);
+        THEN("it compresses instead of getting louder") {
+            REQUIRE(rms(warm, at_s(0.05), at_s(0.4)) < rms(clean, at_s(0.05), at_s(0.4)));
+            REQUIRE(rms(warm, at_s(0.05), at_s(0.4)) > 0.5 * rms(clean, at_s(0.05), at_s(0.4)));
+        }
+        THEN("the output coupling absorbs the shaper's DC") {
+            double mean = 0.0;
+            for (size_t i = at_s(0.1); i < at_s(0.5); ++i) {
+                mean += warm[i];
+            }
+            mean /= static_cast<double>(at_s(0.4));
+            REQUIRE(std::abs(mean) < 1e-3);
+        }
+    }
+}

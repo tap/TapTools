@@ -185,7 +185,27 @@ int main(int argc, char** argv) {
         write_wav(dir + "tb303_wow.wav", out, k_g_sr);
     }
 
-    // 5. Saw vs square, two bars each.
+    // 5. The phase-2 VCA: two bars clean, two bars through the transistor stage — the
+    //    accents pick up even-harmonic warmth and gentle compression.
+    {
+        voice v;
+        v.prepare(k_g_sr);
+        v.set_smooth_ms(0);
+        v.set_cutoff(500.0);
+        v.set_resonance(0.95);
+        v.set_envmod(0.6);
+        v.set_decay(300.0);
+        v.set_accent(1.0);
+        std::vector<double> out;
+        for (int mode : {tb::vca_clean, tb::vca_warm}) {
+            v.set_vca(mode);
+            auto seg = play_pattern(v, k_line, 130.0, 2);
+            out.insert(out.end(), seg.begin(), seg.end());
+        }
+        write_wav(dir + "tb303_vca_ab.wav", out, k_g_sr);
+    }
+
+    // 6. Saw vs square, two bars each.
     {
         voice v;
         v.prepare(k_g_sr);
