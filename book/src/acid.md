@@ -54,8 +54,9 @@ this, and the kernel reproduces his published transfer function to
   (Push `resonance` past 1.0 — the bend range runs to 1.5 — and it will sing
   for you anyway.)
 
-Like `tap.ladder~` it has a `solver` choice: `fast` (default) or `exact`
-Newton iteration on the true nonlinear loop. Measured across a matrix out to
+Like `tap.ladder~` it has a `solver` choice: `fast` (default) or `exact`,
+which iterates the re-linearized solve to convergence on the true nonlinear
+loop. Measured across a matrix out to
 resonance 1.4 and +24 dB drive — beyond anything the hardware can reach —
 the two differ by at most **−44.9 dBr**, at 1.6–3.3× the CPU. The exact
 solver is there for the suspicious; the fast one is there for the patch.
