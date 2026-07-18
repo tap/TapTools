@@ -2,9 +2,11 @@
 /// @brief      Unit tests for the TB-303 voice kernel (taptools::tb303::voice).
 /// @details    Pins the slice-2 voice behaviors: gate/retrigger/legato-slide semantics (the
 ///             melodic-voice contract), pitch and tuning accuracy, the envelope-modulated
-///             cutoff sweep and its decay-knob scaling, the fixed VCA envelope, the slice-2
-///             accent scope (louder + faster MEG — the C13 sweep is slice 3), waveform
-///             switching, determinism, and silence hygiene.
+///             cutoff sweep and its decay-knob scaling, the fixed VCA envelope, the accent
+///             behaviors — louder + faster MEG (slice 2) and the C13 accent-sweep circuit
+///             (slice 3): the across-notes build-up ("wow"), its fade, the resonance-pot
+///             scaling, and envmod independence — waveform switching, determinism, and
+///             silence hygiene.
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright 2026 Timothy Place.
 
@@ -281,4 +283,83 @@ SCENARIO("the voice is deterministic and its tails are clean") {
     v.note_off();
     auto tail = render(v, 3.0);
     REQUIRE(std::abs(tail.back()) < 1e-12);
+}
+
+SCENARIO("the accent sweep (C13): consecutive accents build the wow, and it fades away") {
+    // envmod 0 isolates the accent path: all brightness above the closed 300 Hz knob comes
+    // from the sweep circuit. Notes are 16th-ish (60 ms gate + 55 ms rest) so the cap keeps
+    // residual charge between accents.
+    auto fresh = [] {
+        auto v = make();
+        v.set_cutoff(300.0);
+        v.set_resonance(0.9);
+        v.set_envmod(0.0);
+        v.set_decay(400.0);
+        v.set_accent(1.0);
+        return v;
+    };
+    auto play = [](tb::voice& v, double depth) {
+        std::vector<double> y(at_s(0.060));
+        v.note_on(45.0, depth);
+        v.process(y.data(), y.size());
+        v.note_off();
+        std::vector<double> rest(at_s(0.055));
+        v.process(rest.data(), rest.size());
+        return level_at(y, 0, y.size(), 8.0 * midi_hz(45.0));
+    };
+
+    auto         v  = fresh();
+    const double b1 = play(v, 1.0);
+    const double b2 = play(v, 1.0);
+    const double b3 = play(v, 1.0);
+
+    THEN("the second accent rides the residual charge and peaks much higher") {
+        REQUIRE(b2 > 1.5 * b1);
+    }
+    THEN("the build-up continues (or saturates) — never falls back while accents keep coming") {
+        REQUIRE(b3 > 0.9 * b2);
+        REQUIRE(b3 > 2.0 * b1);
+    }
+    THEN("after a rest the capacitor drains and the wow starts over") {
+        std::vector<double> gap(at_s(1.5));
+        v.process(gap.data(), gap.size());
+        REQUIRE(v.accent_charge() < 0.01);
+        const double again = play(v, 1.0);
+        REQUIRE(std::abs(again / b1 - 1.0) < 0.15);
+    }
+}
+
+SCENARIO("the accent sweep bypasses envmod and is scaled by the resonance pot") {
+    auto brightness = [](double res, double depth) {
+        auto v = make();
+        v.set_cutoff(300.0);
+        v.set_resonance(res);
+        v.set_envmod(0.0);
+        v.set_accent(1.0);
+        std::vector<double> y(at_s(0.060));
+        v.note_on(45.0, depth);
+        v.process(y.data(), y.size());
+        return level_at(y, 0, y.size(), 8.0 * midi_hz(45.0));
+    };
+
+    THEN("with envmod at zero, an accent still sweeps the filter open") {
+        REQUIRE(brightness(0.9, 1.0) > 10.0 * brightness(0.9, 0.0));
+    }
+    THEN("the ganged resonance pot makes accents quack harder at high resonance") {
+        const double lift_lo = brightness(0.2, 1.0) / brightness(0.2, 0.0);
+        const double lift_hi = brightness(1.0, 1.0) / brightness(1.0, 0.0);
+        REQUIRE(lift_hi > 3.0 * lift_lo);
+    }
+    THEN("plain playing never charges the capacitor") {
+        auto v = make();
+        v.set_accent(1.0);
+        for (int i = 0; i < 3; ++i) {
+            v.note_on(45.0, 0.0);
+            std::vector<double> y(at_s(0.1));
+            v.process(y.data(), y.size());
+            v.note_off();
+            v.process(y.data(), y.size());
+        }
+        REQUIRE(v.accent_charge() == 0.0);
+    }
 }

@@ -162,7 +162,30 @@ int main(int argc, char** argv) {
         write_wav(dir + "tb303_envmod_decay_tour.wav", out, k_g_sr);
     }
 
-    // 4. Saw vs square, two bars each.
+    // 4. The wow: one bar plain, then every step accented — listen to the sweep build
+    //    note over note as C13 charges, then reset after the rest.
+    {
+        voice v;
+        v.prepare(k_g_sr);
+        v.set_smooth_ms(0);
+        v.set_cutoff(350.0);
+        v.set_resonance(1.0);
+        v.set_envmod(0.25);
+        v.set_decay(300.0);
+        v.set_accent(1.0);
+        std::vector<step> all_accent = k_line;
+        for (auto& st : all_accent) {
+            st.accent = (st.note >= 0);
+        }
+        std::vector<double> out;
+        auto                plain = play_pattern(v, k_line, 130.0, 1);
+        auto                wow   = play_pattern(v, all_accent, 130.0, 2);
+        out.insert(out.end(), plain.begin(), plain.end());
+        out.insert(out.end(), wow.begin(), wow.end());
+        write_wav(dir + "tb303_wow.wav", out, k_g_sr);
+    }
+
+    // 5. Saw vs square, two bars each.
     {
         voice v;
         v.prepare(k_g_sr);
