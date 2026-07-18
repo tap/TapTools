@@ -119,7 +119,7 @@ namespace taptools {
             pattern&       data() { return m_pattern; }
             const pattern& data() const { return m_pattern; }
 
-            void set_swing(double s) { m_swing = std::clamp(s, 0.0, 1.0); }
+            void   set_swing(double s) { m_swing = std::clamp(s, 0.0, 1.0); }
             double swing() const { return m_swing; }
 
             void set_quantize(int m) { m_quantize = std::clamp(m, 0, 2); }
@@ -279,7 +279,7 @@ namespace taptools {
             engine&       clock() { return m_engine; }
             const engine& clock() const { return m_engine; }
 
-            void set_transpose(double semitones) { m_transpose = semitones; }
+            void   set_transpose(double semitones) { m_transpose = semitones; }
             double transpose() const { return m_transpose; }
 
             void reset() {

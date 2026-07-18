@@ -126,7 +126,7 @@ SCENARIO("swing 0 is bit-identical to the straight grid") {
 SCENARIO("the trigger row emits velocities as amplitudes and rests as nothing") {
     trigger_row row;
     row.prepare(k_sr);
-    auto& p = row.clock().data();
+    auto& p             = row.clock().data();
     p.steps[0].velocity = taptools::seq::k_trig_plain;
     p.steps[4].velocity = taptools::seq::k_trig_accented;
     p.steps[8].velocity = 1.0; // full 14 V accent
@@ -151,7 +151,7 @@ SCENARIO("default impulses are single-sample with a re-arming gap between adjace
     row.clock().data().steps[2].velocity = 1.0;
     row.clock().data().steps[3].velocity = 1.0; // back to back
 
-    int high = 0, edges = 0;
+    int    high = 0, edges = 0;
     double prev = 0.0;
     for (int n = 0; n < k_cycle; ++n) {
         const double y = row.process(phase_at(n));
@@ -204,9 +204,9 @@ SCENARIO("length changes while running keep indices in range") {
 SCENARIO("the note row opens at the step start and closes at the gate duty") {
     note_row row;
     row.prepare(k_sr);
-    auto& p            = row.clock().data();
-    p.steps[0].gate    = true;
-    p.steps[0].pitch   = 45.0;
+    auto& p          = row.clock().data();
+    p.steps[0].gate  = true;
+    p.steps[0].pitch = 45.0;
 
     const int step_len = k_cycle / 16;
     int       rise = -1, fall = -1;
@@ -226,9 +226,9 @@ SCENARIO("the note row opens at the step start and closes at the gate duty") {
 SCENARIO("accented steps gate at 2.0, plain at 1.0") {
     note_row row;
     row.prepare(k_sr);
-    auto& p          = row.clock().data();
-    p.steps[0].gate  = true;
-    p.steps[2].gate  = true;
+    auto& p           = row.clock().data();
+    p.steps[0].gate   = true;
+    p.steps[2].gate   = true;
     p.steps[2].accent = true;
 
     double plain = 0.0, accented = 0.0;
@@ -308,12 +308,12 @@ SCENARIO("a slide across the pattern wrap holds the gate through phase 1 -> 0") 
     p.steps[0].pitch  = 52.0;
 
     // Second cycle: step 15 must hold into the wrapped step 0 without an edge.
-    int    rises_near_wrap = 0;
-    bool   held            = true;
-    double prev            = 0.0;
-    const int step_len     = k_cycle / 16;
+    int       rises_near_wrap = 0;
+    bool      held            = true;
+    double    prev            = 0.0;
+    const int step_len        = k_cycle / 16;
     for (int n = 0; n < 2 * k_cycle; ++n) {
-        const auto o = row.process(phase_at(n));
+        const auto o         = row.process(phase_at(n));
         const bool near_wrap = n > k_cycle - step_len / 2 && n < k_cycle + step_len / 4;
         if (near_wrap) {
             if (prev <= 1e-3 && o.gate > 1e-3)
@@ -357,8 +357,8 @@ SCENARIO("recall quantized to the cycle swaps exactly at the wrap") {
     e.store(1);
 
     // Running pattern is slot 1 (all 1.0); arm slot 0 mid-cycle.
-    bool armed = false;
-    double prev = 0.0;
+    bool                                armed = false;
+    double                              prev  = 0.0;
     std::vector<std::pair<int, double>> edges;
     for (int n = 0; n < 2 * k_cycle; ++n) {
         if (n == k_cycle / 3 && !armed) {
@@ -415,7 +415,7 @@ SCENARIO("two identical runs are bit-exact") {
 SCENARIO("the note row drives the tb303 voice: slid steps glide, plain steps retrigger") {
     note_row row;
     row.prepare(k_sr);
-    auto& p = row.clock().data();
+    auto& p          = row.clock().data();
     p.steps[0].gate  = true;
     p.steps[0].pitch = 33.0;
     p.steps[1].gate  = true;
@@ -428,11 +428,11 @@ SCENARIO("the note row drives the tb303 voice: slid steps glide, plain steps ret
     v.prepare(k_sr);
 
     // The tap.303~ wrapper loop, verbatim.
-    double note_ons  = 0;
-    double prev_gate = 0.0;
-    bool   gate_held_at_boundary = false;
-    double peak                  = 0.0;
-    const int step_len           = k_cycle / 16;
+    double    note_ons              = 0;
+    double    prev_gate             = 0.0;
+    bool      gate_held_at_boundary = false;
+    double    peak                  = 0.0;
+    const int step_len              = k_cycle / 16;
     for (int n = 0; n < k_cycle; ++n) {
         const auto o = row.process(phase_at(n));
         if (prev_gate < 1e-3 && o.gate >= 1e-3) {
@@ -451,7 +451,7 @@ SCENARIO("the note row drives the tb303 voice: slid steps glide, plain steps ret
         if (n == step_len + 2) // just past the slid boundary
             gate_held_at_boundary = v.gate();
     }
-    CHECK(note_ons == 2);          // steps 0 and 4; step 1 arrived legato
-    CHECK(gate_held_at_boundary);  // the voice never saw a note-off at the slide
+    CHECK(note_ons == 2);         // steps 0 and 4; step 1 arrived legato
+    CHECK(gate_held_at_boundary); // the voice never saw a note-off at the slide
     CHECK(peak > 0.01);
 }
