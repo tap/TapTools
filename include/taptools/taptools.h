@@ -30,5 +30,6 @@
 #include "tr808_rim.h"
 #include "tr808_snare.h"
 #include "tr808_tom.h"
+#include "vca.h"
 #include "vco.h"
 #include "vocoder.h"
