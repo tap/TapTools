@@ -111,6 +111,7 @@
 #include <cstdint>
 
 #include "diode_ladder.h"
+#include "vca.h"
 #include "vco.h"
 
 namespace taptools {
@@ -178,8 +179,10 @@ namespace taptools {
         enum vca_mode : int { vca_clean = 0, vca_warm, k_num_vca_modes };
 
         // Phase-2 transistor-VCA saturator (see header): informed constants, probe-calibrated.
-        constexpr double k_vca_sat_drive = 2.0;
-        constexpr double k_vca_sat_bias  = 0.3;
+        // The saturator itself lives in the shared vca.h kernel (taptools::vca) so tap.303~ and the
+        // standalone tap.vca~ run one implementation; these are the values the voice configures it with.
+        constexpr double k_vca_sat_drive = taptools::vca::k_default_drive; // 2.0
+        constexpr double k_vca_sat_bias  = taptools::vca::k_default_bias;  // 0.3
 
         constexpr int k_factory_presets = 8; // slots 0..7 ship authored; 8..15 are defaults
 
@@ -274,6 +277,9 @@ namespace taptools {
                 m_osc.snap();
                 m_filter.prepare(m_sr);
                 m_filter.set_smooth_ms(0.0); // the voice owns all smoothing
+                m_vca_stage.set_drive(k_vca_sat_drive); // stock 303 transistor-stage calibration
+                m_vca_stage.set_bias(k_vca_sat_bias);
+                m_vca_stage.set_mode(m_vca_mode);
                 apply_unit_spread();
                 m_pre_hp.set(k_pre_hpf_hz, m_sr);
                 m_post_hp.set(k_post_hpf_hz, m_sr);
@@ -339,7 +345,10 @@ namespace taptools {
 
             /// Phase-2 VCA circuit: vca_clean (linear, default — bit-identical to phase 1) or
             /// vca_warm (the one-transistor stage's biased saturation; see the header).
-            void set_vca(int mode) { m_vca_mode = std::clamp(mode, 0, k_num_vca_modes - 1); }
+            void set_vca(int mode) {
+                m_vca_mode = std::clamp(mode, 0, k_num_vca_modes - 1);
+                m_vca_stage.set_mode(m_vca_mode);
+            }
             int  vca() const { return m_vca_mode; }
 
             /// Deterministic per-unit component spread: `seed` picks the unit, `tolerance` (0..1)
@@ -499,7 +508,7 @@ namespace taptools {
                     // hardware order: the transistor stage saturates the enveloped signal, then the
                     // output coupling removes the shaper's signal-dependent DC
                     const double v = filtered * m_vca * accent_boost;
-                    const double s = (std::tanh(k_vca_sat_drive * v + k_vca_sat_bias) - m_vca_sat_off) * m_vca_sat_norm;
+                    const double s = m_vca_stage.shape(v); // shared transistor-stage saturator (vca.h)
                     return m_post_hp.tick(s) * m_out_gain;
                 }
                 const double shaped = m_post_hp.tick(filtered);
@@ -615,9 +624,6 @@ namespace taptools {
             // Recompute the per-unit component offsets and every coefficient built on them.
             // tolerance 0 leaves the nominal schematic exactly (all factors 1, imperfect 0).
             void apply_unit_spread() {
-                m_vca_sat_off        = std::tanh(k_vca_sat_bias);
-                const double sech_sq = 1.0 - m_vca_sat_off * m_vca_sat_off;
-                m_vca_sat_norm       = 1.0 / (k_vca_sat_drive * sech_sq);
                 const double t       = m_tolerance;
                 m_unit_tune_cents    = 8.0 * t * unit_draw(m_seed, 0);             // converter trim
                 m_unit_cutoff_scale  = std::exp2(0.12 * t * unit_draw(m_seed, 1)); // VCF tracking
@@ -663,10 +669,9 @@ namespace taptools {
             double m_vca_decay{0.9999}, m_vca_release{0.99};
             double m_slide_coef{0.001};
 
-            // phase-2 VCA circuit
-            int    m_vca_mode{vca_clean};
-            double m_vca_sat_off{0.291313};  // tanh(bias); recomputed in apply_unit_spread
-            double m_vca_sat_norm{0.546366}; // 1/(drive*sech^2(bias))
+            // phase-2 VCA circuit — the saturator math lives in the shared taptools::vca stage
+            int              m_vca_mode{vca_clean};
+            ::taptools::vca  m_vca_stage; // shape() only; the voice runs its own coupling + gain
 
             // per-unit component spread (seed/tolerance)
             double m_unit_tune_cents{0.0};
