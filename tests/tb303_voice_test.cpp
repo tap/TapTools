@@ -5,8 +5,10 @@
 ///             cutoff sweep and its decay-knob scaling, the fixed VCA envelope, the accent
 ///             behaviors — louder + faster MEG (slice 2) and the C13 accent-sweep circuit
 ///             (slice 3): the across-notes build-up ("wow"), its fade, the resonance-pot
-///             scaling, and envmod independence — waveform switching, determinism, and
-///             silence hygiene.
+///             scaling, and envmod independence — waveform switching (the measured biased-tanh
+///             square shaper), the slice-4 additions (Open303's measured envmod law, the
+///             Devil-Fish bends, seed/tolerance per-unit spread, factory presets),
+///             determinism, and silence hygiene.
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright 2026 Timothy Place.
 
@@ -180,10 +182,13 @@ SCENARIO("envmod sweeps the cutoff with the MEG, and the decay knob sets how fas
     };
 
     THEN("with envmod up, the note opens bright and closes dark") {
-        REQUIRE(brightness_drop(1.0, 300.0) > 10.0);
+        REQUIRE(brightness_drop(1.0, 300.0) > 100.0);
     }
-    THEN("with envmod off, brightness barely moves") {
-        REQUIRE(brightness_drop(0.0, 300.0) < 3.0);
+    THEN("envmod off leaves only the residual ~0.8-octave sweep of the measured law") {
+        // Open303's hardware-measured mapping keeps a small envelope sweep even at envmod 0
+        const double residual = brightness_drop(0.0, 300.0);
+        REQUIRE(residual < 30.0);
+        REQUIRE(brightness_drop(1.0, 300.0) > 50.0 * residual);
     }
     THEN("a long decay holds the sweep open longer than a short one") {
         auto h8_at = [](double decay_ms) {
@@ -250,8 +255,10 @@ SCENARIO("waveform switches between saw and square") {
         const double f0 = midi_hz(45.0);
         return level_at(y, at_s(0.3), at_s(0.9), 2.0 * f0) / (level_at(y, at_s(0.3), at_s(0.9), f0) + 1e-12);
     };
-    // the saw has a strong 2nd harmonic; the 50% square suppresses it
-    REQUIRE(h2_ratio(tb::wave_saw) > 8.0 * h2_ratio(tb::wave_square));
+    // the saw's strong 2nd harmonic collapses under the measured biased-tanh shaper — not to
+    // zero (the bias skews the duty slightly, like the hardware; Open303's own square measures
+    // h2/h1 ~ 0.11 vs its saw's ~0.55)
+    REQUIRE(h2_ratio(tb::wave_saw) > 3.0 * h2_ratio(tb::wave_square));
 }
 
 SCENARIO("the voice is deterministic and its tails are clean") {
@@ -286,9 +293,9 @@ SCENARIO("the voice is deterministic and its tails are clean") {
 }
 
 SCENARIO("the accent sweep (C13): consecutive accents build the wow, and it fades away") {
-    // envmod 0 isolates the accent path: all brightness above the closed 300 Hz knob comes
-    // from the sweep circuit. Notes are 16th-ish (60 ms gate + 55 ms rest) so the cap keeps
-    // residual charge between accents.
+    // envmod 0 isolates the accent path (bar the measured law's small residual, identical on
+    // every note). The h16 probe sits ABOVE the whole swept range so its level is monotone in
+    // cutoff. Notes are 16th-ish (60 ms gate + 55 ms rest) so the cap keeps residual charge.
     auto fresh = [] {
         auto v = make();
         v.set_cutoff(300.0);
@@ -305,7 +312,7 @@ SCENARIO("the accent sweep (C13): consecutive accents build the wow, and it fade
         v.note_off();
         std::vector<double> rest(at_s(0.055));
         v.process(rest.data(), rest.size());
-        return level_at(y, 0, y.size(), 8.0 * midi_hz(45.0));
+        return level_at(y, 0, y.size(), 16.0 * midi_hz(45.0));
     };
 
     auto         v  = fresh();
@@ -318,7 +325,7 @@ SCENARIO("the accent sweep (C13): consecutive accents build the wow, and it fade
     }
     THEN("the build-up continues (or saturates) — never falls back while accents keep coming") {
         REQUIRE(b3 > 0.9 * b2);
-        REQUIRE(b3 > 2.0 * b1);
+        REQUIRE(b3 > 1.8 * b1);
     }
     THEN("after a rest the capacitor drains and the wow starts over") {
         std::vector<double> gap(at_s(1.5));
@@ -362,4 +369,117 @@ SCENARIO("the accent sweep bypasses envmod and is scaled by the resonance pot") 
         }
         REQUIRE(v.accent_charge() == 0.0);
     }
+}
+
+SCENARIO("the bends: slide time, soft attack, accent clock, and drive all do their jobs") {
+    GIVEN("slide time") {
+        auto glide_pos = [](double slide_ms) {
+            auto v = make();
+            v.set_cutoff(tb::k_cutoff_max);
+            v.set_envmod(0.0);
+            v.set_slide(slide_ms);
+            v.note_on(45.0);
+            render(v, 0.3);
+            v.set_pitch(57.0);
+            auto y = render(v, 0.5);
+            return measure_f0(y, at_s(0.1), at_s(0.2)); // mid-window of the glide
+        };
+        THEN("a short slide has arrived where a long one is still travelling") {
+            REQUIRE(glide_pos(10.0) > midi_hz(56.5));
+            REQUIRE(glide_pos(500.0) < midi_hz(53.0));
+        }
+    }
+    GIVEN("soft attack") {
+        auto onset = [](double attack_ms) {
+            auto v = make();
+            v.set_cutoff(2000.0);
+            v.set_attack(attack_ms);
+            v.note_on(45.0);
+            auto y = render(v, 0.1);
+            return rms(y, 0, at_s(0.005));
+        };
+        THEN("a 30 ms attack is much quieter in the first 5 ms than a 0.3 ms attack") {
+            REQUIRE(onset(tb::k_attack_min_ms) > 3.0 * onset(tb::k_attack_max_ms));
+        }
+    }
+    GIVEN("the accent-MEG clock") {
+        auto late_brightness = [](double accdecay_ms) {
+            auto v = make();
+            v.set_cutoff(300.0);
+            v.set_envmod(0.0);
+            v.set_accent(1.0);
+            v.set_accdecay(accdecay_ms);
+            v.note_on(45.0, 1.0);
+            auto y = render(v, 0.5);
+            return level_at(y, at_s(0.25), at_s(0.4), 16.0 * midi_hz(45.0));
+        };
+        THEN("a slow accent clock holds the sweep open where the stock one has closed") {
+            REQUIRE(late_brightness(tb::k_accdecay_max_ms) > 2.0 * late_brightness(tb::k_accdecay_min_ms));
+        }
+    }
+    GIVEN("drive into the diode ladder") {
+        auto driven = [](double drive_db) {
+            auto v = make();
+            v.set_cutoff(tb::k_cutoff_max);
+            v.set_envmod(0.0);
+            v.set_resonance(0.0);
+            v.set_drive(drive_db);
+            v.note_on(45.0);
+            auto         y  = render(v, 0.6);
+            const double f0 = midi_hz(45.0);
+            const double h3 =
+                level_at(y, at_s(0.3), at_s(0.55), 3.0 * f0) / (level_at(y, at_s(0.3), at_s(0.55), f0) + 1e-12);
+            return std::pair<double, double>(rms(y, at_s(0.3), at_s(0.55)), h3);
+        };
+        const auto clean = driven(0.0);
+        const auto hot   = driven(tb::k_drive_range_db);
+        THEN("+24 dB in comes out well short of +24 dB — the diodes compress") {
+            REQUIRE(hot.first > 4.0 * clean.first);
+            REQUIRE(hot.first < 12.0 * clean.first); // 24 dB linear would be 15.85x
+        }
+        THEN("and the spectral balance shifts (saturation reshapes the wave)") {
+            const double change = hot.second / (clean.second + 1e-12);
+            REQUIRE((change < 0.6 || change > 1.6));
+        }
+    }
+}
+
+SCENARIO("seed/tolerance: tolerance 0 is the nominal unit, tolerance spreads deterministically") {
+    auto run = [](uint32_t seed, double tol) {
+        auto v = make();
+        v.set_seed(seed);
+        v.set_tolerance(tol);
+        v.set_cutoff(800.0);
+        v.note_on(45.0, 1.0);
+        return render(v, 0.3);
+    };
+    THEN("at tolerance 0 every seed is exactly the same (nominal) unit") {
+        REQUIRE(run(7, 0.0) == run(99, 0.0));
+    }
+    THEN("at tolerance 1 different seeds are audibly different units") {
+        const auto a   = run(7, 1.0);
+        const auto b   = run(99, 1.0);
+        double     acc = 0.0;
+        for (size_t i = 0; i < a.size(); ++i) {
+            acc += std::abs(a[i] - b[i]);
+        }
+        REQUIRE(acc / a.size() > 1e-4);
+    }
+    THEN("the same seed and tolerance reproduce bit-exactly") {
+        REQUIRE(run(7, 1.0) == run(7, 1.0));
+    }
+}
+
+SCENARIO("factory presets ship in slots 1..8 and recall out of the box") {
+    auto v = make();
+    REQUIRE(v.recall_preset(1, 0.0)); // slot 2: deep sub
+    auto p = v.snap_targets();
+    REQUIRE(p.v[tb::p_cutoff] == 250.0);
+    REQUIRE(p.v[tb::p_resonance] == 0.45);
+    REQUIRE(p.v[tb::p_waveform] == 1.0);
+
+    REQUIRE(v.recall_preset(8, 0.0)); // slot 9: the defaults
+    auto d = v.snap_targets();
+    REQUIRE(d.v[tb::p_cutoff] == 1000.0);
+    REQUIRE(d.v[tb::p_waveform] == 0.0);
 }

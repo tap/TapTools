@@ -4,12 +4,17 @@
 ///             diode ladder -> VCA, with the envelope generators and gate/slide logic that make
 ///             the instrument. Composition of two existing kernels plus the voice circuits:
 ///
-///             - Oscillator: vco.h (`taptools::vco::vco_osc`), driven per sample through
-///               `process_at()` so pitch (note + tuning + slide) is signal-rate. `waveform`
-///               snaps saw <-> square; the shape rides vco.h's ramps, so switching is
-///               click-free. The 303's square is derived from the saw by a transistor shaper
-///               and is not an ideal 50% pulse — the polyBLEP pulse here is the slice-2
-///               baseline, flagged for a measured-shaper refinement (cf. Open303's tables).
+///             - Oscillator: vco.h (`taptools::vco::vco_osc`) running the polyBLEP saw, driven
+///               per sample through `process_at()` so pitch (note + tuning + slide) is
+///               signal-rate. The 303's square is not a pulse — the hardware derives it from
+///               the saw with a transistor shaper. Slice 4 adopts Open303's measured shaper:
+///                   square = -tanh(10^(36.9/20) * saw_shifted + 4.37)
+///               applied to the half-cycle-shifted saw (Open303's MipMappedWaveTable
+///               constants: 36.9 dB drive, 4.37 offset, 180 deg alignment) — the biased tanh
+///               gives the rounded, slightly-asymmetric square of the hardware, and applying
+///               it to the BLEP-smoothed saw keeps the edges bandlimited. `waveform` is a
+///               continuous 0 (saw) .. 1 (square) blend riding the ramps, like Open303's
+///               blend oscillator.
 ///             - Filter: diode_ladder.h (`taptools::diode::diode_filter`), cutoff overridden
 ///               per sample with the envelope-modulated value; `resonance`/`solver`/
 ///               `oversample` pass through. Input/output coupling: a 44.486 Hz one-pole
@@ -18,14 +23,19 @@
 ///             - Main Envelope Generator (MEG): decay-only RC discharge — ~3 ms rise, then an
 ///               exponential decay set by `decay` (200..2000 ms, the stock knob range; Open303/
 ///               Devil Fish). On an ACCENTED note the decay pot is bypassed and the MEG runs at
-///               ~200 ms (the hardware shorts it — Devil Fish, Open303's accentDecay). The MEG
-///               reaches the cutoff as
-///                   fc_eff = cutoff * 2^(envmod * k_envmod_octaves * (meg - (1 - k_env_up)))
-///               with k_env_up = 2/3 (Open303's envUpFraction): 2/3 of the sweep goes above the
-///               knob and 1/3 below — the "gimmick" offset, so raising envmod also lowers the
-///               resting point. k_envmod_octaves = 4 is an informed approximation pending the
-///               slice-4 render calibration against Open303.
-///             - VCA envelope: fast (~3 ms) attack, fixed ~1230 ms exponential decay to zero
+///               the accent clock (`accdecay`, stock ~200 ms — Open303's accentDecay). The MEG
+///               reaches the cutoff through Open303's HARDWARE-MEASURED envmod law (slice-4
+///               calibration; their calculateEnvModScalerAndOffset "measured mapping"):
+///                   c      = log-position of the cutoff knob in [313.8 Hz, 2394.4 Hz]
+///                   scaler = (1-c)*(3.774*envmod + 0.737) + c*(4.195*envmod + 0.864)
+///                   offset = 0.0483*c + 0.2944
+///                   fc_eff = cutoff * 2^(scaler*(meg - offset) + accent_sweep)
+///               i.e. ~4.5-5 octaves of sweep at full envmod with ~2/3 of it above the knob
+///               (the "gimmick" resting-point drop), a residual ~0.8-octave sweep even at
+///               envmod 0, and slightly deeper sweeps at higher knob positions — all measured
+///               off hardware by the Open303 project.
+///             - VCA envelope: fast attack (`attack`, stock ~3 ms; the 0.3..30 ms range is the
+///               Devil Fish "Soft Attack" bend), fixed ~1230 ms exponential decay to zero
 ///               (no sustain — Open303's measured ampEnv), cut at gate-off by a ~2 ms release
 ///               (the hardware chops; 2 ms keeps it click-free).
 ///             - Gate/slide (the melodic-voice contract): a (re)trigger snaps the pitch and
@@ -54,9 +64,23 @@
 ///                 * res_mix = 0.3 + 0.7*min(resonance, 1): the pot is ganged with resonance,
 ///                   so accent quacks harder at high resonance — hardware behavior.
 ///               The sweep injects into the cutoff sum DIRECTLY, bypassing envmod (as in the
-///               circuit): accents sweep even with envmod at zero. k_accent_sweep_oct = 2 and
-///               the 0.4 direct weight are informed approximations pending the slice-4 render
-///               calibration; the RC taus are component-derived.
+///               circuit): accents sweep even with envmod at zero. The RC taus are
+///               component-derived; k_accent_sweep_oct = 2 and the 0.4 direct weight remain
+///               informed approximations — Open303 models its accent path as a plain 15 ms
+///               leaky integrator with NO across-notes memory, so the C13 model here follows
+///               the Devil Fish circuit description instead (deliberate divergence, noted).
+///             - Devil-Fish-style bends, all stock at defaults: `slide` (the pitch-glide RC,
+///               stock 60 ms), `attack` (VCA attack, stock 3 ms), `accdecay` (the accent
+///               MEG clock, stock 200 ms), `drive` (dB into the diode ladder's saturation).
+///             - `seed`/`tolerance`: deterministic per-unit component spread (house vco.h
+///               convention) — tuning, cutoff scale, envelope times, slide and C13 RCs take
+///               per-seed offsets scaled by tolerance, and the oscillator gets the seed plus
+///               a proportional `imperfect` amount. tolerance 0 is the nominal schematic,
+///               bit-identical to a voice with no seed set; every seed is a different unit
+///               off the line, so mc. stacks decorrelate like real hardware.
+///             - Factory presets: slots 1..8 ship authored (classic squelch, deep sub,
+///               screamer, rubber, knock, bloom, overdriven, glass); 9..16 are the defaults.
+///               `recall` morphs to them out of the box.
 ///
 ///             As in the other TapTools kernels: per-sample linear ramps on every parameter, a
 ///             16-slot preset-morph engine, allocation-free after prepare(), setters safe while
@@ -72,6 +96,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 
 #include "diode_ladder.h"
 #include "vco.h"
@@ -79,26 +104,44 @@
 namespace taptools {
     namespace tb303 {
 
-        constexpr int    k_presets           = 16;
-        constexpr double k_tuning_range      = 1200.0; // cents
-        constexpr double k_cutoff_min        = 100.0;  // stock knob is ~302..2394 Hz (Open303, measured);
-        constexpr double k_cutoff_max        = 5000.0; // the wider range is the Devil-Fish-style bend
-        constexpr double k_decay_min_ms      = 200.0;  // MEG decay pot range (Open303 / Devil Fish)
-        constexpr double k_decay_max_ms      = 2000.0;
-        constexpr double k_meg_attack_ms     = 3.0;       // Open303 normalAttack
-        constexpr double k_meg_accent_ms     = 200.0;     // accent bypasses the decay pot (Open303 accentDecay)
-        constexpr double k_vca_attack_ms     = 3.0;       // ~3 ms stock attack (Devil Fish)
-        constexpr double k_vca_decay_ms      = 1230.0;    // Open303 measured ampEnv decay, sustain 0
-        constexpr double k_vca_release_ms    = 2.0;       // gate-off chop (Open303 ~1 ms; 2 ms is click-free)
-        constexpr double k_env_up            = 2.0 / 3.0; // Open303 envUpFraction
-        constexpr double k_envmod_octaves    = 4.0;       // full-envmod sweep span (informed approx., see header)
-        constexpr double k_slide_ms          = 60.0;      // pitch CV RC lag (Open303 slideTime)
-        constexpr double k_c13_charge_ms     = 47.0;      // accent-sweep cap charge: 47k * 1uF (Devil Fish)
-        constexpr double k_c13_discharge_ms  = 150.0;     // discharge via the ~100-200k output path, nominal
-        constexpr double k_accent_sweep_oct  = 2.0;       // full-charge sweep span (informed approx., see header)
-        constexpr double k_accent_direct     = 0.4;       // direct-MEG weight in the sweep sum
-        constexpr double k_pre_hpf_hz        = 44.486;    // pre-filter coupling high-pass (Open303)
-        constexpr double k_post_hpf_hz       = 24.167;    // post-filter coupling high-pass (Open303)
+        constexpr int    k_presets        = 16;
+        constexpr double k_tuning_range   = 1200.0; // cents
+        constexpr double k_cutoff_min     = 100.0;  // stock knob is ~302..2394 Hz (Open303, measured);
+        constexpr double k_cutoff_max     = 5000.0; // the wider range is the Devil-Fish-style bend
+        constexpr double k_decay_min_ms   = 200.0;  // MEG decay pot range (Open303 / Devil Fish)
+        constexpr double k_decay_max_ms   = 2000.0;
+        constexpr double k_meg_attack_ms  = 3.0;    // Open303 normalAttack
+        constexpr double k_meg_accent_ms  = 200.0;  // accent bypasses the decay pot (Open303 accentDecay)
+        constexpr double k_vca_attack_ms  = 3.0;    // ~3 ms stock attack (Devil Fish)
+        constexpr double k_vca_decay_ms   = 1230.0; // Open303 measured ampEnv decay, sustain 0
+        constexpr double k_vca_release_ms = 2.0;    // gate-off chop (Open303 ~1 ms; 2 ms is click-free)
+        // Open303's hardware-measured envmod mapping (calculateEnvModScalerAndOffset):
+        constexpr double k_knob_lo_hz      = 3.138152786059267e+02; // lowest nominal cutoff (measured)
+        constexpr double k_knob_hi_hz      = 2.394411986817546e+03; // highest nominal cutoff (measured)
+        constexpr double k_env_offset_f    = 0.048292930943553;     // offset line: f*c + c0
+        constexpr double k_env_offset_c    = 0.294391201442418;
+        constexpr double k_env_scaler_lo_f = 3.773996325111173; // scaler line at low cutoff
+        constexpr double k_env_scaler_lo_c = 0.736965594166206;
+        constexpr double k_env_scaler_hi_f = 4.194548788411135; // scaler line at high cutoff
+        constexpr double k_env_scaler_hi_c = 0.864344900642434;
+        // Open303's measured 303-square shaper (MipMappedWaveTable): -tanh(10^(36.9/20)*saw + 4.37)
+        constexpr double k_square_gain       = 69.98419960022734; // 10^(36.9/20)
+        constexpr double k_square_bias       = 4.37;
+        constexpr double k_inv_log_knob_span = 0.4921045673846009; // 1 / ln(k_knob_hi_hz / k_knob_lo_hz)
+        constexpr double k_slide_ms          = 60.0;               // stock pitch CV RC lag (Open303 slideTime)
+        constexpr double k_slide_min_ms      = 10.0;               // bend range (Devil Fish extends slide ~5x)
+        constexpr double k_slide_max_ms      = 500.0;
+        constexpr double k_attack_min_ms     = 0.3; // Devil Fish Soft Attack range
+        constexpr double k_attack_max_ms     = 30.0;
+        constexpr double k_accdecay_min_ms   = 50.0; // accent-MEG clock bend range (stock 200)
+        constexpr double k_accdecay_max_ms   = 2000.0;
+        constexpr double k_drive_range_db    = 24.0;   // into the diode ladder's saturation
+        constexpr double k_c13_charge_ms     = 47.0;   // accent-sweep cap charge: 47k * 1uF (Devil Fish)
+        constexpr double k_c13_discharge_ms  = 150.0;  // discharge via the ~100-200k output path, nominal
+        constexpr double k_accent_sweep_oct  = 2.0;    // full-charge sweep span (informed approx., see header)
+        constexpr double k_accent_direct     = 0.4;    // direct-MEG weight in the sweep sum
+        constexpr double k_pre_hpf_hz        = 44.486; // pre-filter coupling high-pass (Open303)
+        constexpr double k_post_hpf_hz       = 24.167; // post-filter coupling high-pass (Open303)
         constexpr double k_default_smooth_ms = 20.0;
         constexpr double k_pi                = 3.14159265358979323846;
 
@@ -110,10 +153,17 @@ namespace taptools {
             p_envmod,    // 0..1 MEG -> cutoff depth
             p_decay,     // MEG decay, ms
             p_accent,    // 0..1 accent amount (the AC knob)
+            p_waveform,  // 0 saw .. 1 square (continuous blend, like Open303)
+            p_slide,     // pitch-glide RC, ms (stock 60 — bend)
+            p_attack,    // VCA attack, ms (stock 3 — the Soft Attack bend)
+            p_accdecay,  // accent-MEG clock, ms (stock 200 — bend)
+            p_drive,     // dB into the filter's diode saturation (bend)
             k_num_params
         };
 
         enum waveform : int { wave_saw = 0, wave_square, k_num_waveforms };
+
+        constexpr int k_factory_presets = 8; // slots 0..7 ship authored; 8..15 are defaults
 
         /// One full parameter snapshot — a preset slot, and the unit the morph engine interpolates.
         struct params {
@@ -128,6 +178,11 @@ namespace taptools {
                 p.v[p_envmod]    = 0.5;
                 p.v[p_decay]     = 400.0;
                 p.v[p_accent]    = 0.5;
+                p.v[p_waveform]  = 0.0;
+                p.v[p_slide]     = k_slide_ms;
+                p.v[p_attack]    = k_vca_attack_ms;
+                p.v[p_accdecay]  = k_meg_accent_ms;
+                p.v[p_drive]     = 0.0;
                 return p;
             }
         };
@@ -149,6 +204,16 @@ namespace taptools {
                 return std::clamp(value, k_decay_min_ms, k_decay_max_ms);
             case p_accent:
                 return std::clamp(value, 0.0, 1.0);
+            case p_waveform:
+                return std::clamp(value, 0.0, 1.0);
+            case p_slide:
+                return std::clamp(value, k_slide_min_ms, k_slide_max_ms);
+            case p_attack:
+                return std::clamp(value, k_attack_min_ms, k_attack_max_ms);
+            case p_accdecay:
+                return std::clamp(value, k_accdecay_min_ms, k_accdecay_max_ms);
+            case p_drive:
+                return std::clamp(value, -k_drive_range_db, k_drive_range_db);
             default:
                 return value;
             }
@@ -162,6 +227,23 @@ namespace taptools {
                     m_ramp[i].current = m_ramp[i].target = d.v[i];
                 }
                 m_presets.fill(d);
+                // Factory presets, slots 0..7 (recall 1..8 in the wrapper). Field order:
+                // gain, tuning, cutoff, res, envmod, decay, accent, waveform, slide, attack, accdecay, drive
+                const double factory[k_factory_presets][k_num_params] = {
+                    {0, 0, 500, 0.9, 0.7, 300, 0.8, 0, 60, 3, 200, 0},     // 1 classic squelch
+                    {0, 0, 250, 0.45, 0.3, 800, 0.4, 1, 60, 3, 200, 0},    // 2 deep sub
+                    {0, 0, 900, 1.3, 0.9, 250, 1.0, 0, 60, 3, 150, 6},     // 3 screamer
+                    {0, 0, 400, 0.75, 0.55, 500, 0.6, 1, 90, 5, 250, 0},   // 4 rubber
+                    {0, 0, 650, 1.0, 0.2, 200, 0.9, 1, 60, 3, 120, 0},     // 5 hollow knock
+                    {0, 0, 350, 0.85, 1.0, 2000, 0.5, 0, 120, 10, 400, 0}, // 6 slow bloom
+                    {0, 0, 700, 1.1, 0.65, 350, 0.85, 0, 60, 3, 200, 12},  // 7 overdriven
+                    {0, 0, 2000, 0.6, 0.35, 600, 0.3, 0, 40, 3, 200, -6},  // 8 glass
+                };
+                for (int s = 0; s < k_factory_presets; ++s) {
+                    for (int i = 0; i < k_num_params; ++i) {
+                        m_presets[s].v[i] = factory[s][i];
+                    }
+                }
             }
 
             // -- lifecycle -------------------------------------------------------------------------------
@@ -170,17 +252,11 @@ namespace taptools {
                 m_sr = (sr > 0.0) ? sr : 48000.0;
                 m_osc.prepare(m_sr);
                 m_osc.set_smooth_ms(m_smooth_ms);
-                m_osc.set_waveform(vco::wave_saw);
+                m_osc.set_waveform(vco::wave_saw); // always the saw core; the square is shaped from it
                 m_osc.snap();
                 m_filter.prepare(m_sr);
                 m_filter.set_smooth_ms(0.0); // the voice owns all smoothing
-                m_meg_attack  = attack_coef(k_meg_attack_ms);
-                m_vca_attack  = attack_coef(k_vca_attack_ms);
-                m_vca_decay   = decay_coef(k_vca_decay_ms);
-                m_vca_release = decay_coef(k_vca_release_ms);
-                m_slide_coef  = one_pole_coef(k_slide_ms);
-                m_c13_charge  = one_pole_coef(k_c13_charge_ms);
-                m_c13_drain   = one_pole_coef(k_c13_discharge_ms);
+                apply_unit_spread();
                 m_pre_hp.set(k_pre_hpf_hz, m_sr);
                 m_post_hp.set(k_post_hpf_hz, m_sr);
                 clear();
@@ -239,10 +315,23 @@ namespace taptools {
             // -- modes (not part of the morphable parameter set) --------------------------------------------
 
             void set_waveform(int w) {
-                m_wave = std::clamp(w, 0, k_num_waveforms - 1);
-                m_osc.set_waveform(m_wave == wave_saw ? vco::wave_saw : vco::wave_pulse);
+                set_param(p_waveform, static_cast<double>(std::clamp(w, 0, k_num_waveforms - 1)));
             }
-            int wave() const { return m_wave; }
+            int wave() const { return (m_ramp[p_waveform].target >= 0.5) ? wave_square : wave_saw; }
+
+            /// Deterministic per-unit component spread: `seed` picks the unit, `tolerance` (0..1)
+            /// scales how far off nominal it is. tolerance 0 = the nominal schematic exactly.
+            void set_seed(uint32_t seed) {
+                m_seed = seed;
+                apply_unit_spread();
+            }
+            uint32_t seed() const { return m_seed; }
+
+            void set_tolerance(double t) {
+                m_tolerance = std::clamp(t, 0.0, 1.0);
+                apply_unit_spread();
+            }
+            double tolerance() const { return m_tolerance; }
 
             void set_solver(int s) { m_filter.set_solver(s); }
             int  solver() const { return m_filter.solver(); }
@@ -272,6 +361,11 @@ namespace taptools {
             void set_envmod(double e) { set_param(p_envmod, e); }
             void set_decay(double ms) { set_param(p_decay, ms); }
             void set_accent(double a) { set_param(p_accent, a); }
+            void set_wave_blend(double w) { set_param(p_waveform, w); }
+            void set_slide(double ms) { set_param(p_slide, ms); }
+            void set_attack(double ms) { set_param(p_attack, ms); }
+            void set_accdecay(double ms) { set_param(p_accdecay, ms); }
+            void set_drive(double db) { set_param(p_drive, db); }
 
             // -- presets / morph -----------------------------------------------------------------------------
 
@@ -334,12 +428,11 @@ namespace taptools {
 
                 // pitch: snap on retrigger, RC glide while sliding
                 m_pitch += (m_pitch_target - m_pitch) * m_slide_coef;
-                const double note = m_pitch + m_ramp[p_tuning].current * 0.01;
+                const double note = m_pitch + (m_ramp[p_tuning].current + m_unit_tune_cents) * 0.01;
                 const double hz   = 440.0 * std::exp2((note - 69.0) / 12.0);
 
                 // envelopes
-                const double meg_decay_ms = (m_note_accent > 0.0) ? k_meg_accent_ms : m_ramp[p_decay].current;
-                step_env(m_meg, m_meg_rising, m_meg_attack, decay_coef(meg_decay_ms));
+                step_env(m_meg, m_meg_rising, m_meg_attack, (m_note_accent > 0.0) ? m_meg_accent_decay : m_meg_decay);
                 step_env(m_vca, m_vca_rising, m_vca_attack, m_gate ? m_vca_decay : m_vca_release);
 
                 // the accent sweep circuit: diode-gated charge onto C13, slow drain (the wow memory)
@@ -351,18 +444,31 @@ namespace taptools {
                 m_c13 -= m_c13 * m_c13_drain;
                 m_c13 = (m_c13 < 1e-15) ? 0.0 : m_c13;
 
-                // envelope-modulated cutoff: 2/3 of the sweep above the knob, 1/3 below (the gimmick),
-                // plus the accent sweep injected directly (bypassing envmod), scaled by the ganged
-                // resonance-pot section
-                const double sweep   = m_ramp[p_envmod].current * k_envmod_octaves;
+                // cutoff: Open303's measured envmod law (see header), plus the accent sweep injected
+                // directly (bypassing envmod), scaled by the ganged resonance-pot section
+                const double cutoff_hz = m_ramp[p_cutoff].current * m_unit_cutoff_scale;
+                const double e         = m_ramp[p_envmod].current;
+                const double c         = std::clamp(std::log(cutoff_hz / k_knob_lo_hz) * k_inv_log_knob_span, 0.0, 1.0);
+                const double scaler    = (1.0 - c) * (k_env_scaler_lo_f * e + k_env_scaler_lo_c)
+                                      + c * (k_env_scaler_hi_f * e + k_env_scaler_hi_c);
+                const double offset  = k_env_offset_f * c + k_env_offset_c;
                 const double res_mix = 0.3 + 0.7 * std::min(m_ramp[p_resonance].current, 1.0);
                 const double acc_oct =
                     k_accent_sweep_oct * res_mix * (k_accent_direct * std::max(drive - m_c13, 0.0) + m_c13);
-                const double fc_eff =
-                    m_ramp[p_cutoff].current * std::exp2(sweep * (m_meg - (1.0 - k_env_up)) + acc_oct);
+                const double fc_eff = cutoff_hz * std::exp2(scaler * (m_meg - offset) + acc_oct);
 
-                // oscillator -> coupling HPF -> diode ladder -> coupling HPF -> VCA
-                const double osc      = m_osc.process_at(hz);
+                // oscillator: polyBLEP saw, with the square shaped from its half-cycle-shifted copy
+                // (Open303's measured biased-tanh shaper) and the waveform blend riding the ramps
+                const double saw = m_osc.process_at(hz);
+                const double mix = m_ramp[p_waveform].current;
+                double       osc = saw;
+                if (mix > 0.0) {
+                    const double shifted = (saw < 0.0) ? saw + 1.0 : saw - 1.0;
+                    const double square  = -std::tanh(k_square_gain * shifted + k_square_bias);
+                    osc                  = saw + mix * (square - saw);
+                }
+
+                // -> coupling HPF -> diode ladder -> coupling HPF -> VCA
                 const double filtered = m_filter.process(m_pre_hp.tick(osc), fc_eff);
                 const double shaped   = m_post_hp.tick(filtered);
 
@@ -454,17 +560,55 @@ namespace taptools {
                 push_filter_params();
             }
 
-            // The filter's own smoothing is off; the voice's ramps feed it directly.
+            // The filter's own smoothing is off; the voice's ramps feed it directly. Also refreshes
+            // every parameter-derived envelope/slide coefficient (only runs when a ramp moves).
             void push_filter_params() {
                 m_filter.set_param(diode::p_resonance, m_ramp[p_resonance].current);
-                m_out_gain = std::pow(10.0, m_ramp[p_gain].current * 0.05);
+                m_filter.set_param(diode::p_drive, m_ramp[p_drive].current);
+                m_out_gain         = std::pow(10.0, m_ramp[p_gain].current * 0.05);
+                m_meg_decay        = decay_coef(m_ramp[p_decay].current * m_unit_env);
+                m_meg_accent_decay = decay_coef(m_ramp[p_accdecay].current * m_unit_env);
+                m_vca_attack       = attack_coef(m_ramp[p_attack].current * m_unit_attack);
+                m_slide_coef       = one_pole_coef(m_ramp[p_slide].current * m_unit_slide);
+            }
+
+            // Deterministic per-unit draw in [-1, 1]: xorshift64* on (seed, salt), house convention.
+            static double unit_draw(uint32_t seed, uint32_t salt) {
+                uint64_t x = (static_cast<uint64_t>(seed) << 32) ^ (0x9e3779b97f4a7c15ULL * (salt + 1));
+                x ^= x >> 12;
+                x ^= x << 25;
+                x ^= x >> 27;
+                x *= 0x2545f4914f6cdd1dULL;
+                return 2.0 * (static_cast<double>(x >> 11) / 9007199254740992.0) - 1.0;
+            }
+
+            // Recompute the per-unit component offsets and every coefficient built on them.
+            // tolerance 0 leaves the nominal schematic exactly (all factors 1, imperfect 0).
+            void apply_unit_spread() {
+                const double t      = m_tolerance;
+                m_unit_tune_cents   = 8.0 * t * unit_draw(m_seed, 0);             // converter trim
+                m_unit_cutoff_scale = std::exp2(0.12 * t * unit_draw(m_seed, 1)); // VCF tracking
+                m_unit_env          = 1.0 + 0.10 * t * unit_draw(m_seed, 2);      // envelope caps
+                m_unit_vca          = 1.0 + 0.10 * t * unit_draw(m_seed, 3);
+                m_unit_slide        = 1.0 + 0.15 * t * unit_draw(m_seed, 4); // slide RC
+                m_unit_c13          = 1.0 + 0.15 * t * unit_draw(m_seed, 5); // accent-sweep RC
+                m_unit_attack       = 1.0 + 0.20 * t * unit_draw(m_seed, 6);
+                m_meg_attack        = attack_coef(k_meg_attack_ms);
+                m_vca_decay         = decay_coef(k_vca_decay_ms * m_unit_vca);
+                m_vca_release       = decay_coef(k_vca_release_ms);
+                m_c13_charge        = one_pole_coef(k_c13_charge_ms * m_unit_c13);
+                m_c13_drain         = one_pole_coef(k_c13_discharge_ms * m_unit_c13);
+                m_osc.set_seed(m_seed);
+                m_osc.set_imperfect(0.6 * t); // waveform imperfection rides the same tolerance
+                push_filter_params();
             }
 
             // configuration
-            double m_sr{48000.0};
-            double m_smooth_ms{k_default_smooth_ms};
-            int    m_wave{wave_saw};
-            bool   m_prepared{false};
+            double   m_sr{48000.0};
+            double   m_smooth_ms{k_default_smooth_ms};
+            uint32_t m_seed{1u};
+            double   m_tolerance{0.0};
+            bool     m_prepared{false};
 
             // parameters
             std::array<ramp, k_num_params> m_ramp;
@@ -482,8 +626,15 @@ namespace taptools {
             double m_meg{0.0}, m_vca{0.0};
             bool   m_meg_rising{false}, m_vca_rising{false};
             double m_meg_attack{0.05}, m_vca_attack{0.05};
+            double m_meg_decay{0.9999}, m_meg_accent_decay{0.999};
             double m_vca_decay{0.9999}, m_vca_release{0.99};
             double m_slide_coef{0.001};
+
+            // per-unit component spread (seed/tolerance)
+            double m_unit_tune_cents{0.0};
+            double m_unit_cutoff_scale{1.0};
+            double m_unit_env{1.0}, m_unit_vca{1.0};
+            double m_unit_slide{1.0}, m_unit_c13{1.0}, m_unit_attack{1.0};
 
             // accent-sweep circuit state (C13)
             double m_c13{0.0};
