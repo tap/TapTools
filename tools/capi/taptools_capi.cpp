@@ -8,8 +8,10 @@
 // The DSP cores are the same headers the Max externals compile — no Max/Min dependency.
 #include <taptools/autowah.h>
 #include <taptools/conv_engine.h>
+#include <taptools/diode_ladder.h>
 #include <taptools/ladder.h>
 #include <taptools/svf.h>
+#include <taptools/tb303_voice.h>
 #include <taptools/vco.h>
 
 using taptools::conv_engine;
@@ -247,6 +249,140 @@ int taptools_vco_process_mod(taptools_vco h, const double* fm_hz, const double* 
             out[i] = o.process(fm_hz ? fm_hz[i] : 0.0, sync ? sync[i] : 0.0);
         }
     });
+}
+
+// ---- tap.diode~ --------------------------------------------------------------------------------
+
+using taptools::diode::diode_filter;
+
+taptools_diode taptools_diode_create(void) {
+    return static_cast<taptools_diode>(new diode_filter());
+}
+
+void taptools_diode_destroy(taptools_diode h) {
+    delete static_cast<diode_filter*>(h);
+}
+
+int taptools_diode_prepare(taptools_diode h, double sr) {
+    return with<diode_filter>(h, [&](diode_filter& f) { f.prepare(sr); });
+}
+
+int taptools_diode_set(taptools_diode h, int param, double value) {
+    return with<diode_filter>(h, [&](diode_filter& f) { f.set_param(param, value); });
+}
+
+int taptools_diode_set_solver(taptools_diode h, int solver) {
+    return with<diode_filter>(h, [&](diode_filter& f) { f.set_solver(solver); });
+}
+
+int taptools_diode_set_oversample(taptools_diode h, int os) {
+    return with<diode_filter>(h, [&](diode_filter& f) { f.set_oversample(os); });
+}
+
+int taptools_diode_set_smooth_ms(taptools_diode h, double ms) {
+    return with<diode_filter>(h, [&](diode_filter& f) { f.set_smooth_ms(ms); });
+}
+
+int taptools_diode_clear(taptools_diode h) {
+    return with<diode_filter>(h, [&](diode_filter& f) { f.clear(); });
+}
+
+int taptools_diode_process(taptools_diode h, const double* in, double* out, int n) {
+    if (!h || !in || !out || n < 0) {
+        return -1;
+    }
+    static_cast<diode_filter*>(h)->process(in, out, static_cast<size_t>(n));
+    return 0;
+}
+
+int taptools_diode_process_mod(taptools_diode h, const double* in, const double* cutoff_hz, double* out, int n) {
+    if (!h || !in || !cutoff_hz || !out || n < 0) {
+        return -1;
+    }
+    diode_filter& f = *static_cast<diode_filter*>(h);
+    for (int i = 0; i < n; ++i) {
+        out[i] = f.process(in[i], cutoff_hz[i]);
+    }
+    return 0;
+}
+
+// ---- tap.303~ ----------------------------------------------------------------------------------
+
+using tb303_voice = taptools::tb303::voice;
+
+taptools_tb303 taptools_tb303_create(void) {
+    return static_cast<taptools_tb303>(new tb303_voice());
+}
+
+void taptools_tb303_destroy(taptools_tb303 h) {
+    delete static_cast<tb303_voice*>(h);
+}
+
+int taptools_tb303_prepare(taptools_tb303 h, double sr) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.prepare(sr); });
+}
+
+int taptools_tb303_set(taptools_tb303 h, int param, double value) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_param(param, value); });
+}
+
+int taptools_tb303_set_vca(taptools_tb303 h, int mode) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_vca(mode); });
+}
+
+int taptools_tb303_set_solver(taptools_tb303 h, int solver) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_solver(solver); });
+}
+
+int taptools_tb303_set_oversample(taptools_tb303 h, int os) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_oversample(os); });
+}
+
+int taptools_tb303_set_seed(taptools_tb303 h, unsigned int seed) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_seed(seed); });
+}
+
+int taptools_tb303_set_tolerance(taptools_tb303 h, double t) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_tolerance(t); });
+}
+
+int taptools_tb303_set_smooth_ms(taptools_tb303 h, double ms) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_smooth_ms(ms); });
+}
+
+int taptools_tb303_recall(taptools_tb303 h, int slot, double seconds) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.recall_preset(slot, seconds); });
+}
+
+int taptools_tb303_clear(taptools_tb303 h) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.clear(); });
+}
+
+int taptools_tb303_note_on(taptools_tb303 h, double midi_note, double accent) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.note_on(midi_note, accent); });
+}
+
+int taptools_tb303_note_off(taptools_tb303 h) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.note_off(); });
+}
+
+int taptools_tb303_set_pitch(taptools_tb303 h, double midi_note) {
+    return with<tb303_voice>(h, [&](tb303_voice& v) { v.set_pitch(midi_note); });
+}
+
+double taptools_tb303_accent_charge(taptools_tb303 h) {
+    if (!h) {
+        return 0.0;
+    }
+    return static_cast<tb303_voice*>(h)->accent_charge();
+}
+
+int taptools_tb303_process(taptools_tb303 h, double* out, int n) {
+    if (!h || !out || n < 0) {
+        return -1;
+    }
+    static_cast<tb303_voice*>(h)->process(out, static_cast<size_t>(n));
+    return 0;
 }
 
 // ---- tap.autowah~ ------------------------------------------------------------------------------

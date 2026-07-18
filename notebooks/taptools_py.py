@@ -107,6 +107,33 @@ def load() -> ctypes.CDLL:
         "taptools_vco_clear":         ([vp], ctypes.c_int),
         "taptools_vco_process":       ([vp, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_vco_process_mod":   ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_diode_create":          ([], vp),
+        "taptools_diode_destroy":         ([vp], None),
+        "taptools_diode_prepare":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_diode_set":             ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_diode_set_solver":      ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_diode_set_oversample":  ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_diode_set_smooth_ms":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_diode_clear":           ([vp], ctypes.c_int),
+        "taptools_diode_process":         ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_diode_process_mod":     ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_tb303_create":          ([], vp),
+        "taptools_tb303_destroy":         ([vp], None),
+        "taptools_tb303_prepare":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tb303_set":             ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_tb303_set_vca":         ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tb303_set_solver":      ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tb303_set_oversample":  ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tb303_set_seed":        ([vp, ctypes.c_uint], ctypes.c_int),
+        "taptools_tb303_set_tolerance":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tb303_set_smooth_ms":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tb303_recall":          ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_tb303_clear":           ([vp], ctypes.c_int),
+        "taptools_tb303_note_on":         ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_tb303_note_off":        ([vp], ctypes.c_int),
+        "taptools_tb303_set_pitch":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tb303_accent_charge":   ([vp], ctypes.c_double),
+        "taptools_tb303_process":         ([vp, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_wah_create":        ([], vp),
         "taptools_wah_destroy":       ([vp], None),
         "taptools_wah_prepare":       ([vp, ctypes.c_double], ctypes.c_int),
@@ -314,6 +341,74 @@ class Ladder(_Kernel):
             c = _f64(cutoff_hz)
             _check(_LIB.taptools_ladder_process_mod(self._h, _p64(x), _p64(c), _p64(out), len(x)),
                    "process_mod")
+        return out
+
+
+class Diode(_Kernel):
+    """tap.diode~'s ZDF TB-303 diode ladder (taptools::diode::diode_filter).
+
+    >>> f = Diode(48000, frequency=1000, resonance=0.9)
+    >>> y = f.process(x)                      # block process
+    >>> y = f.process(x, cutoff_hz=sweep)     # per-sample signal-rate cutoff
+    """
+
+    PREFIX = "taptools_diode"
+    PARAMS = {"gain": 0, "frequency": 1, "resonance": 2, "drive": 3, "fbhp": 4}
+    FAST, EXACT = 0, 1
+
+    def process(self, x, cutoff_hz=None) -> np.ndarray:
+        x = _f64(x)
+        out = np.empty(len(x))
+        if cutoff_hz is None:
+            _check(_LIB.taptools_diode_process(self._h, _p64(x), _p64(out), len(x)), "process")
+        else:
+            c = _f64(cutoff_hz)
+            _check(_LIB.taptools_diode_process_mod(self._h, _p64(x), _p64(c), _p64(out), len(x)),
+                   "process_mod")
+        return out
+
+
+class TB303(_Kernel):
+    """tap.303~'s acid-bass voice (taptools::tb303::voice) — the full note interface.
+
+    >>> v = TB303(48000, cutoff=500, resonance=0.9, envmod=0.7, decay=300, accent=0.8)
+    >>> v.note_on(33, accent=1.0); y = v.process(24000); v.note_off()
+    >>> v.set(vca=TB303.WARM)                 # phase-2 transistor VCA
+    """
+
+    PREFIX = "taptools_tb303"
+    PARAMS = {"gain": 0, "tuning": 1, "cutoff": 2, "resonance": 3, "envmod": 4, "decay": 5,
+              "accent": 6, "waveform": 7, "slide": 8, "attack": 9, "accdecay": 10, "drive": 11}
+    SAW, SQUARE = 0.0, 1.0
+    CLEAN, WARM = 0, 1
+    FAST, EXACT = 0, 1
+
+    def set(self, **params) -> "TB303":
+        tol = params.pop("tolerance", None)
+        if tol is not None:
+            _check(_LIB.taptools_tb303_set_tolerance(self._h, float(tol)), "tolerance")
+        return super().set(**params)
+
+    def note_on(self, midi_note: float, accent: float = 0.0) -> None:
+        _check(_LIB.taptools_tb303_note_on(self._h, float(midi_note), float(accent)), "note_on")
+
+    def note_off(self) -> None:
+        _check(_LIB.taptools_tb303_note_off(self._h), "note_off")
+
+    def set_pitch(self, midi_note: float) -> None:
+        _check(_LIB.taptools_tb303_set_pitch(self._h, float(midi_note)), "set_pitch")
+
+    def recall(self, slot: int, seconds: float = 0.0) -> None:
+        """Morph to a preset slot (1-based like the Max wrapper; 1-8 = factory patches)."""
+        _check(_LIB.taptools_tb303_recall(self._h, int(slot) - 1, float(seconds)), "recall")
+
+    @property
+    def accent_charge(self) -> float:
+        return float(_LIB.taptools_tb303_accent_charge(self._h))
+
+    def process(self, n: int) -> np.ndarray:
+        out = np.empty(int(n))
+        _check(_LIB.taptools_tb303_process(self._h, _p64(out), len(out)), "process")
         return out
 
 
