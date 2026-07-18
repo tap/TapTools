@@ -40,3 +40,7 @@
 - [Grains that sum to one: grm_pitchaccum.h](machine/pitchaccum.md)
 - [Two banks and a multiplier: vocoder.h](machine/vocoder.md)
 - [One STFT, three effects: fft.h, stft.h, nr.h, spectra.h](machine/spectral.md)
+- [Seventeen, not four: diode_ladder.h](machine/diode.md)
+- [The couplings are the instrument: tb303_voice.h](machine/tb303.md)
+- [One network, eight voices: the tr808 headers](machine/tr808.md)
+- [Time as a function of phase: step_seq.h](machine/seq.md)

@@ -89,7 +89,7 @@ measured laws.
 - **`tuning`**, **`gain`** — cents and dB. Plumbing.
 
 The envelopes carry the schematic's fixed interrelations: MEG attack ~3 ms,
-VCA attack ~0 with a ~1.23 s decay chopped at gate-off, 50 ms when accented.
+VCA attack ~3 ms with a measured ~1.23 s decay chopped at gate-off, 50 ms when accented.
 None of these have knobs on the hardware, so none of them have knobs here —
 except through the documented Devil-Fish-style bends (`slide` 10–500 ms,
 `attack` 0.3–30 ms, `accdecay`, and `drive` ±24 dB into the ladder, where
