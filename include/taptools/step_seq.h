@@ -149,6 +149,9 @@ namespace taptools {
             /// its phase lands in (so a transport start fires its downbeat).
             void reset() { m_prev = -1; }
 
+            /// The step the engine is currently in (-1 before any processing) — for UI feedback.
+            int current_step() const { return m_prev; }
+
             tick process(double phase) {
                 int k = derive(phase);
 
