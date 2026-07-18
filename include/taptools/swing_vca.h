@@ -7,9 +7,11 @@
 ///
 ///             - `decay_env` — trigger to a level, one-pole rise (fast, configurable), then
 ///               exponential decay with a settable time constant: the RC discharge shape.
-///             - `swing_vca` — the envelope applied as a gain. Modeled linear; the hardware
-///               VCAs add "many high harmonics" (Service Notes on the RS/CL VCA) — a flagged
-///               refinement for the circuit-simulation phase.
+///             - `swing_vca` — the envelope applied as a gain. Linear by default (`drive` 0),
+///               with an opt-in `drive` that engages the swing VCA's symmetric harmonic
+///               saturation — the "many high harmonics" the Service Notes note (RS/CL VCA) —
+///               via the shared `vca.h` `swing_shape` (also `tap.vca~`'s `swing` circuit). Off
+///               by default so every calibrated voice stays bit-identical until a voice opts in.
 ///             - `white_noise` — the shared white-noise source (the 808 has a single noise
 ///               generator feeding SD snappy, CP, MA, and the tom "reverberation"). Seeded
 ///               xorshift64*: deterministic per seed, so renders and tests reproduce and mc.
@@ -24,6 +26,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+
+#include "vca.h" // taptools::vca::swing_shape — the shared swing-type saturator
 
 namespace taptools {
     namespace tr808 {
@@ -107,9 +111,13 @@ namespace taptools {
             double m_env{0.0}, m_target{0.0};
         };
 
-        /// The swing-type VCA: envelope as gain. Linear model (see header note).
-        inline double swing_vca(double x, double env) {
-            return x * env;
+        /// The swing-type VCA: envelope as gain. Linear by default (`drive` 0 → `x * env`, the
+        /// calibrated model, bit-for-bit); `drive > 0` engages the swing VCA's symmetric harmonic
+        /// saturation (the "many high harmonics" the Service Notes note) on the enveloped signal,
+        /// via the shared taptools::vca::swing_shape. The character rides the envelope — quiet tails
+        /// stay clean, hot transients pick up grit and gentle compression.
+        inline double swing_vca(double x, double env, double drive = 0.0) {
+            return vca::swing_shape(x * env, drive);
         }
 
     } // namespace tr808

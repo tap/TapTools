@@ -132,6 +132,13 @@ namespace taptools {
             /// wash, leaving only the three teeth).
             void set_tail(double amount) { m_tail = std::clamp(amount, 0.0, 2.0); }
 
+            /// Swing-VCA drive on the output VCA (0 = the calibrated linear model, bit-identical;
+            /// > 0 engages the swing VCA's symmetric harmonic saturation — grit and compression
+            /// that ride the envelope). Applies to both the clap and maracas models. See
+            /// swing_vca.h / vca.h swing_shape.
+            void   set_drive(double amount) { m_drive = std::max(0.0, amount); }
+            double drive() const { return m_drive; }
+
             /// Noise-source seed (deterministic; mc. instances decorrelate by seed).
             void set_seed(uint64_t seed) { m_noise.set_seed(seed); }
 
@@ -155,7 +162,7 @@ namespace taptools {
 
                 if (m_model == model_maracas) {
                     const double y =
-                        swing_vca(m_ma_lp.process(m_ma_hp2.process(m_ma_hp1.process(n))), m_ma_env.process());
+                        swing_vca(m_ma_lp.process(m_ma_hp2.process(m_ma_hp1.process(n))), m_ma_env.process(), m_drive);
                     return y * m_level * k_ma_out_scale;
                 }
 
@@ -185,7 +192,7 @@ namespace taptools {
                 m_bp2_z2        = -m_bp_b0 * b1 - m_bp_a2 * bp;
 
                 const double env = m_tooth_env + k_cp_tail_level * m_tail * m_tail_env;
-                return swing_vca(bp, env) * m_level * k_cp_out_scale;
+                return swing_vca(bp, env, m_drive) * m_level * k_cp_out_scale;
             }
 
           private:
@@ -207,6 +214,7 @@ namespace taptools {
             white_noise m_noise;
 
             double m_level{1.0}, m_tail{1.0}, m_accent{1.0};
+            double m_drive{0.0}; // swing-VCA saturation on the output VCA; 0 = linear (default)
         };
 
     } // namespace tr808
