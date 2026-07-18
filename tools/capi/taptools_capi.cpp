@@ -10,8 +10,10 @@
 #include <taptools/conv_engine.h>
 #include <taptools/diode_ladder.h>
 #include <taptools/ladder.h>
+#include <taptools/step_seq.h>
 #include <taptools/svf.h>
 #include <taptools/tb303_voice.h>
+#include <taptools/tr808_kick.h>
 #include <taptools/vco.h>
 
 using taptools::conv_engine;
@@ -440,6 +442,193 @@ int taptools_wah_process(taptools_wah h, const double* in, const double* key, do
             if (cutoff_out) {
                 cutoff_out[i] = w.cutoff_hz();
             }
+        }
+    });
+}
+
+// ---- tap.808.seq~ ------------------------------------------------------------------------------
+
+using seq_trigger = taptools::seq::trigger_row;
+
+taptools_seqtrig taptools_seqtrig_create(void) {
+    return static_cast<taptools_seqtrig>(new seq_trigger());
+}
+
+void taptools_seqtrig_destroy(taptools_seqtrig h) {
+    delete static_cast<seq_trigger*>(h);
+}
+
+int taptools_seqtrig_prepare(taptools_seqtrig h, double sr) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.prepare(sr); });
+}
+
+int taptools_seqtrig_set_length(taptools_seqtrig h, int steps) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.clock().data().set_length(steps); });
+}
+
+int taptools_seqtrig_set_swing(taptools_seqtrig h, double swing) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.clock().set_swing(swing); });
+}
+
+int taptools_seqtrig_set_quantize(taptools_seqtrig h, int mode) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.clock().set_quantize(mode); });
+}
+
+int taptools_seqtrig_set_pulse_ms(taptools_seqtrig h, double ms) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.set_pulse_ms(ms); });
+}
+
+int taptools_seqtrig_set_step(taptools_seqtrig h, int step, double velocity) {
+    if (step < 0 || step >= taptools::seq::k_max_steps) {
+        return -1;
+    }
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.clock().data().steps[step].velocity = velocity; });
+}
+
+int taptools_seqtrig_store(taptools_seqtrig h, int slot) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.clock().store(slot); });
+}
+
+int taptools_seqtrig_recall(taptools_seqtrig h, int slot) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.clock().recall(slot); });
+}
+
+int taptools_seqtrig_reset(taptools_seqtrig h) {
+    return with<seq_trigger>(h, [&](seq_trigger& r) { r.reset(); });
+}
+
+int taptools_seqtrig_process(taptools_seqtrig h, const double* phase, double* out, int n) {
+    if (!phase || !out || n < 0) {
+        return -1;
+    }
+    return with<seq_trigger>(h, [&](seq_trigger& r) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = r.process(phase[i]);
+        }
+    });
+}
+
+// ---- tap.303.seq~ ------------------------------------------------------------------------------
+
+using seq_note = taptools::seq::note_row;
+
+taptools_seqnote taptools_seqnote_create(void) {
+    return static_cast<taptools_seqnote>(new seq_note());
+}
+
+void taptools_seqnote_destroy(taptools_seqnote h) {
+    delete static_cast<seq_note*>(h);
+}
+
+int taptools_seqnote_prepare(taptools_seqnote h, double sr) {
+    return with<seq_note>(h, [&](seq_note& r) { r.prepare(sr); });
+}
+
+int taptools_seqnote_set_length(taptools_seqnote h, int steps) {
+    return with<seq_note>(h, [&](seq_note& r) { r.clock().data().set_length(steps); });
+}
+
+int taptools_seqnote_set_swing(taptools_seqnote h, double swing) {
+    return with<seq_note>(h, [&](seq_note& r) { r.clock().set_swing(swing); });
+}
+
+int taptools_seqnote_set_quantize(taptools_seqnote h, int mode) {
+    return with<seq_note>(h, [&](seq_note& r) { r.clock().set_quantize(mode); });
+}
+
+int taptools_seqnote_set_transpose(taptools_seqnote h, double semitones) {
+    return with<seq_note>(h, [&](seq_note& r) { r.set_transpose(semitones); });
+}
+
+int taptools_seqnote_set_step(taptools_seqnote h, int step, double pitch, int gate, int accent, int slide) {
+    if (step < 0 || step >= taptools::seq::k_max_steps) {
+        return -1;
+    }
+    return with<seq_note>(h, [&](seq_note& r) {
+        auto& st  = r.clock().data().steps[step];
+        st.pitch  = pitch;
+        st.gate   = gate != 0;
+        st.accent = accent != 0;
+        st.slide  = slide != 0;
+    });
+}
+
+int taptools_seqnote_store(taptools_seqnote h, int slot) {
+    return with<seq_note>(h, [&](seq_note& r) { r.clock().store(slot); });
+}
+
+int taptools_seqnote_recall(taptools_seqnote h, int slot) {
+    return with<seq_note>(h, [&](seq_note& r) { r.clock().recall(slot); });
+}
+
+int taptools_seqnote_reset(taptools_seqnote h) {
+    return with<seq_note>(h, [&](seq_note& r) { r.reset(); });
+}
+
+int taptools_seqnote_process(taptools_seqnote h, const double* phase, double* pitch_out, double* gate_out, int n) {
+    if (!phase || !pitch_out || !gate_out || n < 0) {
+        return -1;
+    }
+    return with<seq_note>(h, [&](seq_note& r) {
+        for (int i = 0; i < n; ++i) {
+            const auto o = r.process(phase[i]);
+            pitch_out[i] = o.pitch;
+            gate_out[i]  = o.gate;
+        }
+    });
+}
+
+// ---- tap.808.kick~ -----------------------------------------------------------------------------
+
+using tr808_kick = taptools::tr808::kick;
+
+taptools_kick taptools_kick_create(void) {
+    return static_cast<taptools_kick>(new tr808_kick());
+}
+
+void taptools_kick_destroy(taptools_kick h) {
+    delete static_cast<tr808_kick*>(h);
+}
+
+int taptools_kick_prepare(taptools_kick h, double sr) {
+    return with<tr808_kick>(h, [&](tr808_kick& k) { k.prepare(sr); });
+}
+
+int taptools_kick_set_decay(taptools_kick h, double v) {
+    return with<tr808_kick>(h, [&](tr808_kick& k) { k.set_decay(v); });
+}
+
+int taptools_kick_set_tone(taptools_kick h, double v) {
+    return with<tr808_kick>(h, [&](tr808_kick& k) { k.set_tone(v); });
+}
+
+int taptools_kick_set_level(taptools_kick h, double v) {
+    return with<tr808_kick>(h, [&](tr808_kick& k) { k.set_level(v); });
+}
+
+int taptools_kick_trigger(taptools_kick h, double accent) {
+    return with<tr808_kick>(h, [&](tr808_kick& k) { k.trigger(accent); });
+}
+
+int taptools_kick_reset(taptools_kick h) {
+    return with<tr808_kick>(h, [&](tr808_kick& k) { k.reset(); });
+}
+
+int taptools_kick_process(taptools_kick h, const double* trig, double* out, int n) {
+    if (!out || n < 0) {
+        return -1;
+    }
+    return with<tr808_kick>(h, [&](tr808_kick& k) {
+        double prev = 0.0;
+        for (int i = 0; i < n; ++i) {
+            if (trig) {
+                const double x = trig[i];
+                if (x > 1e-3 && prev <= 1e-3) {
+                    k.trigger(x < 0.0 ? 0.0 : (x > 1.0 ? 1.0 : x));
+                }
+                prev = x;
+            }
+            out[i] = k.process();
         }
     });
 }

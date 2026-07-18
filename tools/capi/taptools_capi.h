@@ -163,6 +163,62 @@ TAPTOOLS_API int taptools_wah_clear(taptools_wah h);
 TAPTOOLS_API int taptools_wah_process(taptools_wah h, const double* in, const double* key, double* out, double* env_out,
                                       double* cutoff_out, int n);
 
+// ---- tap.808.seq~ (taptools::seq::trigger_row) -------------------------------------------------
+
+typedef void* taptools_seqtrig;
+
+TAPTOOLS_API taptools_seqtrig taptools_seqtrig_create(void);
+TAPTOOLS_API void             taptools_seqtrig_destroy(taptools_seqtrig h);
+TAPTOOLS_API int              taptools_seqtrig_prepare(taptools_seqtrig h, double sr);
+TAPTOOLS_API int              taptools_seqtrig_set_length(taptools_seqtrig h, int steps);
+TAPTOOLS_API int              taptools_seqtrig_set_swing(taptools_seqtrig h, double swing);
+TAPTOOLS_API int              taptools_seqtrig_set_quantize(taptools_seqtrig h, int mode); // seq::quantize_mode
+TAPTOOLS_API int              taptools_seqtrig_set_pulse_ms(taptools_seqtrig h, double ms);
+/// Set one step's velocity (0 = rest); `step` is 0-based.
+TAPTOOLS_API int taptools_seqtrig_set_step(taptools_seqtrig h, int step, double velocity);
+TAPTOOLS_API int taptools_seqtrig_store(taptools_seqtrig h, int slot);
+TAPTOOLS_API int taptools_seqtrig_recall(taptools_seqtrig h, int slot);
+TAPTOOLS_API int taptools_seqtrig_reset(taptools_seqtrig h);
+/// Run n samples of the phase ramp through the row; impulses land in `out`.
+TAPTOOLS_API int taptools_seqtrig_process(taptools_seqtrig h, const double* phase, double* out, int n);
+
+// ---- tap.303.seq~ (taptools::seq::note_row) ----------------------------------------------------
+
+typedef void* taptools_seqnote;
+
+TAPTOOLS_API taptools_seqnote taptools_seqnote_create(void);
+TAPTOOLS_API void             taptools_seqnote_destroy(taptools_seqnote h);
+TAPTOOLS_API int              taptools_seqnote_prepare(taptools_seqnote h, double sr);
+TAPTOOLS_API int              taptools_seqnote_set_length(taptools_seqnote h, int steps);
+TAPTOOLS_API int              taptools_seqnote_set_swing(taptools_seqnote h, double swing);
+TAPTOOLS_API int              taptools_seqnote_set_quantize(taptools_seqnote h, int mode); // seq::quantize_mode
+TAPTOOLS_API int              taptools_seqnote_set_transpose(taptools_seqnote h, double semitones);
+/// Set one step (0-based): pitch as MIDI note, gate/accent/slide as 0/1 flags.
+TAPTOOLS_API int taptools_seqnote_set_step(taptools_seqnote h, int step, double pitch, int gate, int accent, int slide);
+TAPTOOLS_API int taptools_seqnote_store(taptools_seqnote h, int slot);
+TAPTOOLS_API int taptools_seqnote_recall(taptools_seqnote h, int slot);
+TAPTOOLS_API int taptools_seqnote_reset(taptools_seqnote h);
+/// Run n samples of the phase ramp through the row; the tap.303~ inlet pair lands in
+/// `pitch_out` (MIDI note) and `gate_out` (0 / 1.0 plain / 2.0 accented).
+TAPTOOLS_API int taptools_seqnote_process(taptools_seqnote h, const double* phase, double* pitch_out, double* gate_out,
+                                          int n);
+
+// ---- tap.808.kick~ (taptools::tr808::kick) -----------------------------------------------------
+
+typedef void* taptools_kick;
+
+TAPTOOLS_API taptools_kick taptools_kick_create(void);
+TAPTOOLS_API void          taptools_kick_destroy(taptools_kick h);
+TAPTOOLS_API int           taptools_kick_prepare(taptools_kick h, double sr);
+TAPTOOLS_API int           taptools_kick_set_decay(taptools_kick h, double v);    // 0..1 (panel VR6)
+TAPTOOLS_API int           taptools_kick_set_tone(taptools_kick h, double v);     // 0..1 (panel VR5)
+TAPTOOLS_API int           taptools_kick_set_level(taptools_kick h, double v);    // 0..1 (panel VR4)
+TAPTOOLS_API int           taptools_kick_trigger(taptools_kick h, double accent); // 0..1 -> the 4-14 V bus
+TAPTOOLS_API int           taptools_kick_reset(taptools_kick h);
+/// Process n samples; `trig` may be NULL (free-run) or a signal whose rising edges above 1e-3
+/// fire the voice with the edge value as accent — exactly the tap.808.kick~ wrapper's edge logic.
+TAPTOOLS_API int taptools_kick_process(taptools_kick h, const double* trig, double* out, int n);
+
 #ifdef __cplusplus
 }
 #endif
