@@ -10,9 +10,11 @@ in PATH):
 The C ABI (kernel/tools/capi/) wraps the *same* portable DSP headers the Max
 externals compile — so the notebooks exercise the real shipping code, not a
 Python re-implementation. Exposed kernels: tap.convolve~'s conv_engine
-(`Convolver`), tap.svf~ (`Svf`), tap.ladder~ (`Ladder`), tap.vco~ (`Vco`),
-and tap.autowah~ (`Wah`). Parameter names on the kernel classes mirror each
-kernel header's param_index enum.
+(`Convolver`), tap.svf~ (`Svf`), tap.ladder~ (`Ladder`), tap.diode~
+(`Diode`), tap.303~ (`TB303`), tap.vco~ (`Vco`), tap.autowah~ (`Wah`), the
+step-sequencer rows behind tap.808.seq~ / tap.303.seq~ (`TriggerRow`,
+`NoteRow`), and tap.808.kick~ (`Kick`). Parameter names on the kernel
+classes mirror each kernel header's param_index enum.
 
 Copyright 2003-2026 Timothy Place. New BSD License.
 """
@@ -144,6 +146,40 @@ def load() -> ctypes.CDLL:
         "taptools_wah_recall":        ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
         "taptools_wah_clear":         ([vp], ctypes.c_int),
         "taptools_wah_process":       ([vp, f64p, f64p, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_seqtrig_create":       ([], vp),
+        "taptools_seqtrig_destroy":      ([vp], None),
+        "taptools_seqtrig_prepare":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_seqtrig_set_length":   ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqtrig_set_swing":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_seqtrig_set_quantize": ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqtrig_set_pulse_ms": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_seqtrig_set_step":     ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_seqtrig_store":        ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqtrig_recall":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqtrig_reset":        ([vp], ctypes.c_int),
+        "taptools_seqtrig_process":      ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_seqnote_create":        ([], vp),
+        "taptools_seqnote_destroy":       ([vp], None),
+        "taptools_seqnote_prepare":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_seqnote_set_length":    ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqnote_set_swing":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_seqnote_set_quantize":  ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqnote_set_transpose": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_seqnote_set_step":      ([vp, ctypes.c_int, ctypes.c_double, ctypes.c_int, ctypes.c_int,
+                                            ctypes.c_int], ctypes.c_int),
+        "taptools_seqnote_store":         ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqnote_recall":        ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_seqnote_reset":         ([vp], ctypes.c_int),
+        "taptools_seqnote_process":       ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_kick_create":     ([], vp),
+        "taptools_kick_destroy":    ([vp], None),
+        "taptools_kick_prepare":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_kick_set_decay":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_kick_set_tone":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_kick_set_level":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_kick_trigger":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_kick_reset":      ([vp], ctypes.c_int),
+        "taptools_kick_process":    ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
     }
     for name, (argtypes, restype) in sigs.items():
         fn = getattr(lib, name)
@@ -481,3 +517,153 @@ class Wah(_Kernel):
         """Morph to a preset slot (0-based; 0-3 = factory guitar/bass/swell/cocked)."""
         _check(_LIB.taptools_wah_recall(self._h, int(slot), float(seconds)), "recall")
         return self
+
+
+class _SeqRow:
+    """Base for the step-sequencer rows (the step_seq.h engine behind tap.808.seq~ /
+    tap.303.seq~): a live C-ABI handle plus the shared clock surface. `phase(cycles)` builds
+    the phasor~-style ramp the rows are clocked from."""
+
+    PREFIX: str = ""
+    CYCLE, STEP, NOW = 0, 1, 2  # quantize modes
+
+    def __init__(self, sr: float = 48000.0, length: int = 16, swing: float = 0.0):
+        self._c = {name: getattr(_LIB, f"{self.PREFIX}_{name}")
+                   for name in ("create", "destroy", "prepare", "set_length", "set_swing",
+                                "set_quantize", "store", "recall", "reset")}
+        self._h = self._c["create"]()
+        if not self._h:
+            raise RuntimeError(f"{self.PREFIX}_create failed")
+        _check(self._c["prepare"](self._h, float(sr)), "prepare")
+        self.sr = float(sr)
+        self.length = int(length)
+        _check(self._c["set_length"](self._h, int(length)), "set_length")
+        _check(self._c["set_swing"](self._h, float(swing)), "set_swing")
+
+    def set(self, *, length=None, swing=None, quantize=None) -> "_SeqRow":
+        if length is not None:
+            self.length = int(length)
+            _check(self._c["set_length"](self._h, int(length)), "set_length")
+        if swing is not None:
+            _check(self._c["set_swing"](self._h, float(swing)), "set_swing")
+        if quantize is not None:
+            _check(self._c["set_quantize"](self._h, int(quantize)), "set_quantize")
+        return self
+
+    def store(self, slot: int) -> None:
+        _check(self._c["store"](self._h, int(slot)), "store")
+
+    def recall(self, slot: int) -> None:
+        _check(self._c["recall"](self._h, int(slot)), "recall")
+
+    def reset(self) -> None:
+        _check(self._c["reset"](self._h), "reset")
+
+    def phase(self, cycles: float, cycle_hz: float = 2.0) -> np.ndarray:
+        """A phasor~-style ramp: `cycles` pattern cycles at `cycle_hz` cycles/second."""
+        n = int(round(cycles * self.sr / cycle_hz))
+        return (np.arange(n) * (cycle_hz / self.sr)) % 1.0
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            self._c["destroy"](h)
+            self._h = None
+
+
+class TriggerRow(_SeqRow):
+    """One tap.808.seq~ drum row: velocities in, amplitude-as-accent impulses out.
+
+    >>> row = TriggerRow()
+    >>> row.steps([1.0, 0, 0, 0, 0.5, 0, 0, 0] * 2)
+    >>> y = row.process(row.phase(cycles=2))
+    """
+
+    PREFIX = "taptools_seqtrig"
+
+    def steps(self, velocities) -> "TriggerRow":
+        for k, v in enumerate(velocities):
+            _check(_LIB.taptools_seqtrig_set_step(self._h, k, float(v)), "set_step")
+        return self
+
+    def set(self, *, pulse_ms=None, **kw) -> "TriggerRow":
+        if pulse_ms is not None:
+            _check(_LIB.taptools_seqtrig_set_pulse_ms(self._h, float(pulse_ms)), "set_pulse_ms")
+        super().set(**kw)
+        return self
+
+    def process(self, phase) -> np.ndarray:
+        phase = _f64(phase)
+        out = np.empty(len(phase))
+        _check(_LIB.taptools_seqtrig_process(self._h, _p64(phase), _p64(out), len(phase)), "process")
+        return out
+
+
+class NoteRow(_SeqRow):
+    """One tap.303.seq~ line: per-step pitch/gate/accent/slide in, the tap.303~ inlet pair out.
+
+    >>> row = NoteRow()
+    >>> row.steps([(33, 1, 1, 0), (33, 1, 0, 0), (45, 1, 0, 1), ...])  # (pitch, gate, accent, slide)
+    >>> pitch, gate = row.process(row.phase(cycles=2))
+    """
+
+    PREFIX = "taptools_seqnote"
+
+    def steps(self, steps) -> "NoteRow":
+        for k, s in enumerate(steps):
+            pitch, gate, accent, slide = s
+            _check(_LIB.taptools_seqnote_set_step(self._h, k, float(pitch), int(gate), int(accent),
+                                                  int(slide)), "set_step")
+        return self
+
+    def set(self, *, transpose=None, **kw) -> "NoteRow":
+        if transpose is not None:
+            _check(_LIB.taptools_seqnote_set_transpose(self._h, float(transpose)), "set_transpose")
+        super().set(**kw)
+        return self
+
+    def process(self, phase) -> tuple[np.ndarray, np.ndarray]:
+        phase = _f64(phase)
+        pitch = np.empty(len(phase))
+        gate = np.empty(len(phase))
+        _check(_LIB.taptools_seqnote_process(self._h, _p64(phase), _p64(pitch), _p64(gate),
+                                             len(phase)), "process")
+        return pitch, gate
+
+
+class Kick:
+    """The tap.808.kick~ voice (tr808_kick.h) with the wrapper's signal-edge trigger logic —
+    wire a TriggerRow's output straight into `process(trig=...)`."""
+
+    def __init__(self, sr: float = 48000.0, decay: float = 0.5, tone: float = 0.5,
+                 level: float = 1.0):
+        self._h = _LIB.taptools_kick_create()
+        if not self._h:
+            raise RuntimeError("taptools_kick_create failed")
+        _check(_LIB.taptools_kick_prepare(self._h, float(sr)), "prepare")
+        self.sr = float(sr)
+        self.set(decay=decay, tone=tone, level=level)
+
+    def set(self, *, decay=None, tone=None, level=None) -> "Kick":
+        for name, v in (("decay", decay), ("tone", tone), ("level", level)):
+            if v is not None:
+                _check(getattr(_LIB, f"taptools_kick_set_{name}")(self._h, float(v)), name)
+        return self
+
+    def trigger(self, accent: float = 1.0) -> None:
+        _check(_LIB.taptools_kick_trigger(self._h, float(accent)), "trigger")
+
+    def process(self, n: int | None = None, trig=None) -> np.ndarray:
+        if trig is not None:
+            trig = _f64(trig)
+            n = len(trig)
+        out = np.empty(int(n))
+        _check(_LIB.taptools_kick_process(self._h, _p64(trig) if trig is not None else None,
+                                          _p64(out), int(n)), "process")
+        return out
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_kick_destroy(h)
+            self._h = None
