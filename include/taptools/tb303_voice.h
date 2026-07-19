@@ -276,7 +276,7 @@ namespace taptools {
                 m_osc.set_waveform(vco::wave_saw); // always the saw core; the square is shaped from it
                 m_osc.snap();
                 m_filter.prepare(m_sr);
-                m_filter.set_smooth_ms(0.0); // the voice owns all smoothing
+                m_filter.set_smooth_ms(0.0);            // the voice owns all smoothing
                 m_vca_stage.set_drive(k_vca_sat_drive); // stock 303 transistor-stage calibration
                 m_vca_stage.set_bias(k_vca_sat_bias);
                 m_vca_stage.set_mode(m_vca_mode);
@@ -349,7 +349,7 @@ namespace taptools {
                 m_vca_mode = std::clamp(mode, 0, k_num_vca_modes - 1);
                 m_vca_stage.set_mode(m_vca_mode);
             }
-            int  vca() const { return m_vca_mode; }
+            int vca() const { return m_vca_mode; }
 
             /// Deterministic per-unit component spread: `seed` picks the unit, `tolerance` (0..1)
             /// scales how far off nominal it is. tolerance 0 = the nominal schematic exactly.
@@ -624,19 +624,19 @@ namespace taptools {
             // Recompute the per-unit component offsets and every coefficient built on them.
             // tolerance 0 leaves the nominal schematic exactly (all factors 1, imperfect 0).
             void apply_unit_spread() {
-                const double t       = m_tolerance;
-                m_unit_tune_cents    = 8.0 * t * unit_draw(m_seed, 0);             // converter trim
-                m_unit_cutoff_scale  = std::exp2(0.12 * t * unit_draw(m_seed, 1)); // VCF tracking
-                m_unit_env           = 1.0 + 0.10 * t * unit_draw(m_seed, 2);      // envelope caps
-                m_unit_vca           = 1.0 + 0.10 * t * unit_draw(m_seed, 3);
-                m_unit_slide         = 1.0 + 0.15 * t * unit_draw(m_seed, 4); // slide RC
-                m_unit_c13           = 1.0 + 0.15 * t * unit_draw(m_seed, 5); // accent-sweep RC
-                m_unit_attack        = 1.0 + 0.20 * t * unit_draw(m_seed, 6);
-                m_meg_attack         = attack_coef(k_meg_attack_ms);
-                m_vca_decay          = decay_coef(k_vca_decay_ms * m_unit_vca);
-                m_vca_release        = decay_coef(k_vca_release_ms);
-                m_c13_charge         = one_pole_coef(k_c13_charge_ms * m_unit_c13);
-                m_c13_drain          = one_pole_coef(k_c13_discharge_ms * m_unit_c13);
+                const double t      = m_tolerance;
+                m_unit_tune_cents   = 8.0 * t * unit_draw(m_seed, 0);             // converter trim
+                m_unit_cutoff_scale = std::exp2(0.12 * t * unit_draw(m_seed, 1)); // VCF tracking
+                m_unit_env          = 1.0 + 0.10 * t * unit_draw(m_seed, 2);      // envelope caps
+                m_unit_vca          = 1.0 + 0.10 * t * unit_draw(m_seed, 3);
+                m_unit_slide        = 1.0 + 0.15 * t * unit_draw(m_seed, 4); // slide RC
+                m_unit_c13          = 1.0 + 0.15 * t * unit_draw(m_seed, 5); // accent-sweep RC
+                m_unit_attack       = 1.0 + 0.20 * t * unit_draw(m_seed, 6);
+                m_meg_attack        = attack_coef(k_meg_attack_ms);
+                m_vca_decay         = decay_coef(k_vca_decay_ms * m_unit_vca);
+                m_vca_release       = decay_coef(k_vca_release_ms);
+                m_c13_charge        = one_pole_coef(k_c13_charge_ms * m_unit_c13);
+                m_c13_drain         = one_pole_coef(k_c13_discharge_ms * m_unit_c13);
                 m_osc.set_seed(m_seed);
                 m_osc.set_imperfect(0.6 * t); // waveform imperfection rides the same tolerance
                 push_filter_params();
@@ -670,8 +670,8 @@ namespace taptools {
             double m_slide_coef{0.001};
 
             // phase-2 VCA circuit — the saturator math lives in the shared taptools::vca stage
-            int              m_vca_mode{vca_clean};
-            ::taptools::vca  m_vca_stage; // shape() only; the voice runs its own coupling + gain
+            int             m_vca_mode{vca_clean};
+            ::taptools::vca m_vca_stage; // shape() only; the voice runs its own coupling + gain
 
             // per-unit component spread (seed/tolerance)
             double m_unit_tune_cents{0.0};

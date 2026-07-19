@@ -217,9 +217,9 @@ namespace {
             rim v;
             v.prepare(k_g_sr);
             v.set_model(name == "claves" ? rim::model_claves : rim::model_rimshot);
-            apply_knobs(v, knobs,
-                        {{"drive", [](rim& o, double x) { o.set_drive(x); }},
-                         {"level", [](rim& o, double x) { o.set_level(x); }}});
+            apply_knobs(v, knobs, {{"drive", [](rim& o, double x) { o.set_drive(x); }}, {"level", [](rim& o, double x) {
+                                                                                             o.set_level(x);
+                                                                                         }}});
             return take(0.4, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         return {};

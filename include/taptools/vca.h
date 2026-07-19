@@ -65,10 +65,16 @@ namespace taptools {
         void set_mode(int m) { m_mode = std::clamp(m, 0, k_num_modes - 1); }
         int  circuit() const { return m_mode; }
 
-        void   set_drive(double d) { m_drive = std::max(1e-6, d); update(); }
+        void set_drive(double d) {
+            m_drive = std::max(1e-6, d);
+            update();
+        }
         double drive() const { return m_drive; }
 
-        void   set_bias(double b) { m_bias = b; update(); }
+        void set_bias(double b) {
+            m_bias = b;
+            update();
+        }
         double bias() const { return m_bias; }
 
         void set_dc_block(bool on) { m_dc_block = on; }
@@ -81,9 +87,7 @@ namespace taptools {
         /// envelope). `drive <= 0` is the exact linear passthru, so the 808 noise voices default to
         /// their calibrated linear model bit-for-bit. Static + shared: this is the one implementation
         /// swing_vca.h (the voices) and mode_swing both route through.
-        static double swing_shape(double v, double drive) {
-            return drive > 0.0 ? std::tanh(drive * v) / drive : v;
-        }
+        static double swing_shape(double v, double drive) { return drive > 0.0 ? std::tanh(drive * v) / drive : v; }
 
         // -- processing -------------------------------------------------------------------------
 
@@ -92,12 +96,12 @@ namespace taptools {
         /// shared primitive tb303_voice.h composes (with its own gain and coupling).
         double shape(double v) const {
             switch (m_mode) {
-                case mode_warm:
-                    return (std::tanh(m_drive * v + m_bias) - m_off) * m_norm;
-                case mode_swing:
-                    return swing_shape(v, m_drive);
-                default: // mode_clean
-                    return v;
+            case mode_warm:
+                return (std::tanh(m_drive * v + m_bias) - m_off) * m_norm;
+            case mode_swing:
+                return swing_shape(v, m_drive);
+            default: // mode_clean
+                return v;
             }
         }
 
