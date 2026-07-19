@@ -11,6 +11,7 @@ __pycache__/
 .vscode/
 .idea/
 
-# tr808 calibration notebook work dirs (downloaded reference set + renders)
+# tr808 calibration notebook work dirs (downloaded reference set + renders + figures)
 notebooks/_tr808_ref/
 notebooks/_tr808_ours/
+notebooks/_swing_figs/

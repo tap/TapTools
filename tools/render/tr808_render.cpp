@@ -139,6 +139,7 @@ namespace {
                         {{"tone", [](snare& o, double x) { o.set_tone(x); }},
                          {"snappy", [](snare& o, double x) { o.set_snappy(x); }},
                          {"tuning", [](snare& o, double x) { o.set_tuning(x); }},
+                         {"drive", [](snare& o, double x) { o.set_drive(x); }},
                          {"seed", [](snare& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
                          {"level", [](snare& o, double x) { o.set_level(x); }}});
             return take(0.6, [&] { v.trigger(accent); }, [&] { return v.process(); });
@@ -149,6 +150,7 @@ namespace {
             v.set_model(name == "maracas" ? clap::model_maracas : clap::model_clap);
             apply_knobs(v, knobs,
                         {{"tail", [](clap& o, double x) { o.set_tail(x); }},
+                         {"drive", [](clap& o, double x) { o.set_drive(x); }},
                          {"seed", [](clap& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
                          {"level", [](clap& o, double x) { o.set_level(x); }}});
             return take(0.6, [&] { v.trigger(accent); }, [&] { return v.process(); });
@@ -205,6 +207,7 @@ namespace {
             apply_knobs(v, knobs,
                         {{"size", [](tom& o, double x) { o.set_size(static_cast<int>(x)); }},
                          {"tuning", [](tom& o, double x) { o.set_tuning(x); }},
+                         {"drive", [](tom& o, double x) { o.set_drive(x); }},
                          {"seed", [](tom& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
                          {"level", [](tom& o, double x) { o.set_level(x); }}});
             return take(0.8, [&] { v.trigger(accent); }, [&] { return v.process(); });
