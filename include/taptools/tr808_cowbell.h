@@ -80,6 +80,12 @@ namespace taptools {
             /// Output level, 0..1 (VR5, CB LEVEL).
             void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
 
+            /// Swing-VCA drive on the oscillator pair (0 = calibrated linear model, bit-identical;
+            /// > 0 engages the swing VCA's symmetric harmonic saturation before the bandpass — the
+            /// experimental fidelity hook for the tonal-voice sweep, plans/tap.808.md).
+            void   set_drive(double amount) { m_drive = std::max(0.0, amount); }
+            double drive() const { return m_drive; }
+
             void set_tuning(double ratio) { m_bank.set_tuning(ratio); }
             void set_tolerance(double amount) { m_bank.set_tolerance(amount); }
             void set_seed(uint64_t seed) { m_bank.set_seed(seed); }
@@ -96,7 +102,7 @@ namespace taptools {
                 // The gates pass only the trimpot pair (oscillators #5 and #6: 800 / 540 Hz).
                 const double pair = 0.5 * (m_bank.osc(4) + m_bank.osc(5));
                 const double env  = m_env_fast.process() + m_env_tail.process();
-                return m_bp.process(swing_vca(pair, env)) * m_level * k_cb_out_scale;
+                return m_bp.process(swing_vca(pair, env, m_drive)) * m_level * k_cb_out_scale;
             }
 
           private:
@@ -107,6 +113,7 @@ namespace taptools {
             decay_env  m_env_fast, m_env_tail;
 
             double m_level{1.0};
+            double m_drive{0.0}; // swing-VCA saturation on the osc pair; 0 = linear (default)
         };
 
     } // namespace tr808

@@ -195,6 +195,7 @@ namespace {
             apply_knobs(v, knobs,
                         {{"tuning", [](cowbell& o, double x) { o.set_tuning(x); }},
                          {"tolerance", [](cowbell& o, double x) { o.set_tolerance(x); }},
+                         {"drive", [](cowbell& o, double x) { o.set_drive(x); }},
                          {"seed", [](cowbell& o, double x) { o.set_seed(static_cast<uint64_t>(x)); }},
                          {"level", [](cowbell& o, double x) { o.set_level(x); }}});
             return take(0.6, [&] { v.trigger(accent); }, [&] { return v.process(); });
@@ -216,7 +217,9 @@ namespace {
             rim v;
             v.prepare(k_g_sr);
             v.set_model(name == "claves" ? rim::model_claves : rim::model_rimshot);
-            apply_knobs(v, knobs, {{"level", [](rim& o, double x) { o.set_level(x); }}});
+            apply_knobs(v, knobs,
+                        {{"drive", [](rim& o, double x) { o.set_drive(x); }},
+                         {"level", [](rim& o, double x) { o.set_level(x); }}});
             return take(0.4, [&] { v.trigger(accent); }, [&] { return v.process(); });
         }
         return {};
