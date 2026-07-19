@@ -172,7 +172,7 @@ namespace taptools {
                     m_pink2        = 0.96300 * m_pink2 + w * 0.2965164;
                     m_pink3        = 0.57000 * m_pink3 + w * 1.0526913;
                     const double p = m_pink1 + m_pink2 + m_pink3 + w * 0.1848;
-                    noise = swing_vca(m_noise_lp.process(p), m_noise_env.process(), m_drive) * k_tom_noise_mix
+                    noise          = swing_vca(m_noise_lp.process(p), m_noise_env.process(), m_drive) * k_tom_noise_mix
                             * k_tomc_vtrig_max;
                 }
                 else {

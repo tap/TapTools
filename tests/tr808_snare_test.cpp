@@ -177,33 +177,33 @@ SCENARIO("snare rendering is deterministic for a fixed seed") {
 SCENARIO("the swing-VCA drive: off is bit-identical, on saturates the snappy crack") {
     GIVEN("two snares with a hot snappy hit") {
         THEN("drive 0 (default) is bit-identical to an explicit set_drive(0)") {
-            auto a = make(0.5, 1.0);              // default: no set_drive call
+            auto a = make(0.5, 1.0); // default: no set_drive call
             auto b = make(0.5, 1.0);
-            b.set_drive(0.0);                     // explicit linear
-            auto ya = render(a, 0.3, 1.0);
-            auto yb = render(b, 0.3, 1.0);
+            b.set_drive(0.0); // explicit linear
+            auto ya   = render(a, 0.3, 1.0);
+            auto yb   = render(b, 0.3, 1.0);
             bool same = true;
             for (size_t i = 0; i < ya.size(); ++i)
-                same = same && ya[i] == yb[i];    // exact equality — the linear path is untouched
+                same = same && ya[i] == yb[i]; // exact equality — the linear path is untouched
             REQUIRE(same);
         }
         THEN("drive > 0 changes the signal, compresses the transient peak, and stays bounded") {
             auto clean = make(0.5, 1.0);
             auto warm  = make(0.5, 1.0);
-            warm.set_drive(6.0);                  // hard swing-VCA saturation
+            warm.set_drive(6.0); // hard swing-VCA saturation
             auto yc = render(clean, 0.3, 1.0);
             auto yw = render(warm, 0.3, 1.0);
 
-            double diff = 0.0;
+            double diff   = 0.0;
             bool   finite = true;
             for (size_t i = 0; i < yc.size(); ++i) {
                 diff += std::abs(yc[i] - yw[i]);
                 finite = finite && std::isfinite(yw[i]);
             }
-            REQUIRE(diff > 0.0);                              // the saturator is engaged
+            REQUIRE(diff > 0.0); // the saturator is engaged
             REQUIRE(finite);
-            REQUIRE(peak(yw) < peak(yc));                     // compression softens the crack
-            REQUIRE(peak(yw) > 0.3 * peak(yc));               // but does not gut the hit
+            REQUIRE(peak(yw) < peak(yc));       // compression softens the crack
+            REQUIRE(peak(yw) > 0.3 * peak(yc)); // but does not gut the hit
         }
     }
 }

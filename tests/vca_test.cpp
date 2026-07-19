@@ -76,8 +76,8 @@ SCENARIO("the warm circuit reproduces the 303 transistor saturator exactly") {
         }
     }
     THEN("unity slope through zero: tiny signals pass essentially clean") {
-        REQUIRE(a.shape(0.0) == 0.0);                            // operating-point DC removed
-        REQUIRE(std::abs(a.shape(1e-4) - 1e-4) < 1e-7);         // slope 1 at the origin
+        REQUIRE(a.shape(0.0) == 0.0);                   // operating-point DC removed
+        REQUIRE(std::abs(a.shape(1e-4) - 1e-4) < 1e-7); // slope 1 at the origin
     }
     THEN("hot signals compress (|out| < |in|) and stay monotonic") {
         double prev = a.shape(-2.0);
@@ -132,9 +132,9 @@ SCENARIO("the warm circuit's output DC block sheds signal-dependent DC on AC mat
     };
 
     THEN("with the block on the mean is ~0; with it off a DC offset remains; energy is preserved") {
-        auto on  = run(true);
-        auto off = run(false);
-        std::vector<double> on_ss(on.begin() + on.size() / 2, on.end());   // skip settling
+        auto                on  = run(true);
+        auto                off = run(false);
+        std::vector<double> on_ss(on.begin() + on.size() / 2, on.end()); // skip settling
         std::vector<double> off_ss(off.begin() + off.size() / 2, off.end());
         REQUIRE(std::abs(mean(on_ss)) < 1e-3);
         REQUIRE(std::abs(mean(off_ss)) > 10.0 * std::abs(mean(on_ss))); // off carries real DC
