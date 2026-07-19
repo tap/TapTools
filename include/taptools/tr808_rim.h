@@ -103,6 +103,13 @@ namespace taptools {
             /// Output level, 0..1 (VR16, RS/CL LEVEL).
             void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
 
+            /// Swing-VCA drive (the Q62 harmonic VCA). Sentinel < 0 (default) uses each model's
+            /// calibrated value — rimshot k_rs_drive (2.2, as always shipped), claves linear (0).
+            /// A value >= 0 overrides both models — the experimental hook for the claves fidelity
+            /// sweep (plans/tap.808.md; the rimshot already ships saturated).
+            void   set_drive(double amount) { m_drive = std::max(-1.0, amount); }
+            double drive() const { return m_drive; }
+
             void trigger(double accent = 1.0) {
                 const double a    = std::clamp(accent, 0.0, 1.0);
                 m_vtrig           = k_rim_vtrig_min + a * (k_rim_vtrig_max - k_rim_vtrig_min);
@@ -117,19 +124,23 @@ namespace taptools {
                     --m_pulse_remaining;
                 }
 
-                const double drive = v_pulse * 0.02;
-                double       ring  = m_hi.process(drive, 0.0, 0.0);
+                const double exc  = v_pulse * 0.02;
+                double       ring = m_hi.process(exc, 0.0, 0.0);
                 if (m_model == model_rimshot) {
-                    ring = ring * k_rs_hi_mix + m_lo.process(drive, 0.0, 0.0);
+                    ring = ring * k_rs_hi_mix + m_lo.process(exc, 0.0, 0.0);
                 }
 
                 const double env = m_env.process();
                 if (m_model == model_rimshot) {
-                    // The Q62 swing VCA's harmonic generation: drive the gated sum.
-                    return std::tanh(ring * k_rs_drive * env) / k_rs_drive * m_level * k_rim_out_scale
-                           * k_rim_vtrig_max;
+                    // The Q62 swing VCA's harmonic generation (Service Notes, RS/CL VCA): the shared
+                    // swing_shape (vca.h) IS tanh(d*v)/d, so swing_vca(ring, env, k_rs_drive) is the
+                    // exact tanh(ring*k_rs_drive*env)/k_rs_drive this always shipped — now unified.
+                    const double d = (m_drive < 0.0) ? k_rs_drive : m_drive;
+                    return swing_vca(ring, env, d) * m_level * k_rim_out_scale * k_rim_vtrig_max;
                 }
-                return swing_vca(ring, env) * k_cl_mix * m_level * k_rim_out_scale;
+                // Claves: linear by default (m_drive < 0 → 0), with the same opt-in swing saturation.
+                const double d = (m_drive < 0.0) ? 0.0 : m_drive;
+                return swing_vca(ring, env, d) * k_cl_mix * m_level * k_rim_out_scale;
             }
 
           private:
@@ -168,6 +179,7 @@ namespace taptools {
             decay_env m_env;
 
             double m_level{1.0};
+            double m_drive{-1.0}; // swing-VCA drive; <0 = per-model calibrated (RS 2.2 / CL linear)
             double m_vtrig{0.0};
             int    m_pulse_remaining{0};
         };
