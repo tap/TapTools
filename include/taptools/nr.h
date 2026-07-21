@@ -47,9 +47,11 @@ namespace tap::tools {
 
           private:
             // Attenuate bins whose magnitude is below the threshold (soft-knee downward expansion).
+            // Operates on the half-spectrum (bins 0..N/2); the real transform mirrors the rest.
             void gate(std::vector<double>& re, std::vector<double>& im, int N) const {
-                const double thr = m_threshold;
-                for (int k = 0; k < N; ++k) {
+                const double thr  = m_threshold;
+                const int    half = N / 2;
+                for (int k = 0; k <= half; ++k) {
                     const double mag  = std::sqrt(re[k] * re[k] + im[k] * im[k]) * (2.0 / N);
                     double       gain = 1.0;
                     if (thr > 0.0 && mag < thr) {

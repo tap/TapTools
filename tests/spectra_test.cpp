@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
-#include <taptools/fft.h>
+#include <tap/dsp/fft.h>
 #include <taptools/spectra.h>
 
 namespace {
@@ -34,14 +34,16 @@ namespace {
         return v;
     }
 
-    // Peak magnitude bin of an N-sample slice of `sig` starting at `off` (rectangular window).
+    // Peak magnitude bin of an N-sample slice of `sig` starting at `off` (rectangular window),
+    // via the shared DspTap real FFT's packed spectrum (DC in slot 0, Nyquist in slot 1).
     int peak_bin(const std::vector<double>& sig, int off, int N) {
-        std::vector<double> re(sig.begin() + off, sig.begin() + off + N), im(N, 0.0);
-        tap::tools::fft::transform(re, im, false);
+        std::vector<double> a(sig.begin() + off, sig.begin() + off + N);
+        tap::dsp::real_fft  fft(static_cast<size_t>(N));
+        fft.forward_inplace(a.data());
         int    best    = 0;
         double bestmag = -1.0;
         for (int k = 1; k <= N / 2; ++k) {
-            const double mag = re[k] * re[k] + im[k] * im[k];
+            const double mag = (k == N / 2) ? (a[1] * a[1]) : (a[2 * k] * a[2 * k] + a[2 * k + 1] * a[2 * k + 1]);
             if (mag > bestmag) {
                 bestmag = mag;
                 best    = k;
