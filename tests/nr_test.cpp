@@ -46,7 +46,7 @@ namespace {
 } // namespace
 
 SCENARIO("with the gate open the STFT reconstructs the input, delayed by one frame") {
-    const int             N = 256;
+    const int               N = 256;
     tap::tools::nr::reducer r;
     r.configure(N);
     r.set_threshold(0.0); // gate disabled → identity spectral op
@@ -74,7 +74,7 @@ SCENARIO("with the gate open the STFT reconstructs the input, delayed by one fra
 }
 
 SCENARIO("a tone below the threshold is strongly attenuated") {
-    const int             N = 512;
+    const int               N = 512;
     tap::tools::nr::reducer r;
     r.configure(N);
     r.set_threshold(0.5); // high threshold
@@ -98,7 +98,7 @@ SCENARIO("a tone below the threshold is strongly attenuated") {
 }
 
 SCENARIO("a tone above the threshold passes through") {
-    const int             N = 512;
+    const int               N = 512;
     tap::tools::nr::reducer r;
     r.configure(N);
     r.set_threshold(0.01); // low threshold
