@@ -46,8 +46,10 @@ namespace tap::tools {
             }
 
           private:
-            // Reorient the lower-half bins, enforce Hermitian symmetry, and write the result back into
-            // the scaffold's spectrum buffers for the inverse transform.
+            // Reorient the half-spectrum bins (0..N/2) and write the result back into the scaffold's
+            // spectrum buffers for the inverse transform. The real inverse reconstructs the mirrored
+            // upper half, so no explicit Hermitian mirroring is needed here — only DC and Nyquist must
+            // stay real.
             void remap(std::vector<double>& re, std::vector<double>& im, int N) {
                 const int half = N / 2;
 
@@ -64,12 +66,8 @@ namespace tap::tools {
                 }
                 m_oim[0]    = 0.0; // DC is real
                 m_oim[half] = 0.0; // Nyquist is real
-                for (int k = 1; k < half; ++k) {
-                    m_ore[N - k] = m_ore[k];
-                    m_oim[N - k] = -m_oim[k];
-                }
 
-                for (int k = 0; k < N; ++k) {
+                for (int k = 0; k <= half; ++k) {
                     re[k] = m_ore[k];
                     im[k] = m_oim[k];
                 }

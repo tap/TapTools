@@ -11,7 +11,6 @@
 #include "bridged_t.h"
 #include "conv_engine.h"
 #include "diode_ladder.h"
-#include "fft.h"
 #include "grm_comb.h"
 #include "grm_pitchaccum.h"
 #include "ladder.h"

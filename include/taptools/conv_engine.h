@@ -3,21 +3,25 @@
 /// @details    The DSP core of tap.convolve~, kept deliberately independent of Max/Min so it can be
 ///             unit-tested directly against a reference convolution (see kernel/tests/conv_engine_test.cpp)
 ///             — buffer~-backed Min objects can't link against the mock test kernel, so the portable
-///             engine lives here on its own. Plain C++17: no Jamoma, no min-lib, no external FFT
-///             library.
+///             engine lives here on its own. Plain C++20: no Jamoma, no min-lib.
 ///
 ///             Uniformly-partitioned overlap-save: the impulse response is split into equal blocks,
-///             each transformed once with an in-house radix-2 FFT; the running output is a
-///             frequency-domain multiply-accumulate over a frequency-domain delay line (FDL) of past
-///             input spectra. Latency is one partition; everything else is exact linear convolution.
+///             each transformed once with the shared DspTap real FFT (tap::dsp::real_fft); the running
+///             output is a frequency-domain multiply-accumulate over a frequency-domain delay line
+///             (FDL) of past input spectra. Latency is one partition; everything else is exact linear
+///             convolution.
 ///
 ///             True stereo — four IR paths give the full 2×2 response, with the two input channels
 ///             transformed once per block and shared across the paths:
 ///                 out_l = in_l ∗ h_LL + in_r ∗ h_RL ;  out_r = in_l ∗ h_LR + in_r ∗ h_RR
 ///             Path indexing: path = in_channel * 2 + out_channel, i.e. 0=LL, 1=LR, 2=RL, 3=RR.
 ///
-///             Deferred optimisation: the multiply-accumulate and the IR tables use the full complex
-///             spectrum; a real-input half-spectrum (N/2+1 bins) form would halve both CPU and memory.
+///             Spectra are stored in the real FFT's packed half-spectrum layout (N reals for an
+///             N-point transform: DC in slot 0, Nyquist in slot 1, then re/im pairs for bins
+///             1..N/2-1). That halves both the spectral storage and the multiply-accumulate versus a
+///             full-complex form, and — because a product of two Hermitian spectra is Hermitian — the
+///             convolution is identical to the full-complex version (the exp(+i) sign convention and
+///             the 2/N inverse cancel through the forward→multiply→inverse pipeline).
 /// @author     Timothy Place
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright 2003-2026 Timothy Place.
@@ -28,9 +32,10 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <optional>
 #include <vector>
 
-#include "fft.h" // the shared radix-2 FFT (formerly a private copy of this exact routine)
+#include "tap/dsp/fft.h" // the shared DspTap real FFT (split-radix Ooura + vDSP / CMSIS backends)
 
 namespace tap::tools {
 
@@ -46,25 +51,22 @@ namespace tap::tools {
             m_block     = std::max(1, blocksize);
             m_fftsize   = 2 * m_block;
             m_max_parts = std::max(1, max_partitions);
+            m_fft.emplace(static_cast<size_t>(m_fftsize));
 
             const int flat = m_max_parts * m_fftsize;
             for (int path = 0; path < k_paths; ++path) {
                 for (int slot = 0; slot < 2; ++slot) {
-                    m_ir_re[path][slot].assign(flat, 0.0);
-                    m_ir_im[path][slot].assign(flat, 0.0);
+                    m_ir[path][slot].assign(flat, 0.0);
                 }
             }
             for (int ch = 0; ch < k_channels; ++ch) {
-                m_fdl_re[ch].assign(flat, 0.0);
-                m_fdl_im[ch].assign(flat, 0.0);
+                m_fdl[ch].assign(flat, 0.0);
                 m_prev[ch].assign(m_block, 0.0);
                 m_inblk[ch].assign(m_block, 0.0);
                 m_outblk[ch].assign(m_block, 0.0);
             }
-            m_fre.assign(m_fftsize, 0.0);
-            m_fim.assign(m_fftsize, 0.0);
-            m_are.assign(m_fftsize, 0.0);
-            m_aim.assign(m_fftsize, 0.0);
+            m_fbuf.assign(m_fftsize, 0.0);
+            m_acc.assign(m_fftsize, 0.0);
 
             m_slot_parts[0] = m_slot_parts[1] = 0;
             m_active.store(-1, std::memory_order_release); // no IR yet
@@ -75,19 +77,18 @@ namespace tap::tools {
         // Zeroes buffers the audio thread reads; safe to call from a message handler (no reallocation).
         void clear() {
             for (int ch = 0; ch < k_channels; ++ch) {
-                std::fill(m_fdl_re[ch].begin(), m_fdl_re[ch].end(), 0.0);
-                std::fill(m_fdl_im[ch].begin(), m_fdl_im[ch].end(), 0.0);
+                std::fill(m_fdl[ch].begin(), m_fdl[ch].end(), 0.0);
                 std::fill(m_prev[ch].begin(), m_prev[ch].end(), 0.0);
                 std::fill(m_inblk[ch].begin(), m_inblk[ch].end(), 0.0);
                 std::fill(m_outblk[ch].begin(), m_outblk[ch].end(), 0.0);
             }
-            m_pos = 0;
-            m_fdl = 0;
+            m_pos     = 0;
+            m_fdl_pos = 0;
         }
 
         int  block_size() const { return m_block; }
         int  max_partitions() const { return m_max_parts; }
-        bool configured() const { return m_block > 0 && !m_ir_re[0][0].empty(); }
+        bool configured() const { return m_block > 0 && !m_ir[0][0].empty(); }
         bool has_ir() const { return m_active.load(std::memory_order_acquire) >= 0; }
 
         // Build the four IR paths into the currently-inactive slot and publish it atomically. `paths` holds
@@ -106,23 +107,20 @@ namespace tap::tools {
 
             for (int path = 0; path < k_paths; ++path) {
                 const float* src = paths[path];
-                double*      Hre = m_ir_re[path][inactive].data();
-                double*      Him = m_ir_im[path][inactive].data();
+                double*      H   = m_ir[path][inactive].data();
 
                 for (int p = 0; p < P; ++p) {
-                    std::fill(m_fre.begin(), m_fre.end(), 0.0);
-                    std::fill(m_fim.begin(), m_fim.end(), 0.0);
+                    std::fill(m_fbuf.begin(), m_fbuf.end(), 0.0);
                     if (src) {
                         for (int j = 0; j < m_block; ++j) {
                             const int idx = p * m_block + j;
                             if (idx < length) {
-                                m_fre[j] = static_cast<double>(src[idx]) * scale;
+                                m_fbuf[j] = static_cast<double>(src[idx]) * scale;
                             }
                         }
                     }
-                    fft::transform(m_fre, m_fim, false);
-                    std::copy(m_fre.begin(), m_fre.end(), Hre + p * m_fftsize);
-                    std::copy(m_fim.begin(), m_fim.end(), Him + p * m_fftsize);
+                    m_fft->forward_inplace(m_fbuf.data());
+                    std::copy(m_fbuf.begin(), m_fbuf.end(), H + p * m_fftsize);
                 }
             }
 
@@ -146,22 +144,35 @@ namespace tap::tools {
         }
 
       private:
+        // Multiply-accumulate one partition into the packed accumulator: acc += h * x, with DC (slot 0)
+        // and Nyquist (slot 1) purely real and the interior bins full complex.
+        void mac_partition(const double* h, const double* x) {
+            const int half = m_fftsize / 2;
+            m_acc[0] += h[0] * x[0]; // DC
+            m_acc[1] += h[1] * x[1]; // Nyquist
+            for (int k = 1; k < half; ++k) {
+                const double hr = h[2 * k];
+                const double hi = h[2 * k + 1];
+                const double xr = x[2 * k];
+                const double xi = x[2 * k + 1];
+                m_acc[2 * k] += hr * xr - hi * xi;
+                m_acc[2 * k + 1] += hr * xi + hi * xr;
+            }
+        }
+
         // Transform this block's two input frames, store them in the frequency-domain delay line, and form
         // the four-path multiply-accumulate for both outputs.
         void process_block() {
-            const int cur = m_fdl;
+            const int cur = m_fdl_pos;
 
             // 1. Analyse both input channels into the FDL (overlap-save frame = [prev block ; this block]).
             for (int ch = 0; ch < k_channels; ++ch) {
                 for (int j = 0; j < m_block; ++j) {
-                    m_fre[j]           = m_prev[ch][j];
-                    m_fre[m_block + j] = m_inblk[ch][j];
-                    m_fim[j]           = 0.0;
-                    m_fim[m_block + j] = 0.0;
+                    m_fbuf[j]           = m_prev[ch][j];
+                    m_fbuf[m_block + j] = m_inblk[ch][j];
                 }
-                fft::transform(m_fre, m_fim, false);
-                std::copy(m_fre.begin(), m_fre.end(), m_fdl_re[ch].data() + cur * m_fftsize);
-                std::copy(m_fim.begin(), m_fim.end(), m_fdl_im[ch].data() + cur * m_fftsize);
+                m_fft->forward_inplace(m_fbuf.data());
+                std::copy(m_fbuf.begin(), m_fbuf.end(), m_fdl[ch].data() + cur * m_fftsize);
                 std::copy(m_inblk[ch].begin(), m_inblk[ch].end(), m_prev[ch].begin());
             }
 
@@ -171,64 +182,57 @@ namespace tap::tools {
                 for (int ch = 0; ch < k_channels; ++ch) {
                     std::fill(m_outblk[ch].begin(), m_outblk[ch].end(), 0.0);
                 }
-                m_fdl = (cur + 1) % m_max_parts;
+                m_fdl_pos = (cur + 1) % m_max_parts;
                 return;
             }
             const int P = m_slot_parts[a];
 
             // 2. For each output channel, accumulate the frequency-domain product over both input channels
             //    and every partition, then inverse-transform and keep the non-aliased second half.
+            const double scale = 2.0 / static_cast<double>(m_fftsize); // completes the real inverse
             for (int oc = 0; oc < k_channels; ++oc) {
-                std::fill(m_are.begin(), m_are.end(), 0.0);
-                std::fill(m_aim.begin(), m_aim.end(), 0.0);
+                std::fill(m_acc.begin(), m_acc.end(), 0.0);
 
                 for (int ic = 0; ic < k_channels; ++ic) {
                     const int     path = ic * 2 + oc;
-                    const double* Hre  = m_ir_re[path][a].data();
-                    const double* Him  = m_ir_im[path][a].data();
-                    const double* Xre  = m_fdl_re[ic].data();
-                    const double* Xim  = m_fdl_im[ic].data();
+                    const double* H    = m_ir[path][a].data();
+                    const double* X    = m_fdl[ic].data();
 
                     for (int p = 0; p < P; ++p) {
                         int slot = cur - p;
                         if (slot < 0) {
                             slot += m_max_parts;
                         }
-                        const double* hr = Hre + p * m_fftsize;
-                        const double* hi = Him + p * m_fftsize;
-                        const double* xr = Xre + slot * m_fftsize;
-                        const double* xi = Xim + slot * m_fftsize;
-                        for (int k = 0; k < m_fftsize; ++k) {
-                            m_are[k] += hr[k] * xr[k] - hi[k] * xi[k];
-                            m_aim[k] += hr[k] * xi[k] + hi[k] * xr[k];
-                        }
+                        mac_partition(H + p * m_fftsize, X + slot * m_fftsize);
                     }
                 }
 
-                fft::transform(m_are, m_aim, true);
+                m_fft->inverse_inplace(m_acc.data()); // unscaled; the 2/N below completes the round trip
                 for (int j = 0; j < m_block; ++j) {
-                    m_outblk[oc][j] = m_are[m_block + j]; // overlap-save: discard the aliased first half
+                    m_outblk[oc][j] = m_acc[m_block + j] * scale; // overlap-save: discard the aliased first half
                 }
             }
 
-            m_fdl = (cur + 1) % m_max_parts;
+            m_fdl_pos = (cur + 1) % m_max_parts;
         }
 
         int m_block{0};     // partition (block) size = latency in samples
         int m_fftsize{0};   // FFT size = 2 * m_block
         int m_max_parts{0}; // capacity in partitions
 
+        std::optional<tap::dsp::real_fft> m_fft; // sized in configure()
+
         std::atomic<int> m_active{-1};          // published IR slot (0/1), or -1 for none. Audio thread reads it.
         int              m_slot_parts[2]{0, 0}; // partition count per slot (kept consistent with m_active)
 
-        std::array<std::array<std::vector<double>, 2>, k_paths> m_ir_re, m_ir_im;   // IR spectra [path][slot]
-        std::array<std::vector<double>, k_channels>             m_fdl_re, m_fdl_im; // input FDL [channel]
+        std::array<std::array<std::vector<double>, 2>, k_paths> m_ir;  // packed IR spectra [path][slot]
+        std::array<std::vector<double>, k_channels>             m_fdl; // packed input FDL [channel]
         std::array<std::vector<double>, k_channels>             m_prev, m_inblk, m_outblk;
 
-        std::vector<double> m_fre, m_fim, m_are, m_aim; // scratch
+        std::vector<double> m_fbuf, m_acc; // packed scratch (analysis frame / accumulator)
 
-        int m_pos{0}; // fill/read index within the current block [0, m_block)
-        int m_fdl{0}; // ring index of the newest input spectrum
+        int m_pos{0};     // fill/read index within the current block [0, m_block)
+        int m_fdl_pos{0}; // ring index of the newest input spectrum
     };
 
 } // namespace tap::tools
