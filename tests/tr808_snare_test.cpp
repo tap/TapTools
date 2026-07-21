@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 snare drum kernel (taptools::tr808::snare).
+/// @brief      Unit tests for the TR-808 snare drum kernel (tap::tools::tr808::snare).
 /// @details    Pins the Service Notes documentation: the two resonators near the late-revision
 ///             173/336 Hz pair, the VR8 tone crossfade, the VR9 snappy noise path (bright,
 ///             enveloped, ~60 ms-class decay per the p.14 chart), accent monotonicity, seeded
@@ -18,7 +18,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    using taptools::tr808::snare;
+    using tap::tools::tr808::snare;
 
     snare make(double tone = 0.5, double snappy = 0.5) {
         snare s;

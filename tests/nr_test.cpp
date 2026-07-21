@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the spectral noise-reduction kernel (taptools::nr::reducer).
+/// @brief      Unit tests for the spectral noise-reduction kernel (tap::tools::nr::reducer).
 /// @details    Exercises the three behaviours that define the object: with the gate open the STFT
 ///             perfectly reconstructs the input (delayed by one frame); a tone below the threshold
 ///             is strongly attenuated; a tone above it passes through.
@@ -47,7 +47,7 @@ namespace {
 
 SCENARIO("with the gate open the STFT reconstructs the input, delayed by one frame") {
     const int             N = 256;
-    taptools::nr::reducer r;
+    tap::tools::nr::reducer r;
     r.configure(N);
     r.set_threshold(0.0); // gate disabled → identity spectral op
 
@@ -75,7 +75,7 @@ SCENARIO("with the gate open the STFT reconstructs the input, delayed by one fra
 
 SCENARIO("a tone below the threshold is strongly attenuated") {
     const int             N = 512;
-    taptools::nr::reducer r;
+    tap::tools::nr::reducer r;
     r.configure(N);
     r.set_threshold(0.5); // high threshold
     r.set_slope(4.0);
@@ -99,7 +99,7 @@ SCENARIO("a tone below the threshold is strongly attenuated") {
 
 SCENARIO("a tone above the threshold passes through") {
     const int             N = 512;
-    taptools::nr::reducer r;
+    tap::tools::nr::reducer r;
     r.configure(N);
     r.set_threshold(0.01); // low threshold
     r.set_slope(4.0);

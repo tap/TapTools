@@ -75,7 +75,7 @@
 #include <cmath>
 #include <cstddef>
 
-namespace taptools {
+namespace tap::tools {
     namespace diode {
 
         constexpr int    k_presets           = 16;
@@ -558,4 +558,4 @@ namespace taptools {
         };
 
     } // namespace diode
-} // namespace taptools
+} // namespace tap::tools

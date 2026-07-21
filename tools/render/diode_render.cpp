@@ -17,7 +17,7 @@
 
 #include <taptools/diode_ladder.h>
 
-using taptools::diode::diode_filter;
+using tap::tools::diode::diode_filter;
 
 namespace {
 

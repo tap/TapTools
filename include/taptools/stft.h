@@ -20,7 +20,7 @@
 
 #include "fft.h"
 
-namespace taptools {
+namespace tap::tools {
 
     class stft {
       public:
@@ -121,4 +121,4 @@ namespace taptools {
         std::vector<double> m_im;     // scratch FFT imag
     };
 
-} // namespace taptools
+} // namespace tap::tools

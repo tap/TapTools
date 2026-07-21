@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 hi-hat kernel (taptools::tr808::hat).
+/// @brief      Unit tests for the TR-808 hi-hat kernel (tap::tools::tr808::hat).
 /// @details    Pins the documented behaviors: the closed hat's fixed ~50 ms class, the open
 ///             hat's 90-600 ms decay-pot range, the hardware choke (a CH trigger terminates a
 ///             sounding OH), per-path levels, accent, determinism, silence.
@@ -16,7 +16,7 @@ namespace {
 
     constexpr double k_sr = 48000.0;
 
-    using taptools::tr808::hat;
+    using tap::tools::tr808::hat;
 
     hat make(double decay = 0.5) {
         hat h;

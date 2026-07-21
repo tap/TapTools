@@ -39,7 +39,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         constexpr double k_pi = 3.14159265358979323846;
@@ -200,4 +200,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

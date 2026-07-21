@@ -14,7 +14,7 @@ proved in [the SVF appendix](svf.md) — is A-stability under per-sample
 cutoff modulation. An envelope-swept filter moves its cutoff *every sample by
 construction*; the property the wah needs most is exactly the one `svf.h`
 already guarantees by theorem. So `wah_filter` owns a
-`taptools::svf::svf_filter` member (`m_svf`) and drives it through the
+`tap::tools::svf::svf_filter` member (`m_svf`) and drives it through the
 signal-rate path, `m_svf.tick(m_cutoff)` then `m_svf.process(0, x)`, once
 per sample. The house rule makes this legal: objects under
 `source/projects/` stay self-contained, but *inside the kernel repo* sharing

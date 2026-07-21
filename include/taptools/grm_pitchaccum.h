@@ -32,7 +32,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace taptools {
+namespace tap::tools {
     namespace pitchaccum {
 
         constexpr int    k_voices            = 2;
@@ -666,4 +666,4 @@ namespace taptools {
         };
 
     } // namespace pitchaccum
-} // namespace taptools
+} // namespace tap::tools

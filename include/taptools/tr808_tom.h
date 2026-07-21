@@ -45,7 +45,7 @@
 #include "bridged_t.h"
 #include "swing_vca.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         // p.14 chart tuning spans [low, high] in Hz per size; decay classes calibrated to
@@ -232,4 +232,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

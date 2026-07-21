@@ -16,8 +16,8 @@
 
 #include <taptools/vco.h>
 
-using taptools::vco::vco_osc;
-namespace k = taptools::vco;
+using tap::tools::vco::vco_osc;
+namespace k = tap::tools::vco;
 
 namespace {
 

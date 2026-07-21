@@ -6,7 +6,7 @@ tenth pass is as steady as the first." The image is a topology claim and the
 promise is an identity about a pair of window functions, and both are
 provable. This appendix proves them with the file's own names, then walks
 the pitch follower's failure mode and the ledger. The kernel scenarios in
-`tap.pitchaccum_tilde_test.cpp` drive `taptools::pitchaccum::accum_bank`
+`tap.pitchaccum_tilde_test.cpp` drive `tap::tools::pitchaccum::accum_bank`
 directly and pin every measured claim; the sibling `tap.shift~` tests pin
 the envelope identity to nine decimal places.
 

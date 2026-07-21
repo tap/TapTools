@@ -40,7 +40,7 @@
 #include "bridged_t.h" // k_pi
 #include "swing_vca.h" // white_noise (seed machinery)
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         constexpr int    k_bank_oscs            = 6;
@@ -174,4 +174,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

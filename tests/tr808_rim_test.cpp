@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 rimshot/claves kernel (taptools::tr808::rim).
+/// @brief      Unit tests for the TR-808 rimshot/claves kernel (tap::tools::tr808::rim).
 /// @details    Pins the p.14 chart: the rimshot's ~1667 + ~455 Hz pair in the ~10 ms class
 ///             (with the VCA's harmonic generation), the claves' pure ~2500 Hz ~25 ms tick,
 ///             accent, determinism, silence.
@@ -17,7 +17,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    using taptools::tr808::rim;
+    using tap::tools::tr808::rim;
 
     rim make(int model = rim::model_rimshot) {
         rim r;

@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the spectral-remapping kernel (taptools::spectra::remapper).
+/// @brief      Unit tests for the spectral-remapping kernel (tap::tools::spectra::remapper).
 /// @details    remap = 1 reconstructs the input (delayed by one frame); remap = 2 relocates a tone
 ///             at input bin 2k to output bin k (checked by transforming the steady-state output).
 // SPDX-License-Identifier: BSD-3-Clause
@@ -37,7 +37,7 @@ namespace {
     // Peak magnitude bin of an N-sample slice of `sig` starting at `off` (rectangular window).
     int peak_bin(const std::vector<double>& sig, int off, int N) {
         std::vector<double> re(sig.begin() + off, sig.begin() + off + N), im(N, 0.0);
-        taptools::fft::transform(re, im, false);
+        tap::tools::fft::transform(re, im, false);
         int    best    = 0;
         double bestmag = -1.0;
         for (int k = 1; k <= N / 2; ++k) {
@@ -54,7 +54,7 @@ namespace {
 
 SCENARIO("remap = 1 reconstructs the input, delayed by one frame") {
     const int                   N = 256;
-    taptools::spectra::remapper r;
+    tap::tools::spectra::remapper r;
     r.configure(N);
     r.set_remap(1.0);
 
@@ -77,7 +77,7 @@ SCENARIO("remap = 1 reconstructs the input, delayed by one frame") {
 
 SCENARIO("remap = 2 relocates input bin 2k to output bin k") {
     const int                   N = 512;
-    taptools::spectra::remapper r;
+    tap::tools::spectra::remapper r;
     r.configure(N);
     r.set_remap(2.0);
 

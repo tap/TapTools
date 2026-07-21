@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the channel-vocoder kernel (taptools::vocoder::bank).
+/// @brief      Unit tests for the channel-vocoder kernel (tap::tools::vocoder::bank).
 /// @details    Checks the structural invariants: a silent carrier yields silence; makeup gain
 ///             scales the output linearly; a silent modulator lets the per-band envelopes decay to
 ///             silence; and processing is deterministic.
@@ -23,7 +23,7 @@ namespace {
 } // namespace
 
 SCENARIO("a silent carrier yields a silent output regardless of the modulator") {
-    taptools::vocoder::bank v;
+    tap::tools::vocoder::bank v;
     v.prepare(48000.0);
 
     double peak = 0.0;
@@ -35,7 +35,7 @@ SCENARIO("a silent carrier yields a silent output regardless of the modulator") 
 }
 
 SCENARIO("makeup gain scales the output linearly") {
-    taptools::vocoder::bank a, b;
+    tap::tools::vocoder::bank a, b;
     a.prepare(48000.0);
     b.prepare(48000.0);
     a.set_gain(1.0);
@@ -53,7 +53,7 @@ SCENARIO("makeup gain scales the output linearly") {
 }
 
 SCENARIO("a silent modulator lets the output decay to silence") {
-    taptools::vocoder::bank v;
+    tap::tools::vocoder::bank v;
     v.prepare(48000.0);
     v.set_response_ms(20.0);
 
@@ -80,7 +80,7 @@ SCENARIO("a silent modulator lets the output decay to silence") {
 
 SCENARIO("processing is deterministic") {
     auto run = []() {
-        taptools::vocoder::bank v;
+        tap::tools::vocoder::bank v;
         v.prepare(44100.0);
         v.set_q(30.0);
         std::vector<double> out;

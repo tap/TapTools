@@ -55,7 +55,7 @@
 
 #include "svf.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace autowah {
 
         constexpr double k_pi                = 3.14159265358979323846;
@@ -480,4 +480,4 @@ namespace taptools {
         };
 
     } // namespace autowah
-} // namespace taptools
+} // namespace tap::tools

@@ -17,8 +17,8 @@
 
 #include <taptools/tb303_voice.h>
 
-using taptools::tb303::voice;
-namespace tb = taptools::tb303;
+using tap::tools::tb303::voice;
+namespace tb = tap::tools::tb303;
 
 namespace {
 

@@ -19,7 +19,7 @@
 #include <array>
 #include <cmath>
 
-namespace taptools {
+namespace tap::tools {
     namespace vocoder {
 
         class bank {
@@ -152,4 +152,4 @@ namespace taptools {
         };
 
     } // namespace vocoder
-} // namespace taptools
+} // namespace tap::tools

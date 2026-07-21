@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the vco kernel's analog-character section (taptools::vco::vco_osc).
+/// @brief      Unit tests for the vco kernel's analog-character section (tap::tools::vco::vco_osc).
 /// @details    Pins the four analog upgrades added 2026-07-15 — waveform imperfection (saw
 ///             curvature + corner rounding, triangle asymmetry, seeded pulse-width tolerance),
 ///             fast pitch jitter, V/oct tracking error — plus the invariant that makes them safe:
@@ -19,7 +19,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    namespace vco = taptools::vco;
+    namespace vco = tap::tools::vco;
 
     vco::vco_osc make(uint32_t seed = 1) {
         vco::vco_osc o;

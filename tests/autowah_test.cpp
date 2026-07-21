@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the envelope-filter kernel (taptools::autowah::wah_filter).
+/// @brief      Unit tests for the envelope-filter kernel (tap::tools::autowah::wah_filter).
 /// @details    Pins the behaviors that define the Snow White model: follower attack/decay timing,
 ///             the exponential sweep law and its ceiling, upward (and inverted) sweep motion on a
 ///             burst, the sensitivity-off "cocked wah" equivalence against a bare svf_filter, Q
@@ -19,7 +19,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    namespace wah = taptools::autowah;
+    namespace wah = tap::tools::autowah;
 
     double sine(int t, double f, double sr = k_sr) {
         return std::sin(2.0 * k_pi * f * t / sr);
@@ -161,11 +161,11 @@ SCENARIO("sensitivity at the floor is the cocked-wah: bit-close to a bare svf at
     w.set_bias(800.0);
     w.set_resonance(0.7);
 
-    taptools::svf::svf_filter ref;
+    tap::tools::svf::svf_filter ref;
     ref.prepare(k_sr, 1);
     ref.set_smooth_ms(0.0);
     ref.set_order(2);
-    ref.set_mode(taptools::svf::mode_lowpass);
+    ref.set_mode(tap::tools::svf::mode_lowpass);
     ref.set_resonance(0.7);
 
     double maxerr = 0.0;

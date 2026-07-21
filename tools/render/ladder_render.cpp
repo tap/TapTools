@@ -16,8 +16,8 @@
 
 #include <taptools/ladder.h>
 
-using taptools::ladder::ladder_filter;
-namespace k = taptools::ladder;
+using tap::tools::ladder::ladder_filter;
+namespace k = tap::tools::ladder;
 
 namespace {
 

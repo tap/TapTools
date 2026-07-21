@@ -27,9 +27,9 @@
 #include <cmath>
 #include <cstdint>
 
-#include "vca.h" // taptools::vca::swing_shape — the shared swing-type saturator
+#include "vca.h" // tap::tools::vca::swing_shape — the shared swing-type saturator
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         /// Deterministic white noise in [-1, 1] — xorshift64* keyed by seed.
@@ -114,11 +114,11 @@ namespace taptools {
         /// The swing-type VCA: envelope as gain. Linear by default (`drive` 0 → `x * env`, the
         /// calibrated model, bit-for-bit); `drive > 0` engages the swing VCA's symmetric harmonic
         /// saturation (the "many high harmonics" the Service Notes note) on the enveloped signal,
-        /// via the shared taptools::vca::swing_shape. The character rides the envelope — quiet tails
+        /// via the shared tap::tools::vca::swing_shape. The character rides the envelope — quiet tails
         /// stay clean, hot transients pick up grit and gentle compression.
         inline double swing_vca(double x, double env, double drive = 0.0) {
             return vca::swing_shape(x * env, drive);
         }
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

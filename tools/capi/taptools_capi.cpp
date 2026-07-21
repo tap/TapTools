@@ -16,7 +16,7 @@
 #include <taptools/tr808_kick.h>
 #include <taptools/vco.h>
 
-using taptools::conv_engine;
+using tap::tools::conv_engine;
 
 extern "C" {
 
@@ -91,7 +91,7 @@ extern "C" {
 
 // ---- tap.svf~ ----------------------------------------------------------------------------------
 
-using taptools::svf::svf_filter;
+using tap::tools::svf::svf_filter;
 
 taptools_svf taptools_svf_create(void) {
     return static_cast<taptools_svf>(new svf_filter());
@@ -151,7 +151,7 @@ int taptools_svf_process_mod(taptools_svf h, const double* in, const double* cut
 
 // ---- tap.ladder~ -------------------------------------------------------------------------------
 
-using taptools::ladder::ladder_filter;
+using tap::tools::ladder::ladder_filter;
 
 taptools_ladder taptools_ladder_create(void) {
     return static_cast<taptools_ladder>(new ladder_filter());
@@ -207,7 +207,7 @@ int taptools_ladder_process_mod(taptools_ladder h, const double* in, const doubl
 
 // ---- tap.vco~ ----------------------------------------------------------------------------------
 
-using taptools::vco::vco_osc;
+using tap::tools::vco::vco_osc;
 
 taptools_vco taptools_vco_create(void) {
     return static_cast<taptools_vco>(new vco_osc());
@@ -255,7 +255,7 @@ int taptools_vco_process_mod(taptools_vco h, const double* fm_hz, const double* 
 
 // ---- tap.diode~ --------------------------------------------------------------------------------
 
-using taptools::diode::diode_filter;
+using tap::tools::diode::diode_filter;
 
 taptools_diode taptools_diode_create(void) {
     return static_cast<taptools_diode>(new diode_filter());
@@ -310,7 +310,7 @@ int taptools_diode_process_mod(taptools_diode h, const double* in, const double*
 
 // ---- tap.303~ ----------------------------------------------------------------------------------
 
-using tb303_voice = taptools::tb303::voice;
+using tb303_voice = tap::tools::tb303::voice;
 
 taptools_tb303 taptools_tb303_create(void) {
     return static_cast<taptools_tb303>(new tb303_voice());
@@ -389,7 +389,7 @@ int taptools_tb303_process(taptools_tb303 h, double* out, int n) {
 
 // ---- tap.autowah~ ------------------------------------------------------------------------------
 
-using taptools::autowah::wah_filter;
+using tap::tools::autowah::wah_filter;
 
 taptools_wah taptools_wah_create(void) {
     return static_cast<taptools_wah>(new wah_filter());
@@ -448,7 +448,7 @@ int taptools_wah_process(taptools_wah h, const double* in, const double* key, do
 
 // ---- tap.808.seq~ ------------------------------------------------------------------------------
 
-using seq_trigger = taptools::seq::trigger_row;
+using seq_trigger = tap::tools::seq::trigger_row;
 
 taptools_seqtrig taptools_seqtrig_create(void) {
     return static_cast<taptools_seqtrig>(new seq_trigger());
@@ -479,7 +479,7 @@ int taptools_seqtrig_set_pulse_ms(taptools_seqtrig h, double ms) {
 }
 
 int taptools_seqtrig_set_step(taptools_seqtrig h, int step, double velocity) {
-    if (step < 0 || step >= taptools::seq::k_max_steps) {
+    if (step < 0 || step >= tap::tools::seq::k_max_steps) {
         return -1;
     }
     return with<seq_trigger>(h, [&](seq_trigger& r) { r.clock().data().steps[step].velocity = velocity; });
@@ -510,7 +510,7 @@ int taptools_seqtrig_process(taptools_seqtrig h, const double* phase, double* ou
 
 // ---- tap.303.seq~ ------------------------------------------------------------------------------
 
-using seq_note = taptools::seq::note_row;
+using seq_note = tap::tools::seq::note_row;
 
 taptools_seqnote taptools_seqnote_create(void) {
     return static_cast<taptools_seqnote>(new seq_note());
@@ -541,7 +541,7 @@ int taptools_seqnote_set_transpose(taptools_seqnote h, double semitones) {
 }
 
 int taptools_seqnote_set_step(taptools_seqnote h, int step, double pitch, int gate, int accent, int slide) {
-    if (step < 0 || step >= taptools::seq::k_max_steps) {
+    if (step < 0 || step >= tap::tools::seq::k_max_steps) {
         return -1;
     }
     return with<seq_note>(h, [&](seq_note& r) {
@@ -580,7 +580,7 @@ int taptools_seqnote_process(taptools_seqnote h, const double* phase, double* pi
 
 // ---- tap.808.kick~ -----------------------------------------------------------------------------
 
-using tr808_kick = taptools::tr808::kick;
+using tr808_kick = tap::tools::tr808::kick;
 
 taptools_kick taptools_kick_create(void) {
     return static_cast<taptools_kick>(new tr808_kick());

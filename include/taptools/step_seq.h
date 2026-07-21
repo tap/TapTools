@@ -58,7 +58,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace taptools {
+namespace tap::tools {
     namespace seq {
 
         constexpr int k_max_steps      = 64;
@@ -326,4 +326,4 @@ namespace taptools {
         };
 
     } // namespace seq
-} // namespace taptools
+} // namespace tap::tools

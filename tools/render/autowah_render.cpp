@@ -24,8 +24,8 @@
 
 #include <taptools/autowah.h>
 
-using taptools::autowah::wah_filter;
-namespace k = taptools::autowah;
+using tap::tools::autowah::wah_filter;
+namespace k = tap::tools::autowah;
 
 namespace {
 

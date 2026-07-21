@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace taptools {
+namespace tap::tools {
 
     /// Selectable-circuit gain stage: linear multiply, or the 303's class-A transistor saturator.
     class vca {
@@ -142,4 +142,4 @@ namespace taptools {
         dc_hp  m_dc;
     };
 
-} // namespace taptools
+} // namespace tap::tools

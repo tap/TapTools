@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the shared step-sequencer engine (taptools::seq).
+/// @brief      Unit tests for the shared step-sequencer engine (tap::tools::seq).
 /// @details    Pins the plans/tap.seq.md contract: sample-accurate step derivation from a
 ///             phase ramp, the swing warp, polymeter off one ramp, reverse phase, the
 ///             trigger row's amplitude-as-accent impulses with re-arming gaps, the note
@@ -22,9 +22,9 @@ namespace {
     constexpr double k_freq  = 2.0; // pattern cycles per second
     constexpr int    k_cycle = static_cast<int>(k_sr / k_freq);
 
-    using taptools::seq::engine;
-    using taptools::seq::note_row;
-    using taptools::seq::trigger_row;
+    using tap::tools::seq::engine;
+    using tap::tools::seq::note_row;
+    using tap::tools::seq::trigger_row;
 
     double phase_at(int n) {
         const double p = static_cast<double>(n) * (k_freq / k_sr);
@@ -127,8 +127,8 @@ SCENARIO("the trigger row emits velocities as amplitudes and rests as nothing") 
     trigger_row row;
     row.prepare(k_sr);
     auto& p             = row.clock().data();
-    p.steps[0].velocity = taptools::seq::k_trig_plain;
-    p.steps[4].velocity = taptools::seq::k_trig_accented;
+    p.steps[0].velocity = tap::tools::seq::k_trig_plain;
+    p.steps[4].velocity = tap::tools::seq::k_trig_accented;
     p.steps[8].velocity = 1.0; // full 14 V accent
 
     int    fired = 0;
@@ -220,7 +220,7 @@ SCENARIO("the note row opens at the step start and closes at the gate duty") {
         prev = o.gate;
     }
     CHECK(near(rise, 0));
-    CHECK(near(fall, static_cast<int>(step_len * taptools::seq::k_gate_duty), 2));
+    CHECK(near(fall, static_cast<int>(step_len * tap::tools::seq::k_gate_duty), 2));
 }
 
 SCENARIO("accented steps gate at 2.0, plain at 1.0") {
@@ -240,8 +240,8 @@ SCENARIO("accented steps gate at 2.0, plain at 1.0") {
         if (k == 2)
             accented = std::max(accented, o.gate);
     }
-    CHECK(plain == taptools::seq::k_gate_plain);
-    CHECK(accented == taptools::seq::k_gate_accent);
+    CHECK(plain == tap::tools::seq::k_gate_plain);
+    CHECK(accented == tap::tools::seq::k_gate_accent);
 }
 
 SCENARIO("a slide step holds the gate through the boundary while the pitch steps") {
@@ -384,7 +384,7 @@ SCENARIO("recall quantize now applies immediately") {
     e.data().steps[0].velocity = 0.5;
     e.store(0);
     e.data().steps[0].velocity = 1.0;
-    e.set_quantize(taptools::seq::quantize_now);
+    e.set_quantize(tap::tools::seq::quantize_now);
     e.recall(0);
     CHECK(e.data().steps[0].velocity == 0.5);
     CHECK(e.armed() == -1);
@@ -424,7 +424,7 @@ SCENARIO("the note row drives the tb303 voice: slid steps glide, plain steps ret
     p.steps[4].gate  = true;
     p.steps[4].pitch = 33.0;
 
-    taptools::tb303::voice v;
+    tap::tools::tb303::voice v;
     v.prepare(k_sr);
 
     // The tap.303~ wrapper loop, verbatim.

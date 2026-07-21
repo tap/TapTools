@@ -58,7 +58,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace taptools {
+namespace tap::tools {
     namespace svf {
 
         constexpr double k_pi                = 3.14159265358979323846;
@@ -667,4 +667,4 @@ namespace taptools {
         };
 
     } // namespace svf
-} // namespace taptools
+} // namespace tap::tools

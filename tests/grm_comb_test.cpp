@@ -21,7 +21,7 @@ namespace {
 
     constexpr double k_sr = 48000.0;
 
-    namespace fc = taptools::fivecomb;
+    namespace fc = tap::tools::fivecomb;
 
     fc::comb_bank make_single_voice(double freq, double res, double lp) {
         fc::comb_bank bank;

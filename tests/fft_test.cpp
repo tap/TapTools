@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the shared radix-2 FFT (taptools::fft::transform).
+/// @brief      Unit tests for the shared radix-2 FFT (tap::tools::fft::transform).
 /// @details    Checks the forward transform against a naive O(N^2) DFT, forward→inverse
 ///             reconstruction, linearity of the convention (forward unscaled, inverse /N), and a
 ///             couple of closed-form cases (impulse → flat spectrum, single cosine → two bins).
@@ -16,7 +16,7 @@ namespace {
 
     constexpr double k_pi = 3.14159265358979323846;
 
-    // Naive O(N^2) DFT reference, same sign convention as taptools::fft (forward: exp(-i...)).
+    // Naive O(N^2) DFT reference, same sign convention as tap::tools::fft (forward: exp(-i...)).
     void naive_dft(const std::vector<double>& re, const std::vector<double>& im, std::vector<double>& ore,
                    std::vector<double>& oim) {
         const int n = static_cast<int>(re.size());
@@ -63,7 +63,7 @@ SCENARIO("the forward FFT matches a naive DFT") {
             naive_dft(re, im, ref_re, ref_im);
 
             std::vector<double> fre = re, fim = im;
-            taptools::fft::transform(fre, fim, false);
+            tap::tools::fft::transform(fre, fim, false);
 
             THEN("the outputs agree to within numerical tolerance") {
                 REQUIRE(max_abs_diff(fre, ref_re) < 1e-9);
@@ -78,8 +78,8 @@ SCENARIO("forward followed by inverse reconstructs the input") {
     std::vector<double>       re = noise(n, 7u), im = noise(n, 8u);
     const std::vector<double> re0 = re, im0 = im;
 
-    taptools::fft::transform(re, im, false);
-    taptools::fft::transform(re, im, true);
+    tap::tools::fft::transform(re, im, false);
+    tap::tools::fft::transform(re, im, true);
 
     THEN("the round trip returns the original (inverse divides by N)") {
         REQUIRE(max_abs_diff(re, re0) < 1e-9);
@@ -91,7 +91,7 @@ SCENARIO("a unit impulse transforms to a flat unit spectrum") {
     const int           n = 16;
     std::vector<double> re(n, 0.0), im(n, 0.0);
     re[0] = 1.0;
-    taptools::fft::transform(re, im, false);
+    tap::tools::fft::transform(re, im, false);
     bool flat = true;
     for (int k = 0; k < n; ++k) {
         if (std::abs(re[k] - 1.0) > 1e-12 || std::abs(im[k]) > 1e-12) {
@@ -108,7 +108,7 @@ SCENARIO("a real cosine lands on the two symmetric bins") {
     for (int t = 0; t < n; ++t) {
         re[t] = std::cos(2.0 * k_pi * freq * t / n);
     }
-    taptools::fft::transform(re, im, false);
+    tap::tools::fft::transform(re, im, false);
 
     THEN("energy is N/2 at bin freq and N-freq, ~0 elsewhere") {
         REQUIRE(std::abs(re[freq] - n / 2.0) < 1e-9);

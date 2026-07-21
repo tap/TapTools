@@ -4,7 +4,7 @@
 ///             diode ladder -> VCA, with the envelope generators and gate/slide logic that make
 ///             the instrument. Composition of two existing kernels plus the voice circuits:
 ///
-///             - Oscillator: vco.h (`taptools::vco::vco_osc`) running the polyBLEP saw, driven
+///             - Oscillator: vco.h (`tap::tools::vco::vco_osc`) running the polyBLEP saw, driven
 ///               per sample through `process_at()` so pitch (note + tuning + slide) is
 ///               signal-rate. The 303's square is not a pulse — the hardware derives it from
 ///               the saw with a transistor shaper. Slice 4 adopts Open303's measured shaper:
@@ -15,7 +15,7 @@
 ///               it to the BLEP-smoothed saw keeps the edges bandlimited. `waveform` is a
 ///               continuous 0 (saw) .. 1 (square) blend riding the ramps, like Open303's
 ///               blend oscillator.
-///             - Filter: diode_ladder.h (`taptools::diode::diode_filter`), cutoff overridden
+///             - Filter: diode_ladder.h (`tap::tools::diode::diode_filter`), cutoff overridden
 ///               per sample with the envelope-modulated value; `resonance`/`solver`/
 ///               `oversample` pass through. Input/output coupling: a 44.486 Hz one-pole
 ///               high-pass before the filter and a 24.167 Hz one-pole high-pass after it —
@@ -114,7 +114,7 @@
 #include "vca.h"
 #include "vco.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tb303 {
 
         constexpr int    k_presets        = 16;
@@ -179,10 +179,10 @@ namespace taptools {
         enum vca_mode : int { vca_clean = 0, vca_warm, k_num_vca_modes };
 
         // Phase-2 transistor-VCA saturator (see header): informed constants, probe-calibrated.
-        // The saturator itself lives in the shared vca.h kernel (taptools::vca) so tap.303~ and the
+        // The saturator itself lives in the shared vca.h kernel (tap::tools::vca) so tap.303~ and the
         // standalone tap.vca~ run one implementation; these are the values the voice configures it with.
-        constexpr double k_vca_sat_drive = taptools::vca::k_default_drive; // 2.0
-        constexpr double k_vca_sat_bias  = taptools::vca::k_default_bias;  // 0.3
+        constexpr double k_vca_sat_drive = tap::tools::vca::k_default_drive; // 2.0
+        constexpr double k_vca_sat_bias  = tap::tools::vca::k_default_bias;  // 0.3
 
         constexpr int k_factory_presets = 8; // slots 0..7 ship authored; 8..15 are defaults
 
@@ -669,9 +669,9 @@ namespace taptools {
             double m_vca_decay{0.9999}, m_vca_release{0.99};
             double m_slide_coef{0.001};
 
-            // phase-2 VCA circuit — the saturator math lives in the shared taptools::vca stage
+            // phase-2 VCA circuit — the saturator math lives in the shared tap::tools::vca stage
             int             m_vca_mode{vca_clean};
-            ::taptools::vca m_vca_stage; // shape() only; the voice runs its own coupling + gain
+            ::tap::tools::vca m_vca_stage; // shape() only; the voice runs its own coupling + gain
 
             // per-unit component spread (seed/tolerance)
             double m_unit_tune_cents{0.0};
@@ -690,4 +690,4 @@ namespace taptools {
         };
 
     } // namespace tb303
-} // namespace taptools
+} // namespace tap::tools

@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TB-303 voice kernel (taptools::tb303::voice).
+/// @brief      Unit tests for the TB-303 voice kernel (tap::tools::tb303::voice).
 /// @details    Pins the slice-2 voice behaviors: gate/retrigger/legato-slide semantics (the
 ///             melodic-voice contract), pitch and tuning accuracy, the envelope-modulated
 ///             cutoff sweep and its decay-knob scaling, the fixed VCA envelope, the accent
@@ -23,7 +23,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    namespace tb = taptools::tb303;
+    namespace tb = tap::tools::tb303;
 
     tb::voice make() {
         tb::voice v;

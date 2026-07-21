@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 tom/conga kernel (taptools::tr808::tom).
+/// @brief      Unit tests for the TR-808 tom/conga kernel (tap::tools::tr808::tom).
 /// @details    Pins the p.14 chart tunings and decay classes per size/model, the tuning knob's
 ///             low..high sweep, the D80/D81 attack pitch fall, the tom-only noise layer,
 ///             accent, determinism, silence.
@@ -17,7 +17,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    using taptools::tr808::tom;
+    using tap::tools::tr808::tom;
 
     tom make(int size = 0, int model = tom::model_tom, double tuning = 0.5) {
         tom t;

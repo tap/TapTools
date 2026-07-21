@@ -65,7 +65,7 @@
 
 #include "bridged_t.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         // TR-808 Service Notes component values (bass drum voice, schematic designators).
@@ -295,4 +295,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

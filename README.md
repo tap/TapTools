@@ -15,15 +15,15 @@ same either way.
 
 | Kernel | Max object | Contents |
 |---|---|---|
-| `include/taptools/autowah.h` | `tap.autowah~` | Snow White-style envelope filter (`taptools::autowah`) |
-| `include/taptools/diode_ladder.h` | `tap.diode~` | ZDF TB-303 diode ladder (`taptools::diode`) |
-| `include/taptools/tb303_voice.h` | `tap.303~` | TB-303 acid-bass voice (`taptools::tb303`) |
-| `include/taptools/ladder.h` | `tap.ladder~` | ZDF Moog-style ladder (`taptools::ladder`) |
-| `include/taptools/svf.h` | `tap.svf~` | Simper/Cytomic morphing SVF (`taptools::svf`) |
-| `include/taptools/vco.h` | `tap.vco~` | Virtual-analog oscillator (`taptools::vco`) |
-| `include/taptools/grm_comb.h` | `tap.5comb~` | GRM comb-bank recreation (`taptools::fivecomb`) |
-| `include/taptools/grm_pitchaccum.h` | `tap.pitchaccum~` | GRM PitchAccum recreation (`taptools::pitchaccum`) |
-| `include/taptools/conv_engine.h` | `tap.convolve~` | Partitioned (UPOLS) true-stereo convolution (`taptools::conv_engine`) |
+| `include/taptools/autowah.h` | `tap.autowah~` | Snow White-style envelope filter (`tap::tools::autowah`) |
+| `include/taptools/diode_ladder.h` | `tap.diode~` | ZDF TB-303 diode ladder (`tap::tools::diode`) |
+| `include/taptools/tb303_voice.h` | `tap.303~` | TB-303 acid-bass voice (`tap::tools::tb303`) |
+| `include/taptools/ladder.h` | `tap.ladder~` | ZDF Moog-style ladder (`tap::tools::ladder`) |
+| `include/taptools/svf.h` | `tap.svf~` | Simper/Cytomic morphing SVF (`tap::tools::svf`) |
+| `include/taptools/vco.h` | `tap.vco~` | Virtual-analog oscillator (`tap::tools::vco`) |
+| `include/taptools/grm_comb.h` | `tap.5comb~` | GRM comb-bank recreation (`tap::tools::fivecomb`) |
+| `include/taptools/grm_pitchaccum.h` | `tap.pitchaccum~` | GRM PitchAccum recreation (`tap::tools::pitchaccum`) |
+| `include/taptools/conv_engine.h` | `tap.convolve~` | Partitioned (UPOLS) true-stereo convolution (`tap::tools::conv_engine`) |
 
 Plus, all Max-free:
 
