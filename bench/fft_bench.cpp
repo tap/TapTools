@@ -51,17 +51,17 @@ namespace {
             for (int i = 0; i < n; i += len) {
                 double cwr = 1.0, cwi = 0.0;
                 for (int k = 0; k < len / 2; ++k) {
-                    const double vr   = re[i + k + len / 2] * cwr - im[i + k + len / 2] * cwi;
-                    const double vi   = re[i + k + len / 2] * cwi + im[i + k + len / 2] * cwr;
-                    const double ur   = re[i + k];
-                    const double ui   = im[i + k];
-                    re[i + k]         = ur + vr;
-                    im[i + k]         = ui + vi;
+                    const double vr     = re[i + k + len / 2] * cwr - im[i + k + len / 2] * cwi;
+                    const double vi     = re[i + k + len / 2] * cwi + im[i + k + len / 2] * cwr;
+                    const double ur     = re[i + k];
+                    const double ui     = im[i + k];
+                    re[i + k]           = ur + vr;
+                    im[i + k]           = ui + vi;
                     re[i + k + len / 2] = ur - vr;
                     im[i + k + len / 2] = ui - vi;
-                    const double ncwr = cwr * wr - cwi * wi;
-                    cwi               = cwr * wi + cwi * wr;
-                    cwr               = ncwr;
+                    const double ncwr   = cwr * wr - cwi * wi;
+                    cwi                 = cwr * wi + cwi * wr;
+                    cwr                 = ncwr;
                 }
             }
         }
