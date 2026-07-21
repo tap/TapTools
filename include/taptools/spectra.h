@@ -18,7 +18,7 @@
 
 #include "stft.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace spectra {
 
         class remapper {
@@ -81,4 +81,4 @@ namespace taptools {
         };
 
     } // namespace spectra
-} // namespace taptools
+} // namespace tap::tools

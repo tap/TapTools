@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 handclap/maracas kernel (taptools::tr808::clap).
+/// @brief      Unit tests for the TR-808 handclap/maracas kernel (tap::tools::tr808::clap).
 /// @details    Pins the Service Notes documentation: the clap's three sawtooth teeth ~10 ms
 ///             apart inside the 30 ms window (Figure 13), the reverberation tail and its
 ///             disconnection bend, the ~2 kHz band-pass voicing, the ~100 ms decay class;
@@ -19,7 +19,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    using taptools::tr808::clap;
+    using tap::tools::tr808::clap;
 
     clap make(int model = clap::model_clap) {
         clap c;

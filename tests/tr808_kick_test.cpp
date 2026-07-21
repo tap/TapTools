@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 bass drum kernel (taptools::tr808::kick).
+/// @brief      Unit tests for the TR-808 bass drum kernel (tap::tools::tr808::kick).
 /// @details    Pins the behaviors the DAFx-14 analysis documents: the ~49 Hz nominal ring, the
 ///             attack frequency jump (~an octave-plus for the first few ms), the pitch sigh (and
 ///             its disconnection bend), decay-knob monotonicity and range, accent as excitation
@@ -19,7 +19,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    using taptools::tr808::kick;
+    using tap::tools::tr808::kick;
 
     kick make(double decay = 0.5, double tone = 0.5, double level = 1.0) {
         kick k;

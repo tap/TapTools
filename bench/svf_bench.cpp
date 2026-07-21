@@ -26,7 +26,7 @@
 
 #include <taptools/svf.h>
 
-namespace ksv = taptools::svf;
+namespace ksv = tap::tools::svf;
 
 namespace {
 

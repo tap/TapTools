@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 cowbell kernel (taptools::tr808::cowbell).
+/// @brief      Unit tests for the TR-808 cowbell kernel (tap::tools::tr808::cowbell).
 /// @details    Pins the documented behaviors: the 540/800 Hz oscillator pair (the chart's own
 ///             values), the ~50 ms decay class with the two-slope "abrupt initial decay"
 ///             envelope, accent, determinism, silence.
@@ -17,7 +17,7 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    using taptools::tr808::cowbell;
+    using tap::tools::tr808::cowbell;
 
     cowbell make() {
         cowbell c;

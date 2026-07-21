@@ -40,7 +40,7 @@
 #include "bridged_t.h"
 #include "swing_vca.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         // p.14 chart voicings.
@@ -185,4 +185,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

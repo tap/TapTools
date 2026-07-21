@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the diode-ladder kernel (taptools::diode::diode_filter).
+/// @brief      Unit tests for the diode-ladder kernel (tap::tools::diode::diode_filter).
 /// @details    Pins the topology against Tim Stinchcombe's published TB-303 analysis: the exact
 ///             normalized magnitude response (|D(j*2^(1/4))| = 17 at fc, the ~14 dB first octave,
 ///             the 24 dB/oct asymptote), the k = 17 / sqrt(2)-rate oscillation results, the
@@ -20,7 +20,7 @@ namespace {
 
     constexpr double k_pi = 3.14159265358979323846;
 
-    namespace dio = taptools::diode;
+    namespace dio = tap::tools::diode;
 
     dio::diode_filter make(double sr = 48000.0) {
         dio::diode_filter f;

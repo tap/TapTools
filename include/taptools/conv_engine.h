@@ -32,7 +32,7 @@
 
 #include "fft.h" // the shared radix-2 FFT (formerly a private copy of this exact routine)
 
-namespace taptools {
+namespace tap::tools {
 
     class conv_engine {
       public:
@@ -231,4 +231,4 @@ namespace taptools {
         int m_fdl{0}; // ring index of the newest input spectrum
     };
 
-} // namespace taptools
+} // namespace tap::tools

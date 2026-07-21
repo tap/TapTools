@@ -47,7 +47,7 @@
 #include "metal_bank.h"
 #include "swing_vca.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         // Per-band decay time constants (behavioral fits to the p.14 chart; see header).
@@ -156,4 +156,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

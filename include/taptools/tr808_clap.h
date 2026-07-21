@@ -50,7 +50,7 @@
 #include "bridged_t.h" // first_order + k_pi
 #include "swing_vca.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         // Handclap band-pass, from the IC21 multiple-feedback filter (see header). IC21 is a
@@ -218,4 +218,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

@@ -37,7 +37,7 @@
 #include <taptools/tr808_snare.h>
 #include <taptools/tr808_tom.h>
 
-using namespace taptools::tr808;
+using namespace tap::tools::tr808;
 
 namespace {
 

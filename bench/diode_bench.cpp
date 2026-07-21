@@ -21,7 +21,7 @@
 
 #include <taptools/diode_ladder.h>
 
-namespace dio = taptools::diode;
+namespace dio = tap::tools::diode;
 
 namespace {
 

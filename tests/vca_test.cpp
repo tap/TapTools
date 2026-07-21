@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the VCA kernel (taptools::vca).
+/// @brief      Unit tests for the VCA kernel (tap::tools::vca).
 /// @details    Pins the two-circuit contract: `clean` is an exact linear multiply; `warm` is the
 ///             303's slope-normalized biased-tanh transistor stage — unity slope through zero
 ///             (quiet signals near-clean), asymmetric even-harmonic saturation and compression on
@@ -46,9 +46,9 @@ namespace {
 } // namespace
 
 SCENARIO("the clean circuit is an exact linear multiply") {
-    taptools::vca a;
+    tap::tools::vca a;
     a.prepare(k_sr);
-    REQUIRE(a.circuit() == taptools::vca::mode_clean); // default
+    REQUIRE(a.circuit() == tap::tools::vca::mode_clean); // default
 
     THEN("process(x, gain) == x * gain to the bit, for any gain incl. negative and > 1") {
         for (double g : {0.0, 0.5, 1.0, 2.5, -0.75}) {
@@ -64,11 +64,11 @@ SCENARIO("the clean circuit is an exact linear multiply") {
 }
 
 SCENARIO("the warm circuit reproduces the 303 transistor saturator exactly") {
-    taptools::vca a;
+    tap::tools::vca a;
     a.prepare(k_sr);
-    a.set_mode(taptools::vca::mode_warm);
-    REQUIRE(a.drive() == taptools::vca::k_default_drive); // stock 303 constants
-    REQUIRE(a.bias() == taptools::vca::k_default_bias);
+    a.set_mode(tap::tools::vca::mode_warm);
+    REQUIRE(a.drive() == tap::tools::vca::k_default_drive); // stock 303 constants
+    REQUIRE(a.bias() == tap::tools::vca::k_default_bias);
 
     THEN("shape(v) matches the closed-form reference at the stock constants, bit for bit") {
         for (double v : {-1.2, -0.5, -0.1, 0.0, 0.1, 0.5, 1.0, 1.7}) {
@@ -91,7 +91,7 @@ SCENARIO("the warm circuit reproduces the 303 transistor saturator exactly") {
 }
 
 SCENARIO("the extraction left the TB-303 voice routed through the shared stage") {
-    namespace tb = taptools::tb303;
+    namespace tb = tap::tools::tb303;
 
     auto play = [](int mode) {
         tb::voice v;
@@ -119,9 +119,9 @@ SCENARIO("the extraction left the TB-303 voice routed through the shared stage")
 
 SCENARIO("the warm circuit's output DC block sheds signal-dependent DC on AC material") {
     auto run = [](bool dc_block) {
-        taptools::vca a;
+        tap::tools::vca a;
         a.prepare(k_sr);
-        a.set_mode(taptools::vca::mode_warm);
+        a.set_mode(tap::tools::vca::mode_warm);
         a.set_dc_block(dc_block);
         std::vector<double> out;
         out.reserve(static_cast<size_t>(k_sr));
@@ -146,25 +146,25 @@ SCENARIO("the warm circuit's output DC block sheds signal-dependent DC on AC mat
 SCENARIO("the swing circuit is the TR-808 symmetric harmonic saturator") {
     THEN("swing_shape is the exact linear passthru at drive 0 (calibrated voices stay bit-identical)") {
         for (double v : {-1.3, -0.4, 0.0, 0.25, 0.9, 1.6})
-            REQUIRE(taptools::vca::swing_shape(v, 0.0) == v);
+            REQUIRE(tap::tools::vca::swing_shape(v, 0.0) == v);
     }
     THEN("with drive > 0 it is an odd function — symmetric, no even harmonics, no DC") {
         for (double d : {0.5, 2.0, 6.0})
             for (double v : {0.15, 0.6, 1.2})
-                REQUIRE(std::abs(taptools::vca::swing_shape(v, d) + taptools::vca::swing_shape(-v, d)) < 1e-12);
+                REQUIRE(std::abs(tap::tools::vca::swing_shape(v, d) + tap::tools::vca::swing_shape(-v, d)) < 1e-12);
     }
     THEN("unity slope through zero (quiet signals near-clean) and compression on hot signals") {
         const double d = 2.0;
-        REQUIRE(std::abs(taptools::vca::swing_shape(1e-4, d) - 1e-4) < 1e-7);
-        REQUIRE(std::abs(taptools::vca::swing_shape(1.5, d)) < 1.5);
+        REQUIRE(std::abs(tap::tools::vca::swing_shape(1e-4, d) - 1e-4) < 1e-7);
+        REQUIRE(std::abs(tap::tools::vca::swing_shape(1.5, d)) < 1.5);
     }
     GIVEN("a vca in swing mode") {
-        taptools::vca a;
+        tap::tools::vca a;
         a.prepare(k_sr);
-        a.set_mode(taptools::vca::mode_swing);
+        a.set_mode(tap::tools::vca::mode_swing);
         a.set_drive(2.0);
         THEN("shape() routes through the shared swing_shape and needs no DC block (symmetric)") {
-            REQUIRE(a.shape(0.7) == taptools::vca::swing_shape(0.7, a.drive()));
+            REQUIRE(a.shape(0.7) == tap::tools::vca::swing_shape(0.7, a.drive()));
             // a symmetric shaper on a symmetric sweep has zero mean either way
             double mean_on = 0.0;
             int    n       = 0;
@@ -176,9 +176,9 @@ SCENARIO("the swing circuit is the TR-808 symmetric harmonic saturator") {
 }
 
 SCENARIO("drive and bias are live and reshape the curve") {
-    taptools::vca a;
+    tap::tools::vca a;
     a.prepare(k_sr);
-    a.set_mode(taptools::vca::mode_warm);
+    a.set_mode(tap::tools::vca::mode_warm);
 
     THEN("more drive means more compression on a hot signal") {
         a.set_drive(1.0);

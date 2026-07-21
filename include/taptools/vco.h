@@ -54,7 +54,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace taptools {
+namespace tap::tools {
     namespace vco {
 
         constexpr int    k_presets           = 16;
@@ -551,4 +551,4 @@ namespace taptools {
         };
 
     } // namespace vco
-} // namespace taptools
+} // namespace tap::tools

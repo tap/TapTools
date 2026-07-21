@@ -38,7 +38,7 @@
 #include "metal_bank.h"
 #include "swing_vca.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         // Two-slope envelope (see header): the fast C9 component and the R82/C34 tail.
@@ -117,4 +117,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

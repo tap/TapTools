@@ -18,7 +18,7 @@
 
 #include "stft.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace nr {
 
         class reducer {
@@ -66,4 +66,4 @@ namespace taptools {
         };
 
     } // namespace nr
-} // namespace taptools
+} // namespace tap::tools

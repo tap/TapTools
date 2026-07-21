@@ -52,7 +52,7 @@ TAPTOOLS_API int taptools_conv_block_size(taptools_conv engine);     // partitio
 TAPTOOLS_API int taptools_conv_max_partitions(taptools_conv engine); // capacity in partitions
 TAPTOOLS_API int taptools_conv_has_ir(taptools_conv engine);         // 1 if an IR is published, else 0
 
-// ---- tap.svf~ (taptools::svf::svf_filter, mono) -----------------------------------------------
+// ---- tap.svf~ (tap::tools::svf::svf_filter, mono) -----------------------------------------------
 
 typedef void* taptools_svf;
 
@@ -71,7 +71,7 @@ TAPTOOLS_API int          taptools_svf_process(taptools_svf h, const double* in,
 TAPTOOLS_API int taptools_svf_process_mod(taptools_svf h, const double* in, const double* cutoff_hz, double* out,
                                           int n);
 
-// ---- tap.ladder~ (taptools::ladder::ladder_filter) --------------------------------------------
+// ---- tap.ladder~ (tap::tools::ladder::ladder_filter) --------------------------------------------
 
 typedef void* taptools_ladder;
 
@@ -88,7 +88,7 @@ TAPTOOLS_API int             taptools_ladder_process(taptools_ladder h, const do
 TAPTOOLS_API int taptools_ladder_process_mod(taptools_ladder h, const double* in, const double* cutoff_hz, double* out,
                                              int n);
 
-// ---- tap.vco~ (taptools::vco::vco_osc) ---------------------------------------------------------
+// ---- tap.vco~ (tap::tools::vco::vco_osc) ---------------------------------------------------------
 
 typedef void* taptools_vco;
 
@@ -103,7 +103,7 @@ TAPTOOLS_API int          taptools_vco_process(taptools_vco h, double* out, int 
 /// Through-zero FM (Hz) and/or hard-sync inputs, either may be NULL.
 TAPTOOLS_API int taptools_vco_process_mod(taptools_vco h, const double* fm_hz, const double* sync, double* out, int n);
 
-// ---- tap.diode~ (taptools::diode::diode_filter) ------------------------------------------------
+// ---- tap.diode~ (tap::tools::diode::diode_filter) ------------------------------------------------
 
 typedef void* taptools_diode;
 
@@ -119,7 +119,7 @@ TAPTOOLS_API int            taptools_diode_process(taptools_diode h, const doubl
 TAPTOOLS_API int taptools_diode_process_mod(taptools_diode h, const double* in, const double* cutoff_hz, double* out,
                                             int n);
 
-// ---- tap.303~ (taptools::tb303::voice) ---------------------------------------------------------
+// ---- tap.303~ (tap::tools::tb303::voice) ---------------------------------------------------------
 
 typedef void* taptools_tb303;
 
@@ -144,7 +144,7 @@ TAPTOOLS_API int    taptools_tb303_set_pitch(taptools_tb303 h, double midi_note)
 TAPTOOLS_API double taptools_tb303_accent_charge(taptools_tb303 h); // the C13 wow memory, 0..~1
 TAPTOOLS_API int    taptools_tb303_process(taptools_tb303 h, double* out, int n);
 
-// ---- tap.autowah~ (taptools::autowah::wah_filter) ----------------------------------------------
+// ---- tap.autowah~ (tap::tools::autowah::wah_filter) ----------------------------------------------
 
 typedef void* taptools_wah;
 
@@ -163,7 +163,7 @@ TAPTOOLS_API int taptools_wah_clear(taptools_wah h);
 TAPTOOLS_API int taptools_wah_process(taptools_wah h, const double* in, const double* key, double* out, double* env_out,
                                       double* cutoff_out, int n);
 
-// ---- tap.808.seq~ (taptools::seq::trigger_row) -------------------------------------------------
+// ---- tap.808.seq~ (tap::tools::seq::trigger_row) -------------------------------------------------
 
 typedef void* taptools_seqtrig;
 
@@ -182,7 +182,7 @@ TAPTOOLS_API int taptools_seqtrig_reset(taptools_seqtrig h);
 /// Run n samples of the phase ramp through the row; impulses land in `out`.
 TAPTOOLS_API int taptools_seqtrig_process(taptools_seqtrig h, const double* phase, double* out, int n);
 
-// ---- tap.303.seq~ (taptools::seq::note_row) ----------------------------------------------------
+// ---- tap.303.seq~ (tap::tools::seq::note_row) ----------------------------------------------------
 
 typedef void* taptools_seqnote;
 
@@ -203,7 +203,7 @@ TAPTOOLS_API int taptools_seqnote_reset(taptools_seqnote h);
 TAPTOOLS_API int taptools_seqnote_process(taptools_seqnote h, const double* phase, double* pitch_out, double* gate_out,
                                           int n);
 
-// ---- tap.808.kick~ (taptools::tr808::kick) -----------------------------------------------------
+// ---- tap.808.kick~ (tap::tools::tr808::kick) -----------------------------------------------------
 
 typedef void* taptools_kick;
 

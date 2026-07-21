@@ -16,8 +16,8 @@
 
 #include <taptools/grm_comb.h>
 
-using taptools::fivecomb::comb_bank;
-namespace k = taptools::fivecomb;
+using tap::tools::fivecomb::comb_bank;
+namespace k = tap::tools::fivecomb;
 
 namespace {
 

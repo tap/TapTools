@@ -37,7 +37,7 @@
 #include "metal_bank.h"
 #include "swing_vca.h"
 
-namespace taptools {
+namespace tap::tools {
     namespace tr808 {
 
         // Decay classes: chart fits for the OH span (90/450/600 ms); CH calibrated to the
@@ -183,4 +183,4 @@ namespace taptools {
         };
 
     } // namespace tr808
-} // namespace taptools
+} // namespace tap::tools

@@ -15,8 +15,8 @@
 
 #include <taptools/grm_pitchaccum.h>
 
-using taptools::pitchaccum::accum_bank;
-namespace k = taptools::pitchaccum;
+using tap::tools::pitchaccum::accum_bank;
+namespace k = tap::tools::pitchaccum;
 
 namespace {
 

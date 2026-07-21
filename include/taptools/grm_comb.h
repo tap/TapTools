@@ -36,7 +36,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace taptools {
+namespace tap::tools {
     namespace fivecomb {
 
         constexpr int    k_voices            = 5;
@@ -523,4 +523,4 @@ namespace taptools {
         };
 
     } // namespace fivecomb
-} // namespace taptools
+} // namespace tap::tools

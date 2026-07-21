@@ -15,7 +15,7 @@
 #include <cmath>
 #include <vector>
 
-namespace taptools {
+namespace tap::tools {
     namespace fft {
 
         inline constexpr double k_pi = 3.14159265358979323846;
@@ -68,4 +68,4 @@ namespace taptools {
         }
 
     } // namespace fft
-} // namespace taptools
+} // namespace tap::tools

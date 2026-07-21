@@ -1,6 +1,6 @@
 /// @file
 /// @brief      Unit tests for the partitioned convolution engine behind tap.convolve~.
-/// @details    `taptools::conv_engine` is a pure-C++ kernel, so these tests drive it directly — no
+/// @details    `tap::tools::conv_engine` is a pure-C++ kernel, so these tests drive it directly — no
 ///             Max, min-api, or mock kernel needed — and check its output against a plain
 ///             time-domain convolution computed here as the reference.
 // SPDX-License-Identifier: BSD-3-Clause
@@ -48,7 +48,7 @@ SCENARIO("the engine reproduces a true-stereo convolution, latency-shifted by on
     const int len  = 40;  // IR length -> 3 partitions
     const int n    = 300; // signal length
 
-    taptools::conv_engine engine;
+    tap::tools::conv_engine engine;
     engine.configure(B, Pmax);
 
     GIVEN("four distinct IR paths and two distinct input channels") {
@@ -113,7 +113,7 @@ SCENARIO("a delayed unit impulse on one path is a pure delay on that path only")
     const int B    = 8;
     const int Pmax = 8;
 
-    taptools::conv_engine engine;
+    tap::tools::conv_engine engine;
     engine.configure(B, Pmax);
 
     GIVEN("h_ll = delta at index 5, all other paths silent") {
@@ -151,7 +151,7 @@ SCENARIO("a delayed unit impulse on one path is a pure delay on that path only")
 }
 
 SCENARIO("with no IR loaded the engine is silent") {
-    taptools::conv_engine engine;
+    tap::tools::conv_engine engine;
     engine.configure(32, 4);
     REQUIRE(engine.has_ir() == false);
 
@@ -174,7 +174,7 @@ SCENARIO("a hot IR swap while running settles to the new response") {
     const int B    = 16;
     const int Pmax = 8;
 
-    taptools::conv_engine engine;
+    tap::tools::conv_engine engine;
     engine.configure(B, Pmax);
 
     GIVEN("an initial decaying IR on the diagonal paths, running mid-stream") {

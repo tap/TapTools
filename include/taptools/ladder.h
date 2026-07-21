@@ -43,7 +43,7 @@
 #include <cmath>
 #include <cstddef>
 
-namespace taptools {
+namespace tap::tools {
     namespace ladder {
 
         constexpr int    k_presets           = 16;
@@ -498,4 +498,4 @@ namespace taptools {
         };
 
     } // namespace ladder
-} // namespace taptools
+} // namespace tap::tools

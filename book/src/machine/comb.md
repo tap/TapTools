@@ -7,7 +7,7 @@ tune*, and that `phase` at 100 cancels the even harmonics — exactly. This
 appendix derives all three the way the file was designed, then walks the
 code-level decisions. The behavioral claims below are pinned by the kernel
 scenarios in `tap.5comb_tilde_test.cpp`, which drive
-`taptools::fivecomb::comb_bank` directly (no Max in the loop); the few
+`tap::tools::fivecomb::comb_bank` directly (no Max in the loop); the few
 numbers outside the test suite are marked as measured on the kernel for
 this chapter.
 

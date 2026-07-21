@@ -1,5 +1,5 @@
 /// @file
-/// @brief      Unit tests for the TR-808 cymbal kernel (taptools::tr808::cymbal), plus the
+/// @brief      Unit tests for the TR-808 cymbal kernel (tap::tools::tr808::cymbal), plus the
 ///             shared metal bank it exposes.
 /// @details    Pins the documented behaviors: the bank's six oscillator fundamentals and the
 ///             tolerance/seed spread, the p.14 chart's 350-1200 ms decay range across the
@@ -19,8 +19,8 @@ namespace {
     constexpr double k_sr = 48000.0;
     constexpr double k_pi = 3.14159265358979323846;
 
-    using taptools::tr808::cymbal;
-    using taptools::tr808::metal_bank;
+    using tap::tools::tr808::cymbal;
+    using tap::tools::tr808::metal_bank;
 
     cymbal make(double tone = 0.5, double decay = 0.5) {
         cymbal c;
@@ -86,7 +86,7 @@ SCENARIO("the metal bank runs six squares at the documented fundamentals") {
         v = bank.sum();
     }
     // Each nominal fundamental beats everything a quartertone away.
-    for (double f : taptools::tr808::k_bank_hz) {
+    for (double f : tap::tools::tr808::k_bank_hz) {
         const double at  = goertzel(y, f, 0, y.size());
         const double off = goertzel(y, f * 1.06, 0, y.size());
         INFO(f << " Hz: " << at << " vs +6% " << off);
