@@ -670,7 +670,7 @@ namespace tap::tools {
             double m_slide_coef{0.001};
 
             // phase-2 VCA circuit — the saturator math lives in the shared tap::tools::vca stage
-            int             m_vca_mode{vca_clean};
+            int               m_vca_mode{vca_clean};
             ::tap::tools::vca m_vca_stage; // shape() only; the voice runs its own coupling + gain
 
             // per-unit component spread (seed/tolerance)

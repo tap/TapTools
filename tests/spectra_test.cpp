@@ -53,7 +53,7 @@ namespace {
 } // namespace
 
 SCENARIO("remap = 1 reconstructs the input, delayed by one frame") {
-    const int                   N = 256;
+    const int                     N = 256;
     tap::tools::spectra::remapper r;
     r.configure(N);
     r.set_remap(1.0);
@@ -76,7 +76,7 @@ SCENARIO("remap = 1 reconstructs the input, delayed by one frame") {
 }
 
 SCENARIO("remap = 2 relocates input bin 2k to output bin k") {
-    const int                   N = 512;
+    const int                     N = 512;
     tap::tools::spectra::remapper r;
     r.configure(N);
     r.set_remap(2.0);
