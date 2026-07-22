@@ -10,6 +10,7 @@
 #include <taptools/conv_engine.h>
 #include <taptools/diode_ladder.h>
 #include <taptools/ladder.h>
+#include <taptools/overdrive.h>
 #include <taptools/step_seq.h>
 #include <taptools/svf.h>
 #include <taptools/tb303_voice.h>
@@ -785,6 +786,45 @@ int taptools_yin_track(taptools_yin h, const double* x, int n, int hop, double* 
         periods[count++] = det->analyze(x + start).period;
     }
     return count;
+}
+
+// ---- tap.overdrive~ ------------------------------------------------------------------------------
+
+using tap::tools::od::overdrive;
+
+taptools_od taptools_od_create(void) {
+    return static_cast<taptools_od>(new overdrive());
+}
+
+void taptools_od_destroy(taptools_od h) {
+    delete static_cast<overdrive*>(h);
+}
+
+int taptools_od_prepare(taptools_od h, double sr) {
+    return with<overdrive>(h, [&](overdrive& o) { o.prepare(sr, 1); });
+}
+
+int taptools_od_set(taptools_od h, int param, double value) {
+    return with<overdrive>(h, [&](overdrive& o) { o.set_param(param, value); });
+}
+
+int taptools_od_set_oversample(taptools_od h, int os) {
+    return with<overdrive>(h, [&](overdrive& o) { o.set_oversample(os); });
+}
+
+int taptools_od_set_smooth_ms(taptools_od h, double ms) {
+    return with<overdrive>(h, [&](overdrive& o) { o.set_smooth_ms(ms); });
+}
+
+int taptools_od_clear(taptools_od h) {
+    return with<overdrive>(h, [&](overdrive& o) { o.clear(); });
+}
+
+int taptools_od_process(taptools_od h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<overdrive>(h, [&](overdrive& o) { o.process(in, out, static_cast<size_t>(n)); });
 }
 
 } // extern "C"

@@ -11,12 +11,12 @@ The C ABI (kernel/tools/capi/) wraps the *same* portable DSP headers the Max
 externals compile — so the notebooks exercise the real shipping code, not a
 Python re-implementation. Exposed kernels: tap.convolve~'s conv_engine
 (`Convolver`), tap.svf~ (`Svf`), tap.ladder~ (`Ladder`), tap.diode~
-(`Diode`), tap.303~ (`TB303`), tap.vco~ (`Vco`), tap.autowah~ (`Wah`), the
-step-sequencer rows behind tap.808.seq~ / tap.303.seq~ (`TriggerRow`,
-`NoteRow`), tap.808.kick~ (`Kick`), and tap.tune~'s pitch corrector
-(`Tune`, with the shared DspTap detector passed through as `Yin` for the
-notebooks' pitch tracking). Parameter names on the kernel classes mirror
-each kernel header's param_index enum.
+(`Diode`), tap.303~ (`TB303`), tap.vco~ (`Vco`), tap.autowah~ (`Wah`),
+tap.overdrive~ (`Overdrive`), the step-sequencer rows behind tap.808.seq~ /
+tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`), and
+tap.tune~'s pitch corrector (`Tune`, with the shared DspTap detector passed
+through as `Yin` for the notebooks' pitch tracking). Parameter names on the
+kernel classes mirror each kernel header's param_index enum.
 
 Copyright 2003-2026 Timothy Place. New BSD License.
 """
@@ -173,6 +173,14 @@ def load() -> ctypes.CDLL:
         "taptools_seqnote_recall":        ([vp, ctypes.c_int], ctypes.c_int),
         "taptools_seqnote_reset":         ([vp], ctypes.c_int),
         "taptools_seqnote_process":       ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_od_create":         ([], vp),
+        "taptools_od_destroy":        ([vp], None),
+        "taptools_od_prepare":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_od_set":            ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_od_set_oversample": ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_od_set_smooth_ms":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_od_clear":          ([vp], ctypes.c_int),
+        "taptools_od_process":        ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_kick_create":     ([], vp),
         "taptools_kick_destroy":    ([vp], None),
         "taptools_kick_prepare":    ([vp, ctypes.c_double], ctypes.c_int),
@@ -550,6 +558,25 @@ class Wah(_Kernel):
         """Morph to a preset slot (0-based; 0-3 = factory guitar/bass/swell/cocked)."""
         _check(_LIB.taptools_wah_recall(self._h, int(slot), float(seconds)), "recall")
         return self
+
+
+class Overdrive(_Kernel):
+    """tap.overdrive~'s voiced feedback soft clipper (taptools::od::overdrive, mono).
+
+    >>> o = Overdrive(48000, drive=0.7, asymmetry=0.3, body=-0.5)
+    >>> y = o.process(x)
+    >>> o.set(oversample=1)   # structural: 1/2/4/8 (default 4)
+    """
+
+    PREFIX = "taptools_od"
+    PARAMS = {"drive": 0, "body": 1, "asymmetry": 2, "preamp": 3, "output": 4}
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        n = len(x)
+        out = np.empty(n)
+        _check(_LIB.taptools_od_process(self._h, _p64(x), _p64(out), n), "process")
+        return out
 
 
 class _SeqRow:

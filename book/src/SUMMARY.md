@@ -33,7 +33,11 @@
 
 - [The note you meant](tune.md)
 
-# Part VII — The machine, file by file
+# Part VII — The pedalboard
+
+- [Distortion with a memory](overdrive.md)
+
+# Part VIII — The machine, file by file
 
 - [Solving the filter on paper: svf.h](machine/svf.md)
 - [The nonlinear loop: ladder.h](machine/ladder.md)
@@ -50,3 +54,4 @@
 - [Time as a function of phase: step_seq.h](machine/seq.md)
 - [Three ways to move a pitch: yin.h, psola.h, pvoc.h](machine/pitch.md)
 - [The nearest allowed note: tune.h](machine/tune.md)
+- [The clipper in the loop: overdrive.h](machine/overdrive.md)

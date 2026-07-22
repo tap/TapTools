@@ -34,18 +34,20 @@ Plus, all Max-free:
 - **`tools/render/`** — offline WAV renderers (`diode_render`, `tb303_render`, `ladder_render`, `vco_render`,
   `grm_comb_render`, `grm_pitchaccum_render`, `autowah_render`) for listening checks outside Max.
 - **`tools/capi/`** — a small C ABI (`taptools_capi`) over the kernels for non-C++ consumers:
-  `conv_engine`, `svf`, `ladder`, `diode`, `tb303`, `vco`, and `autowah`.
+  `conv_engine`, `svf`, `ladder`, `diode`, `tb303`, `vco`, `autowah`, and `overdrive`.
 - **`notebooks/`** — Jupyter verification notebooks driving the *actual shipping DSP* through the
   C ABI via ctypes (`taptools_py.py`): `convolution_reverb.ipynb`, `svf.ipynb`, `ladder.ipynb`,
-  `vco.ipynb`, `tb303.ipynb` (the tap.303/tap.diode verification + the phase-2 WDF go/no-go evidence), and `autowah_validation.ipynb` (the hardware-calibration harness for the Snow
+  `vco.ipynb`, `tb303.ipynb` (the tap.303/tap.diode verification + the phase-2 WDF go/no-go evidence), `overdrive.ipynb` (the feedback-loop tilt, asymmetry harmonics, alias floor, and
+  body voicing, measured), and `autowah_validation.ipynb` (the hardware-calibration harness for the Snow
   White model — its last section ingests reamped recordings of the real pedal).
 - **`bench/`** — CPU benchmarks and the per-machine regression ratchet (see `bench/README.md`).
 - **`book/`** — *Tools on Tap*, the mdBook field guide (the AmbiTap/SampleRateTap/MuTap book
   pattern): one chapter per object family, every claim measured by the notebooks/tests. Built
-  and published to Pages by `.github/workflows/docs.yml`. Ten user-facing chapters across four
+  and published to Pages by `.github/workflows/docs.yml`. Fourteen user-facing chapters across seven
   parts — sources (`vco`), filters (`svf`, `ladder`, `autowah`), strings/rooms/spirals
-  (`convolve`, `5comb`, `pitchaccum`), the spectral set (`vocoder`, `nr`, `spectra`) — plus
-  **Part V, "The machine, file by file"**: one deep-dive appendix per kernel header
+  (`convolve`, `5comb`, `pitchaccum`), the spectral set (`vocoder`, `nr`, `spectra`), the rhythm
+  section (`acid`, `drums`), staying in tune (`tune`), the pedalboard (`overdrive`) — plus
+  **"The machine, file by file"**: one deep-dive appendix per kernel header
   (SampleRateTap-style) deriving the math, reviewing the code, and recording why each
   algorithm is built the way it is.
 

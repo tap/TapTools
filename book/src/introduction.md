@@ -35,10 +35,15 @@ The book is organized the way a patch is:
   its diode-ladder filter, and its sequencer (`tap.303~`, `tap.diode~`,
   `tap.303.seq~`), and the eight TR-808 voice channels with their row
   sequencer (`tap.808.*`, `tap.808.seq~`).
-- **Part VI — The machine, file by file**: the SampleRateTap-style deep dives —
+- **Part VI — Staying in tune**: the pitch corrector (`tap.tune~`) and the
+  detection/resynthesis machinery it stands on.
+- **Part VII — The pedalboard**: the stompbox recreations — the voiced feedback
+  overdrive (`tap.overdrive~`), chasing the TS-lineage feedback pedals rather
+  than a waveshaping curve.
+- **Part VIII — The machine, file by file**: the SampleRateTap-style deep dives —
   one chapter per kernel header, deriving the math, reviewing the code, and
   recording *why* each algorithm is written the way it is, alternatives and
-  all. Parts I–IV are for driving the objects; Part V is for trusting them —
+  all. Parts I–VII are for driving the objects; Part VIII is for trusting them —
   or changing them.
 
 More chapters land as objects mature; the utility and Jitter objects live in

@@ -6,8 +6,8 @@
 ///        functions return 0 on success and -1 on any error (bad argument, unconfigured engine).
 ///        No global state. Exposes tap.convolve~'s conv_engine (uniformly-partitioned overlap-save
 ///        convolution) plus the parameter-indexed kernels behind tap.svf~, tap.ladder~, tap.vco~,
-///        and tap.autowah~ (param indices and mode/solver/waveform constants match the enums in
-///        each kernel header; ..._set() takes the kernel's param_index).
+///        tap.autowah~, and tap.overdrive~ (param indices and mode/solver/waveform constants match
+///        the enums in each kernel header; ..._set() takes the kernel's param_index).
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright 2003-2026 Timothy Place.
 
@@ -262,6 +262,19 @@ TAPTOOLS_API int          taptools_yin_frame_size(taptools_yin h);
 /// Analyze every `hop` samples across x; writes up to max_out fractional periods in samples
 /// (0 where unvoiced). Returns the number written, or -1 on error.
 TAPTOOLS_API int taptools_yin_track(taptools_yin h, const double* x, int n, int hop, double* periods, int max_out);
+
+// ---- tap.overdrive~ (tap::tools::od::overdrive, mono) --------------------------------------------
+
+typedef void* taptools_od;
+
+TAPTOOLS_API taptools_od taptools_od_create(void);
+TAPTOOLS_API void        taptools_od_destroy(taptools_od h);
+TAPTOOLS_API int         taptools_od_prepare(taptools_od h, double sr);
+TAPTOOLS_API int         taptools_od_set(taptools_od h, int param, double value); // od::param_index
+TAPTOOLS_API int         taptools_od_set_oversample(taptools_od h, int os);       // 1, 2, 4, or 8
+TAPTOOLS_API int         taptools_od_set_smooth_ms(taptools_od h, double ms);
+TAPTOOLS_API int         taptools_od_clear(taptools_od h);
+TAPTOOLS_API int         taptools_od_process(taptools_od h, const double* in, double* out, int n);
 
 #ifdef __cplusplus
 }
