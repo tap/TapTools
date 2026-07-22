@@ -15,8 +15,13 @@
 ///             input, so they sum coherently — the property that carries a delay-line shifter most
 ///             of the way to pitch-synchronous (PSOLA) quality. On unpitched input the correction
 ///             relaxes to zero and the tap pair imposes a mild moving comb coloration — the known
-///             trade of this engine class; a pitch-synchronous backend behind this same interface
-///             is the planned upgrade.
+///             trade of this engine class.
+///
+///             Resynthesis is backend-selectable behind one interface (see `enum backend`): the
+///             two-tap grain engine above (the validated low-latency default), true TD-PSOLA
+///             (tap::dsp::psola — formant-preserving on voice), and a peak-locked phase vocoder
+///             (tap::dsp::pvoc — one-frame latency, strongest on dense material). The detector,
+///             mapper, and retune glide are shared; only the last stage swaps.
 ///
 ///             Two target modes: `scale` snaps to a key + 12-bit scale mask (per-note enables,
 ///             editable individually), `midi` snaps to the nearest currently-held MIDI note and
@@ -38,6 +43,8 @@
 #include <optional>
 #include <vector>
 
+#include "tap/dsp/psola.h"
+#include "tap/dsp/pvoc.h"
 #include "tap/dsp/yin.h"
 
 namespace tap::tools {
@@ -88,6 +95,18 @@ namespace tap::tools {
             midi       // snap to the nearest held MIDI note; none held = no correction
         };
 
+        /// Resynthesis backend. All three sit behind the same detector and mapper;
+        /// they trade differently:
+        ///   - grain: the two-tap tap.shift~ engine, window locked to an even
+        ///     multiple of the detected period. Waveform-preserving, lowest latency
+        ///     (a few ms), the validated default.
+        ///   - psola: TD-PSOLA (tap::dsp::psola). Formant-preserving on voice-like
+        ///     material (it resamples the spectral envelope — pure tones far from a
+        ///     new harmonic thin out); latency ~2x the deepest detectable period.
+        ///   - pvoc: phase vocoder (tap::dsp::pvoc), peak-locked. Waveform-class
+        ///     quality on dense/polyphonic-ish material; latency of one FFT frame.
+        enum class backend : int { grain = 0, psola, pvoc };
+
         /// The full monophonic corrector: detector -> mapper -> transposer.
         class corrector {
           public:
@@ -101,6 +120,14 @@ namespace tap::tools {
                 const size_t tau_max = static_cast<size_t>(std::ceil(m_sr / k_floor_freq_hz));
                 m_detector.emplace(tau_max, tau_min, tau_max); // window = tau_max, the paper's W
                 m_detector->set_threshold(m_threshold);
+
+                // alternate resynthesis backends (the grain engine shares the buffers below)
+                m_psola.emplace(tau_max); // sized to the deepest detectable period
+                size_t fft = 64;
+                while (fft < static_cast<size_t>(std::ceil(1024.0 * m_sr / 48000.0))) {
+                    fft *= 2; // ~21 ms frame at any rate
+                }
+                m_pvoc.emplace(fft);
 
                 m_frame.assign(m_detector->frame_size(), 0.0);
                 m_ring.assign(m_detector->frame_size(), 0.0);
@@ -116,6 +143,7 @@ namespace tap::tools {
 
                 m_window_samples = m_window_target = k_default_window_ms * 0.001 * m_sr;
                 m_window_coeff                     = 1.0 - std::exp(-1.0 / (k_window_slew_ms * 0.001 * m_sr));
+                m_period_samples = m_period_target = m_sr / 220.0; // neutral until detection lands
 
                 m_applied_st  = 0.0;
                 m_target_st   = 0.0;
@@ -140,6 +168,9 @@ namespace tap::tools {
                 m_target_midi = -1.0;
                 if (prepared()) {
                     m_window_samples = m_window_target = k_default_window_ms * 0.001 * m_sr;
+                    m_period_samples = m_period_target = m_sr / 220.0;
+                    m_psola->clear();
+                    m_pvoc->clear();
                 }
             }
 
@@ -174,6 +205,29 @@ namespace tap::tools {
             }
 
             void set_mode(mode m) { m_mode = m; }
+
+            /// Select the resynthesis backend. The incoming backend's running state
+            /// is cleared so it starts from silence — expect a brief fade-in, not a
+            /// splice of stale audio. Allocation-free (backends exist from prepare()).
+            void set_backend(backend b) {
+                if (b == m_backend) {
+                    return;
+                }
+                m_backend = b;
+                if (!prepared()) {
+                    return;
+                }
+                if (b == backend::psola) {
+                    m_psola->clear();
+                }
+                else if (b == backend::pvoc) {
+                    m_pvoc->clear();
+                }
+                else {
+                    std::fill(m_buffer.begin(), m_buffer.end(), 0.0);
+                    m_phase = 0.0;
+                }
+            }
 
             /// Retune speed: the exponential time constant (ms) of the glide onto the target.
             /// 0 snaps instantly — the hard quantize effect.
@@ -218,6 +272,7 @@ namespace tap::tools {
             unsigned scale() const { return m_scale; }
             unsigned notes() const { return m_notes; }
             mode     target_mode() const { return m_mode; }
+            backend  resynth_backend() const { return m_backend; }
             double   speed() const { return m_speed_ms; }
             double   amount() const { return m_amount * 100.0; }
             double   threshold() const { return m_threshold; }
@@ -257,6 +312,15 @@ namespace tap::tools {
                     m_applied_st += (m_target_st - m_applied_st) * a;
                 }
                 m_window_samples += (m_window_target - m_window_samples) * m_window_coeff;
+                m_period_samples += (m_period_target - m_period_samples) * m_window_coeff;
+
+                const double ratio = std::exp2(m_applied_st / 12.0);
+                if (m_backend == backend::psola) {
+                    return m_psola->process(in, m_period_samples, ratio);
+                }
+                if (m_backend == backend::pvoc) {
+                    return m_pvoc->process(in, ratio);
+                }
 
                 // two-tap transposer, window locked to the detected period (tap.shift~ engine)
                 m_buffer[m_write] = in;
@@ -277,7 +341,6 @@ namespace tap::tools {
                     y += eb * read_hermite(k_base_delay + m_window_samples * ph_b);
                 }
 
-                const double ratio = std::exp2(m_applied_st / 12.0);
                 m_phase += -(ratio - 1.0) / m_window_samples;
                 m_phase -= std::floor(m_phase);
 
@@ -335,6 +398,7 @@ namespace tap::tools {
                 // an integer number of periods apart — the coherence that makes the average ratio exact.
                 // Clamping to a fixed ms instead measurably biases the pitch (~5 cents at 452 Hz).
                 const double period_samples = m_sr / hz;
+                m_period_target             = period_samples; // for the psola backend
                 const double two_periods    = k_window_periods * period_samples;
                 const double min_w          = k_min_window_ms * 0.001 * m_sr;
                 const double max_w          = k_max_window_ms * 0.001 * m_sr;
@@ -420,13 +484,16 @@ namespace tap::tools {
             double   m_threshold{tap::dsp::yin::k_default_threshold};
 
             // detection
-            std::optional<tap::dsp::yin> m_detector;
-            std::vector<double>          m_ring;
-            std::vector<double>          m_frame;
-            size_t                       m_ring_write{0};
-            int                          m_hop{256};
-            int                          m_hop_count{0};
-            std::array<bool, 128>        m_held{};
+            std::optional<tap::dsp::yin>   m_detector;
+            std::optional<tap::dsp::psola> m_psola;
+            std::optional<tap::dsp::pvoc>  m_pvoc;
+            backend                        m_backend{backend::grain};
+            std::vector<double>            m_ring;
+            std::vector<double>            m_frame;
+            size_t                         m_ring_write{0};
+            int                            m_hop{256};
+            int                            m_hop_count{0};
+            std::array<bool, 128>          m_held{};
 
             // correction state
             double m_detected_hz{0.0};
@@ -441,6 +508,8 @@ namespace tap::tools {
             double              m_window_samples{0.0};
             double              m_window_target{0.0};
             double              m_window_coeff{0.0};
+            double              m_period_samples{218.0};
+            double              m_period_target{218.0};
         };
 
     } // namespace tune
