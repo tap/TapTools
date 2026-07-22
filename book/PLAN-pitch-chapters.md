@@ -1,5 +1,8 @@
 # Plan — the pitch-correction chapters
 
+> **Status: drafted.** All three chapters are written and live in `src/` per the placement
+> below (2026-07-22). This file remains as the drafting record, the plans-directory way.
+
 Planning document for the *Tools on Tap* chapters covering the 2026-07 pitch-correction work
 (`tap.tune~`, `taptools/tune.h`, and the DspTap primitives `yin.h` / `psola.h` / `pvoc.h`).
 Three chapters: one user-facing, two machine appendices. This file is the outline to draft

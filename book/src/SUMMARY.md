@@ -29,7 +29,11 @@
 - [The acid machine](acid.md)
 - [The drum machine](drums.md)
 
-# Part VI — The machine, file by file
+# Part VI — Staying in tune
+
+- [The note you meant](tune.md)
+
+# Part VII — The machine, file by file
 
 - [Solving the filter on paper: svf.h](machine/svf.md)
 - [The nonlinear loop: ladder.h](machine/ladder.md)
@@ -44,3 +48,5 @@
 - [The couplings are the instrument: tb303_voice.h](machine/tb303.md)
 - [One network, eight voices: the tr808 headers](machine/tr808.md)
 - [Time as a function of phase: step_seq.h](machine/seq.md)
+- [Three ways to move a pitch: yin.h, psola.h, pvoc.h](machine/pitch.md)
+- [The nearest allowed note: tune.h](machine/tune.md)
