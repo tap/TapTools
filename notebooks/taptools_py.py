@@ -196,6 +196,11 @@ def load() -> ctypes.CDLL:
         "taptools_tune_set_range":         ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
         "taptools_tune_set_threshold":     ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_tune_set_formant":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_set_autokey":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_autokey_reset":     ([vp], ctypes.c_int),
+        "taptools_tune_autokey_estimate":  ([vp, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
+                                             ctypes.POINTER(ctypes.c_double)], ctypes.c_int),
+        "taptools_tune_autokey_apply":     ([vp], ctypes.c_int),
         "taptools_tune_note_on":           ([vp, ctypes.c_int], ctypes.c_int),
         "taptools_tune_note_off":          ([vp, ctypes.c_int], ctypes.c_int),
         "taptools_tune_notes_off":         ([vp], ctypes.c_int),
@@ -739,6 +744,21 @@ class Tune:
         if formant is not None:
             _check(_LIB.taptools_tune_set_formant(self._h, int(bool(formant))), "formant")
         return self
+
+    def set_autokey(self, on: bool) -> None:
+        _check(_LIB.taptools_tune_set_autokey(self._h, int(bool(on))), "autokey")
+
+    def autokey_estimate(self) -> tuple[int, bool, float]:
+        """(key 0-11 or -1, minor, confidence) from the Krumhansl-Kessler scorer."""
+        key = ctypes.c_int()
+        minor = ctypes.c_int()
+        conf = ctypes.c_double()
+        _check(_LIB.taptools_tune_autokey_estimate(self._h, ctypes.byref(key), ctypes.byref(minor),
+                                                   ctypes.byref(conf)), "autokey_estimate")
+        return key.value, bool(minor.value), conf.value
+
+    def autokey_apply(self) -> bool:
+        return _LIB.taptools_tune_autokey_apply(self._h) == 1
 
     def note_on(self, note: int) -> None:
         _check(_LIB.taptools_tune_note_on(self._h, int(note)), "note_on")

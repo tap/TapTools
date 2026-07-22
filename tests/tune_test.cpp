@@ -231,6 +231,73 @@ SCENARIO("every resynthesis backend snaps a sharp note onto the target") {
     }
 }
 
+namespace {
+
+    /// Play a melody of MIDI notes as 150 ms sawtooth segments through the corrector.
+    void play_melody(tap::tools::tune::corrector& c, std::initializer_list<int> notes) {
+        const int seg = static_cast<int>(0.15 * k_sr);
+        for (const int note : notes) {
+            const double freq = 440.0 * std::exp2((note - 69) / 12.0);
+            for (int t = 0; t < seg; ++t) {
+                double x = 0.0;
+                for (int h = 1; h <= 8; ++h) {
+                    x += std::sin(2.0 * k_pi * freq * h * t / k_sr) / h;
+                }
+                c.process(x * 0.5);
+            }
+        }
+    }
+
+} // namespace
+
+SCENARIO("auto-key detection learns the key from a melody") {
+    tap::tools::tune::corrector c;
+    c.prepare(k_sr);
+    c.set_autokey(true);
+
+    WHEN("nothing has been heard yet") {
+        THEN("no estimate is offered") {
+            REQUIRE_FALSE(c.autokey_estimate().valid());
+        }
+    }
+
+    WHEN("a D major scale is played, tonic emphasized") {
+        play_melody(c, {62, 64, 66, 67, 69, 71, 73, 74, 62, 69, 62});
+
+        const auto e = c.autokey_estimate();
+        THEN("the estimate is D major with healthy confidence") {
+            REQUIRE(e.valid());
+            REQUIRE(e.key == 2);
+            REQUIRE_FALSE(e.minor);
+            REQUIRE(e.confidence > 0.5);
+        }
+        THEN("applying it sets the corrector's key and scale") {
+            REQUIRE(c.autokey_apply());
+            REQUIRE(c.key() == 2);
+            REQUIRE(c.scale() == tap::tools::tune::k_scale_major);
+        }
+    }
+
+    WHEN("an A harmonic-minor melody is played, tonic emphasized") {
+        play_melody(c, {57, 59, 60, 62, 64, 65, 68, 69, 57, 64, 57});
+
+        const auto e = c.autokey_estimate();
+        THEN("the estimate is A minor") {
+            REQUIRE(e.valid());
+            REQUIRE(e.key == 9);
+            REQUIRE(e.minor);
+        }
+    }
+
+    WHEN("the learner is reset") {
+        play_melody(c, {62, 64, 66});
+        c.autokey_reset();
+        THEN("the estimate is withdrawn") {
+            REQUIRE_FALSE(c.autokey_estimate().valid());
+        }
+    }
+}
+
 SCENARIO("formant preservation on the pvoc backend still lands the correction") {
     using tap::tools::tune::backend;
 

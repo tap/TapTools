@@ -25,7 +25,11 @@
 ///
 ///             Two target modes: `scale` snaps to a key + 12-bit scale mask (per-note enables,
 ///             editable individually), `midi` snaps to the nearest currently-held MIDI note and
-///             leaves the signal untouched when none are held. Detection runs every ~5 ms on a
+///             leaves the signal untouched when none are held. An optional auto-key learner
+///             (set_autokey) folds every voiced analysis into a slowly-forgetting pitch-class
+///             histogram scored against the published Krumhansl-Kessler profiles; it never acts
+///             on its own — autokey_apply() adopts the estimate as key + scale when asked.
+///             Detection runs every ~5 ms on a
 ///             worst-case lag range fixed at prepare(); the user frequency range only filters
 ///             results, so every setter is allocation-free and safe while audio runs. Double
 ///             precision throughout; C++ stdlib + DspTap only.
@@ -89,10 +93,31 @@ namespace tap::tools {
         constexpr unsigned k_scale_major_pentatonic = make_mask({0, 2, 4, 7, 9});
         constexpr unsigned k_scale_minor_pentatonic = make_mask({0, 3, 5, 7, 10});
 
+        // auto-key detection
+        constexpr double k_autokey_memory_s = 60.0;  // histogram forgetting time constant
+        constexpr double k_autokey_min_mass = 100.0; // voiced analyses (~0.5 s) before an estimate is offered
+
+        // Krumhansl-Kessler key profiles (Krumhansl, "Cognitive Foundations of Musical Pitch",
+        // 1990) — the standard published weights for pitch-class-histogram key finding.
+        constexpr std::array<double, 12> k_key_profile_major = {6.35, 2.23, 3.48, 2.33, 4.38, 4.09,
+                                                                2.52, 5.19, 2.39, 3.66, 2.29, 2.88};
+        constexpr std::array<double, 12> k_key_profile_minor = {6.33, 2.68, 3.52, 5.38, 2.60, 3.53,
+                                                                2.54, 4.75, 3.98, 2.69, 3.34, 3.17};
+
         /// Target-selection mode.
         enum class mode : int {
             scale = 0, // snap to the key/scale note mask
             midi       // snap to the nearest held MIDI note; none held = no correction
+        };
+
+        /// An auto-key estimate: key is a pitch class (0 = C .. 11 = B), or -1 while there is not
+        /// yet enough voiced material; confidence is the winning profile correlation, 0..1-ish.
+        struct key_estimate {
+            int    key;
+            bool   minor;
+            double confidence;
+
+            bool valid() const { return key >= 0; }
         };
 
         /// Resynthesis backend. All three sit behind the same detector and mapper;
@@ -134,8 +159,9 @@ namespace tap::tools {
                 m_ring.assign(m_detector->frame_size(), 0.0);
                 m_ring_write = 0;
 
-                m_hop       = std::max(64, static_cast<int>(std::lround(k_hop_seconds * m_sr)));
-                m_hop_count = 0;
+                m_hop          = std::max(64, static_cast<int>(std::lround(k_hop_seconds * m_sr)));
+                m_hop_count    = 0;
+                m_autokey_leak = std::exp(-(static_cast<double>(m_hop) / m_sr) / k_autokey_memory_s);
 
                 const size_t n = static_cast<size_t>(std::ceil(k_max_window_ms * 0.001 * m_sr + k_base_delay)) + 16;
                 m_buffer.assign(n, 0.0);
@@ -206,6 +232,61 @@ namespace tap::tools {
             }
 
             void set_mode(mode m) { m_mode = m; }
+
+            // -- auto-key detection ----------------------------------------------------------------------
+
+            /// Enable the key learner: every voiced analysis adds its pitch class to a slowly
+            /// forgetting histogram (~60 s memory), scored on demand against the published
+            /// Krumhansl-Kessler major/minor profiles. Learning only — nothing is applied until
+            /// autokey_apply(). Turning it on from off starts a fresh histogram.
+            void set_autokey(bool on) {
+                if (on && !m_autokey) {
+                    autokey_reset();
+                }
+                m_autokey = on;
+            }
+
+            bool autokey() const { return m_autokey; }
+
+            /// Forget everything learned so far.
+            void autokey_reset() { m_pc_hist.fill(0.0); }
+
+            /// Best of the 24 keys by Pearson correlation between the histogram and the rotated
+            /// profile; invalid until ~half a second of voiced material has been heard.
+            key_estimate autokey_estimate() const {
+                double mass = 0.0;
+                for (const double v : m_pc_hist) {
+                    mass += v;
+                }
+                if (mass < k_autokey_min_mass) {
+                    return {-1, false, 0.0};
+                }
+
+                key_estimate best{-1, false, -2.0};
+                for (int minor = 0; minor < 2; ++minor) {
+                    const auto& profile = (minor != 0) ? k_key_profile_minor : k_key_profile_major;
+                    for (int key = 0; key < 12; ++key) {
+                        const double r = correlate(profile, key);
+                        if (r > best.confidence) {
+                            best = {key, minor != 0, r};
+                        }
+                    }
+                }
+                best.confidence = std::clamp(best.confidence, 0.0, 1.0);
+                return best;
+            }
+
+            /// Apply the current estimate as key + scale (major or natural minor). Returns whether
+            /// an estimate was available to apply.
+            bool autokey_apply() {
+                const key_estimate e = autokey_estimate();
+                if (!e.valid()) {
+                    return false;
+                }
+                set_key(e.key);
+                set_scale(e.minor ? k_scale_minor : k_scale_major);
+                return true;
+            }
 
             /// LPC formant preservation on the pvoc backend (see tap::dsp::basic_pvoc):
             /// the correction shifts the excitation while the spectral envelope stays.
@@ -392,6 +473,16 @@ namespace tap::tools {
                 }
                 m_detected_hz = hz;
 
+                if (m_autokey) {
+                    for (double& v : m_pc_hist) {
+                        v *= m_autokey_leak;
+                    }
+                    if (hz > 0.0) {
+                        const long note = std::lround(69.0 + 12.0 * std::log2(hz / 440.0));
+                        m_pc_hist[static_cast<size_t>(((note % 12) + 12) % 12)] += 1.0;
+                    }
+                }
+
                 if (hz <= 0.0) {
                     m_target_st   = 0.0; // unpitched: relax toward no correction, hold the window
                     m_target_midi = -1.0;
@@ -457,6 +548,32 @@ namespace tap::tools {
                 return best;
             }
 
+            /// Pearson correlation between the pitch-class histogram and a key profile rotated to
+            /// the candidate key: profile degree d scores histogram bin (key + d) mod 12.
+            double correlate(const std::array<double, 12>& profile, int key) const {
+                double hm = 0.0;
+                double pm = 0.0;
+                for (int d = 0; d < 12; ++d) {
+                    hm += m_pc_hist[static_cast<size_t>(d)];
+                    pm += profile[static_cast<size_t>(d)];
+                }
+                hm /= 12.0;
+                pm /= 12.0;
+
+                double num = 0.0;
+                double hd  = 0.0;
+                double pd  = 0.0;
+                for (int d = 0; d < 12; ++d) {
+                    const double h = m_pc_hist[static_cast<size_t>((key + d) % 12)] - hm;
+                    const double p = profile[static_cast<size_t>(d)] - pm;
+                    num += h * p;
+                    hd += h * h;
+                    pd += p * p;
+                }
+                const double denom = std::sqrt(hd * pd);
+                return (denom > 0.0) ? num / denom : 0.0;
+            }
+
             /// Grain envelope: sin^2 rise/fall over the half cycle — the two taps' envelopes sum to 1.
             static double envelope(double ph) {
                 const double s = std::sin(k_pi * ph);
@@ -503,6 +620,9 @@ namespace tap::tools {
             std::optional<tap::dsp::pvoc>  m_pvoc;
             backend                        m_backend{backend::grain};
             bool                           m_formant{false};
+            bool                           m_autokey{false};
+            double                         m_autokey_leak{1.0};
+            std::array<double, 12>         m_pc_hist{};
             std::vector<double>            m_ring;
             std::vector<double>            m_frame;
             size_t                         m_ring_write{0};
