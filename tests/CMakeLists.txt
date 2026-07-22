@@ -18,6 +18,7 @@ add_executable(taptools_kernel_tests
     nr_test.cpp
     spectra_test.cpp
     step_seq_test.cpp
+    tune_test.cpp
     tr808_clap_test.cpp
     tr808_cymbal_test.cpp
     tr808_hat_test.cpp
