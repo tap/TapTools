@@ -237,13 +237,20 @@ TAPTOOLS_API int           taptools_tune_set_amount(taptools_tune h, double pct)
 TAPTOOLS_API int           taptools_tune_set_range(taptools_tune h, double min_hz, double max_hz);
 TAPTOOLS_API int           taptools_tune_set_threshold(taptools_tune h, double t);
 TAPTOOLS_API int           taptools_tune_set_formant(taptools_tune h, int on);
-TAPTOOLS_API int           taptools_tune_note_on(taptools_tune h, int note);
-TAPTOOLS_API int           taptools_tune_note_off(taptools_tune h, int note);
-TAPTOOLS_API int           taptools_tune_notes_off(taptools_tune h);
-TAPTOOLS_API double        taptools_tune_detected_hz(taptools_tune h);
-TAPTOOLS_API double        taptools_tune_target_midi(taptools_tune h);
-TAPTOOLS_API double        taptools_tune_applied_semitones(taptools_tune h);
-TAPTOOLS_API int           taptools_tune_process(taptools_tune h, const double* in, double* out, int n);
+TAPTOOLS_API int           taptools_tune_set_autokey(taptools_tune h, int on);
+TAPTOOLS_API int           taptools_tune_autokey_reset(taptools_tune h);
+/// Current auto-key estimate: writes key (0-11, or -1 if none yet), minor (0/1), and the
+/// profile-correlation confidence. Returns 0, or -1 on a bad handle.
+TAPTOOLS_API int taptools_tune_autokey_estimate(taptools_tune h, int* key, int* minor, double* confidence);
+/// Adopt the current estimate as key + scale. Returns 1 if applied, 0 if no estimate yet, -1 on error.
+TAPTOOLS_API int    taptools_tune_autokey_apply(taptools_tune h);
+TAPTOOLS_API int    taptools_tune_note_on(taptools_tune h, int note);
+TAPTOOLS_API int    taptools_tune_note_off(taptools_tune h, int note);
+TAPTOOLS_API int    taptools_tune_notes_off(taptools_tune h);
+TAPTOOLS_API double taptools_tune_detected_hz(taptools_tune h);
+TAPTOOLS_API double taptools_tune_target_midi(taptools_tune h);
+TAPTOOLS_API double taptools_tune_applied_semitones(taptools_tune h);
+TAPTOOLS_API int    taptools_tune_process(taptools_tune h, const double* in, double* out, int n);
 
 // ---- pitch detector passthrough (tap::dsp::yin, for the notebooks' pitch tracking) ---------------
 

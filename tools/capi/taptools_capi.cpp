@@ -695,6 +695,32 @@ int taptools_tune_set_formant(taptools_tune h, int on) {
     return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_formant(on != 0); });
 }
 
+int taptools_tune_set_autokey(taptools_tune h, int on) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_autokey(on != 0); });
+}
+
+int taptools_tune_autokey_reset(taptools_tune h) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.autokey_reset(); });
+}
+
+int taptools_tune_autokey_estimate(taptools_tune h, int* key, int* minor, double* confidence) {
+    if (!h || !key || !minor || !confidence) {
+        return -1;
+    }
+    const auto e = static_cast<tune_corrector*>(h)->autokey_estimate();
+    *key         = e.key;
+    *minor       = e.minor ? 1 : 0;
+    *confidence  = e.confidence;
+    return 0;
+}
+
+int taptools_tune_autokey_apply(taptools_tune h) {
+    if (!h) {
+        return -1;
+    }
+    return static_cast<tune_corrector*>(h)->autokey_apply() ? 1 : 0;
+}
+
 int taptools_tune_note_on(taptools_tune h, int note) {
     return with<tune_corrector>(h, [&](tune_corrector& c) { c.note_on(note); });
 }
