@@ -182,3 +182,71 @@ SCENARIO("processing before prepare passes the input through") {
     REQUIRE(c.process(0.25) == 0.25);
     REQUIRE_FALSE(c.prepared());
 }
+
+namespace {
+
+    /// Band-limited sawtooth normalized to peak 1 — harmonic-rich material every
+    /// backend handles (PSOLA resamples the spectral envelope, so it needs
+    /// harmonics; see tap/dsp/psola.h).
+    std::vector<double> run_saw(tap::tools::tune::corrector& c, double freq, double seconds) {
+        const int           n = static_cast<int>(seconds * k_sr);
+        std::vector<double> wave(static_cast<size_t>(n), 0.0);
+        double              peak = 0.0;
+        for (int t = 0; t < n; ++t) {
+            for (int h = 1; h <= 12; ++h) {
+                wave[static_cast<size_t>(t)] += std::sin(2.0 * k_pi * freq * h * t / k_sr) / h;
+            }
+            peak = std::max(peak, std::abs(wave[static_cast<size_t>(t)]));
+        }
+        std::vector<double> out(static_cast<size_t>(n));
+        for (int t = 0; t < n; ++t) {
+            out[static_cast<size_t>(t)] = c.process(wave[static_cast<size_t>(t)] / peak);
+        }
+        return out;
+    }
+
+} // namespace
+
+SCENARIO("every resynthesis backend snaps a sharp note onto the target") {
+    using tap::tools::tune::backend;
+
+    for (const auto b : {backend::grain, backend::psola, backend::pvoc}) {
+        tap::tools::tune::corrector c;
+        c.prepare(k_sr);
+        c.set_speed(0.0);
+        c.set_backend(b);
+        REQUIRE(c.resynth_backend() == b);
+
+        // 226 Hz saw: 46.4 cents sharp of A3 (110 * 2 = 220). Voice-like input so
+        // the comparison is fair to all three engines.
+        const auto out = run_saw(c, 226.0, 1.5);
+        REQUIRE(std::abs(cents(measure_hz(out), 220.0)) < 6.0);
+
+        double peak = 0.0;
+        for (size_t i = out.size() - 4800; i < out.size(); ++i) {
+            peak = std::max(peak, std::abs(out[i]));
+        }
+        REQUIRE(peak > 0.4);
+        REQUIRE(peak < 2.0);
+    }
+}
+
+SCENARIO("switching backends while running stays finite and keeps correcting") {
+    using tap::tools::tune::backend;
+
+    tap::tools::tune::corrector c;
+    c.prepare(k_sr);
+    c.set_speed(0.0);
+
+    const backend sequence[] = {backend::grain, backend::pvoc, backend::psola, backend::grain};
+    int           seg        = 0;
+    for (const auto b : sequence) {
+        c.set_backend(b);
+        for (int t = seg * 12000; t < (seg + 1) * 12000; ++t) {
+            const double y = c.process(std::sin(2.0 * k_pi * 452.0 * t / k_sr));
+            REQUIRE(std::isfinite(y));
+        }
+        ++seg;
+    }
+    REQUIRE(std::abs(c.applied_semitones() - (-0.467)) < 0.03);
+}
