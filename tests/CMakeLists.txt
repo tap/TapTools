@@ -16,6 +16,7 @@ add_executable(taptools_kernel_tests
     diode_ladder_test.cpp
     grm_comb_test.cpp
     nr_test.cpp
+    overdrive_test.cpp
     spectra_test.cpp
     step_seq_test.cpp
     tune_test.cpp

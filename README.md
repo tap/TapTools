@@ -21,6 +21,7 @@ same either way.
 | `include/taptools/ladder.h` | `tap.ladder~` | ZDF Moog-style ladder (`tap::tools::ladder`) |
 | `include/taptools/svf.h` | `tap.svf~` | Simper/Cytomic morphing SVF (`tap::tools::svf`) |
 | `include/taptools/vco.h` | `tap.vco~` | Virtual-analog oscillator (`tap::tools::vco`) |
+| `include/taptools/overdrive.h` | `tap.overdrive~` | LGW-voiced feedback overdrive (`tap::tools::od`) |
 | `include/taptools/grm_comb.h` | `tap.5comb~` | GRM comb-bank recreation (`tap::tools::fivecomb`) |
 | `include/taptools/grm_pitchaccum.h` | `tap.pitchaccum~` | GRM PitchAccum recreation (`tap::tools::pitchaccum`) |
 | `include/taptools/conv_engine.h` | `tap.convolve~` | Partitioned (UPOLS) true-stereo convolution (`tap::tools::conv_engine`) |

@@ -16,6 +16,7 @@
 #include "ladder.h"
 #include "metal_bank.h"
 #include "nr.h"
+#include "overdrive.h"
 #include "spectra.h"
 #include "stft.h"
 #include "svf.h"
