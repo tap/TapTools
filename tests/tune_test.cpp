@@ -231,6 +231,20 @@ SCENARIO("every resynthesis backend snaps a sharp note onto the target") {
     }
 }
 
+SCENARIO("formant preservation on the pvoc backend still lands the correction") {
+    using tap::tools::tune::backend;
+
+    tap::tools::tune::corrector c;
+    c.set_formant(true); // set before prepare — must survive into the pvoc
+    c.prepare(k_sr);
+    c.set_speed(0.0);
+    c.set_backend(backend::pvoc);
+    REQUIRE(c.formant());
+
+    const auto out = run_saw(c, 226.0, 1.5);
+    REQUIRE(std::abs(cents(measure_hz(out), 220.0)) < 6.0);
+}
+
 SCENARIO("switching backends while running stays finite and keeps correcting") {
     using tap::tools::tune::backend;
 
