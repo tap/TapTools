@@ -219,6 +219,43 @@ TAPTOOLS_API int           taptools_kick_reset(taptools_kick h);
 /// fire the voice with the edge value as accent — exactly the tap.808.kick~ wrapper's edge logic.
 TAPTOOLS_API int taptools_kick_process(taptools_kick h, const double* trig, double* out, int n);
 
+// ---- tap.tune~ (tap::tools::tune::corrector) -----------------------------------------------------
+
+typedef void* taptools_tune;
+
+TAPTOOLS_API taptools_tune taptools_tune_create(void);
+TAPTOOLS_API void          taptools_tune_destroy(taptools_tune h);
+TAPTOOLS_API int           taptools_tune_prepare(taptools_tune h, double sr);
+TAPTOOLS_API int           taptools_tune_clear(taptools_tune h);
+TAPTOOLS_API int           taptools_tune_set_key(taptools_tune h, int pitch_class);
+TAPTOOLS_API int           taptools_tune_set_scale(taptools_tune h, unsigned mask); // relative to key
+TAPTOOLS_API int           taptools_tune_set_notes(taptools_tune h, unsigned absolute_mask);
+TAPTOOLS_API int           taptools_tune_set_mode(taptools_tune h, int mode);       // tune::mode
+TAPTOOLS_API int           taptools_tune_set_backend(taptools_tune h, int backend); // tune::backend
+TAPTOOLS_API int           taptools_tune_set_speed(taptools_tune h, double ms);
+TAPTOOLS_API int           taptools_tune_set_amount(taptools_tune h, double pct);
+TAPTOOLS_API int           taptools_tune_set_range(taptools_tune h, double min_hz, double max_hz);
+TAPTOOLS_API int           taptools_tune_set_threshold(taptools_tune h, double t);
+TAPTOOLS_API int           taptools_tune_set_formant(taptools_tune h, int on);
+TAPTOOLS_API int           taptools_tune_note_on(taptools_tune h, int note);
+TAPTOOLS_API int           taptools_tune_note_off(taptools_tune h, int note);
+TAPTOOLS_API int           taptools_tune_notes_off(taptools_tune h);
+TAPTOOLS_API double        taptools_tune_detected_hz(taptools_tune h);
+TAPTOOLS_API double        taptools_tune_target_midi(taptools_tune h);
+TAPTOOLS_API double        taptools_tune_applied_semitones(taptools_tune h);
+TAPTOOLS_API int           taptools_tune_process(taptools_tune h, const double* in, double* out, int n);
+
+// ---- pitch detector passthrough (tap::dsp::yin, for the notebooks' pitch tracking) ---------------
+
+typedef void* taptools_yin;
+
+TAPTOOLS_API taptools_yin taptools_yin_create(int window, int tau_min, int tau_max);
+TAPTOOLS_API void         taptools_yin_destroy(taptools_yin h);
+TAPTOOLS_API int          taptools_yin_frame_size(taptools_yin h);
+/// Analyze every `hop` samples across x; writes up to max_out fractional periods in samples
+/// (0 where unvoiced). Returns the number written, or -1 on error.
+TAPTOOLS_API int taptools_yin_track(taptools_yin h, const double* x, int n, int hop, double* periods, int max_out);
+
 #ifdef __cplusplus
 }
 #endif

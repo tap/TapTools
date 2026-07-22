@@ -13,8 +13,10 @@ Python re-implementation. Exposed kernels: tap.convolve~'s conv_engine
 (`Convolver`), tap.svf~ (`Svf`), tap.ladder~ (`Ladder`), tap.diode~
 (`Diode`), tap.303~ (`TB303`), tap.vco~ (`Vco`), tap.autowah~ (`Wah`), the
 step-sequencer rows behind tap.808.seq~ / tap.303.seq~ (`TriggerRow`,
-`NoteRow`), and tap.808.kick~ (`Kick`). Parameter names on the kernel
-classes mirror each kernel header's param_index enum.
+`NoteRow`), tap.808.kick~ (`Kick`), and tap.tune~'s pitch corrector
+(`Tune`, with the shared DspTap detector passed through as `Yin` for the
+notebooks' pitch tracking). Parameter names on the kernel classes mirror
+each kernel header's param_index enum.
 
 Copyright 2003-2026 Timothy Place. New BSD License.
 """
@@ -180,6 +182,32 @@ def load() -> ctypes.CDLL:
         "taptools_kick_trigger":    ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_kick_reset":      ([vp], ctypes.c_int),
         "taptools_kick_process":    ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_create":            ([], vp),
+        "taptools_tune_destroy":           ([vp], None),
+        "taptools_tune_prepare":           ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tune_clear":             ([vp], ctypes.c_int),
+        "taptools_tune_set_key":           ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_set_scale":         ([vp, ctypes.c_uint], ctypes.c_int),
+        "taptools_tune_set_notes":         ([vp, ctypes.c_uint], ctypes.c_int),
+        "taptools_tune_set_mode":          ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_set_backend":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_set_speed":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tune_set_amount":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tune_set_range":         ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_tune_set_threshold":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tune_set_formant":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_note_on":           ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_note_off":          ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tune_notes_off":         ([vp], ctypes.c_int),
+        "taptools_tune_detected_hz":       ([vp], ctypes.c_double),
+        "taptools_tune_target_midi":       ([vp], ctypes.c_double),
+        "taptools_tune_applied_semitones": ([vp], ctypes.c_double),
+        "taptools_tune_process":           ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
+        "taptools_yin_destroy":            ([vp], None),
+        "taptools_yin_frame_size":         ([vp], ctypes.c_int),
+        "taptools_yin_track":              ([vp, f64p, ctypes.c_int, ctypes.c_int, f64p, ctypes.c_int],
+                                            ctypes.c_int),
     }
     for name, (argtypes, restype) in sigs.items():
         fn = getattr(lib, name)
@@ -666,4 +694,101 @@ class Kick:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_kick_destroy(h)
+            self._h = None
+
+
+# scale masks and enums mirroring taptools/tune.h
+TUNE_SCALES = {
+    "chromatic": 0xFFF,
+    "major": sum(1 << d for d in (0, 2, 4, 5, 7, 9, 11)),
+    "minor": sum(1 << d for d in (0, 2, 3, 5, 7, 8, 10)),
+}
+TUNE_MODES = {"scale": 0, "midi": 1}
+TUNE_BACKENDS = {"grain": 0, "psola": 1, "pvoc": 2}
+
+
+class Tune:
+    """tap.tune~'s corrector (tap::tools::tune::corrector) — the full chain:
+    YIN detection, scale/MIDI target mapping, retune glide, and the selectable
+    resynthesis backend (grain / psola / pvoc)."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_tune_create()
+        _check(_LIB.taptools_tune_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, key=None, scale=None, notes=None, mode=None, backend=None, speed=None,
+            amount=None, threshold=None, formant=None) -> "Tune":
+        if key is not None:
+            _check(_LIB.taptools_tune_set_key(self._h, int(key)), "key")
+        if scale is not None:
+            mask = TUNE_SCALES[scale] if isinstance(scale, str) else int(scale)
+            _check(_LIB.taptools_tune_set_scale(self._h, mask), "scale")
+        if notes is not None:
+            _check(_LIB.taptools_tune_set_notes(self._h, int(notes)), "notes")
+        if mode is not None:
+            _check(_LIB.taptools_tune_set_mode(self._h, TUNE_MODES[mode]), "mode")
+        if backend is not None:
+            _check(_LIB.taptools_tune_set_backend(self._h, TUNE_BACKENDS[backend]), "backend")
+        if speed is not None:
+            _check(_LIB.taptools_tune_set_speed(self._h, float(speed)), "speed")
+        if amount is not None:
+            _check(_LIB.taptools_tune_set_amount(self._h, float(amount)), "amount")
+        if threshold is not None:
+            _check(_LIB.taptools_tune_set_threshold(self._h, float(threshold)), "threshold")
+        if formant is not None:
+            _check(_LIB.taptools_tune_set_formant(self._h, int(bool(formant))), "formant")
+        return self
+
+    def note_on(self, note: int) -> None:
+        _check(_LIB.taptools_tune_note_on(self._h, int(note)), "note_on")
+
+    def note_off(self, note: int) -> None:
+        _check(_LIB.taptools_tune_note_off(self._h, int(note)), "note_off")
+
+    @property
+    def detected_hz(self) -> float:
+        return _LIB.taptools_tune_detected_hz(self._h)
+
+    @property
+    def applied_semitones(self) -> float:
+        return _LIB.taptools_tune_applied_semitones(self._h)
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.empty_like(x)
+        _check(_LIB.taptools_tune_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_tune_destroy(h)
+            self._h = None
+
+
+class Yin:
+    """The shared DspTap pitch detector (tap::dsp::yin), passed through the C ABI
+    so the notebooks can track pitch with the same detector the corrector uses."""
+
+    def __init__(self, window: int = 873, tau_min: int = 24, tau_max: int = 873):
+        self._h = _LIB.taptools_yin_create(window, tau_min, tau_max)
+        if not self._h:
+            raise ValueError("bad yin geometry")
+
+    @property
+    def frame_size(self) -> int:
+        return _LIB.taptools_yin_frame_size(self._h)
+
+    def track(self, x, hop: int = 256) -> np.ndarray:
+        """Fractional periods in samples (0 = unvoiced) every `hop` samples."""
+        x = _f64(x)
+        out = np.zeros(x.size // hop + 1)
+        n = _LIB.taptools_yin_track(self._h, _p64(x), x.size, hop, _p64(out), out.size)
+        return out[:max(n, 0)]
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_yin_destroy(h)
             self._h = None

@@ -14,6 +14,7 @@
 #include <taptools/svf.h>
 #include <taptools/tb303_voice.h>
 #include <taptools/tr808_kick.h>
+#include <taptools/tune.h>
 #include <taptools/vco.h>
 
 using tap::tools::conv_engine;
@@ -631,6 +632,133 @@ int taptools_kick_process(taptools_kick h, const double* trig, double* out, int 
             out[i] = k.process();
         }
     });
+}
+
+// ---- tap.tune~ ---------------------------------------------------------------------------------
+
+using tune_corrector = tap::tools::tune::corrector;
+
+taptools_tune taptools_tune_create(void) {
+    return static_cast<taptools_tune>(new tune_corrector());
+}
+
+void taptools_tune_destroy(taptools_tune h) {
+    delete static_cast<tune_corrector*>(h);
+}
+
+int taptools_tune_prepare(taptools_tune h, double sr) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.prepare(sr); });
+}
+
+int taptools_tune_clear(taptools_tune h) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.clear(); });
+}
+
+int taptools_tune_set_key(taptools_tune h, int pitch_class) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_key(pitch_class); });
+}
+
+int taptools_tune_set_scale(taptools_tune h, unsigned mask) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_scale(mask); });
+}
+
+int taptools_tune_set_notes(taptools_tune h, unsigned absolute_mask) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_notes(absolute_mask); });
+}
+
+int taptools_tune_set_mode(taptools_tune h, int mode) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_mode(static_cast<tap::tools::tune::mode>(mode)); });
+}
+
+int taptools_tune_set_backend(taptools_tune h, int backend) {
+    return with<tune_corrector>(
+        h, [&](tune_corrector& c) { c.set_backend(static_cast<tap::tools::tune::backend>(backend)); });
+}
+
+int taptools_tune_set_speed(taptools_tune h, double ms) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_speed(ms); });
+}
+
+int taptools_tune_set_amount(taptools_tune h, double pct) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_amount(pct); });
+}
+
+int taptools_tune_set_range(taptools_tune h, double min_hz, double max_hz) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_range(min_hz, max_hz); });
+}
+
+int taptools_tune_set_threshold(taptools_tune h, double t) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_threshold(t); });
+}
+
+int taptools_tune_set_formant(taptools_tune h, int on) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.set_formant(on != 0); });
+}
+
+int taptools_tune_note_on(taptools_tune h, int note) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.note_on(note); });
+}
+
+int taptools_tune_note_off(taptools_tune h, int note) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.note_off(note); });
+}
+
+int taptools_tune_notes_off(taptools_tune h) {
+    return with<tune_corrector>(h, [&](tune_corrector& c) { c.notes_off(); });
+}
+
+double taptools_tune_detected_hz(taptools_tune h) {
+    return h ? static_cast<tune_corrector*>(h)->detected_hz() : -1.0;
+}
+
+double taptools_tune_target_midi(taptools_tune h) {
+    return h ? static_cast<tune_corrector*>(h)->target_midi() : -1.0;
+}
+
+double taptools_tune_applied_semitones(taptools_tune h) {
+    return h ? static_cast<tune_corrector*>(h)->applied_semitones() : 0.0;
+}
+
+int taptools_tune_process(taptools_tune h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<tune_corrector>(h, [&](tune_corrector& c) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = c.process(in[i]);
+        }
+    });
+}
+
+// ---- pitch detector passthrough ----------------------------------------------------------------
+
+taptools_yin taptools_yin_create(int window, int tau_min, int tau_max) {
+    if (tau_min < 2 || tau_min >= tau_max || window < tau_max) {
+        return nullptr;
+    }
+    return static_cast<taptools_yin>(
+        new tap::dsp::yin(static_cast<size_t>(window), static_cast<size_t>(tau_min), static_cast<size_t>(tau_max)));
+}
+
+void taptools_yin_destroy(taptools_yin h) {
+    delete static_cast<tap::dsp::yin*>(h);
+}
+
+int taptools_yin_frame_size(taptools_yin h) {
+    return h ? static_cast<int>(static_cast<tap::dsp::yin*>(h)->frame_size()) : -1;
+}
+
+int taptools_yin_track(taptools_yin h, const double* x, int n, int hop, double* periods, int max_out) {
+    if (!h || !x || !periods || hop < 1) {
+        return -1;
+    }
+    auto*     det   = static_cast<tap::dsp::yin*>(h);
+    const int frame = static_cast<int>(det->frame_size());
+    int       count = 0;
+    for (int start = 0; start + frame <= n && count < max_out; start += hop) {
+        periods[count++] = det->analyze(x + start).period;
+    }
+    return count;
 }
 
 } // extern "C"

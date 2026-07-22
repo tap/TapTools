@@ -128,6 +128,7 @@ namespace tap::tools {
                     fft *= 2; // ~21 ms frame at any rate
                 }
                 m_pvoc.emplace(fft);
+                m_pvoc->set_formant(m_formant);
 
                 m_frame.assign(m_detector->frame_size(), 0.0);
                 m_ring.assign(m_detector->frame_size(), 0.0);
@@ -205,6 +206,19 @@ namespace tap::tools {
             }
 
             void set_mode(mode m) { m_mode = m; }
+
+            /// LPC formant preservation on the pvoc backend (see tap::dsp::basic_pvoc):
+            /// the correction shifts the excitation while the spectral envelope stays.
+            /// The psola backend is inherently formant-preserving and the grain engine
+            /// waveform-preserving, so the flag only changes the pvoc path.
+            void set_formant(bool on) {
+                m_formant = on;
+                if (prepared()) {
+                    m_pvoc->set_formant(on);
+                }
+            }
+
+            bool formant() const { return m_formant; }
 
             /// Select the resynthesis backend. The incoming backend's running state
             /// is cleared so it starts from silence — expect a brief fade-in, not a
@@ -488,6 +502,7 @@ namespace tap::tools {
             std::optional<tap::dsp::psola> m_psola;
             std::optional<tap::dsp::pvoc>  m_pvoc;
             backend                        m_backend{backend::grain};
+            bool                           m_formant{false};
             std::vector<double>            m_ring;
             std::vector<double>            m_frame;
             size_t                         m_ring_write{0};
