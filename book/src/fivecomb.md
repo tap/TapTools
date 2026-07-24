@@ -30,6 +30,15 @@ recreated rather than ported:
   precise feedback cap, not a hard limiter — high resonance rings clean
   instead of distorting.
 
+![Signal-flow diagram of one comb voice: input sums with feedback into a
+fractional delay line, read by Hermite interpolation, with the feedback ring
+running through the loop lowpass, normalized DC blocker, warp allpass, and
+ring-time-derived feedback gain; a pickup tap at half the loop feeds the
+output subtractor](images/comb/block-diagram.svg)
+
+*One voice of five. The red ring is the string; the amber tap is the pluck
+position.*
+
 ## The knobs, one by one
 
 ### `freq1..5` and `freq` — the tuning
