@@ -15,7 +15,9 @@ the shaper sits inside a lowpass feedback loop: distortion with a memory.
 Companion material: the reference page and help patcher in the TapTools-Max
 package, and the [verification notebook](https://github.com/tap/TapTools/blob/main/notebooks/overdrive.ipynb),
 where every number below is an executed, plotted measurement of the shipping
-kernel.
+kernel. The figures in this chapter are measurements too — regenerated from the
+same kernel through the C ABI by `book/figures/overdrive.py`, never drawn by
+hand.
 
 ## What the loop buys
 
@@ -25,7 +27,14 @@ drive**. Measured between 80 Hz and 4 kHz, the tilt is +5 dB at `drive 0`
 (just the voicing EQ), +16.3 dB at `drive 0.5`, +17.2 dB at `drive 0.9`. Low
 frequencies are pinned near-clean by the feedback while mids and highs take
 the full drive gain — so a low E stays articulate under the same setting that
-saturates the pick attack. That is the Tube Screamer "tightness" in one plot.
+saturates the pick attack. That is the Tube Screamer "tightness" in one plot:
+
+![Small-signal gain versus frequency at drive 0, 0.5, and 0.9: the curves tilt
+progressively steeper as drive rises, with bass pinned and mids
+lifting](images/overdrive/tilt.svg)
+
+*The measured headline. A memoryless shaper's version of this figure is three
+horizontal lines.*
 
 The second structural trait: the transfer **never flattens**. A unity clean
 path is summed around the clipper — the non-inverting op-amp topology — so
@@ -33,6 +42,12 @@ however hard the shaped part saturates, output keeps rising with input
 (measured strictly monotonic at every drive setting). The old sine-shaper
 mode's hard ±1 plateau, a large part of what read as "digital," is gone by
 construction.
+
+![Output peak versus input peak at three drive settings: every curve keeps
+rising with reduced slope, none goes flat](images/overdrive/transfer.svg)
+
+*Compression without a ceiling: the slope falls as drive rises, but never to
+zero.*
 
 ## The knobs, one by one
 
@@ -58,6 +73,13 @@ treble lift is +2.5 dB at 8 kHz. The exact centers and gains are by-ear
 placeholders pending the in-Max voicing pass against LGW demos — the shape of
 the control is final, the seasoning isn't.
 
+![Small-signal response at body −1, 0, and +1: fuller lows and a top lift
+counterclockwise, thinner lows and an upper-mid push
+clockwise](images/overdrive/body.svg)
+
+*The knob's whole range. Note the crossover around 500 Hz: `body` trades lows
+against upper mids around a stable center, like the pedal.*
+
 ### `asymmetry` — the even harmonics the old object couldn't make
 
 Both Jamoma modes were odd functions: odd harmonics only, the entire "warmth"
@@ -69,6 +91,13 @@ clipping generates DC, so a DC blocker sits permanently after the clipper —
 measured output mean under full drive, full asymmetry: 10⁻¹⁰. (The original
 TTOverdrive contained a DC blocker whose output was computed and then
 discarded; this one is load-bearing.)
+
+![Harmonic spectra of a 220.5 Hz tone at asymmetry 0 and 0.6: the left panel
+shows odd harmonics only, the right adds the full even
+series](images/overdrive/harmonics.svg)
+
+*The same tone, the same drive — the only change is `asymmetry`, and the even
+series (H2, H4, …) appears between the odd lines.*
 
 ### `oversample` — 1, 2, 4, or 8; default 4
 

@@ -32,6 +32,15 @@ w = shape( G·x − g_fb·LP(w) )      the clipper inside a lowpass feedback loo
 y = x + w                          the unity clean path (non-inverting topology)
 ```
 
+![Signal-flow diagram: preamp and body pre-EQ into the oversampled region,
+where the gained signal meets a summing node, the shaper, and a lowpass
+feedback path; a unity clean path bypasses the shaper; DC block and body
+post-EQ follow at base rate](../images/overdrive/block-diagram.svg)
+
+*The whole kernel on one line. The red loop is the frequency-dependent gain;
+the amber path is why the transfer never flattens; everything inside the
+dashed region runs at the oversampled rate.*
+
 `G` is the drive gain (a dB sweep, +6 to +46). The lowpass `LP` (one-pole,
 corner 660 Hz) makes the fed-back signal predominantly low-frequency, so the
 negative feedback suppresses gain exactly where the pedal does. In the linear
@@ -106,6 +115,14 @@ Three candidates from the brief, in the order they were rejected:
   every SIMD ISA this kernel targets, and reduces to a small LUT for a
   future fixed-point port.
 
+![The three candidate curves overlaid: the hard clip's corners, tanh's tighter
+knee, and the chosen rational curve's gentler, seam-free
+approach](../images/overdrive/shape.svg)
+
+*The chosen curve reaches its asymptote more slowly than tanh — softer knee,
+lower-order harmonics — and unlike the hard clip it has no corner for the
+spectrum to pay for.*
+
 Asymmetry — the even-harmonic control the odd-only Jamoma curves structurally
 lacked — is a bias *inside* the shaper, output-corrected so silence stays
 silence: `w = shape(u + b) − shape(b)` with `b = 0.5·asymmetry`. At
@@ -137,6 +154,15 @@ in-band harmonics stay within measurement error. ADAA remains the flagged
 experiment for after the voicing locks, so the comparison is apples to
 apples.
 
+![Output spectra of a 5001 Hz tone at drive 0.9, 1x overlaid on 4x: the 1x
+trace shows alias peaks standing tens of dB above the 4x
+floor](../images/overdrive/alias.svg)
+
+*Every red peak standing above the blue mass is inharmonic fold-back the
+default 4× removes; the true harmonics (multiples of 5001 Hz) coincide in
+both traces. The dashed line marks the folded seventh harmonic the kernel
+suite pins.*
+
 ## The voicing layer, honestly labeled
 
 Everything above is structure; the *sound* of the body control is a handful
@@ -166,5 +192,7 @@ the same two-tier scheme as `svf.h`.
 Everything in this chapter is executable: the loop math and stability claims
 are pinned by `tests/overdrive_test.cpp` (silence decay, tilt-grows-with-
 drive, even-harmonic emergence, DC blocking, alias improvement, determinism),
-and every number is a cell in
-[the verification notebook](https://github.com/tap/TapTools/blob/main/notebooks/overdrive.ipynb).
+every number is a cell in
+[the verification notebook](https://github.com/tap/TapTools/blob/main/notebooks/overdrive.ipynb),
+and the measured figures are regenerated from the shipping kernel by
+`book/figures/overdrive.py`.
