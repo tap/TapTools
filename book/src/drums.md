@@ -93,6 +93,10 @@ noise layer. The rim channel is `@model rimshot|claves`: the rimshot's
 ~1667 + 455 Hz crack with the swing-VCA's harmonics, versus the claves' pure
 ~2500 Hz tick. Tunings sit within ~4 % of the measured unit.
 
+![The bridged-T resonator circuit: an op-amp with capacitive arms, a resistive bridge, and a leg to ground, triggered through an injection resistor, with the kick's per-sample leg modulation drawn in red — and the eight voices grouped by how they use it](images/tr808/bridged-t.svg)
+
+*Roland's universal voice circuit. Eight voices, one network — the kick earns its punch by modulating the leg per sample.*
+
 ## The calibration pass, honestly
 
 The §7.2 calibration ran against a real TR-808 (s/n 103852) recorded from

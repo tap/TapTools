@@ -44,6 +44,10 @@ and the landing step fires once; feed it a constant and nothing happens
 after the first sample. `reset()` just forgets `k_previous`, so a transport
 start fires its downbeat.
 
+![Time as a function of phase, drawn: a phase ramp through the floor derivation and step-entry inequality into the two emitters, plus two row lengths reading one ramp without drift](../images/seq/phase-math.svg)
+
+*The one decision the file turns on — and polymeter falling out of it as arithmetic.*
+
 ## Why phase, not a pulse clock
 
 The alternative — count incoming clock pulses — is how most step sequencers

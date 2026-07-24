@@ -40,6 +40,10 @@ law. The measured control behavior:
   measures 256 ms, and the release fits a pure exponential with residual
   σ = 0.004 — an RC discharge, like the hardware.
 
+![Signal-flow diagram of the autowah: the audio path through the borrowed SVF core and dry/wet mix, with the detector chain of sensitivity gain, rectifier, RC follower, tanh knee, and exponential sweep law driving the cutoff](images/autowah/block-diagram.svg)
+
+*A detector, a law, and a borrowed filter — the amber chain is everything this object adds to the SVF it composes.*
+
 ## The knobs, one by one
 
 ### `sensitivity` — the trigger level, and the secret mode

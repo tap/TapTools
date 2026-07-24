@@ -75,6 +75,10 @@ Two things about this are worth knowing so they don't surprise you:
 Single-channel, like every TapTools DSP object: wrap it in `mc.` for stacks,
 and keep reading, because the analog section was designed around exactly that.
 
+![Signal-flow diagram of the VCO: pitch, FM, and the per-seed analog section sum into a master phase accumulator, which fans out to four waveform readings crossfaded by shape](images/vco/block-diagram.svg)
+
+*One phase, many readings — with polyBLEP correcting the edges and the analog section injecting in exactly two places.*
+
 ## The knobs, one by one
 
 ### `frequency`, and gliding

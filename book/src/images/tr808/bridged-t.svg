@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#ff725c"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="24" fill="#1a1a1a" font-weight="bold">the bridged-T resonator — Roland's universal voice circuit</text>
+
+  <!-- trigger in -->
+  <text x="10" y="144" fill="#1a1a1a">trigger</text>
+  <text x="10" y="158" fill="#666666" font-size="10.5">4–14 V pulse</text>
+  <line x1="60" y1="140" x2="90" y2="140" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="92" y="123" width="96" height="34" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="140" y="138" text-anchor="middle" fill="#1a1a1a" font-size="11.5">injection R</text>
+  <text x="140" y="151" text-anchor="middle" fill="#666666" font-size="10">(parallels the leg)</text>
+  <line x1="188" y1="140" x2="282" y2="140" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+
+  <!-- op-amp -->
+  <path d="M 286 110 L 286 170 L 346 140 z" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="288" y="186" fill="#4269d0" font-size="11">op-amp</text>
+  <line x1="346" y1="140" x2="390" y2="140" stroke="#666666" stroke-width="1.6"/>
+  <circle cx="394" cy="140" r="3.5" fill="#666666"/>
+  <line x1="397" y1="140" x2="426" y2="140" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="434" y="144" fill="#1a1a1a">out — the ring</text>
+
+  <!-- bridged-T feedback network -->
+  <path d="M 394 140 L 394 70 L 160 70" fill="none" stroke="#4269d0" stroke-width="1.8"/>
+  <path d="M 160 70 L 160 140 L 184 140" fill="none" stroke="#4269d0" stroke-width="1.8"/>
+  <circle cx="192" cy="140" r="3.5" fill="#4269d0"/>
+  <!-- caps C_a, C_b as parallel-line symbols on the top run -->
+  <g stroke="#4269d0" stroke-width="2">
+    <line x1="292" y1="60" x2="292" y2="80"/><line x1="300" y1="60" x2="300" y2="80"/>
+    <line x1="196" y1="60" x2="196" y2="80"/><line x1="204" y1="60" x2="204" y2="80"/>
+  </g>
+  <text x="296" y="52" text-anchor="middle" fill="#4269d0" font-size="10.5">C_b</text>
+  <text x="200" y="52" text-anchor="middle" fill="#4269d0" font-size="10.5">C_a</text>
+  <!-- bridge resistor over the top -->
+  <rect x="222" y="86" width="52" height="16" rx="3" fill="none" stroke="#4269d0" stroke-width="1.4"/>
+  <text x="248" y="98" text-anchor="middle" fill="#4269d0" font-size="10">R bridge</text>
+  <!-- Vcomm node + leg -->
+  <circle cx="248" cy="70" r="3.5" fill="#ff725c"/>
+  <text x="248" y="42" text-anchor="middle" fill="#ff725c" font-size="10.5">Vcomm (exposed)</text>
+  <path d="M 248 70 L 248 86" fill="none" stroke="#4269d0" stroke-width="1.4"/>
+  <path d="M 248 102 L 248 216" fill="none" stroke="#ff725c" stroke-width="1.8"/>
+  <rect x="222" y="176" width="52" height="16" rx="3" fill="none" stroke="#ff725c" stroke-width="1.4"/>
+  <text x="248" y="188" text-anchor="middle" fill="#ff725c" font-size="10">R leg</text>
+  <g stroke="#666666" stroke-width="1.6">
+    <line x1="236" y1="216" x2="260" y2="216"/><line x1="240" y1="221" x2="256" y2="221"/><line x1="244" y1="226" x2="252" y2="226"/>
+  </g>
+
+  <text x="400" y="196" fill="#1a1a1a" font-size="11.5">fc = 1 / ( 2π · √(R_leg_eff · R_bridge · C_a · C_b) )</text>
+  <text x="400" y="212" fill="#666666" font-size="11">solved trapezoidally on its states — so per-sample</text>
+  <text x="400" y="226" fill="#666666" font-size="11">leg modulation (the kick's trick, red) costs nothing.</text>
+
+  <!-- kick modulation -->
+  <path d="M 96 232 L 219 232 L 219 194" fill="none" stroke="#ff725c" stroke-width="1.6" marker-end="url(#ar)"/>
+  <text x="16" y="224" fill="#ff725c" font-size="11">kick only:</text>
+  <text x="16" y="252" fill="#ff725c" font-size="10.5">env → Q43 shorts a leg R (attack shift);</text>
+  <text x="16" y="266" fill="#ff725c" font-size="10.5">Vcomm → sigh nonlinearity shrinks the leg (pitch sigh)</text>
+
+  <!-- voice fan-out -->
+  <text x="620" y="76" fill="#1a1a1a" font-size="11.5" font-weight="bold">one class, eight voices</text>
+  <text x="620" y="96" fill="#666666" font-size="11">as the resonator (rings when pinged):</text>
+  <text x="632" y="112" fill="#1a1a1a" font-size="11">kick · toms · congas · rimshot · claves</text>
+  <text x="620" y="136" fill="#666666" font-size="11">as a tuned band-pass (shapes noise/metal):</text>
+  <text x="632" y="152" fill="#1a1a1a" font-size="11">snare shells · clap filter · cowbell · hat/cymbal</text>
+  <text x="632" y="166" fill="#666666" font-size="10.5">(the metal bank's six square oscillators feed it)</text>
+  <text x="620" y="240" fill="#666666" font-size="11">Schematics set the frequencies (within ~4%);</text>
+  <text x="620" y="254" fill="#666666" font-size="11">recordings of s/n 103852 set the envelopes.</text>
+</svg>

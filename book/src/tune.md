@@ -23,6 +23,10 @@ package, the runtime maxtest, and two executed notebooks — `tune.ipynb`
 here and `pitchshift.ipynb` in the DspTap repo — that measured every claim
 below.
 
+![Signal-flow diagram of tap.tune~: a per-hop brain of YIN, target mapper, glide, and ratio over a per-sample path through the input ring into the selectable resynthesis backend](images/tune/block-diagram.svg)
+
+*A per-hop brain over a per-sample corrector, with one seam where three resynthesis engines interchange.*
+
 ## The knob that is the instrument: `speed`
 
 `speed` is the time constant, in milliseconds, of the glide onto the target

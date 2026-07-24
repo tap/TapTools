@@ -82,6 +82,10 @@ regime of fc or modulation rate where the update gains exceed unity. The
 notebook's 90 Hz-LFO-through-five-octaves torture test isn't surviving by
 margin; it's surviving by theorem.
 
+![The TPT SVF core as a diagram: two trapezoidal integrators, the damping and low feedback into the input sum, and the downstream output mixer](../images/svf/block-diagram.svg)
+
+*The loop the algebra just solved, and the mixer the next section explains.*
+
 ## The output mix, and why morph corners cost nothing
 
 Every response is a weighted sum over the same solved values:

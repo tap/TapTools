@@ -60,6 +60,10 @@ The fourth pinned property, determinism (two identical runs compare equal
 with `==`), is the repo-wide claim that the kernel is pure state-machine
 arithmetic: no randomness, no time, no allocation in the audio path.
 
+![The vocoder graph as a diagram: two identical filter banks, per-band envelope followers, 24 multipliers, and the summed gain](../images/vocoder/block-diagram.svg)
+
+*The bilinear form in 24 subbands — the graph shape the proofs read off.*
+
 ## Where the bands sit
 
 Twenty-four bands span 50 Hz to 12 kHz, log-spaced. `band_frequency(i)`

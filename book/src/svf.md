@@ -24,6 +24,10 @@ kernel become the sweep engine inside `tap.autowah~`. The notebook slams the
 cutoff across five octaves with a 90 Hz LFO under full-band noise; the output
 stays bounded, no oversampling tricks required.
 
+![Signal-flow diagram of the TPT state-variable core: a summing node into two trapezoidal integrators with damping and low feedback, and the output mix that forms every response](images/svf/block-diagram.svg)
+
+*Two integrators in a zero-delay loop; every response — and the morph — is three multiplies downstream of the same two states.*
+
 ## The knobs, one by one
 
 ### `type` — the discrete responses, the morph, and the EQ family
