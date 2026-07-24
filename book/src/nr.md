@@ -22,6 +22,10 @@ purpose with `threshold` and `slope`; the machinery itself is transparent.
 Also pinned: a tone below threshold is strongly attenuated; a tone above
 passes untouched.
 
+![Diagram of the STFT scaffold both spectral objects share: input ring, analysis window, FFT, the pluggable spectral operation, IFFT, synthesis window, and COLA-normalized overlap-add](images/spectral/stft-scaffold.svg)
+
+*The pump this object runs on — tap.nr~ is this scaffold with a per-bin downward expander in the middle.*
+
 ## The knobs, one by one
 
 ### `threshold` — where quiet begins

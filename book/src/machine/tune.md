@@ -35,6 +35,10 @@ grain window. Unpitched frames set the correction goal to zero — the
 corrector *relaxes* toward honesty — while the window holds its last value
 rather than lurching toward a default.
 
+![tap.tune~'s pipeline as a diagram: the per-hop YIN/target/glide/ratio brain over the per-sample ring and resynthesis backend seam](../images/tune/block-diagram.svg)
+
+*The pipeline and its two clocks — the dashed region runs per hop, everything else per sample.*
+
 ## The period lock, told as a bug hunt
 
 The first version of the resynthesis stage was the two-tap `tap.shift~`

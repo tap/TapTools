@@ -43,6 +43,10 @@ restart). The rest of the surface mirrors `tap.verb~` so the two reverbs read
 as siblings: `mix`, `gain`, `predelay`, `normalize` (energy-based, so quiet
 and hot IRs land at comparable levels), `bypass`, `mute`.
 
+![Diagram of uniformly partitioned overlap-save convolution: framed input blocks through an FFT into the frequency-domain delay line, multiplied per bin against the double-buffered IR partition spectra, then IFFT with the aliased half discarded](images/conv/block-diagram.svg)
+
+*The wiring: one FFT in, one IFFT out, and a multiply-accumulate that is the only cost growing with IR length.*
+
 ## True stereo, by channel count
 
 A stereo room isn't two mono rooms: sound from the left source arrives at the

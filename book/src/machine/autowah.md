@@ -36,6 +36,10 @@ else. Resonance meaning is shared the same way — the wah's 0..1 knob goes
 through the SVF's own `q_from_resonance` mapping, so "resonance 0.7" means
 the same Q in both objects.
 
+![The autowah composition as a diagram: detector chain and sweep law around the boxed borrowed svf_filter member](../images/autowah/block-diagram.svg)
+
+*The composition decision, drawn: everything amber is this file; the blue box is svf.h, borrowed intact.*
+
 ## The detector: gain, rectifier, follower
 
 The detector chain in `process()` is three lines:

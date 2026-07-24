@@ -27,6 +27,10 @@ crossfades adjacent readings of one phase, so it can never produce a
 discontinuity the phase itself doesn't have. The problem is entirely the
 discontinuities.
 
+![The VCO as a diagram: frequency sum into the master phase accumulator, fanning to the four waveform readings and the shape crossfade](../images/vco/block-diagram.svg)
+
+*The fan-out the chapter title promises: every waveform is a reading of the same φ.*
+
 ## The residual: deriving `poly_blep`
 
 A naive saw jumps by −2 at the wrap; a step's spectrum falls at only

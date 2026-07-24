@@ -64,6 +64,10 @@ five seconds at k = 4.4 finite, under 2.0 peak, RMS steady within a
 0.7–1.4× band. An all-zero state also solves the equations — hence the
 header's advice to ping it.
 
+![The ladder as a diagram: four tanh one-pole stages wrapped by the k = 4·resonance feedback, with comp and the pole-mix taps](../images/ladder/block-diagram.svg)
+
+*The file as a schematic: the Barkhausen condition lives at the red tap.*
+
 ## The algebraic loop, solved linearly first
 
 Zero-delay feedback through four stages means y4 depends on the stage-1

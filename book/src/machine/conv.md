@@ -81,6 +81,11 @@ below confirm that is all there is.
 
 ## The frequency-domain delay line
 
+![The FDL as a diagram: the ring of past input spectra multiplied per bin against the partition spectra, accumulated, and inverse-transformed with the aliased half discarded](../images/conv/block-diagram.svg)
+
+*Why FFT cost is constant in IR length: the transforms bracket the structure, and only the MAC sees the partitions.*
+
+
 The delays `j·B` remain. Delaying partition j's contribution by j blocks is
 the same as convolving it with the input from j blocks *ago* — and the frame
 for block m − j has already been transformed. So the engine keeps a ring of

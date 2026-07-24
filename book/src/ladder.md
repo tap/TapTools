@@ -28,6 +28,10 @@ Two things separate a serious ladder model from a filter with a "Moog" label:
   the feedback fights the saturation the way the hardware does. That is where
   the compression, the "sag," and the bounded self-oscillation come from.
 
+![Signal-flow diagram of the ladder: drive into a summing node, four tanh one-pole stages in series, the resonance feedback tap, the comp compensation path, and the Xpander pole-mix taps](images/ladder/block-diagram.svg)
+
+*The whole filter: four stages, one loop. The red tap sets resonance, the amber paths are the comp bargain and the Xpander mode taps.*
+
 ## The knobs, one by one
 
 ### `frequency` and the right inlet

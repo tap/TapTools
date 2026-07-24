@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#b8890f"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="26" fill="#1a1a1a" font-weight="bold">tap.autowah~ — a detector, a law, and a borrowed filter</text>
+
+  <!-- audio path -->
+  <text x="10" y="94" fill="#1a1a1a">in</text>
+  <line x1="28" y1="90" x2="52" y2="90" stroke="#666666" stroke-width="1.6"/>
+  <circle cx="56" cy="90" r="3.5" fill="#666666"/>
+  <line x1="59" y1="90" x2="392" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="394" y="64" width="150" height="52" rx="4" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="469" y="86" text-anchor="middle" fill="#4269d0">svf_filter</text>
+  <text x="469" y="103" text-anchor="middle" fill="#666666" font-size="10.5">the borrowed core (svf.h)</text>
+  <line x1="544" y1="90" x2="576" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="578" y="64" width="140" height="52" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="648" y="86" text-anchor="middle" fill="#1a1a1a">dry/wet mix</text>
+  <text x="648" y="103" text-anchor="middle" fill="#666666" font-size="10.5">equal-power crossfade</text>
+  <line x1="718" y1="90" x2="746" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="752" y="94" fill="#1a1a1a">y</text>
+  <path d="M 56 90 L 56 44 L 648 44 L 648 62" fill="none" stroke="#666666" stroke-width="1.4" marker-end="url(#a)"/>
+  <text x="340" y="38" fill="#666666" font-size="10.5">dry</text>
+
+  <!-- detector chain -->
+  <path d="M 56 94 L 56 172 L 76 172" fill="none" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <text x="10" y="152" fill="#666666" font-size="10.5">(or the</text>
+  <text x="10" y="164" fill="#666666" font-size="10.5">sidechain</text>
+  <text x="10" y="176" fill="#666666" font-size="10.5">inlet)</text>
+  <rect x="78" y="155" width="88" height="34" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="122" y="176" text-anchor="middle" fill="#b8890f">× sensitivity</text>
+  <line x1="166" y1="172" x2="188" y2="172" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <rect x="190" y="155" width="96" height="34" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="238" y="170" text-anchor="middle" fill="#b8890f">rectifier</text>
+  <text x="238" y="184" text-anchor="middle" fill="#666666" font-size="10">full / half wave</text>
+  <line x1="286" y1="172" x2="308" y2="172" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <rect x="310" y="155" width="118" height="34" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="369" y="170" text-anchor="middle" fill="#b8890f">RC follower</text>
+  <text x="369" y="184" text-anchor="middle" fill="#666666" font-size="9.5">atk/rel, exact e^(−1/τfs)</text>
+  <line x1="428" y1="172" x2="450" y2="172" stroke="#b8890f" stroke-width="1.8"/>
+  <circle cx="454" cy="172" r="3.5" fill="#b8890f"/>
+  <line x1="457" y1="172" x2="480" y2="172" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <rect x="482" y="155" width="92" height="34" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="528" y="170" text-anchor="middle" fill="#b8890f">tanh knee</text>
+  <text x="528" y="184" text-anchor="middle" fill="#666666" font-size="10">soft top-of-travel</text>
+  <line x1="574" y1="172" x2="596" y2="172" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <rect x="598" y="155" width="168" height="34" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="682" y="170" text-anchor="middle" fill="#b8890f" font-size="11">cutoff = bias · 2^(sweep·range)</text>
+  <text x="682" y="184" text-anchor="middle" fill="#666666" font-size="9.5">exp in Hz — 0.000 cents error</text>
+  <path d="M 766 172 L 790 172 L 790 130 L 469 130 L 469 118" fill="none" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <text x="500" y="126" fill="#b8890f" font-size="10.5">cutoff CV, per sample</text>
+
+  <!-- envelope outlet -->
+  <path d="M 454 176 L 454 214" fill="none" stroke="#b8890f" stroke-width="1.4" marker-end="url(#ab)"/>
+  <text x="454" y="230" text-anchor="middle" fill="#666666" font-size="10.5">envelope outlet (0..1)</text>
+
+  <text x="620" y="222" fill="#1a1a1a" font-size="11.5">sensitivity at the floor = the detector off:</text>
+  <text x="620" y="237" fill="#666666" font-size="11">the object degenerates to a bare SVF parked at bias</text>
+  <text x="620" y="251" fill="#666666" font-size="11">(the cocked-wah mode the runtime test pins).</text>
+</svg>

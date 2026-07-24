@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#b8890f"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="24" fill="#1a1a1a" font-weight="bold">tap.tune~ — a per-hop brain over a per-sample corrector</text>
+
+  <!-- per-hop region -->
+  <rect x="120" y="40" width="600" height="110" rx="8" fill="none" stroke="#999999" stroke-dasharray="5 4"/>
+  <text x="705" y="58" text-anchor="end" fill="#666666" font-size="11">runs per hop — the brain</text>
+
+  <rect x="140" y="70" width="90" height="44" rx="4" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="185" y="88" text-anchor="middle" fill="#4269d0">YIN</text>
+  <text x="185" y="105" text-anchor="middle" fill="#666666" font-size="10.5">tap::dsp::yin</text>
+  <line x1="230" y1="92" x2="258" y2="92" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="244" y="82" text-anchor="middle" fill="#666666" font-size="10.5">f₀</text>
+  <rect x="260" y="70" width="150" height="44" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="335" y="88" text-anchor="middle" fill="#1a1a1a">target mapper</text>
+  <text x="335" y="105" text-anchor="middle" fill="#666666" font-size="9.5">scale mask · 12 toggles · held MIDI</text>
+  <line x1="410" y1="92" x2="438" y2="92" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="440" y="70" width="130" height="44" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="505" y="88" text-anchor="middle" fill="#b8890f">glide</text>
+  <text x="505" y="105" text-anchor="middle" fill="#666666" font-size="9.5">speed (τ) · amount (fader)</text>
+  <line x1="570" y1="92" x2="598" y2="92" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="600" y="70" width="104" height="44" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="652" y="88" text-anchor="middle" fill="#1a1a1a">ratio</text>
+  <text x="652" y="105" text-anchor="middle" fill="#666666" font-size="10.5">2^(applied/12)</text>
+
+  <!-- detector report outlet -->
+  <path d="M 185 114 L 185 140 L 90 140 L 90 170" fill="none" stroke="#666666" stroke-width="1.4" marker-end="url(#a)"/>
+  <text x="90" y="186" text-anchor="middle" fill="#666666" font-size="10.5">pitch/key outlet</text>
+  <text x="90" y="199" text-anchor="middle" fill="#666666" font-size="10.5">(+ advisory autokey)</text>
+
+  <!-- per-sample path -->
+  <text x="10" y="236" fill="#1a1a1a">in</text>
+  <line x1="28" y1="232" x2="152" y2="232" stroke="#666666" stroke-width="1.6"/>
+  <circle cx="156" cy="232" r="3.5" fill="#666666"/>
+  <line x1="159" y1="232" x2="188" y2="232" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <path d="M 156 232 L 156 210 L 185 210 L 185 114" fill="none" stroke="#666666" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <rect x="190" y="206" width="120" height="52" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="250" y="228" text-anchor="middle" fill="#1a1a1a">input ring</text>
+  <text x="250" y="245" text-anchor="middle" fill="#666666" font-size="9.5">shared by brain + backends</text>
+  <line x1="310" y1="232" x2="338" y2="232" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="332" y="200" width="320" height="64" rx="4" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="490" y="222" text-anchor="middle" fill="#4269d0">resynthesis backend (one seam)</text>
+  <text x="492" y="240" text-anchor="middle" fill="#666666" font-size="9.5">grain (2-tap, ~few ms) · psola (~36 ms) · pvoc (~21 ms)</text>
+  <text x="490" y="254" text-anchor="middle" fill="#666666" font-size="10.5">pvoc branch: LPC formant preservation</text>
+  <line x1="652" y1="232" x2="674" y2="232" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="680" y="236" fill="#1a1a1a">y</text>
+
+  <path d="M 652 114 L 652 168 L 490 168 L 490 198" fill="none" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <text x="540" y="184" fill="#b8890f" font-size="10.5">ratio, slewed per sample</text>
+
+  <text x="720" y="200" fill="#1a1a1a" font-size="11.5">the seam is the design:</text>
+  <text x="720" y="216" fill="#666666" font-size="11">three engines trade character</text>
+  <text x="720" y="230" fill="#666666" font-size="11">against latency and land the</text>
+  <text x="720" y="244" fill="#666666" font-size="11">same intonation (±6 cents,</text>
+  <text x="720" y="258" fill="#666666" font-size="11">all three settle on 220.00 Hz).</text>
+
+  <text x="16" y="288" fill="#666666" font-size="11">The grain window slews period-locked (an integer number of detected periods) — off-lock the two-tap engine carries a +5-cent bias.</text>
+</svg>

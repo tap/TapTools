@@ -42,6 +42,11 @@ e^(−i…)) and the conjugate-bin layout the effects below depend on.
 
 ## `stft.h`: the scaffold, and the COLA proof
 
+![The STFT scaffold as a diagram: ring buffers and windows bracketing the FFT, the pluggable op, and the COLA-normalized overlap-add](../images/spectral/stft-scaffold.svg)
+
+*One pump, two effects: nr and spectra are this pipeline with different middles.*
+
+
 `stft` is the overlap-add machinery shared verbatim by both effects: Hann
 window, fixed 4× overlap (`m_hop = m_fftsize / m_overlap`), a circular
 input buffer, a circular output *accumulator*, and a per-sample pump.

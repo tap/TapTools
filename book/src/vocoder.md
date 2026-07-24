@@ -36,6 +36,10 @@ backwards is the classic first-patch bug, and it sounds like it: a synth
 "speaking" your voice is right; your voice weakly filtered by a synth is
 backwards.
 
+![Signal-flow diagram of the vocoder: the modulator through a 24-band filter bank into envelope followers, the carrier through an identical bank, per-band multipliers, and a summed gain stage](images/vocoder/block-diagram.svg)
+
+*Two identical banks meeting at 24 multipliers. Envelopes gate the carrier; modulator audio never reaches the output.*
+
 ## The knobs, one by one
 
 ### `q` — intelligibility vs. smoothness
