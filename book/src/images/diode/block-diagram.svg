@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ab2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#4269d0"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#ff725c"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="26" fill="#1a1a1a" font-weight="bold">the diode ladder — a diffusion line, not a buffered cascade</text>
+
+  <!-- input -->
+  <text x="10" y="124" fill="#1a1a1a">x</text>
+  <line x1="24" y1="120" x2="44" y2="120" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="46" y="103" width="62" height="34" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="77" y="124" text-anchor="middle" fill="#1a1a1a">× drive</text>
+  <line x1="108" y1="120" x2="128" y2="120" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="146" cy="120" r="15" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="146" y="125" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <text x="133" y="108" fill="#666666" font-size="11">+</text>
+  <text x="136" y="146" fill="#ff725c" font-size="11">−</text>
+  <text x="146" y="90" text-anchor="middle" fill="#666666" font-size="11">u</text>
+  <line x1="161" y1="120" x2="196" y2="120" stroke="#4269d0" stroke-width="1.8" marker-end="url(#ab2)"/>
+  <text x="178" y="94" text-anchor="middle" fill="#4269d0" font-size="10.5">S(u−v₁)</text>
+
+  <!-- four capacitor nodes with bidirectional coupling -->
+  <g>
+    <rect x="198" y="96" width="92" height="48" rx="6" fill="none" stroke="#4269d0" stroke-width="2"/>
+    <text x="244" y="116" text-anchor="middle" fill="#4269d0">v₁</text>
+    <text x="244" y="132" text-anchor="middle" fill="#666666" font-size="10.5">cap node, ω</text>
+
+    <line x1="290" y1="110" x2="330" y2="110" stroke="#4269d0" stroke-width="1.8" marker-end="url(#ab2)"/>
+    <line x1="330" y1="130" x2="290" y2="130" stroke="#ff725c" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="310" y="88" text-anchor="middle" fill="#4269d0" font-size="10.5">charge in</text>
+    <text x="310" y="158" text-anchor="middle" fill="#ff725c" font-size="10.5">stolen back</text>
+
+    <rect x="332" y="96" width="92" height="48" rx="6" fill="none" stroke="#4269d0" stroke-width="2"/>
+    <text x="378" y="116" text-anchor="middle" fill="#4269d0">v₂</text>
+    <text x="378" y="132" text-anchor="middle" fill="#666666" font-size="10.5">cap node, ω</text>
+
+    <line x1="424" y1="110" x2="464" y2="110" stroke="#4269d0" stroke-width="1.8" marker-end="url(#ab2)"/>
+    <line x1="464" y1="130" x2="424" y2="130" stroke="#ff725c" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="444" y="88" text-anchor="middle" fill="#4269d0" font-size="10.5">S(v₂−v₃)</text>
+
+    <rect x="466" y="96" width="92" height="48" rx="6" fill="none" stroke="#4269d0" stroke-width="2"/>
+    <text x="512" y="116" text-anchor="middle" fill="#4269d0">v₃</text>
+    <text x="512" y="132" text-anchor="middle" fill="#666666" font-size="10.5">cap node, ω</text>
+
+    <line x1="558" y1="110" x2="598" y2="110" stroke="#4269d0" stroke-width="1.8" marker-end="url(#ab2)"/>
+    <line x1="598" y1="130" x2="558" y2="130" stroke="#ff725c" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="578" y="88" text-anchor="middle" fill="#4269d0" font-size="10.5">S(v₃−v₄)</text>
+
+    <rect x="600" y="96" width="100" height="48" rx="6" fill="none" stroke="#4269d0" stroke-width="2"/>
+    <text x="650" y="116" text-anchor="middle" fill="#4269d0">v₄</text>
+    <text x="650" y="132" text-anchor="middle" fill="#666666" font-size="10.5">halved cap: 2ω</text>
+  </g>
+
+  <line x1="700" y1="120" x2="736" y2="120" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="744" y="124" fill="#1a1a1a">y</text>
+
+  <!-- feedback: v4 -> HP 150 Hz -> x k -> back to sum (negative) -->
+  <circle cx="716" cy="120" r="3.5" fill="#666666"/>
+  <path d="M 716 124 L 716 196 L 610 196" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="484" y="179" width="126" height="38" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="547" y="195" text-anchor="middle" fill="#ff725c">HP ~150 Hz</text>
+  <text x="547" y="211" text-anchor="middle" fill="#666666" font-size="10">the feedback high-pass</text>
+  <path d="M 484 196 L 452 196" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="380" y="179" width="72" height="34" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="416" y="200" text-anchor="middle" fill="#ff725c">× k</text>
+  <path d="M 380 196 L 146 196 L 146 135" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="200" y="188" fill="#ff725c" font-size="11">u = drive·x − k·hp(v₄)</text>
+
+  <!-- annotations -->
+  <text x="736" y="170" fill="#1a1a1a" font-size="11.5">every edge is a tanh S(·):</text>
+  <text x="736" y="186" fill="#666666" font-size="11">each node's charge leaks both ways,</text>
+  <text x="736" y="200" fill="#666666" font-size="11">so the poles are real and spread</text>
+  <text x="736" y="214" fill="#666666" font-size="11">~25:1 — not four coincident poles.</text>
+
+  <text x="16" y="252" fill="#666666" font-size="11">Oscillation needs k ≈ 17 (Routh–Hurwitz), rising toward low cutoffs — and the 150 Hz high-pass starves the loop of the</text>
+  <text x="16" y="267" fill="#666666" font-size="11">low-frequency gain it would need there: the reason a stock 303 never quite sings.</text>
+</svg>

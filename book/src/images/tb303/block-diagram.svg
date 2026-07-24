@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#ff725c"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#b8890f"/>
+    </marker>
+  </defs>
+
+  <!-- accent bus (red, top) -->
+  <text x="16" y="42" fill="#ff725c" font-weight="bold">accent</text>
+  <line x1="70" y1="38" x2="906" y2="38" stroke="#ff725c" stroke-width="1.8"/>
+  <path d="M 175 38 L 175 84" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="182" y="66" fill="#ff725c" font-size="10.5">hotter + faster decay (~200 ms)</text>
+  <path d="M 489 38 L 489 84" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="496" y="66" fill="#ff725c" font-size="10.5">charge via resonance pot</text>
+  <path d="M 810 38 L 810 196" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="817" y="66" fill="#ff725c" font-size="10.5">hotter VCA</text>
+
+  <!-- control row: MEG, envmod, C13, cutoff sum -->
+  <rect x="130" y="86" width="90" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="175" y="101" text-anchor="middle" fill="#1a1a1a">MEG</text>
+  <text x="175" y="115" text-anchor="middle" fill="#666666" font-size="10.5">RC env, 3 ms atk</text>
+  <line x1="220" y1="104" x2="252" y2="104" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <rect x="254" y="86" width="76" height="36" rx="4" fill="none" stroke="#b8890f" stroke-width="1.4"/>
+  <text x="292" y="108" text-anchor="middle" fill="#b8890f">× envmod</text>
+  <line x1="330" y1="104" x2="362" y2="104" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+
+  <circle cx="380" cy="104" r="15" fill="none" stroke="#b8890f" stroke-width="1.4"/>
+  <text x="380" y="109" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <text x="380" y="79" text-anchor="middle" fill="#666666" font-size="10.5">cutoff knob</text>
+  <line x1="380" y1="82" x2="380" y2="88" stroke="#666666" stroke-width="1.4" marker-end="url(#a)"/>
+
+  <rect x="430" y="86" width="118" height="36" rx="4" fill="none" stroke="#ff725c" stroke-width="2"/>
+  <text x="489" y="101" text-anchor="middle" fill="#ff725c">C13 sweep cap</text>
+  <text x="489" y="115" text-anchor="middle" fill="#666666" font-size="10.5">across-note memory</text>
+  <line x1="430" y1="104" x2="397" y2="104" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+
+  <path d="M 380 119 L 380 160 L 466 160 L 466 194" fill="none" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <text x="392" y="152" fill="#b8890f" font-size="10.5">cutoff CV</text>
+
+  <!-- VCA envelope -->
+  <rect x="700" y="86" width="90" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="745" y="101" text-anchor="middle" fill="#1a1a1a">VCA env</text>
+  <text x="745" y="115" text-anchor="middle" fill="#666666" font-size="10.5">fixed 1.23 s decay</text>
+  <path d="M 745 122 L 745 196" fill="none" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+
+  <!-- audio path (bottom) -->
+  <text x="10" y="219" fill="#1a1a1a">pitch</text>
+  <line x1="48" y1="215" x2="66" y2="215" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="68" y="198" width="76" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="106" y="213" text-anchor="middle" fill="#1a1a1a">slide RC</text>
+  <text x="106" y="227" text-anchor="middle" fill="#666666" font-size="10.5">τ = 60 ms</text>
+  <line x1="144" y1="215" x2="162" y2="215" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="162" y="198" width="114" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="219" y="213" text-anchor="middle" fill="#1a1a1a">saw osc + shaper</text>
+  <text x="219" y="227" text-anchor="middle" fill="#666666" font-size="10.5">square = −tanh(·)</text>
+  <line x1="274" y1="215" x2="292" y2="215" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="294" y="198" width="92" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="340" y="213" text-anchor="middle" fill="#1a1a1a">coupling HP</text>
+  <text x="340" y="227" text-anchor="middle" fill="#666666" font-size="10.5">bass tightener</text>
+  <line x1="386" y1="215" x2="404" y2="215" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="406" y="196" width="120" height="40" rx="4" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="466" y="212" text-anchor="middle" fill="#4269d0">diode ladder</text>
+  <text x="466" y="228" text-anchor="middle" fill="#666666" font-size="10.5">see diode_ladder.h</text>
+  <line x1="526" y1="215" x2="544" y2="215" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  
+  <rect x="546" y="198" width="240" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4" stroke-dasharray="0"/>
+  <text x="666" y="213" text-anchor="middle" fill="#1a1a1a">one-transistor VCA (vca.h shape)</text>
+  <text x="666" y="227" text-anchor="middle" fill="#666666" font-size="10.5">warmth tracks the control voltage</text>
+  <line x1="786" y1="215" x2="804" y2="215" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="806" y="198" width="100" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="856" y="213" text-anchor="middle" fill="#1a1a1a">out coupling</text>
+  <text x="856" y="227" text-anchor="middle" fill="#666666" font-size="10.5">HP + gain</text>
+  <line x1="906" y1="215" x2="924" y2="215" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="930" y="219" fill="#1a1a1a">y</text>
+
+  <!-- caption inside -->
+  <text x="16" y="278" fill="#666666" font-size="11">grey: the blocks — every 303 clone has them.
+    <tspan fill="#ff725c">red: what accent touches (three destinations).</tspan>
+    <tspan fill="#b8890f">amber: the cutoff CV path C13 leans on.</tspan>
+  </text>
+  <text x="16" y="294" fill="#1a1a1a" font-size="11" font-style="italic">The couplings are the instrument.</text>
+</svg>

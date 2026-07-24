@@ -68,6 +68,15 @@ round out the `tap.ladder~` surface.
 The attributes mirror the seven-knob panel; the calibrations are Open303's
 measured laws.
 
+![Signal-flow diagram of the 303 voice: pitch through slide into oscillator,
+shaper, coupling highpass, diode ladder, and VCA, with the accent bus
+fanning to the envelope, the C13 sweep capacitor, and the VCA, and the
+envelope-driven cutoff CV feeding the ladder](images/tb303/block-diagram.svg)
+
+*The blocks are ordinary; the red and amber wires are the 303. Accent
+touches three destinations at once, and C13 remembers across notes — the
+couplings are the instrument.*
+
 - **`waveform`** — `saw` or `square`. The square is the hardware's shaped
   saw: `−tanh(10^(36.9/20)·saw + 4.37)`, Open303's measured constants
   verbatim — rounded and notched, audibly not a 50 % pulse.

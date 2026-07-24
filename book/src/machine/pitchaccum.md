@@ -121,6 +121,10 @@ Goertzel energy at 659.26 Hz (one pass) in the 0.32–0.55 s window and at
 987.77 Hz (two passes — the accumulation itself) in the 0.65–1.0 s window,
 each dominating the off-frequency reference bin.
 
+![The accumulation loop drawn against the ordinary shifter-in-feedback
+patch: upstream re-entry transposes every pass again; output-tap feedback
+shifts only once](../images/pitchaccum/block-diagram.svg)
+
 ## Boundedness: the loop gain really is fb
 
 The constant-sum envelope has a second payoff. Since e_a, e_b ≥ 0 and

@@ -34,6 +34,14 @@ musical instead of muddy:
 The signature is measurable: set +7 semitones and the kernel test finds
 energy at +7 **and +14** — the second pass, the accumulation itself.
 
+![Two signal-flow diagrams contrasted: tap.pitchaccum~ feeds its output back
+into the delay buffer upstream of the moving transposer taps, so every pass
+is transposed again; the ordinary shifter-in-a-feedback-loop patch taps the
+delay output and only ever shifts once](images/pitchaccum/block-diagram.svg)
+
+*The topology is the effect. Feedback re-enters upstream of the taps, so the
+staircase climbs; in the ordinary patch every echo is the same interval.*
+
 ## The knobs, one by one (per shadow, ×2)
 
 ### `pitch1` / `pitch2` — the step of the staircase

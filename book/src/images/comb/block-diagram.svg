@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 290" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#ff725c"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#b8890f"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="26" fill="#1a1a1a" font-weight="bold">one comb voice (of five) — the plucked-string ring</text>
+
+  <!-- forward: in -> sum -> delay write ... delay line ... hermite read -->
+  <text x="16" y="94" fill="#1a1a1a">in</text>
+  <line x1="34" y1="90" x2="58" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="76" cy="90" r="15" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="76" y="95" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <line x1="91" y1="90" x2="118" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="120" y="72" width="180" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="210" y="87" text-anchor="middle" fill="#1a1a1a">delay line</text>
+  <text x="210" y="101" text-anchor="middle" fill="#666666" font-size="10.5">length = 1/f (fractional)</text>
+  <line x1="300" y1="90" x2="322" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="324" y="68" width="168" height="44" rx="4" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="408" y="85" text-anchor="middle" fill="#4269d0">Hermite read</text>
+  <text x="408" y="102" text-anchor="middle" fill="#666666" font-size="10">4-point, 3rd-order — in tune</text>
+  <line x1="492" y1="90" x2="508" y2="90" stroke="#666666" stroke-width="1.6"/>
+  <circle cx="512" cy="90" r="3.5" fill="#666666"/>
+  <line x1="515" y1="90" x2="560" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+
+  <!-- output: main tap minus phase pickup -->
+  <circle cx="578" cy="90" r="15" fill="none" stroke="#b8890f" stroke-width="1.4"/>
+  <text x="578" y="95" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <text x="596" y="78" fill="#b8890f" font-size="11">−</text>
+  <line x1="593" y1="90" x2="620" y2="90" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="627" y="94" fill="#1a1a1a">y</text>
+
+  <!-- phase pickup tap at d/2 (amber) -->
+  <path d="M 210 108 L 210 150 L 578 150 L 578 105" fill="none" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+  <rect x="300" y="130" width="216" height="40" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="408" y="146" text-anchor="middle" fill="#b8890f">pickup tap at d/2</text>
+  <text x="408" y="162" text-anchor="middle" fill="#666666" font-size="10">phase 100: evens cancel, odds double</text>
+
+  <!-- feedback ring (red): read -> lp -> dc -> warp -> xfb -> sum -->
+  <path d="M 512 94 L 512 218 L 508 218" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="386" y="198" width="120" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="446" y="214" text-anchor="middle" fill="#ff725c">loop lowpass</text>
+  <text x="446" y="230" text-anchor="middle" fill="#666666" font-size="10">brightness decay</text>
+  <path d="M 386 218 L 366 218" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="230" y="198" width="134" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="297" y="214" text-anchor="middle" fill="#ff725c">DC blocker</text>
+  <text x="297" y="230" text-anchor="middle" fill="#666666" font-size="10">peak gain normalized to 1</text>
+  <path d="M 230 218 L 210 218" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="86" y="198" width="122" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="147" y="214" text-anchor="middle" fill="#ff725c">warp allpass</text>
+  <text x="147" y="230" text-anchor="middle" fill="#666666" font-size="10">stiff-string dispersion</text>
+  <path d="M 86 218 L 66 218" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="18" y="198" width="46" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="41" y="222" text-anchor="middle" fill="#ff725c">× fb</text>
+  <path d="M 41 198 L 41 176 L 76 176 L 76 106" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+
+  <text x="546" y="214" fill="#ff725c" font-size="11.5">fb derived from ring time at the CURRENT delay:</text>
+  <text x="546" y="230" fill="#666666" font-size="11">a voice keeps its decay as its pitch sweeps —</text>
+  <text x="546" y="244" fill="#666666" font-size="11">and with the loop's peak gain pinned at 1,</text>
+  <text x="546" y="258" fill="#666666" font-size="11">res 100 rings clean: no clipper needed.</text>
+
+  <text x="16" y="280" fill="#666666" font-size="11">×5 voices under the freq/res masters and the 16-slot morph engine; main tap compensated at the fundamental.</text>
+</svg>

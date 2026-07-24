@@ -30,7 +30,16 @@ v4' = 2ω·S(v3 − v4)          [the top capacitor is halved on the schematic]
 
 Each middle equation has *two* terms — charge in from the left, charge
 stolen by the right. That is the loading, and it is the whole story: this is
-a discrete diffusion line, not four independent one-poles. Its normalized
+a discrete diffusion line, not four independent one-poles.
+
+![The diode ladder as four coupled capacitor nodes with charge flowing in
+from the left and stolen back by the right at every junction, a halved top
+capacitor, and the feedback path from the top node through the 150 Hz
+high-pass and the resonance gain back to the input
+sum](../images/diode/block-diagram.svg)
+
+*Every edge is a tanh; every middle node leaks both ways. The bidirectional
+arrows are what a buffered cascade doesn't have — and why the poles spread.* Its normalized
 transfer function works out to exactly Stinchcombe's measured TB-303
 response,
 

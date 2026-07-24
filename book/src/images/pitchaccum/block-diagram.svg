@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 330" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#ff725c"/>
+    </marker>
+    <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#aaaaaa"/>
+    </marker>
+  </defs>
+
+  <!-- ===== top: tap.pitchaccum~ ===== -->
+  <text x="16" y="28" fill="#1a1a1a" font-weight="bold">tap.pitchaccum~ — feedback re-enters upstream of the transposer</text>
+
+  <text x="16" y="84" fill="#1a1a1a">in</text>
+  <line x1="34" y1="80" x2="58" y2="80" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="76" cy="80" r="15" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="76" y="85" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <line x1="91" y1="80" x2="118" y2="80" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="120" y="62" width="130" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="185" y="77" text-anchor="middle" fill="#1a1a1a">delay buffer</text>
+  <text x="185" y="91" text-anchor="middle" fill="#666666" font-size="10.5">≤ 3 s</text>
+  <line x1="250" y1="80" x2="278" y2="80" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="276" y="58" width="204" height="44" rx="4" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="378" y="75" text-anchor="middle" fill="#4269d0">two moving enveloped taps</text>
+  <text x="378" y="92" text-anchor="middle" fill="#666666" font-size="10">cos²/sin² sum-to-1 · Hermite · ±24 st</text>
+  <line x1="476" y1="80" x2="504" y2="80" stroke="#666666" stroke-width="1.6"/>
+  <circle cx="508" cy="80" r="3.5" fill="#666666"/>
+  <line x1="511" y1="80" x2="538" y2="80" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="545" y="84" fill="#1a1a1a">y</text>
+
+  <!-- feedback path (red): y -> DC blocker -> x fb -> upstream sum -->
+  <path d="M 508 84 L 508 132 L 442 132" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="352" y="115" width="88" height="34" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="396" y="136" text-anchor="middle" fill="#ff725c">DC blocker</text>
+  <path d="M 352 132 L 264 132" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="188" y="115" width="74" height="34" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="225" y="136" text-anchor="middle" fill="#ff725c">× fb ≤ .99</text>
+  <path d="M 188 132 L 76 132 L 76 95" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="100" y="168" fill="#ff725c" font-size="11">back into the buffer — transposed AGAIN on every trip</text>
+
+  <text x="600" y="72" fill="#1a1a1a" font-size="11.5">each pass re-enters the taps:</text>
+  <text x="600" y="90" fill="#4269d0" font-size="12.5" font-weight="bold">+7 st → +14 → +21 → …</text>
+  <text x="600" y="108" fill="#666666" font-size="11">the staircase climbs; the 0.99 cap</text>
+  <text x="600" y="122" fill="#666666" font-size="11">and DC blocker keep it bounded.</text>
+
+  <!-- ===== bottom: the ordinary patch (muted) ===== -->
+  <line x1="16" y1="182" x2="944" y2="182" stroke="#dddddd" stroke-width="1"/>
+  <text x="16" y="208" fill="#888888" font-weight="bold">the ordinary "shifter in a feedback loop" patch — for contrast</text>
+
+  <text x="16" y="264" fill="#888888">in</text>
+  <line x1="34" y1="260" x2="58" y2="260" stroke="#aaaaaa" stroke-width="1.6" marker-end="url(#am)"/>
+  <circle cx="76" cy="260" r="15" fill="none" stroke="#aaaaaa" stroke-width="1.4"/>
+  <text x="76" y="265" text-anchor="middle" fill="#888888" font-size="15">Σ</text>
+  <line x1="91" y1="260" x2="118" y2="260" stroke="#aaaaaa" stroke-width="1.6" marker-end="url(#am)"/>
+  <rect x="120" y="242" width="130" height="36" rx="4" fill="none" stroke="#aaaaaa" stroke-width="1.4"/>
+  <text x="185" y="264" text-anchor="middle" fill="#888888">delay</text>
+  <circle cx="270" cy="260" r="3.5" fill="#aaaaaa"/>
+  <line x1="250" y1="260" x2="266" y2="260" stroke="#aaaaaa" stroke-width="1.6"/>
+  <line x1="273" y1="260" x2="300" y2="260" stroke="#aaaaaa" stroke-width="1.6" marker-end="url(#am)"/>
+  <rect x="302" y="242" width="120" height="36" rx="4" fill="none" stroke="#aaaaaa" stroke-width="1.4"/>
+  <text x="362" y="264" text-anchor="middle" fill="#888888">pitch shifter</text>
+  <line x1="422" y1="260" x2="450" y2="260" stroke="#aaaaaa" stroke-width="1.6" marker-end="url(#am)"/>
+  <text x="457" y="264" fill="#888888">y</text>
+
+  <path d="M 270 264 L 270 306 L 76 306 L 76 275" fill="none" stroke="#aaaaaa" stroke-width="1.6" marker-end="url(#am)"/>
+  <text x="100" y="322" fill="#888888" font-size="11">feedback taps the delay output: re-delayed, but shifted only once</text>
+
+  <text x="600" y="252" fill="#888888" font-size="11.5">every echo is +7 st, forever:</text>
+  <text x="600" y="270" fill="#888888" font-size="12.5" font-weight="bold">+7 → +7 → +7 → …</text>
+  <text x="600" y="288" fill="#888888" font-size="11">the staircase never climbs.</text>
+</svg>

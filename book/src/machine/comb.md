@@ -101,6 +101,11 @@ delayed = read_hermite(d_read)  →  one-pole lowpass  →  DC blocker
         →  warp allpass  →  × fb  →  + in  →  write
 ```
 
+![The comb voice ring as a diagram: delay line, Hermite read, then the
+feedback chain through lowpass, DC blocker, warp allpass, and the ring-time
+feedback gain back to the input sum, with the d/2 pickup tap branched to the
+output](../images/comb/block-diagram.svg)
+
 **The lowpass** is the string's brightness decay: every round trip gets a
 little darker, highs first, like a real string. Its coefficient is exact —
 `m_lp_a[v] = 1 − e^(−2π·fc/m_sr)` — placing the −3 dB corner at fc by
