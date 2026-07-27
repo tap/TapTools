@@ -34,7 +34,7 @@
 ///             results, so every setter is allocation-free and safe while audio runs. Double
 ///             precision throughout; C++ stdlib + DspTap only.
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #pragma once

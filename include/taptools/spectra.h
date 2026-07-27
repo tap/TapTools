@@ -8,7 +8,7 @@
 ///             reference documentation (the original was a pfft~ subpatcher); this is self-contained
 ///             and runs its own STFT (see stft.h). Plain C++17, Min-free.
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2002-2026 Timothy Place.
 
 #pragma once

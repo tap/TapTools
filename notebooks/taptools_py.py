@@ -18,7 +18,7 @@ tap.tune~'s pitch corrector (`Tune`, with the shared DspTap detector passed
 through as `Yin` for the notebooks' pitch tracking). Parameter names on the
 kernel classes mirror each kernel header's param_index enum.
 
-Copyright 2003-2026 Timothy Place. New BSD License.
+Copyright 2003-2026 Timothy Place. MIT License.
 """
 
 from __future__ import annotations

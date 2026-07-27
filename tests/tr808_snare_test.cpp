@@ -4,7 +4,7 @@
 ///             173/336 Hz pair, the VR8 tone crossfade, the VR9 snappy noise path (bright,
 ///             enveloped, ~60 ms-class decay per the p.14 chart), accent monotonicity, seeded
 ///             determinism, and silence/boundedness.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

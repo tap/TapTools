@@ -6,7 +6,7 @@
 #     cmake -B build_capi -S kernel/tools/capi
 #     cmake --build build_capi
 #
-# Copyright 1999-2026 Timothy Place. Distributed under the New BSD License.
+# Copyright 1999-2026 Timothy Place. Distributed under the MIT License.
 
 cmake_minimum_required(VERSION 3.19)
 project(taptools_capi CXX)

@@ -8,7 +8,7 @@
 ///        convolution) plus the parameter-indexed kernels behind tap.svf~, tap.ladder~, tap.vco~,
 ///        tap.autowah~, and tap.overdrive~ (param indices and mode/solver/waveform constants match
 ///        the enums in each kernel header; ..._set() takes the kernel's param_index).
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #pragma once

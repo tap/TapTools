@@ -14,7 +14,8 @@
 ///             Usage: autowah_render [output-directory]
 ///                    autowah_render --in dry.wav [preset-slot] [output-directory]
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #include <cstdint>
 #include <cstdio>

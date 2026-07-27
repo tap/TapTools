@@ -34,7 +34,8 @@
 ///             be overridden per sample for signal-rate modulation. Allocation-free after
 ///             prepare(); setters are safe while audio runs.
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #pragma once
 

@@ -5,7 +5,7 @@
 ///             disconnection bend, the ~2 kHz band-pass voicing, the ~100 ms decay class;
 ///             the maracas' short bright burst (25-35 ms chart class); accent, seeded
 ///             determinism, silence/boundedness.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

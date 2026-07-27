@@ -44,7 +44,8 @@
 ///             16-slot preset-morph engine, allocation-free processing, setters safe while audio
 ///             runs.
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #pragma once
 

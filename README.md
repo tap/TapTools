@@ -83,3 +83,14 @@ is its own repository, the Max package pins it as a git submodule and points
   "each object is self-contained" rule applies to the wrapper package, not to the kernel.
 - Provenance and algorithm notes live in each header's top comment. The Max package's `REVIVAL.md`
   is the roadmap, including which objects' DSP is still inline Max-side and next to extract.
+
+## License
+
+MIT — © 2002–2026 Timothy Place. See [`LICENSE`](LICENSE). Every kernel, test, tool and benchmark
+source file carries an `SPDX-License-Identifier: MIT` banner. The pinned DspTap submodule is
+separately MIT-licensed and the third-party code it vendors (Ooura FFT, CMSIS-DSP) keeps its own
+license — see [`submodules/dsptap/NOTICE.md`](submodules/dsptap/NOTICE.md).
+
+Note the consuming Max package, [TapTools-Max](https://github.com/tap/TapTools-Max), remains under
+the New BSD License it has shipped under since 2002; this kernel library was relicensed to MIT to
+match its DspTap and AmbiTap siblings.

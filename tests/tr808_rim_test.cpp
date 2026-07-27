@@ -3,7 +3,7 @@
 /// @details    Pins the p.14 chart: the rimshot's ~1667 + ~455 Hz pair in the ~10 ms class
 ///             (with the VCA's harmonic generation), the claves' pure ~2500 Hz ~25 ms tick,
 ///             accent, determinism, silence.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

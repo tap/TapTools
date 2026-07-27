@@ -5,7 +5,7 @@
 ///             tolerance/seed spread, the p.14 chart's 350-1200 ms decay range across the
 ///             decay pot, the tone (strike/body) balance, accent monotonicity, determinism,
 ///             silence/boundedness.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

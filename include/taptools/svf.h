@@ -47,7 +47,7 @@
 ///             zipper), and everything is allocation-free after prepare(); setters are safe while
 ///             audio runs.
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #pragma once

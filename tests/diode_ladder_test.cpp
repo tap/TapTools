@@ -6,7 +6,7 @@
 ///             feedback-HPF behaviors (unity DC at any resonance, thinning toward the corner, the
 ///             authentic stock-never-quite-self-oscillates trait), solver agreement/boundedness,
 ///             oversampling consistency, morph continuity, determinism, and tail safety.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <array>

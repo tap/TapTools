@@ -3,7 +3,7 @@
 /// @details    `tap::tools::conv_engine` is a pure-C++ kernel, so these tests drive it directly — no
 ///             Max, min-api, or mock kernel needed — and check its output against a plain
 ///             time-domain convolution computed here as the reference.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #include <cmath>

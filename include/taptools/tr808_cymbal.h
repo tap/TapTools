@@ -37,7 +37,8 @@
 ///
 ///             Plain C++17, stdlib only, per-sample, allocation-free after prepare().
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #pragma once
 

@@ -44,7 +44,7 @@
 ///             analysis, PedalPCB "Poison Apple" build doc, official Mad Professor manuals. See
 ///             the TapTools-Max plan doc (plans/tap.autowah~.md) for the validation method.
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #pragma once

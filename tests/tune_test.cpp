@@ -5,7 +5,7 @@
 ///             using the DspTap YIN primitive (certified by DspTap's own test battery) as the
 ///             oracle. Checks chromatic snapping, scale masks, per-note enables, MIDI targeting,
 ///             retune speed, correction amount, unpitched relaxation, and amplitude sanity.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

@@ -8,7 +8,7 @@
 ///
 ///             Usage: diode_bench [--json] [--seconds N] [--reps N]
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <chrono>

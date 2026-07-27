@@ -26,7 +26,8 @@
 ///             All processing is double-precision, per-sample, allocation-free after prepare().
 ///             Setters are safe to call while audio runs (they only retarget ramps).
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #pragma once
 

@@ -5,7 +5,7 @@
 ///             fast pitch jitter, V/oct tracking error — plus the invariant that makes them safe:
 ///             at imperfect 0 every seed is exactly the ideal unit. The original waveform/sync/FM
 ///             scenarios live with the wrapper (source/projects/tap.vco_tilde in TapTools-Max).
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

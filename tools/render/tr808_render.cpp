@@ -19,7 +19,8 @@
 ///             Usage: tr808_render [output-directory]
 ///                    tr808_render --hit kick [accent] [output-directory] [--set NAME VALUE]...
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #include <cstdint>
 #include <cstdio>

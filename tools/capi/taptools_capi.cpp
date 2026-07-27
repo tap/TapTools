@@ -1,6 +1,6 @@
 /// @file taptools_capi.cpp
 /// @brief C ABI implementation — see taptools_capi.h.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #include "taptools_capi.h"

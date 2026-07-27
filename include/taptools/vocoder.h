@@ -10,7 +10,7 @@
 ///             Follows the svf.h / ladder.h idiom: prepare(samplerate), then per-sample process().
 ///             Plain C++17, Min-free.
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2001-2026 Timothy Place.
 
 #pragma once

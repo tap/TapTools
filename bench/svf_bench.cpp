@@ -13,7 +13,7 @@
 ///
 ///             Usage: svf_bench [--json] [--seconds N]
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <chrono>
