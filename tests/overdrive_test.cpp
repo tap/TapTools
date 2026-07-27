@@ -7,7 +7,7 @@
 ///             asymmetric clipping, the never-flat clean-through slope, the oversampling alias
 ///             improvement, body-voicing tilt, decay to silence (loop stability), determinism,
 ///             and parameter clamping.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

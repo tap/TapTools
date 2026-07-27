@@ -3,7 +3,7 @@
 /// @details    Pins the documented behaviors: the closed hat's fixed ~50 ms class, the open
 ///             hat's 90-600 ms decay-pot range, the hardware choke (a CH trigger terminates a
 ///             sounding OH), per-path levels, accent, determinism, silence.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

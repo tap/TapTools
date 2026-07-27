@@ -3,7 +3,7 @@
 /// @details    Checks the structural invariants: a silent carrier yields silence; makeup gain
 ///             scales the output linearly; a silent modulator lets the per-band envelopes decay to
 ///             silence; and processing is deterministic.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2001-2026 Timothy Place.
 
 #include <cmath>

@@ -2,7 +2,7 @@
 /// @brief      Unit tests for the spectral-remapping kernel (tap::tools::spectra::remapper).
 /// @details    remap = 1 reconstructs the input (delayed by one frame); remap = 2 relocates a tone
 ///             at input bin 2k to output bin k (checked by transforming the steady-state output).
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2002-2026 Timothy Place.
 
 #include <cmath>

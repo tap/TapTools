@@ -100,7 +100,8 @@
 ///             Devil Fish documentation (Robin Whittle) for the envelope/accent circuit
 ///             behavior, Stinchcombe for the filter (see diode_ladder.h).
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #pragma once
 

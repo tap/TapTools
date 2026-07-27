@@ -3,7 +3,7 @@
 /// @details    Pins the p.14 chart tunings and decay classes per size/model, the tuning knob's
 ///             low..high sweep, the D80/D81 attack pitch fall, the tom-only noise layer,
 ///             accent, determinism, silence.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

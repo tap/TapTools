@@ -1,4 +1,4 @@
-# Copyright 2002-2026 Timothy Place. Distributed under the New BSD License.
+# Copyright 2002-2026 Timothy Place. Distributed under the MIT License.
 #
 # TapTools kernel — the portable DSP library behind the TapTools Max package.
 # Header-only, plain C++20: no Max SDK, no min-api, no Jamoma. The kernels live

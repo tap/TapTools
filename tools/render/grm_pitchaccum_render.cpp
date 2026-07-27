@@ -6,7 +6,8 @@
 ///
 ///             Usage: grm_pitchaccum_render [output-directory]   (default: current directory)
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #include <cstdint>
 #include <cstdio>

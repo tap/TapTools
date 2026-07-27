@@ -3,7 +3,7 @@
 /// @details    Pins the documented behaviors: the 540/800 Hz oscillator pair (the chart's own
 ///             values), the ~50 ms decay class with the two-slope "abrupt initial decay"
 ///             envelope, accent, determinism, silence.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

@@ -14,7 +14,7 @@
 ///             old complex radix-2 for a real signal, and on Apple / Arm targets it dispatches to the
 ///             vDSP / CMSIS-Helium backends. Plain C++20, standard library only.
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #pragma once

@@ -8,7 +8,7 @@
 ///             fb < 1 at every setting) and the res -> ring-time map is compensated for the
 ///             blocker's gain at each voice's fundamental. The bank's behavioral tests live
 ///             wrapper-side (TapTools-Max, tap.5comb_tilde); these two scenarios guard the fix.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

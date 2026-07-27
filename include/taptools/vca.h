@@ -29,7 +29,8 @@
 ///             exposed so the same stage can be driven harder or biased more asymmetrically for
 ///             non-303 use. Plain C++17, stdlib only, allocation-free, no Max/Min dependency.
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #pragma once
 

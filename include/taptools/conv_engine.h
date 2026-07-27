@@ -23,7 +23,7 @@
 ///             convolution is identical to the full-complex version (the exp(+i) sign convention and
 ///             the 2/N inverse cancel through the forward→multiply→inverse pipeline).
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #pragma once

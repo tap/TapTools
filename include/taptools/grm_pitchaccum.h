@@ -21,7 +21,8 @@
 ///             override the morph for that one parameter. Double precision, allocation-free
 ///             after prepare(); setters only retarget ramps and are safe while audio runs.
 /// @author     Timothy Place
-/// @copyright  Copyright 2026 Timothy Place. Distributed under the New BSD License.
+// SPDX-License-Identifier: MIT
+// Copyright 2026 Timothy Place.
 
 #pragma once
 

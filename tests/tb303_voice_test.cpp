@@ -9,7 +9,7 @@
 ///             square shaper), the slice-4 additions (Open303's measured envmod law, the
 ///             Devil-Fish bends, seed/tolerance per-unit spread, factory presets),
 ///             determinism, and silence hygiene.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

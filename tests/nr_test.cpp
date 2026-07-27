@@ -3,7 +3,7 @@
 /// @details    Exercises the three behaviours that define the object: with the gate open the STFT
 ///             perfectly reconstructs the input (delayed by one frame); a tone below the threshold
 ///             is strongly attenuated; a tone above it passes through.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #include <cmath>

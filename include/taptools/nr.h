@@ -8,7 +8,7 @@
 ///             is self-contained and runs its own STFT (see stft.h). With the gate open the output
 ///             reconstructs the input delayed by one FFT frame. Plain C++17, Min-free.
 /// @author     Timothy Place
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #pragma once

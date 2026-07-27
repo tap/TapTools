@@ -6,7 +6,7 @@
 ///             row's gate duty / accent levels / gate-hold slide (including chained slides
 ///             and the slide across the pattern wrap), quantized slot recall, determinism,
 ///             and a smoke pairing with the tb303 voice.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

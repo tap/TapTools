@@ -7,7 +7,7 @@
 ///             output-coupling DC block on AC material. Also pins the shared-implementation
 ///             invariant: vca::shape() with the stock constants reproduces the exact saturator the
 ///             TB-303 voice uses, so the extraction left tap.303~ bit-identical.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

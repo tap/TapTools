@@ -5,7 +5,7 @@
 ///             its disconnection bend), decay-knob monotonicity and range, accent as excitation
 ///             (not gain), tone brightness, the tuning bend, state persistence across triggers
 ///             (no "machine gun effect"), determinism, and long-tail boundedness/silence.
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>

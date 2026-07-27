@@ -5,7 +5,7 @@
 ///             burst, the sensitivity-off "cocked wah" equivalence against a bare svf_filter, Q
 ///             monotonicity, the sidechain input, abuse boundedness, determinism, and the
 ///             preset-morph engine (including the factory voicings in slots 0-3).
-// SPDX-License-Identifier: BSD-3-Clause
+// SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
 
 #include <cmath>
