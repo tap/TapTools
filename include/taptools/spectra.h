@@ -16,33 +16,42 @@
 #include <cmath>
 #include <vector>
 
+#include "numeric.h"
 #include "stft.h"
 
 namespace tap::tools {
     namespace spectra {
 
-        class remapper {
+        template <typename Sample>
+
+        class basic_remapper {
+            static_assert(is_sample_profile<Sample>,
+
+                          "basic_remapper supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             // Allocate for the given FFT size (a power of two). Resets running state.
             void configure(int fftsize) {
                 m_stft.configure(fftsize);
-                m_ore.assign(fftsize, 0.0);
-                m_oim.assign(fftsize, 0.0);
+                m_ore.assign(fftsize, Sample(0.0));
+                m_oim.assign(fftsize, Sample(0.0));
             }
 
             // Flush the STFT buffers without changing the size.
             void reset() { m_stft.reset(); }
 
             // Remapping ratio: output bin k takes input bin round(k * remap). 1 is the identity.
-            void set_remap(double r) { m_remap = r; }
+            void set_remap(Sample r) { m_remap = r; }
 
             int fftsize() const { return m_stft.fftsize(); }
             int latency() const { return m_stft.latency(); }
 
             // Process n samples. Input and output must not alias.
-            void process(const double* in, double* out, long n) {
+            void process(const Sample* in, Sample* out, long n) {
                 m_stft.process(in, out, n,
-                               [this](std::vector<double>& re, std::vector<double>& im, int N) { remap(re, im, N); });
+                               [this](std::vector<Sample>& re, std::vector<Sample>& im, int N) { remap(re, im, N); });
             }
 
           private:
@@ -50,7 +59,7 @@ namespace tap::tools {
             // spectrum buffers for the inverse transform. The real inverse reconstructs the mirrored
             // upper half, so no explicit Hermitian mirroring is needed here — only DC and Nyquist must
             // stay real.
-            void remap(std::vector<double>& re, std::vector<double>& im, int N) {
+            void remap(std::vector<Sample>& re, std::vector<Sample>& im, int N) {
                 const int half = N / 2;
 
                 for (int k = 0; k <= half; ++k) {
@@ -60,12 +69,12 @@ namespace tap::tools {
                         m_oim[k] = im[src];
                     }
                     else {
-                        m_ore[k] = 0.0;
-                        m_oim[k] = 0.0;
+                        m_ore[k] = Sample(0.0);
+                        m_oim[k] = Sample(0.0);
                     }
                 }
-                m_oim[0]    = 0.0; // DC is real
-                m_oim[half] = 0.0; // Nyquist is real
+                m_oim[0]    = Sample(0.0); // DC is real
+                m_oim[half] = Sample(0.0); // Nyquist is real
 
                 for (int k = 0; k <= half; ++k) {
                     re[k] = m_ore[k];
@@ -73,10 +82,16 @@ namespace tap::tools {
                 }
             }
 
-            stft                m_stft;
-            std::vector<double> m_ore, m_oim; // remapped spectrum scratch
-            double              m_remap{1.0};
+            basic_stft<Sample>  m_stft;
+            std::vector<Sample> m_ore, m_oim; // remapped spectrum scratch
+            Sample              m_remap{Sample(1.0)};
         };
+
+        /// The double profile — the golden model.
+        using remapper = basic_remapper<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using remapper32 = basic_remapper<float>;
 
     } // namespace spectra
 } // namespace tap::tools

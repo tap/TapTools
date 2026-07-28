@@ -47,6 +47,7 @@
 #include <optional>
 #include <vector>
 
+#include "numeric.h"
 #include "tap/dsp/psola.h"
 #include "tap/dsp/pvoc.h"
 #include "tap/dsp/yin.h"
@@ -112,10 +113,11 @@ namespace tap::tools {
 
         /// An auto-key estimate: key is a pitch class (0 = C .. 11 = B), or -1 while there is not
         /// yet enough voiced material; confidence is the winning profile correlation, 0..1-ish.
-        struct key_estimate {
+        template <typename Sample>
+        struct basic_key_estimate {
             int    key;
             bool   minor;
-            double confidence;
+            Sample confidence;
 
             bool valid() const { return key >= 0; }
         };
@@ -133,13 +135,19 @@ namespace tap::tools {
         enum class backend : int { grain = 0, psola, pvoc };
 
         /// The full monophonic corrector: detector -> mapper -> transposer.
-        class corrector {
+        template <typename Sample>
+        class basic_corrector {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_corrector supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             // -- lifecycle -------------------------------------------------------------------------------
 
             /// Allocate for the sample rate. Call before processing; resets all running state.
-            void prepare(double sr) {
-                m_sr = (sr > 0.0) ? sr : 48000.0;
+            void prepare(Sample sr) {
+                m_sr = (sr > Sample(0.0)) ? sr : Sample(48000.0);
 
                 const size_t tau_min = std::max<size_t>(2, static_cast<size_t>(m_sr / k_ceil_freq_hz));
                 const size_t tau_max = static_cast<size_t>(std::ceil(m_sr / k_floor_freq_hz));
@@ -149,53 +157,54 @@ namespace tap::tools {
                 // alternate resynthesis backends (the grain engine shares the buffers below)
                 m_psola.emplace(tau_max); // sized to the deepest detectable period
                 size_t fft = 64;
-                while (fft < static_cast<size_t>(std::ceil(1024.0 * m_sr / 48000.0))) {
+                while (fft < static_cast<size_t>(std::ceil(Sample(1024.0) * m_sr / Sample(48000.0)))) {
                     fft *= 2; // ~21 ms frame at any rate
                 }
                 m_pvoc.emplace(fft);
                 m_pvoc->set_formant(m_formant);
 
-                m_frame.assign(m_detector->frame_size(), 0.0);
-                m_ring.assign(m_detector->frame_size(), 0.0);
+                m_frame.assign(m_detector->frame_size(), Sample(0.0));
+                m_ring.assign(m_detector->frame_size(), Sample(0.0));
                 m_ring_write = 0;
 
                 m_hop          = std::max(64, static_cast<int>(std::lround(k_hop_seconds * m_sr)));
                 m_hop_count    = 0;
-                m_autokey_leak = std::exp(-(static_cast<double>(m_hop) / m_sr) / k_autokey_memory_s);
+                m_autokey_leak = std::exp(-(static_cast<Sample>(m_hop) / m_sr) / k_autokey_memory_s);
 
-                const size_t n = static_cast<size_t>(std::ceil(k_max_window_ms * 0.001 * m_sr + k_base_delay)) + 16;
-                m_buffer.assign(n, 0.0);
+                const size_t n =
+                    static_cast<size_t>(std::ceil(k_max_window_ms * Sample(0.001) * m_sr + k_base_delay)) + 16;
+                m_buffer.assign(n, Sample(0.0));
                 m_write = 0;
-                m_phase = 0.0;
+                m_phase = Sample(0.0);
 
-                m_window_samples = m_window_target = k_default_window_ms * 0.001 * m_sr;
-                m_window_coeff                     = 1.0 - std::exp(-1.0 / (k_window_slew_ms * 0.001 * m_sr));
-                m_period_samples = m_period_target = m_sr / 220.0; // neutral until detection lands
+                m_window_samples = m_window_target = k_default_window_ms * Sample(0.001) * m_sr;
+                m_window_coeff   = Sample(1.0) - std::exp(-Sample(1.0) / (k_window_slew_ms * Sample(0.001) * m_sr));
+                m_period_samples = m_period_target = m_sr / Sample(220.0); // neutral until detection lands
 
-                m_applied_st  = 0.0;
-                m_target_st   = 0.0;
-                m_detected_hz = 0.0;
-                m_target_midi = -1.0;
+                m_applied_st  = Sample(0.0);
+                m_target_st   = Sample(0.0);
+                m_detected_hz = Sample(0.0);
+                m_target_midi = -Sample(1.0);
             }
 
             bool prepared() const { return m_detector.has_value(); }
 
             /// Zero the audio state (buffers, glides). Parameters and held notes are untouched.
             void clear() {
-                std::fill(m_ring.begin(), m_ring.end(), 0.0);
-                std::fill(m_frame.begin(), m_frame.end(), 0.0);
-                std::fill(m_buffer.begin(), m_buffer.end(), 0.0);
+                std::fill(m_ring.begin(), m_ring.end(), Sample(0.0));
+                std::fill(m_frame.begin(), m_frame.end(), Sample(0.0));
+                std::fill(m_buffer.begin(), m_buffer.end(), Sample(0.0));
                 m_ring_write  = 0;
                 m_write       = 0;
-                m_phase       = 0.0;
+                m_phase       = Sample(0.0);
                 m_hop_count   = 0;
-                m_applied_st  = 0.0;
-                m_target_st   = 0.0;
-                m_detected_hz = 0.0;
-                m_target_midi = -1.0;
+                m_applied_st  = Sample(0.0);
+                m_target_st   = Sample(0.0);
+                m_detected_hz = Sample(0.0);
+                m_target_midi = -Sample(1.0);
                 if (prepared()) {
-                    m_window_samples = m_window_target = k_default_window_ms * 0.001 * m_sr;
-                    m_period_samples = m_period_target = m_sr / 220.0;
+                    m_window_samples = m_window_target = k_default_window_ms * Sample(0.001) * m_sr;
+                    m_period_samples = m_period_target = m_sr / Sample(220.0);
                     m_psola->clear();
                     m_pvoc->clear();
                 }
@@ -249,37 +258,37 @@ namespace tap::tools {
             bool autokey() const { return m_autokey; }
 
             /// Forget everything learned so far.
-            void autokey_reset() { m_pc_hist.fill(0.0); }
+            void autokey_reset() { m_pc_hist.fill(Sample(0.0)); }
 
             /// Best of the 24 keys by Pearson correlation between the histogram and the rotated
             /// profile; invalid until ~half a second of voiced material has been heard.
-            key_estimate autokey_estimate() const {
-                double mass = 0.0;
-                for (const double v : m_pc_hist) {
+            basic_key_estimate<Sample> autokey_estimate() const {
+                Sample mass = Sample(0.0);
+                for (const Sample v : m_pc_hist) {
                     mass += v;
                 }
                 if (mass < k_autokey_min_mass) {
-                    return {-1, false, 0.0};
+                    return {-1, false, Sample(0.0)};
                 }
 
-                key_estimate best{-1, false, -2.0};
+                basic_key_estimate<Sample> best{-1, false, -Sample(2.0)};
                 for (int minor = 0; minor < 2; ++minor) {
                     const auto& profile = (minor != 0) ? k_key_profile_minor : k_key_profile_major;
                     for (int key = 0; key < 12; ++key) {
-                        const double r = correlate(profile, key);
+                        const Sample r = correlate(profile, key);
                         if (r > best.confidence) {
                             best = {key, minor != 0, r};
                         }
                     }
                 }
-                best.confidence = std::clamp(best.confidence, 0.0, 1.0);
+                best.confidence = std::clamp(best.confidence, Sample(0.0), Sample(1.0));
                 return best;
             }
 
             /// Apply the current estimate as key + scale (major or natural minor). Returns whether
             /// an estimate was available to apply.
             bool autokey_apply() {
-                const key_estimate e = autokey_estimate();
+                const basic_key_estimate<Sample> e = autokey_estimate();
                 if (!e.valid()) {
                     return false;
                 }
@@ -319,27 +328,27 @@ namespace tap::tools {
                     m_pvoc->clear();
                 }
                 else {
-                    std::fill(m_buffer.begin(), m_buffer.end(), 0.0);
-                    m_phase = 0.0;
+                    std::fill(m_buffer.begin(), m_buffer.end(), Sample(0.0));
+                    m_phase = Sample(0.0);
                 }
             }
 
             /// Retune speed: the exponential time constant (ms) of the glide onto the target.
             /// 0 snaps instantly — the hard quantize effect.
-            void set_speed(double ms) { m_speed_ms = std::max(0.0, ms); }
+            void set_speed(Sample ms) { m_speed_ms = std::max(Sample(0.0), ms); }
 
             /// Correction depth, 0..100%. 100 lands on the target; 50 corrects half the distance.
-            void set_amount(double pct) { m_amount = std::clamp(pct, 0.0, 100.0) * 0.01; }
+            void set_amount(Sample pct) { m_amount = std::clamp(pct, Sample(0.0), Sample(100.0)) * Sample(0.01); }
 
             /// Detection range filter, Hz. Estimates outside it are treated as unpitched.
-            void set_range(double min_hz, double max_hz) {
-                m_min_hz = std::clamp(min_hz, k_floor_freq_hz, k_ceil_freq_hz);
-                m_max_hz = std::clamp(max_hz, m_min_hz, k_ceil_freq_hz);
+            void set_range(Sample min_hz, Sample max_hz) {
+                m_min_hz = std::clamp(min_hz, Sample(k_floor_freq_hz), Sample(k_ceil_freq_hz));
+                m_max_hz = std::clamp(max_hz, m_min_hz, Sample(k_ceil_freq_hz));
             }
 
             /// YIN voicing threshold (see tap::dsp::basic_yin) — lower is stricter.
-            void set_threshold(double t) {
-                m_threshold = std::clamp(t, 0.001, 1.0);
+            void set_threshold(Sample t) {
+                m_threshold = std::clamp(t, Sample(0.001), Sample(1.0));
                 if (prepared()) {
                     m_detector->set_threshold(m_threshold);
                 }
@@ -368,22 +377,22 @@ namespace tap::tools {
             unsigned notes() const { return m_notes; }
             mode     target_mode() const { return m_mode; }
             backend  resynth_backend() const { return m_backend; }
-            double   speed() const { return m_speed_ms; }
-            double   amount() const { return m_amount * 100.0; }
-            double   threshold() const { return m_threshold; }
+            Sample   speed() const { return m_speed_ms; }
+            Sample   amount() const { return m_amount * Sample(100.0); }
+            Sample   threshold() const { return m_threshold; }
 
             /// Last detected fundamental, Hz; 0 while unpitched.
-            double detected_hz() const { return m_detected_hz; }
+            Sample detected_hz() const { return m_detected_hz; }
 
             /// Current target note as (fractional) MIDI; -1 while there is no target.
-            double target_midi() const { return m_target_midi; }
+            Sample target_midi() const { return m_target_midi; }
 
             /// Correction currently applied, semitones (the slewed value the ratio follows).
-            double applied_semitones() const { return m_applied_st; }
+            Sample applied_semitones() const { return m_applied_st; }
 
             // -- audio -----------------------------------------------------------------------------------
 
-            double process(double in) {
+            Sample process(Sample in) {
                 if (!prepared()) {
                     return in;
                 }
@@ -399,17 +408,17 @@ namespace tap::tools {
                 }
 
                 // glide the applied correction onto its target (0 ms = snap)
-                if (m_speed_ms <= 0.0) {
+                if (m_speed_ms <= Sample(0.0)) {
                     m_applied_st = m_target_st;
                 }
                 else {
-                    const double a = 1.0 - std::exp(-1.0 / (m_speed_ms * 0.001 * m_sr));
+                    const Sample a = Sample(1.0) - std::exp(-Sample(1.0) / (m_speed_ms * Sample(0.001) * m_sr));
                     m_applied_st += (m_target_st - m_applied_st) * a;
                 }
                 m_window_samples += (m_window_target - m_window_samples) * m_window_coeff;
                 m_period_samples += (m_period_target - m_period_samples) * m_window_coeff;
 
-                const double ratio = std::exp2(m_applied_st / 12.0);
+                const Sample ratio = std::exp2(m_applied_st / Sample(12.0));
                 if (m_backend == backend::psola) {
                     return m_psola->process(in, m_period_samples, ratio);
                 }
@@ -420,23 +429,23 @@ namespace tap::tools {
                 // two-tap transposer, window locked to the detected period (tap.shift~ engine)
                 m_buffer[m_write] = in;
 
-                const double ph_a = m_phase;
-                double       ph_b = ph_a + 0.5;
-                if (ph_b >= 1.0) {
-                    ph_b -= 1.0;
+                const Sample ph_a = m_phase;
+                Sample       ph_b = ph_a + Sample(0.5);
+                if (ph_b >= Sample(1.0)) {
+                    ph_b -= Sample(1.0);
                 }
-                const double ea = envelope(ph_a);
-                const double eb = 1.0 - ea; // exact complement: sin^2 + cos^2
+                const Sample ea = envelope(ph_a);
+                const Sample eb = Sample(1.0) - ea; // exact complement: sin^2 + cos^2
 
-                double y = 0.0;
-                if (ea > 0.0) {
+                Sample y = Sample(0.0);
+                if (ea > Sample(0.0)) {
                     y += ea * read_hermite(k_base_delay + m_window_samples * ph_a);
                 }
-                if (eb > 0.0) {
+                if (eb > Sample(0.0)) {
                     y += eb * read_hermite(k_base_delay + m_window_samples * ph_b);
                 }
 
-                m_phase += -(ratio - 1.0) / m_window_samples;
+                m_phase += -(ratio - Sample(1.0)) / m_window_samples;
                 m_phase -= std::floor(m_phase);
 
                 if (++m_write >= m_buffer.size()) {
@@ -464,9 +473,9 @@ namespace tap::tools {
                 }
                 const auto r = m_detector->analyze(m_frame.data());
 
-                double hz = 0.0;
+                Sample hz = Sample(0.0);
                 if (r.voiced()) {
-                    const double f = m_sr / r.period;
+                    const Sample f = m_sr / r.period;
                     if (f >= m_min_hz && f <= m_max_hz) {
                         hz = f;
                     }
@@ -474,54 +483,56 @@ namespace tap::tools {
                 m_detected_hz = hz;
 
                 if (m_autokey) {
-                    for (double& v : m_pc_hist) {
+                    for (Sample& v : m_pc_hist) {
                         v *= m_autokey_leak;
                     }
-                    if (hz > 0.0) {
-                        const long note = std::lround(69.0 + 12.0 * std::log2(hz / 440.0));
-                        m_pc_hist[static_cast<size_t>(((note % 12) + 12) % 12)] += 1.0;
+                    if (hz > Sample(0.0)) {
+                        const long note = std::lround(Sample(69.0) + Sample(12.0) * std::log2(hz / Sample(440.0)));
+                        m_pc_hist[static_cast<size_t>(((note % 12) + 12) % 12)] += Sample(1.0);
                     }
                 }
 
-                if (hz <= 0.0) {
-                    m_target_st   = 0.0; // unpitched: relax toward no correction, hold the window
-                    m_target_midi = -1.0;
+                if (hz <= Sample(0.0)) {
+                    m_target_st   = Sample(0.0); // unpitched: relax toward no correction, hold the window
+                    m_target_midi = -Sample(1.0);
                     return;
                 }
 
-                const double detected = 69.0 + 12.0 * std::log2(hz / 440.0);
-                const double target   = select_target(detected);
+                const Sample detected = Sample(69.0) + Sample(12.0) * std::log2(hz / Sample(440.0));
+                const Sample target   = select_target(detected);
                 m_target_midi         = target;
-                if (target < 0.0) {
-                    m_target_st = 0.0;
+                if (target < Sample(0.0)) {
+                    m_target_st = Sample(0.0);
                 }
                 else {
-                    m_target_st = std::clamp(target - detected, -k_max_correction_st, k_max_correction_st) * m_amount;
+                    m_target_st =
+                        std::clamp(target - detected, -Sample(k_max_correction_st), Sample(k_max_correction_st))
+                        * m_amount;
                 }
 
                 // Window = an EVEN multiple of the period, so the two taps (window/2 apart) always sit
                 // an integer number of periods apart — the coherence that makes the average ratio exact.
                 // Clamping to a fixed ms instead measurably biases the pitch (~5 cents at 452 Hz).
-                const double period_samples = m_sr / hz;
+                const Sample period_samples = m_sr / hz;
                 m_period_target             = period_samples; // for the psola backend
-                const double two_periods    = k_window_periods * period_samples;
-                const double min_w          = k_min_window_ms * 0.001 * m_sr;
-                const double max_w          = k_max_window_ms * 0.001 * m_sr;
-                const double multiple       = std::max(1.0, std::ceil(min_w / two_periods));
+                const Sample two_periods    = k_window_periods * period_samples;
+                const Sample min_w          = k_min_window_ms * Sample(0.001) * m_sr;
+                const Sample max_w          = k_max_window_ms * Sample(0.001) * m_sr;
+                const Sample multiple       = std::max(Sample(1.0), std::ceil(min_w / two_periods));
                 m_window_target             = std::min(multiple * two_periods, max_w);
             }
 
             /// Nearest allowed note (as MIDI) for a detected MIDI pitch, or -1 when nothing is allowed.
-            double select_target(double detected) const {
+            Sample select_target(Sample detected) const {
                 if (m_mode == mode::midi) {
-                    double best      = -1.0;
-                    double best_dist = 1.0e9;
+                    Sample best      = -Sample(1.0);
+                    Sample best_dist = Sample(1.0e9);
                     for (int n = 0; n < 128; ++n) {
                         if (m_held[static_cast<size_t>(n)]) {
-                            const double dist = std::abs(detected - static_cast<double>(n));
+                            const Sample dist = std::abs(detected - static_cast<Sample>(n));
                             if (dist < best_dist) {
                                 best_dist = dist;
-                                best      = static_cast<double>(n);
+                                best      = static_cast<Sample>(n);
                             }
                         }
                     }
@@ -529,19 +540,19 @@ namespace tap::tools {
                 }
 
                 if (m_notes == 0u) {
-                    return -1.0;
+                    return -Sample(1.0);
                 }
                 const int center    = static_cast<int>(std::lround(detected));
-                double    best      = -1.0;
-                double    best_dist = 1.0e9;
+                Sample    best      = -Sample(1.0);
+                Sample    best_dist = Sample(1.0e9);
                 for (int off = -6; off <= 6; ++off) { // any non-empty mask has a note within a tritone
                     const int      n  = center + off;
                     const unsigned pc = static_cast<unsigned>(((n % 12) + 12) % 12);
                     if ((m_notes >> pc) & 1u) {
-                        const double dist = std::abs(detected - static_cast<double>(n));
+                        const Sample dist = std::abs(detected - static_cast<Sample>(n));
                         if (dist < best_dist) {
                             best_dist = dist;
-                            best      = static_cast<double>(n);
+                            best      = static_cast<Sample>(n);
                         }
                     }
                 }
@@ -550,33 +561,33 @@ namespace tap::tools {
 
             /// Pearson correlation between the pitch-class histogram and a key profile rotated to
             /// the candidate key: profile degree d scores histogram bin (key + d) mod 12.
-            double correlate(const std::array<double, 12>& profile, int key) const {
-                double hm = 0.0;
-                double pm = 0.0;
+            Sample correlate(const std::array<double, 12>& profile, int key) const {
+                Sample hm = Sample(0.0);
+                Sample pm = Sample(0.0);
                 for (int d = 0; d < 12; ++d) {
                     hm += m_pc_hist[static_cast<size_t>(d)];
-                    pm += profile[static_cast<size_t>(d)];
+                    pm += Sample(profile[static_cast<size_t>(d)]);
                 }
-                hm /= 12.0;
-                pm /= 12.0;
+                hm /= Sample(12.0);
+                pm /= Sample(12.0);
 
-                double num = 0.0;
-                double hd  = 0.0;
-                double pd  = 0.0;
+                Sample num = Sample(0.0);
+                Sample hd  = Sample(0.0);
+                Sample pd  = Sample(0.0);
                 for (int d = 0; d < 12; ++d) {
-                    const double h = m_pc_hist[static_cast<size_t>((key + d) % 12)] - hm;
-                    const double p = profile[static_cast<size_t>(d)] - pm;
+                    const Sample h = m_pc_hist[static_cast<size_t>((key + d) % 12)] - hm;
+                    const Sample p = Sample(profile[static_cast<size_t>(d)]) - pm;
                     num += h * p;
                     hd += h * h;
                     pd += p * p;
                 }
-                const double denom = std::sqrt(hd * pd);
-                return (denom > 0.0) ? num / denom : 0.0;
+                const Sample denom = std::sqrt(hd * pd);
+                return (denom > Sample(0.0)) ? num / denom : Sample(0.0);
             }
 
             /// Grain envelope: sin^2 rise/fall over the half cycle — the two taps' envelopes sum to 1.
-            static double envelope(double ph) {
-                const double s = std::sin(k_pi * ph);
+            static Sample envelope(Sample ph) {
+                const Sample s = std::sin(k_pi * ph);
                 return s * s;
             }
 
@@ -585,67 +596,76 @@ namespace tap::tools {
                 return static_cast<size_t>(((i % n) + n) % n);
             }
 
-            double read_hermite(double d) const {
-                const double pos  = static_cast<double>(m_write) - d;
-                const double fpos = std::floor(pos);
-                const double frac = pos - fpos;
+            Sample read_hermite(Sample d) const {
+                const Sample pos  = static_cast<Sample>(m_write) - d;
+                const Sample fpos = std::floor(pos);
+                const Sample frac = pos - fpos;
                 const long   base = static_cast<long>(fpos);
-                const double xm1  = m_buffer[wrap(base - 1)];
-                const double x0   = m_buffer[wrap(base)];
-                const double x1   = m_buffer[wrap(base + 1)];
-                const double x2   = m_buffer[wrap(base + 2)];
-                const double c    = (x1 - xm1) * 0.5;
-                const double v    = x0 - x1;
-                const double w    = c + v;
-                const double a    = w + v + (x2 - x0) * 0.5;
-                const double b    = w + a;
+                const Sample xm1  = m_buffer[wrap(base - 1)];
+                const Sample x0   = m_buffer[wrap(base)];
+                const Sample x1   = m_buffer[wrap(base + 1)];
+                const Sample x2   = m_buffer[wrap(base + 2)];
+                const Sample c    = (x1 - xm1) * Sample(0.5);
+                const Sample v    = x0 - x1;
+                const Sample w    = c + v;
+                const Sample a    = w + v + (x2 - x0) * Sample(0.5);
+                const Sample b    = w + a;
                 return (((a * frac - b) * frac + c) * frac + x0);
             }
 
             // configuration
-            double   m_sr{48000.0};
+            Sample   m_sr{Sample(48000.0)};
             int      m_key{0};
             unsigned m_scale{k_scale_chromatic};
             unsigned m_notes{k_scale_chromatic};
             mode     m_mode{mode::scale};
-            double   m_speed_ms{k_default_speed_ms};
-            double   m_amount{1.0};
-            double   m_min_hz{k_default_min_hz};
-            double   m_max_hz{k_default_max_hz};
-            double   m_threshold{tap::dsp::yin::k_default_threshold};
+            Sample   m_speed_ms{k_default_speed_ms};
+            Sample   m_amount{Sample(1.0)};
+            Sample   m_min_hz{k_default_min_hz};
+            Sample   m_max_hz{k_default_max_hz};
+            Sample   m_threshold{tap::dsp::basic_yin<Sample>::k_default_threshold};
 
             // detection
-            std::optional<tap::dsp::yin>   m_detector;
-            std::optional<tap::dsp::psola> m_psola;
-            std::optional<tap::dsp::pvoc>  m_pvoc;
-            backend                        m_backend{backend::grain};
-            bool                           m_formant{false};
-            bool                           m_autokey{false};
-            double                         m_autokey_leak{1.0};
-            std::array<double, 12>         m_pc_hist{};
-            std::vector<double>            m_ring;
-            std::vector<double>            m_frame;
-            size_t                         m_ring_write{0};
-            int                            m_hop{256};
-            int                            m_hop_count{0};
-            std::array<bool, 128>          m_held{};
+            std::optional<tap::dsp::basic_yin<Sample>>   m_detector;
+            std::optional<tap::dsp::basic_psola<Sample>> m_psola;
+            std::optional<tap::dsp::basic_pvoc<Sample>>  m_pvoc;
+            backend                                      m_backend{backend::grain};
+            bool                                         m_formant{false};
+            bool                                         m_autokey{false};
+            Sample                                       m_autokey_leak{Sample(1.0)};
+            std::array<Sample, 12>                       m_pc_hist{};
+            std::vector<Sample>                          m_ring;
+            std::vector<Sample>                          m_frame;
+            size_t                                       m_ring_write{0};
+            int                                          m_hop{256};
+            int                                          m_hop_count{0};
+            std::array<bool, 128>                        m_held{};
 
             // correction state
-            double m_detected_hz{0.0};
-            double m_target_midi{-1.0};
-            double m_target_st{0.0};
-            double m_applied_st{0.0};
+            Sample m_detected_hz{Sample(0.0)};
+            Sample m_target_midi{-Sample(1.0)};
+            Sample m_target_st{Sample(0.0)};
+            Sample m_applied_st{Sample(0.0)};
 
             // resynthesis
-            std::vector<double> m_buffer;
+            std::vector<Sample> m_buffer;
             size_t              m_write{0};
-            double              m_phase{0.0};
-            double              m_window_samples{0.0};
-            double              m_window_target{0.0};
-            double              m_window_coeff{0.0};
-            double              m_period_samples{218.0};
-            double              m_period_target{218.0};
+            Sample              m_phase{Sample(0.0)};
+            Sample              m_window_samples{Sample(0.0)};
+            Sample              m_window_target{Sample(0.0)};
+            Sample              m_window_coeff{Sample(0.0)};
+            Sample              m_period_samples{Sample(218.0)};
+            Sample              m_period_target{Sample(218.0)};
         };
+
+        using key_estimate   = basic_key_estimate<double>;
+        using key_estimate32 = basic_key_estimate<float>;
+
+        /// The double profile — the golden model.
+        using corrector = basic_corrector<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using corrector32 = basic_corrector<float>;
 
     } // namespace tune
 } // namespace tap::tools

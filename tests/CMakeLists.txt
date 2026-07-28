@@ -18,6 +18,7 @@ add_executable(taptools_kernel_tests
     nr_test.cpp
     overdrive_test.cpp
     spectra_test.cpp
+    profiles_test.cpp
     step_seq_test.cpp
     svf_test.cpp
     tune_test.cpp

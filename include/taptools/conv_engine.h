@@ -35,12 +35,21 @@
 #include <optional>
 #include <vector>
 
+#include "numeric.h"
 #include "tap/dsp/fft.h" // the shared DspTap real FFT (split-radix Ooura + vDSP / CMSIS backends)
 
 namespace tap::tools {
 
-    class conv_engine {
+    template <typename Sample>
+
+    class basic_conv_engine {
+        static_assert(is_sample_profile<Sample>,
+
+                      "basic_conv_engine supports the two Tap numeric profiles: float and double");
+
       public:
+        using sample_type = Sample;
+
         static constexpr int k_paths    = 4;
         static constexpr int k_channels = 2;
 
@@ -56,17 +65,17 @@ namespace tap::tools {
             const int flat = m_max_parts * m_fftsize;
             for (int path = 0; path < k_paths; ++path) {
                 for (int slot = 0; slot < 2; ++slot) {
-                    m_ir[path][slot].assign(flat, 0.0);
+                    m_ir[path][slot].assign(flat, Sample(0.0));
                 }
             }
             for (int ch = 0; ch < k_channels; ++ch) {
-                m_fdl[ch].assign(flat, 0.0);
-                m_prev[ch].assign(m_block, 0.0);
-                m_inblk[ch].assign(m_block, 0.0);
-                m_outblk[ch].assign(m_block, 0.0);
+                m_fdl[ch].assign(flat, Sample(0.0));
+                m_prev[ch].assign(m_block, Sample(0.0));
+                m_inblk[ch].assign(m_block, Sample(0.0));
+                m_outblk[ch].assign(m_block, Sample(0.0));
             }
-            m_fbuf.assign(m_fftsize, 0.0);
-            m_acc.assign(m_fftsize, 0.0);
+            m_fbuf.assign(m_fftsize, Sample(0.0));
+            m_acc.assign(m_fftsize, Sample(0.0));
 
             m_slot_parts[0] = m_slot_parts[1] = 0;
             m_active.store(-1, std::memory_order_release); // no IR yet
@@ -77,10 +86,10 @@ namespace tap::tools {
         // Zeroes buffers the audio thread reads; safe to call from a message handler (no reallocation).
         void clear() {
             for (int ch = 0; ch < k_channels; ++ch) {
-                std::fill(m_fdl[ch].begin(), m_fdl[ch].end(), 0.0);
-                std::fill(m_prev[ch].begin(), m_prev[ch].end(), 0.0);
-                std::fill(m_inblk[ch].begin(), m_inblk[ch].end(), 0.0);
-                std::fill(m_outblk[ch].begin(), m_outblk[ch].end(), 0.0);
+                std::fill(m_fdl[ch].begin(), m_fdl[ch].end(), Sample(0.0));
+                std::fill(m_prev[ch].begin(), m_prev[ch].end(), Sample(0.0));
+                std::fill(m_inblk[ch].begin(), m_inblk[ch].end(), Sample(0.0));
+                std::fill(m_outblk[ch].begin(), m_outblk[ch].end(), Sample(0.0));
             }
             m_pos     = 0;
             m_fdl_pos = 0;
@@ -95,7 +104,7 @@ namespace tap::tools {
         // four source pointers (any may be null for a silent path); `length` is the IR length in samples
         // (clamped to capacity); `scale` is applied to every sample (used for normalisation / gain).
         // Runs off the audio thread; only writes the inactive slot, then flips one atomic.
-        void load_ir(const float* const paths[k_paths], int length, double scale) {
+        void load_ir(const float* const paths[k_paths], int length, Sample scale) {
             if (!configured()) {
                 return;
             }
@@ -107,15 +116,15 @@ namespace tap::tools {
 
             for (int path = 0; path < k_paths; ++path) {
                 const float* src = paths[path];
-                double*      H   = m_ir[path][inactive].data();
+                Sample*      H   = m_ir[path][inactive].data();
 
                 for (int p = 0; p < P; ++p) {
-                    std::fill(m_fbuf.begin(), m_fbuf.end(), 0.0);
+                    std::fill(m_fbuf.begin(), m_fbuf.end(), Sample(0.0));
                     if (src) {
                         for (int j = 0; j < m_block; ++j) {
                             const int idx = p * m_block + j;
                             if (idx < length) {
-                                m_fbuf[j] = static_cast<double>(src[idx]) * scale;
+                                m_fbuf[j] = static_cast<Sample>(src[idx]) * scale;
                             }
                         }
                     }
@@ -130,7 +139,7 @@ namespace tap::tools {
 
         // Process n stereo samples. Wet (fully convolved) output is written to out_l/out_r. Safe for any n;
         // input/output must not alias each other.
-        void process(const double* in_l, const double* in_r, double* out_l, double* out_r, long n) {
+        void process(const Sample* in_l, const Sample* in_r, Sample* out_l, Sample* out_r, long n) {
             for (long i = 0; i < n; ++i) {
                 m_inblk[0][m_pos] = in_l[i];
                 m_inblk[1][m_pos] = in_r[i];
@@ -146,15 +155,15 @@ namespace tap::tools {
       private:
         // Multiply-accumulate one partition into the packed accumulator: acc += h * x, with DC (slot 0)
         // and Nyquist (slot 1) purely real and the interior bins full complex.
-        void mac_partition(const double* h, const double* x) {
+        void mac_partition(const Sample* h, const Sample* x) {
             const int half = m_fftsize / 2;
             m_acc[0] += h[0] * x[0]; // DC
             m_acc[1] += h[1] * x[1]; // Nyquist
             for (int k = 1; k < half; ++k) {
-                const double hr = h[2 * k];
-                const double hi = h[2 * k + 1];
-                const double xr = x[2 * k];
-                const double xi = x[2 * k + 1];
+                const Sample hr = h[2 * k];
+                const Sample hi = h[2 * k + 1];
+                const Sample xr = x[2 * k];
+                const Sample xi = x[2 * k + 1];
                 m_acc[2 * k] += hr * xr - hi * xi;
                 m_acc[2 * k + 1] += hr * xi + hi * xr;
             }
@@ -180,7 +189,7 @@ namespace tap::tools {
             if (a < 0) {
                 // No IR loaded — emit silence.
                 for (int ch = 0; ch < k_channels; ++ch) {
-                    std::fill(m_outblk[ch].begin(), m_outblk[ch].end(), 0.0);
+                    std::fill(m_outblk[ch].begin(), m_outblk[ch].end(), Sample(0.0));
                 }
                 m_fdl_pos = (cur + 1) % m_max_parts;
                 return;
@@ -189,14 +198,14 @@ namespace tap::tools {
 
             // 2. For each output channel, accumulate the frequency-domain product over both input channels
             //    and every partition, then inverse-transform and keep the non-aliased second half.
-            const double scale = 2.0 / static_cast<double>(m_fftsize); // completes the real inverse
+            const Sample scale = Sample(2.0) / static_cast<Sample>(m_fftsize); // completes the real inverse
             for (int oc = 0; oc < k_channels; ++oc) {
-                std::fill(m_acc.begin(), m_acc.end(), 0.0);
+                std::fill(m_acc.begin(), m_acc.end(), Sample(0.0));
 
                 for (int ic = 0; ic < k_channels; ++ic) {
                     const int     path = ic * 2 + oc;
-                    const double* H    = m_ir[path][a].data();
-                    const double* X    = m_fdl[ic].data();
+                    const Sample* H    = m_ir[path][a].data();
+                    const Sample* X    = m_fdl[ic].data();
 
                     for (int p = 0; p < P; ++p) {
                         int slot = cur - p;
@@ -220,19 +229,25 @@ namespace tap::tools {
         int m_fftsize{0};   // FFT size = 2 * m_block
         int m_max_parts{0}; // capacity in partitions
 
-        std::optional<tap::dsp::real_fft> m_fft; // sized in configure()
+        std::optional<tap::dsp::basic_real_fft<Sample>> m_fft; // sized in configure()
 
         std::atomic<int> m_active{-1};          // published IR slot (0/1), or -1 for none. Audio thread reads it.
         int              m_slot_parts[2]{0, 0}; // partition count per slot (kept consistent with m_active)
 
-        std::array<std::array<std::vector<double>, 2>, k_paths> m_ir;  // packed IR spectra [path][slot]
-        std::array<std::vector<double>, k_channels>             m_fdl; // packed input FDL [channel]
-        std::array<std::vector<double>, k_channels>             m_prev, m_inblk, m_outblk;
+        std::array<std::array<std::vector<Sample>, 2>, k_paths> m_ir;  // packed IR spectra [path][slot]
+        std::array<std::vector<Sample>, k_channels>             m_fdl; // packed input FDL [channel]
+        std::array<std::vector<Sample>, k_channels>             m_prev, m_inblk, m_outblk;
 
-        std::vector<double> m_fbuf, m_acc; // packed scratch (analysis frame / accumulator)
+        std::vector<Sample> m_fbuf, m_acc; // packed scratch (analysis frame / accumulator)
 
         int m_pos{0};     // fill/read index within the current block [0, m_block)
         int m_fdl_pos{0}; // ring index of the newest input spectrum
     };
+
+    /// The double profile — the golden model.
+    using conv_engine = basic_conv_engine<double>;
+
+    /// The float profile — for single-precision targets. See numeric.h.
+    using conv_engine32 = basic_conv_engine<float>;
 
 } // namespace tap::tools

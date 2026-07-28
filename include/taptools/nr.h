@@ -16,13 +16,22 @@
 #include <cmath>
 #include <vector>
 
+#include "numeric.h"
 #include "stft.h"
 
 namespace tap::tools {
     namespace nr {
 
-        class reducer {
+        template <typename Sample>
+
+        class basic_reducer {
+            static_assert(is_sample_profile<Sample>,
+
+                          "basic_reducer supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             // Allocate for the given FFT size (a power of two). Resets running state.
             void configure(int fftsize) { m_stft.configure(fftsize); }
 
@@ -31,41 +40,47 @@ namespace tap::tools {
 
             // Linear-amplitude threshold: bins below this level are attenuated, bins above pass. 0
             // disables the gate (the output then reconstructs the input).
-            void set_threshold(double t) { m_threshold = t; }
+            void set_threshold(Sample t) { m_threshold = t; }
 
             // Soft-knee slope: 0 passes everything, higher values approach a hard gate.
-            void set_slope(double s) { m_slope = s; }
+            void set_slope(Sample s) { m_slope = s; }
 
             int fftsize() const { return m_stft.fftsize(); }
             int latency() const { return m_stft.latency(); }
 
             // Process n samples. Input and output must not alias.
-            void process(const double* in, double* out, long n) {
+            void process(const Sample* in, Sample* out, long n) {
                 m_stft.process(in, out, n,
-                               [this](std::vector<double>& re, std::vector<double>& im, int N) { gate(re, im, N); });
+                               [this](std::vector<Sample>& re, std::vector<Sample>& im, int N) { gate(re, im, N); });
             }
 
           private:
             // Attenuate bins whose magnitude is below the threshold (soft-knee downward expansion).
             // Operates on the half-spectrum (bins 0..N/2); the real transform mirrors the rest.
-            void gate(std::vector<double>& re, std::vector<double>& im, int N) const {
-                const double thr  = m_threshold;
+            void gate(std::vector<Sample>& re, std::vector<Sample>& im, int N) const {
+                const Sample thr  = m_threshold;
                 const int    half = N / 2;
                 for (int k = 0; k <= half; ++k) {
-                    const double mag  = std::sqrt(re[k] * re[k] + im[k] * im[k]) * (2.0 / N);
-                    double       gain = 1.0;
-                    if (thr > 0.0 && mag < thr) {
-                        gain = (m_slope <= 0.0) ? 1.0 : std::pow(mag / thr, m_slope);
+                    const Sample mag  = std::sqrt(re[k] * re[k] + im[k] * im[k]) * (Sample(2.0) / N);
+                    Sample       gain = Sample(1.0);
+                    if (thr > Sample(0.0) && mag < thr) {
+                        gain = (m_slope <= Sample(0.0)) ? Sample(1.0) : std::pow(mag / thr, m_slope);
                     }
                     re[k] *= gain;
                     im[k] *= gain;
                 }
             }
 
-            stft   m_stft;
-            double m_threshold{0.01};
-            double m_slope{2.0};
+            basic_stft<Sample> m_stft;
+            Sample             m_threshold{Sample(0.01)};
+            Sample             m_slope{Sample(2.0)};
         };
+
+        /// The double profile — the golden model.
+        using reducer = basic_reducer<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using reducer32 = basic_reducer<float>;
 
     } // namespace nr
 } // namespace tap::tools
