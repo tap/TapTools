@@ -15,3 +15,6 @@ __pycache__/
 notebooks/_tr808_ref/
 notebooks/_tr808_ours/
 notebooks/_swing_figs/
+
+# mdBook output (book/ sources build into here; deployed by CI)
+book/book/

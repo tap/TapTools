@@ -406,7 +406,7 @@ namespace tap::tools {
 
             // Triangle: leaky integration of the BLEP square. Only ticked when the morph needs it.
             // tri_pw skews the square's duty away from 0.5 (imperfect: asymmetry -> even harmonics).
-            double tri_tick(double p, double dt, double adt, double tri_pw) {
+            double tri_tick(double p, double adt, double tri_pw) {
                 const double sq = pulse_at(p, adt, tri_pw);
                 m_tri_state     = 0.999 * m_tri_state + 4.0 * adt * sq;
                 return m_tri_state;
@@ -420,11 +420,11 @@ namespace tap::tools {
                     if (a <= 0.0) {
                         return s;
                     }
-                    return (1.0 - a) * s + a * tri_tick(p, adt, adt, tri_pw);
+                    return (1.0 - a) * s + a * tri_tick(p, adt, tri_pw);
                 }
                 if (shape <= 2.0) { // triangle -> saw
                     const double a = shape - 1.0;
-                    const double t = tri_tick(p, adt, adt, tri_pw);
+                    const double t = tri_tick(p, adt, tri_pw);
                     if (a <= 0.0) {
                         return t;
                     }
@@ -467,8 +467,8 @@ namespace tap::tools {
                     const double frac  = m_sync_prev / (m_sync_prev - sync); // 0..1 within this sample
                     const double p_old = wrap01(m_phase + dt * frac);
                     const double p_new = (1.0 - frac) * dt;
-                    const double d     = waveform_out_peek(p_old, adt, shape, pw, bend)
-                                     - waveform_out_peek(wrap01(p_new), adt, shape, pw, bend);
+                    const double d     = waveform_out_peek(p_old, shape, pw, bend)
+                                     - waveform_out_peek(wrap01(p_new), shape, pw, bend);
                     // one-sided first-order correction of the reset step (minBLEP is the upgrade path)
                     const double x = 1.0 - frac;
                     correction += d * 0.5 * x * x;
@@ -501,7 +501,9 @@ namespace tap::tools {
             }
 
             // Waveform value without advancing the triangle integrator (for sync discontinuity sizing).
-            double waveform_out_peek(double p, double adt, double shape, double pw, double bend) const {
+            // No adt parameter: unlike waveform_out(), peek adds no BLEP correction (it reads the
+            // triangle integrator rather than ticking it), so it has no use for the window width.
+            double waveform_out_peek(double p, double shape, double pw, double bend) const {
                 if (shape <= 1.0) {
                     const double a = shape;
                     const double s = std::sin(2.0 * k_pi * bent(p, 0.5 * bend));
