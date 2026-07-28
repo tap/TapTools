@@ -467,8 +467,8 @@ namespace tap::tools {
                     const double frac  = m_sync_prev / (m_sync_prev - sync); // 0..1 within this sample
                     const double p_old = wrap01(m_phase + dt * frac);
                     const double p_new = (1.0 - frac) * dt;
-                    const double d     = waveform_out_peek(p_old, shape, pw, bend)
-                                     - waveform_out_peek(wrap01(p_new), shape, pw, bend);
+                    const double d =
+                        waveform_out_peek(p_old, shape, pw, bend) - waveform_out_peek(wrap01(p_new), shape, pw, bend);
                     // one-sided first-order correction of the reset step (minBLEP is the upgrade path)
                     const double x = 1.0 - frac;
                     correction += d * 0.5 * x * x;
