@@ -57,6 +57,7 @@
 #include <cmath>
 
 #include "bridged_t.h"
+#include "numeric.h"
 #include "swing_vca.h"
 
 namespace tap::tools {
@@ -103,49 +104,56 @@ namespace tap::tools {
         constexpr double k_sd_snappy_taper = 1.5;
 
         /// The TR-808 snare drum voice. prepare(), set the panel, trigger(accent), process().
-        class snare {
+        template <typename Sample>
+        class basic_snare {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_snare supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
 
-                bridged_t::config f;
-                f.c_arm_in   = k_sd_c58;
-                f.c_arm_out  = k_sd_c59;
-                f.r_bridge   = k_sd_r197;
-                f.r_inject_a = 0.0;
-                f.r_inject_b = 0.0;
-                f.r_leg      = k_sd_r196;
+                typename basic_bridged_t<Sample>::config f;
+                f.c_arm_in   = Sample(k_sd_c58);
+                f.c_arm_out  = Sample(k_sd_c59);
+                f.r_bridge   = Sample(k_sd_r197);
+                f.r_inject_a = Sample(0.0);
+                f.r_inject_b = Sample(0.0);
+                f.r_leg      = Sample(k_sd_r196);
                 m_fund.configure(f);
                 m_fund.prepare(sample_rate);
 
-                bridged_t::config h;
-                h.c_arm_in   = k_sd_c60;
-                h.c_arm_out  = k_sd_c61;
-                h.r_bridge   = k_sd_r198;
-                h.r_inject_a = 0.0;
-                h.r_inject_b = 0.0;
-                h.r_leg      = k_sd_r195;
+                typename basic_bridged_t<Sample>::config h;
+                h.c_arm_in   = Sample(k_sd_c60);
+                h.c_arm_out  = Sample(k_sd_c61);
+                h.r_bridge   = Sample(k_sd_r198);
+                h.r_inject_a = Sample(0.0);
+                h.r_inject_b = Sample(0.0);
+                h.r_leg      = Sample(k_sd_r195);
                 m_harm.configure(h);
                 m_harm.prepare(sample_rate);
 
                 m_shaper.prepare(sample_rate);
                 // H(s) for the R189/C57/R190 divider (see the constants' comment).
-                m_shaper.set(k_sd_r189 * k_sd_r190 * k_sd_c57, k_sd_r190, k_sd_r189 * k_sd_r190 * k_sd_c57,
-                             k_sd_r189 + k_sd_r190);
+                m_shaper.set(Sample(k_sd_r189) * Sample(k_sd_r190) * Sample(k_sd_c57), Sample(k_sd_r190),
+                             Sample(k_sd_r189) * Sample(k_sd_r190) * Sample(k_sd_c57),
+                             Sample(k_sd_r189) + Sample(k_sd_r190));
 
                 m_env.prepare(sample_rate);
-                m_env.set_times(k_sd_snappy_att_s, k_sd_snappy_tau_s);
+                m_env.set_times(Sample(k_sd_snappy_att_s), Sample(k_sd_snappy_tau_s));
 
                 m_noise_hp1.prepare(sample_rate);
                 m_noise_hp2.prepare(sample_rate);
                 m_noise_lp.prepare(sample_rate);
-                const double tau = 1.0 / (2.0 * k_pi * k_sd_snappy_hp_hz);
-                m_noise_hp1.set(tau, 0.0, tau, 1.0);
-                m_noise_hp2.set(tau, 0.0, tau, 1.0);
-                const double tau_lp = 1.0 / (2.0 * k_pi * k_sd_snappy_lp_hz);
-                m_noise_lp.set(0.0, 1.0, tau_lp, 1.0);
+                const Sample tau = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_sd_snappy_hp_hz));
+                m_noise_hp1.set(tau, Sample(0.0), tau, Sample(1.0));
+                m_noise_hp2.set(tau, Sample(0.0), tau, Sample(1.0));
+                const Sample tau_lp = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_sd_snappy_lp_hz));
+                m_noise_lp.set(Sample(0.0), Sample(1.0), tau_lp, Sample(1.0));
                 m_noise_lp2.prepare(sample_rate);
-                m_noise_lp2.set(0.0, 1.0, tau_lp, 1.0);
+                m_noise_lp2.set(Sample(0.0), Sample(1.0), tau_lp, Sample(1.0));
 
                 set_tuning(m_tuning);
                 reset();
@@ -162,20 +170,20 @@ namespace tap::tools {
                 m_noise_lp2.reset();
                 m_noise.reset();
                 m_pulse_remaining = 0;
-                m_vtrig           = 0.0;
+                m_vtrig           = Sample(0.0);
             }
 
             // -- panel ---------------------------------------------------------------------
 
             /// Resonator balance, 0..1 (VR8, SD TONE): 0 = fundamental (~173 Hz) only,
             /// 1 = harmonic (~336 Hz) only. Hardware noon is an even blend.
-            void set_tone(double amount) { m_tone = std::clamp(amount, 0.0, 1.0); }
+            void set_tone(Sample amount) { m_tone = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Snappy amount, 0..1 (VR9): depth of the enveloped noise path.
-            void set_snappy(double amount) { m_snappy = std::clamp(amount, 0.0, 1.0); }
+            void set_snappy(Sample amount) { m_snappy = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Output level, 0..1 (VR7).
-            void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
+            void set_level(Sample amount) { m_level = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             // -- circuit bends (stock hardware at the defaults) ----------------------------
 
@@ -183,15 +191,15 @@ namespace tap::tools {
             /// bit-identical; > 0 engages the swing VCA's symmetric harmonic saturation — grit and
             /// compression that ride the snappy envelope, hardest on the transient crack). See
             /// swing_vca.h / vca.h swing_shape.
-            void   set_drive(double amount) { m_drive = std::max(0.0, amount); }
-            double drive() const { return m_drive; }
+            void   set_drive(Sample amount) { m_drive = std::max(Sample(0.0), amount); }
+            Sample drive() const { return m_drive; }
 
             /// Pitch as a ratio of the stock tuning (0.25..4): scales both resonators' arm
             /// capacitors together. 1.0 = the late-revision schematic (~173/336 Hz).
-            void set_tuning(double ratio) {
-                m_tuning = std::clamp(ratio, 0.25, 4.0);
-                m_fund.set_cap_scale(1.0 / m_tuning);
-                m_harm.set_cap_scale(1.0 / m_tuning);
+            void set_tuning(Sample ratio) {
+                m_tuning = std::clamp(ratio, Sample(0.25), Sample(4.0));
+                m_fund.set_cap_scale(Sample(1.0) / m_tuning);
+                m_harm.set_cap_scale(Sample(1.0) / m_tuning);
             }
 
             /// Noise-source seed (deterministic; mc. instances decorrelate by seed).
@@ -200,47 +208,53 @@ namespace tap::tools {
             // -- performance ---------------------------------------------------------------
 
             /// Fire the voice. `accent` 0..1 maps to the 4-14 V trigger bus.
-            void trigger(double accent = 1.0) {
-                const double a    = std::clamp(accent, 0.0, 1.0);
-                m_vtrig           = k_sd_vtrig_min + a * (k_sd_vtrig_max - k_sd_vtrig_min);
-                m_pulse_remaining = std::max(1, static_cast<int>(k_sd_pulse_ms * 0.001 * m_sr));
-                m_env.trigger(m_vtrig / k_sd_vtrig_max); // snappy envelope rides the accent too
+            void trigger(Sample accent = Sample(1.0)) {
+                const Sample a    = std::clamp(accent, Sample(0.0), Sample(1.0));
+                m_vtrig           = Sample(k_sd_vtrig_min) + a * (Sample(k_sd_vtrig_max) - Sample(k_sd_vtrig_min));
+                m_pulse_remaining = std::max(1, static_cast<int>(Sample(k_sd_pulse_ms) * Sample(0.001) * m_sr));
+                m_env.trigger(m_vtrig / Sample(k_sd_vtrig_max)); // snappy envelope rides the accent too
             }
 
-            double process() {
-                double v_pulse = 0.0;
+            Sample process() {
+                Sample v_pulse = Sample(0.0);
                 if (m_pulse_remaining > 0) {
                     v_pulse = m_vtrig;
                     --m_pulse_remaining;
                 }
 
-                const double v_plus = m_shaper.process(v_pulse);
-                const double f      = m_fund.process(v_plus, 0.0, 0.0);
-                const double h      = m_harm.process(v_plus, 0.0, 0.0);
+                const Sample v_plus = m_shaper.process(v_pulse);
+                const Sample f      = m_fund.process(v_plus, Sample(0.0), Sample(0.0));
+                const Sample h      = m_harm.process(v_plus, Sample(0.0), Sample(0.0));
 
-                const double snap = swing_vca(m_noise_lp2.process(m_noise_lp.process(
+                const Sample snap = swing_vca(m_noise_lp2.process(m_noise_lp.process(
                                                   m_noise_hp2.process(m_noise_hp1.process(m_noise.process())))),
                                               m_env.process(), m_drive)
-                                    * std::pow(m_snappy, k_sd_snappy_taper) * k_sd_snappy_gain;
+                                    * std::pow(m_snappy, Sample(k_sd_snappy_taper)) * Sample(k_sd_snappy_gain);
 
-                const double mix = f * (1.0 - m_tone) + h * m_tone + snap;
-                return mix * m_level * k_sd_out_scale;
+                const Sample mix = f * (Sample(1.0) - m_tone) + h * m_tone + snap;
+                return mix * m_level * Sample(k_sd_out_scale);
             }
 
           private:
-            double m_sr{48000.0};
+            Sample m_sr{Sample(48000.0)};
 
-            bridged_t   m_fund, m_harm;
-            decay_env   m_env;
-            white_noise m_noise;
-            first_order m_shaper, m_noise_hp1, m_noise_hp2, m_noise_lp, m_noise_lp2;
+            basic_bridged_t<Sample>   m_fund, m_harm;
+            basic_decay_env<Sample>   m_env;
+            basic_white_noise<Sample> m_noise;
+            basic_first_order<Sample> m_shaper, m_noise_hp1, m_noise_hp2, m_noise_lp, m_noise_lp2;
 
-            double m_tone{0.5}, m_snappy{0.5}, m_level{1.0};
-            double m_tuning{1.0};
-            double m_drive{0.0}; // swing-VCA saturation on the snappy path; 0 = linear (default)
-            double m_vtrig{0.0};
+            Sample m_tone{Sample(0.5)}, m_snappy{Sample(0.5)}, m_level{Sample(1.0)};
+            Sample m_tuning{Sample(1.0)};
+            Sample m_drive{Sample(0.0)}; // swing-VCA saturation on the snappy path; 0 = linear (default)
+            Sample m_vtrig{Sample(0.0)};
             int    m_pulse_remaining{0};
         };
+
+        /// The double profile — the golden model.
+        using snare = basic_snare<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using snare32 = basic_snare<float>;
 
     } // namespace tr808
 } // namespace tap::tools

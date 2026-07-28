@@ -37,6 +37,7 @@
 #include <cmath>
 
 #include "metal_bank.h"
+#include "numeric.h"
 #include "swing_vca.h"
 
 namespace tap::tools {
@@ -58,16 +59,22 @@ namespace tap::tools {
         constexpr double k_cb_out_scale = 0.86;
 
         /// The TR-808 cowbell voice.
-        class cowbell {
+        template <typename Sample>
+        class basic_cowbell {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_cowbell supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
                 m_bank.prepare(sample_rate);
-                m_bp.prepare(sample_rate, k_cb_bp_hz, k_cb_bp_q);
+                m_bp.prepare(sample_rate, Sample(k_cb_bp_hz), Sample(k_cb_bp_q));
                 m_env_fast.prepare(sample_rate);
                 m_env_tail.prepare(sample_rate);
-                m_env_fast.set_times(k_cb_att_s, k_cb_fast_tau_s);
-                m_env_tail.set_times(k_cb_att_s, k_cb_tail_tau_s);
+                m_env_fast.set_times(Sample(k_cb_att_s), Sample(k_cb_fast_tau_s));
+                m_env_tail.set_times(Sample(k_cb_att_s), Sample(k_cb_tail_tau_s));
                 reset();
             }
 
@@ -79,43 +86,50 @@ namespace tap::tools {
             }
 
             /// Output level, 0..1 (VR5, CB LEVEL).
-            void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
+            void set_level(Sample amount) { m_level = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Swing-VCA drive on the oscillator pair (0 = calibrated linear model, bit-identical;
             /// > 0 engages the swing VCA's symmetric harmonic saturation before the bandpass — the
             /// experimental fidelity hook for the tonal-voice sweep, plans/tap.808.md).
-            void   set_drive(double amount) { m_drive = std::max(0.0, amount); }
-            double drive() const { return m_drive; }
+            void   set_drive(Sample amount) { m_drive = std::max(Sample(0.0), amount); }
+            Sample drive() const { return m_drive; }
 
-            void set_tuning(double ratio) { m_bank.set_tuning(ratio); }
-            void set_tolerance(double amount) { m_bank.set_tolerance(amount); }
+            void set_tuning(Sample ratio) { m_bank.set_tuning(ratio); }
+            void set_tolerance(Sample amount) { m_bank.set_tolerance(amount); }
             void set_seed(uint64_t seed) { m_bank.set_seed(seed); }
 
-            void trigger(double accent = 1.0) {
-                const double a = std::clamp(accent, 0.0, 1.0);
-                const double v = (k_cb_vtrig_min + a * (k_cb_vtrig_max - k_cb_vtrig_min)) / k_cb_vtrig_max;
+            void trigger(Sample accent = Sample(1.0)) {
+                const Sample a = std::clamp(accent, Sample(0.0), Sample(1.0));
+                const Sample v = (Sample(k_cb_vtrig_min) + a * (Sample(k_cb_vtrig_max) - Sample(k_cb_vtrig_min)))
+                                 / Sample(k_cb_vtrig_max);
                 m_env_fast.trigger(v);
-                m_env_tail.trigger(v * k_cb_tail_level);
+                m_env_tail.trigger(v * Sample(k_cb_tail_level));
             }
 
-            double process() {
+            Sample process() {
                 m_bank.process();
                 // The gates pass only the trimpot pair (oscillators #5 and #6: 800 / 540 Hz).
-                const double pair = 0.5 * (m_bank.osc(4) + m_bank.osc(5));
-                const double env  = m_env_fast.process() + m_env_tail.process();
-                return m_bp.process(swing_vca(pair, env, m_drive)) * m_level * k_cb_out_scale;
+                const Sample pair = Sample(0.5) * (m_bank.osc(4) + m_bank.osc(5));
+                const Sample env  = m_env_fast.process() + m_env_tail.process();
+                return m_bp.process(swing_vca(pair, env, m_drive)) * m_level * Sample(k_cb_out_scale);
             }
 
           private:
-            double m_sr{48000.0};
+            Sample m_sr{Sample(48000.0)};
 
-            metal_bank m_bank;
-            bandpass   m_bp;
-            decay_env  m_env_fast, m_env_tail;
+            basic_metal_bank<Sample> m_bank;
+            basic_bandpass<Sample>   m_bp;
+            basic_decay_env<Sample>  m_env_fast, m_env_tail;
 
-            double m_level{1.0};
-            double m_drive{0.0}; // swing-VCA saturation on the osc pair; 0 = linear (default)
+            Sample m_level{Sample(1.0)};
+            Sample m_drive{Sample(0.0)}; // swing-VCA saturation on the osc pair; 0 = linear (default)
         };
+
+        /// The double profile — the golden model.
+        using cowbell = basic_cowbell<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using cowbell32 = basic_cowbell<float>;
 
     } // namespace tr808
 } // namespace tap::tools

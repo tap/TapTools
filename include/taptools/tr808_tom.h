@@ -44,6 +44,7 @@
 #include <cmath>
 
 #include "bridged_t.h"
+#include "numeric.h"
 #include "swing_vca.h"
 
 namespace tap::tools {
@@ -84,15 +85,21 @@ namespace tap::tools {
 
         /// The TR-808 tom/conga channel. `size` 0/1/2 = low/mid/high; `model` 0 = tom
         /// (with the noise layer), 1 = conga.
-        class tom {
+        template <typename Sample>
+        class basic_tom {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_tom supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             enum model_type { model_tom = 0, model_conga = 1 };
 
-            void prepare(double sample_rate) {
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
                 m_noise_lp.prepare(sample_rate);
-                const double tau = 1.0 / (2.0 * k_pi * k_tom_noise_lp_hz);
-                m_noise_lp.set(0.0, 1.0, tau, 1.0);
+                const Sample tau = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_tom_noise_lp_hz));
+                m_noise_lp.set(Sample(0.0), Sample(1.0), tau, Sample(1.0));
                 m_noise_env.prepare(sample_rate);
                 retune(true);
                 reset();
@@ -103,9 +110,9 @@ namespace tap::tools {
                 m_noise_lp.reset();
                 m_noise_env.reset();
                 m_noise.reset();
-                m_pink1 = m_pink2 = m_pink3 = 0.0;
+                m_pink1 = m_pink2 = m_pink3 = Sample(0.0);
                 m_pulse_remaining           = 0;
-                m_vtrig                     = 0.0;
+                m_vtrig                     = Sample(0.0);
             }
 
             // -- panel / config ------------------------------------------------------------
@@ -124,84 +131,87 @@ namespace tap::tools {
             int model() const { return m_model; }
 
             /// Tuning knob, 0..1 (VR11/13/15): sweeps the chart's low..high span.
-            void set_tuning(double amount) {
-                m_tuning = std::clamp(amount, 0.0, 1.0);
+            void set_tuning(Sample amount) {
+                m_tuning = std::clamp(amount, Sample(0.0), Sample(1.0));
                 retune(false);
             }
 
             /// Output level, 0..1.
-            void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
+            void set_level(Sample amount) { m_level = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Swing-VCA drive on the noise "reverberation" path (0 = the calibrated linear model,
             /// bit-identical; > 0 engages the swing VCA's symmetric harmonic saturation on the
             /// noise layer, riding its envelope). Toms only (congas have no noise layer). See
             /// swing_vca.h / vca.h swing_shape.
-            void   set_drive(double amount) { m_drive = std::max(0.0, amount); }
-            double drive() const { return m_drive; }
+            void   set_drive(Sample amount) { m_drive = std::max(Sample(0.0), amount); }
+            Sample drive() const { return m_drive; }
 
             /// Noise-layer seed (toms only audible; deterministic).
             void set_seed(uint64_t seed) { m_noise.set_seed(seed); }
 
             // -- performance ---------------------------------------------------------------
 
-            void trigger(double accent = 1.0) {
-                const double a    = std::clamp(accent, 0.0, 1.0);
-                m_vtrig           = k_tomc_vtrig_min + a * (k_tomc_vtrig_max - k_tomc_vtrig_min);
-                m_pulse_remaining = std::max(1, static_cast<int>(k_tomc_pulse_ms * 0.001 * m_sr));
-                m_noise_env.trigger(m_vtrig / k_tomc_vtrig_max);
+            void trigger(Sample accent = Sample(1.0)) {
+                const Sample a = std::clamp(accent, Sample(0.0), Sample(1.0));
+                m_vtrig        = Sample(k_tomc_vtrig_min) + a * (Sample(k_tomc_vtrig_max) - Sample(k_tomc_vtrig_min));
+                m_pulse_remaining = std::max(1, static_cast<int>(Sample(k_tomc_pulse_ms) * Sample(0.001) * m_sr));
+                m_noise_env.trigger(m_vtrig / Sample(k_tomc_vtrig_max));
             }
 
-            double process() {
-                double v_pulse = 0.0;
+            Sample process() {
+                Sample v_pulse = Sample(0.0);
                 if (m_pulse_remaining > 0) {
                     v_pulse = m_vtrig;
                     --m_pulse_remaining;
                 }
 
                 // D80/D81: big center-node swings shunt the leg -> higher fc at the attack.
-                const double vc = std::abs(m_bt.v_comm());
-                const double g  = std::clamp((vc - k_tomc_bend_knee) / k_tomc_bend_span, 0.0, 1.0);
-                m_bt.set_leg_resistance(m_r_leg / (1.0 + k_tomc_bend_depth * g));
+                const Sample vc = std::abs(m_bt.v_comm());
+                const Sample g =
+                    std::clamp((vc - Sample(k_tomc_bend_knee)) / Sample(k_tomc_bend_span), Sample(0.0), Sample(1.0));
+                m_bt.set_leg_resistance(m_r_leg / (Sample(1.0) + Sample(k_tomc_bend_depth) * g));
 
-                const double ring = m_bt.process(v_pulse * 0.1, 0.0, 0.0);
+                const Sample ring = m_bt.process(v_pulse * Sample(0.1), Sample(0.0), Sample(0.0));
 
-                double noise = 0.0;
+                Sample noise = Sample(0.0);
                 if (m_model == model_tom) {
                     // Kellet-style pinking of the seeded white source.
-                    const double w = m_noise.process();
-                    m_pink1        = 0.99765 * m_pink1 + w * 0.0990460;
-                    m_pink2        = 0.96300 * m_pink2 + w * 0.2965164;
-                    m_pink3        = 0.57000 * m_pink3 + w * 1.0526913;
-                    const double p = m_pink1 + m_pink2 + m_pink3 + w * 0.1848;
-                    noise          = swing_vca(m_noise_lp.process(p), m_noise_env.process(), m_drive) * k_tom_noise_mix
-                            * k_tomc_vtrig_max;
+                    const Sample w = m_noise.process();
+                    m_pink1        = Sample(0.99765) * m_pink1 + w * Sample(0.0990460);
+                    m_pink2        = Sample(0.96300) * m_pink2 + w * Sample(0.2965164);
+                    m_pink3        = Sample(0.57000) * m_pink3 + w * Sample(1.0526913);
+                    const Sample p = m_pink1 + m_pink2 + m_pink3 + w * Sample(0.1848);
+                    noise = swing_vca(m_noise_lp.process(p), m_noise_env.process(), m_drive) * Sample(k_tom_noise_mix)
+                            * Sample(k_tomc_vtrig_max);
                 }
                 else {
                     m_noise_env.process(); // keep envelope state moving for model switches
                 }
 
-                return (ring + noise) * m_level * k_tomc_mix[m_model][m_size] * k_tomc_out_scale;
+                return (ring + noise) * m_level * Sample(k_tomc_mix[m_model][m_size]) * Sample(k_tomc_out_scale);
             }
 
           private:
             void retune(bool reconfigure) {
                 const auto&  span = m_model == model_tom ? k_tom_hz[m_size] : k_conga_hz[m_size];
-                const double fc   = span[0] * std::pow(span[1] / span[0], m_tuning);
-                const double dec  = m_model == model_tom ? k_tom_decay_s[m_size] : k_conga_decay_s[m_size];
+                const Sample fc   = Sample(span[0]) * std::pow(Sample(span[1]) / Sample(span[0]), m_tuning);
+                const Sample dec =
+                    m_model == model_tom ? Sample(k_tom_decay_s[m_size]) : Sample(k_conga_decay_s[m_size]);
                 // -40 dB decay -> amplitude tau -> Q -> leg resistance (Q = sqrt(Rb/Rl)/2).
-                const double tau = dec / 4.6;
-                const double q   = k_pi * fc * tau;
-                m_r_leg          = k_tomc_r_bridge / (4.0 * q * q);
+                const Sample tau = dec / Sample(4.6);
+                const Sample q   = k_pi_for<Sample> * fc * tau;
+                m_r_leg          = Sample(k_tomc_r_bridge) / (Sample(4.0) * q * q);
                 // Arm capacitance for fc at that leg.
-                const double c = 1.0 / (2.0 * k_pi * fc * std::sqrt(m_r_leg * k_tomc_r_bridge));
+                const Sample c =
+                    Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * fc * std::sqrt(m_r_leg * Sample(k_tomc_r_bridge)));
 
                 if (reconfigure) {
-                    bridged_t::config cfg;
+                    typename basic_bridged_t<Sample>::config cfg;
                     cfg.c_arm_in   = c;
                     cfg.c_arm_out  = c;
-                    cfg.r_bridge   = k_tomc_r_bridge;
-                    cfg.r_inject_a = 0.0;
-                    cfg.r_inject_b = 0.0;
+                    cfg.r_bridge   = Sample(k_tomc_r_bridge);
+                    cfg.r_inject_a = Sample(0.0);
+                    cfg.r_inject_b = Sample(0.0);
                     cfg.r_leg      = m_r_leg;
                     m_bt.configure(cfg);
                     m_bt.prepare(m_sr);
@@ -212,25 +222,31 @@ namespace tap::tools {
                     m_bt.set_leg_resistance(m_r_leg);
                     m_bt.set_cap_scale(c / m_base_c);
                 }
-                m_noise_env.set_times(0.3e-3, tau * k_tom_noise_tau_ratio);
+                m_noise_env.set_times(Sample(0.3e-3), tau * Sample(k_tom_noise_tau_ratio));
             }
 
-            double m_sr{48000.0};
+            Sample m_sr{Sample(48000.0)};
             int    m_size{0};
             int    m_model{model_tom};
 
-            bridged_t   m_bt;
-            white_noise m_noise;
-            first_order m_noise_lp;
-            decay_env   m_noise_env;
-            double      m_pink1{0.0}, m_pink2{0.0}, m_pink3{0.0};
+            basic_bridged_t<Sample>   m_bt;
+            basic_white_noise<Sample> m_noise;
+            basic_first_order<Sample> m_noise_lp;
+            basic_decay_env<Sample>   m_noise_env;
+            Sample                    m_pink1{Sample(0.0)}, m_pink2{Sample(0.0)}, m_pink3{Sample(0.0)};
 
-            double m_tuning{0.5}, m_level{1.0};
-            double m_drive{0.0}; // swing-VCA saturation on the noise layer; 0 = linear (default)
-            double m_r_leg{4.7e3}, m_base_c{1e-8};
-            double m_vtrig{0.0};
+            Sample m_tuning{Sample(0.5)}, m_level{Sample(1.0)};
+            Sample m_drive{Sample(0.0)}; // swing-VCA saturation on the noise layer; 0 = linear (default)
+            Sample m_r_leg{Sample(4.7e3)}, m_base_c{Sample(1e-8)};
+            Sample m_vtrig{Sample(0.0)};
             int    m_pulse_remaining{0};
         };
+
+        /// The double profile — the golden model.
+        using tom = basic_tom<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using tom32 = basic_tom<float>;
 
     } // namespace tr808
 } // namespace tap::tools

@@ -65,6 +65,7 @@
 #include <cmath>
 
 #include "bridged_t.h"
+#include "numeric.h"
 
 namespace tap::tools {
     namespace tr808 {
@@ -124,36 +125,45 @@ namespace tap::tools {
 
         /// The TR-808 bass drum voice. prepare(), set the panel, trigger(accent), then process()
         /// per sample.
-        class kick {
+        template <typename Sample>
+        class basic_kick {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_kick supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
 
-                bridged_t::config cfg;
-                cfg.c_arm_in   = k_bd_c41;
-                cfg.c_arm_out  = k_bd_c42;
-                cfg.r_bridge   = k_bd_r167;
-                cfg.r_inject_a = k_bd_r161;
-                cfg.r_inject_b = k_bd_r170;
-                cfg.r_leg      = k_bd_r165 + k_bd_r166;
+                typename basic_bridged_t<Sample>::config cfg;
+                cfg.c_arm_in   = Sample(k_bd_c41);
+                cfg.c_arm_out  = Sample(k_bd_c42);
+                cfg.r_bridge   = Sample(k_bd_r167);
+                cfg.r_inject_a = Sample(k_bd_r161);
+                cfg.r_inject_b = Sample(k_bd_r170);
+                cfg.r_leg      = Sample(k_bd_r165) + Sample(k_bd_r166);
                 m_bt.configure(cfg);
                 m_bt.prepare(sample_rate);
 
                 m_shaper.prepare(sample_rate);
                 // Pulse shaper low shelf, paper Eqn. 3: unity at HF, R162/(R162+R163) at DC,
                 // transition ~106 Hz .. ~2.4 kHz.
-                m_shaper.set(k_bd_r162 * k_bd_r163 * k_bd_c40, k_bd_r162, k_bd_r162 * k_bd_r163 * k_bd_c40,
-                             k_bd_r162 + k_bd_r163);
+                m_shaper.set(Sample(k_bd_r162) * Sample(k_bd_r163) * Sample(k_bd_c40), Sample(k_bd_r162),
+                             Sample(k_bd_r162) * Sample(k_bd_r163) * Sample(k_bd_c40),
+                             Sample(k_bd_r162) + Sample(k_bd_r163));
 
                 m_retrig_hp.prepare(sample_rate);
                 // Retrigger high-pass C39 into R161 (paper §8.1, Fig. 8).
-                m_retrig_hp.set(k_bd_r161 * k_bd_c39, 0.0, k_bd_r161 * k_bd_c39, 1.0);
+                m_retrig_hp.set(Sample(k_bd_r161) * Sample(k_bd_c39), Sample(0.0), Sample(k_bd_r161) * Sample(k_bd_c39),
+                                Sample(1.0));
 
                 m_fb.prepare(sample_rate);
                 m_tone_lp.prepare(sample_rate);
                 m_out_hp.prepare(sample_rate);
                 // Output coupling (paper Table 1 "High pass"): HF gain R177/R176, corner ~3.4 Hz.
-                m_out_hp.set(k_bd_r177 * k_bd_c49, 0.0, k_bd_r176 * k_bd_c49, 1.0);
+                m_out_hp.set(Sample(k_bd_r177) * Sample(k_bd_c49), Sample(0.0), Sample(k_bd_r176) * Sample(k_bd_c49),
+                             Sample(1.0));
 
                 set_decay(m_decay);
                 set_tone(m_tone);
@@ -168,132 +178,141 @@ namespace tap::tools {
                 m_fb.reset();
                 m_tone_lp.reset();
                 m_out_hp.reset();
-                m_env = m_vfb_z   = 0.0;
+                m_env = m_vfb_z   = Sample(0.0);
                 m_pulse_remaining = 0;
-                m_vtrig           = 0.0;
+                m_vtrig           = Sample(0.0);
             }
 
             // -- panel ---------------------------------------------------------------------
 
             /// Note length, 0..1 (VR6). Hardware range is roughly 50 ms .. 800 ms.
-            void set_decay(double amount) {
-                m_decay           = std::clamp(amount, 0.0, 1.0);
-                const double vr6k = m_decay * k_bd_vr6; // linear taper
+            void set_decay(Sample amount) {
+                m_decay           = std::clamp(amount, Sample(0.0), Sample(1.0));
+                const Sample vr6k = m_decay * Sample(k_bd_vr6); // linear taper
                 // Feedback buffer high shelf, paper Eqn. 6 (inverting: DC gain -R169/R164).
-                m_fb.set(-k_bd_r169 * vr6k * k_bd_c43, -k_bd_r169, k_bd_r164 * (k_bd_r169 + vr6k) * k_bd_c43,
-                         k_bd_r164);
+                m_fb.set(-Sample(k_bd_r169) * vr6k * Sample(k_bd_c43), -Sample(k_bd_r169),
+                         Sample(k_bd_r164) * (Sample(k_bd_r169) + vr6k) * Sample(k_bd_c43), Sample(k_bd_r164));
             }
 
             /// Attack brightness, 0..1 (VR5): 1 leaves the click in (~7.2 kHz corner),
             /// 0 rounds it off (~305 Hz).
-            void set_tone(double amount) {
-                m_tone           = std::clamp(amount, 0.0, 1.0);
-                const double l   = 1.0 - m_tone; // pot travel: full resistance = darkest
-                const double vr5 = l * k_bd_vr5;
-                const double req = k_bd_r171 + (k_bd_r172 * vr5) / (k_bd_r172 + vr5);
-                m_tone_lp.set(0.0, 1.0, req * k_bd_c45, 1.0);
+            void set_tone(Sample amount) {
+                m_tone           = std::clamp(amount, Sample(0.0), Sample(1.0));
+                const Sample l   = Sample(1.0) - m_tone; // pot travel: full resistance = darkest
+                const Sample vr5 = l * Sample(k_bd_vr5);
+                const Sample req = Sample(k_bd_r171) + (Sample(k_bd_r172) * vr5) / (Sample(k_bd_r172) + vr5);
+                m_tone_lp.set(Sample(0.0), Sample(1.0), req * Sample(k_bd_c45), Sample(1.0));
             }
 
             /// Output level, 0..1 (VR4).
-            void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
+            void set_level(Sample amount) { m_level = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             // -- circuit bends (stock hardware at the defaults) ----------------------------
 
             /// Pitch as a ratio of the stock tuning (0.25..4): scales the bridged-T arm
             /// capacitors, the paper's "tuning" bend. 1.0 = the schematic (~49 Hz). Both arms
             /// scale together, so fc is proportional to the ratio directly.
-            void set_tuning(double ratio) {
-                m_tuning = std::clamp(ratio, 0.25, 4.0);
-                m_bt.set_cap_scale(1.0 / m_tuning);
+            void set_tuning(Sample ratio) {
+                m_tuning = std::clamp(ratio, Sample(0.25), Sample(4.0));
+                m_bt.set_cap_scale(Sample(1.0) / m_tuning);
             }
 
             /// Depth of the Q43 attack frequency shift, 0..1: 1 = stock (the leg drops to R166
             /// for the first ~6 ms), 0 = the shift disconnected (a softer, rounder attack).
-            void set_attack(double amount) { m_attack = std::clamp(amount, 0.0, 1.0); }
+            void set_attack(Sample amount) { m_attack = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Trigger pulse width in ms (the paper's "input pulse width" bend). Stock: 1 ms.
-            void set_pulse_ms(double ms) { m_pulse_ms = std::clamp(ms, 0.05, 50.0); }
+            void set_pulse_ms(Sample ms) { m_pulse_ms = std::clamp(ms, Sample(0.05), Sample(50.0)); }
 
             /// Pitch-sigh depth, 0..1: scales the Q43 leakage current. 1 = stock, 0 = the
             /// "disconnect the pitch sigh" bend.
-            void set_sigh(double amount) { m_sigh = std::clamp(amount, 0.0, 1.0); }
+            void set_sigh(Sample amount) { m_sigh = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             // -- performance ---------------------------------------------------------------
 
             /// Fire the voice. `accent` 0..1 maps to the 4-14 V trigger bus; states are NOT
             /// reset (retriggering into a ringing tail behaves like the hardware).
-            void trigger(double accent = 1.0) {
-                const double a    = std::clamp(accent, 0.0, 1.0);
-                m_vtrig           = k_bd_vtrig_min + a * (k_bd_vtrig_max - k_bd_vtrig_min);
-                m_pulse_remaining = std::max(1, static_cast<int>(m_pulse_ms * 0.001 * m_sr));
+            void trigger(Sample accent = Sample(1.0)) {
+                const Sample a    = std::clamp(accent, Sample(0.0), Sample(1.0));
+                m_vtrig           = Sample(k_bd_vtrig_min) + a * (Sample(k_bd_vtrig_max) - Sample(k_bd_vtrig_min));
+                m_pulse_remaining = std::max(1, static_cast<int>(m_pulse_ms * Sample(0.001) * m_sr));
             }
 
-            double process() {
+            Sample process() {
                 // Trigger logic: a pulse_ms-long pulse at the accent voltage (paper §3).
-                double v_pulse = 0.0;
+                Sample v_pulse = Sample(0.0);
                 if (m_pulse_remaining > 0) {
                     v_pulse = m_vtrig;
                     --m_pulse_remaining;
                 }
 
                 // Pulse shaper: low shelf + D53 clamp of negative swings (paper §4).
-                const double v_plus = diode_clamp(m_shaper.process(v_pulse));
+                const Sample v_plus = diode_clamp(m_shaper.process(v_pulse));
 
                 // Envelope generator (behavioral, paper §8).
-                const double tau = (m_pulse_remaining > 0) ? k_bd_env_attack_s : k_bd_env_release_s;
-                const double a   = 1.0 - std::exp(-1.0 / (tau * m_sr));
-                m_env += a * (((m_pulse_remaining > 0) ? m_vtrig : 0.0) - m_env);
+                const Sample tau = (m_pulse_remaining > 0) ? Sample(k_bd_env_attack_s) : Sample(k_bd_env_release_s);
+                const Sample a   = Sample(1.0) - std::exp(-Sample(1.0) / (tau * m_sr));
+                m_env += a * (((m_pulse_remaining > 0) ? m_vtrig : Sample(0.0)) - m_env);
 
                 // Retriggering pulse: high-passed envelope, D52-clamped (paper §8.1).
-                const double v_rp = diode_clamp(m_retrig_hp.process(m_env));
+                const Sample v_rp = diode_clamp(m_retrig_hp.process(m_env));
 
                 // Q43 leg modulation: attack saturation crossfaded with the sigh leakage,
                 // driven by the previous sample's center-node voltage (see header note).
-                const double v_comm = m_bt.v_comm();
-                const double ic     = m_sigh * sigh_current(v_comm);
-                double       r_sigh = k_bd_r165 + k_bd_r166;
-                const double denom  = v_comm + k_bd_r165 * ic;
-                if (v_comm < 0.0 && denom < 0.0)
-                    r_sigh = std::clamp(v_comm * (k_bd_r165 + k_bd_r166) / denom, k_bd_r166, k_bd_r165 + k_bd_r166);
-                const double sat = std::min(m_env / k_bd_q43_sat_v, 1.0) * m_attack;
-                m_bt.set_leg_resistance(k_bd_r166 + (r_sigh - k_bd_r166) * (1.0 - sat));
+                const Sample v_comm = m_bt.v_comm();
+                const Sample ic     = m_sigh * sigh_current(v_comm);
+                Sample       r_sigh = Sample(k_bd_r165) + Sample(k_bd_r166);
+                const Sample denom  = v_comm + Sample(k_bd_r165) * ic;
+                if (v_comm < Sample(0.0) && denom < Sample(0.0))
+                    r_sigh = std::clamp(v_comm * (Sample(k_bd_r165) + Sample(k_bd_r166)) / denom, Sample(k_bd_r166),
+                                        Sample(k_bd_r165) + Sample(k_bd_r166));
+                const Sample sat = std::min(m_env / Sample(k_bd_q43_sat_v), Sample(1.0)) * m_attack;
+                m_bt.set_leg_resistance(Sample(k_bd_r166) + (r_sigh - Sample(k_bd_r166)) * (Sample(1.0) - sat));
 
                 // The resonator, with the feedback buffer closing the loop through a unit
                 // delay (paper §10).
-                const double v_bt = m_bt.process(v_plus, v_rp, m_vfb_z);
+                const Sample v_bt = m_bt.process(v_plus, v_rp, m_vfb_z);
                 m_vfb_z           = m_fb.process(v_bt);
 
                 // Tone -> level -> output coupling (paper §9).
-                const double v_out = m_out_hp.process(m_tone_lp.process(v_bt)) * m_level;
-                return v_out * k_bd_out_scale;
+                const Sample v_out = m_out_hp.process(m_tone_lp.process(v_bt)) * m_level;
+                return v_out * Sample(k_bd_out_scale);
             }
 
           private:
             /// Paper Eqn. 4: leaves positive voltages alone, lets negative ones swing only
             /// about one diode drop.
-            static double diode_clamp(double v) { return v >= 0.0 ? v : k_bd_diode_v * (std::exp(v) - 1.0); }
-
-            /// Paper Eqn. 8: the fitted Vcomm -> iC memoryless nonlinearity (iC <= 0).
-            static double sigh_current(double v_comm) {
-                const double x = -k_bd_sigh_alpha * (v_comm - k_bd_sigh_v0);
-                // log1p(exp(x)) without overflow for large x.
-                const double softplus = x > 30.0 ? x : std::log1p(std::exp(x));
-                return -(k_bd_sigh_m / k_bd_sigh_alpha) * softplus;
+            static Sample diode_clamp(Sample v) {
+                return v >= Sample(0.0) ? v : Sample(k_bd_diode_v) * (std::exp(v) - Sample(1.0));
             }
 
-            double m_sr{48000.0};
+            /// Paper Eqn. 8: the fitted Vcomm -> iC memoryless nonlinearity (iC <= 0).
+            static Sample sigh_current(Sample v_comm) {
+                const Sample x = -Sample(k_bd_sigh_alpha) * (v_comm - Sample(k_bd_sigh_v0));
+                // log1p(exp(x)) without overflow for large x.
+                const Sample softplus = x > Sample(30.0) ? x : std::log1p(std::exp(x));
+                return -(Sample(k_bd_sigh_m) / Sample(k_bd_sigh_alpha)) * softplus;
+            }
 
-            bridged_t   m_bt;
-            first_order m_shaper, m_retrig_hp, m_fb, m_tone_lp, m_out_hp;
+            Sample m_sr{Sample(48000.0)};
 
-            double m_decay{0.5}, m_tone{0.5}, m_level{0.5};
-            double m_tuning{1.0}, m_pulse_ms{k_bd_pulse_ms}, m_sigh{1.0}, m_attack{1.0};
+            basic_bridged_t<Sample>   m_bt;
+            basic_first_order<Sample> m_shaper, m_retrig_hp, m_fb, m_tone_lp, m_out_hp;
 
-            double m_env{0.0};
-            double m_vfb_z{0.0};
-            double m_vtrig{0.0};
+            Sample m_decay{Sample(0.5)}, m_tone{Sample(0.5)}, m_level{Sample(0.5)};
+            Sample m_tuning{Sample(1.0)}, m_pulse_ms{Sample(k_bd_pulse_ms)}, m_sigh{Sample(1.0)}, m_attack{Sample(1.0)};
+
+            Sample m_env{Sample(0.0)};
+            Sample m_vfb_z{Sample(0.0)};
+            Sample m_vtrig{Sample(0.0)};
             int    m_pulse_remaining{0};
         };
+
+        /// The double profile — the golden model.
+        using kick = basic_kick<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using kick32 = basic_kick<float>;
 
     } // namespace tr808
 } // namespace tap::tools

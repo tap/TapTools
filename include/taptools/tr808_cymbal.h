@@ -46,6 +46,7 @@
 #include <cmath>
 
 #include "metal_bank.h"
+#include "numeric.h"
 #include "swing_vca.h"
 
 namespace tap::tools {
@@ -69,21 +70,27 @@ namespace tap::tools {
         constexpr double k_cy_out_scale = 3.7; // full-accent default-knob peak just under +-1
 
         /// The TR-808 cymbal voice.
-        class cymbal {
+        template <typename Sample>
+        class basic_cymbal {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_cymbal supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
                 m_bank.prepare(sample_rate);
                 m_bp_hi.prepare(sample_rate, k_bank_bp2_hz, k_bank_bp_q);
                 m_bp_lo.prepare(sample_rate, k_bank_bp1_hz, k_bank_bp_q);
                 m_hi_hp.prepare(sample_rate);
-                const double tau_hp = 1.0 / (2.0 * k_pi * k_cy_hi_hp_hz);
-                m_hi_hp.set(tau_hp, 0.0, tau_hp, 1.0);
+                const Sample tau_hp = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_cy_hi_hp_hz));
+                m_hi_hp.set(tau_hp, Sample(0.0), tau_hp, Sample(1.0));
                 m_env_hi.prepare(sample_rate);
                 m_env_mid.prepare(sample_rate);
                 m_env_lo.prepare(sample_rate);
-                m_env_hi.set_times(k_cy_att_s, k_cy_hi_tau_s);
-                m_env_lo.set_times(k_cy_att_s, k_cy_lo_tau_s);
+                m_env_hi.set_times(Sample(k_cy_att_s), Sample(k_cy_hi_tau_s));
+                m_env_lo.set_times(Sample(k_cy_att_s), Sample(k_cy_lo_tau_s));
                 set_decay(m_decay);
                 reset();
             }
@@ -96,65 +103,74 @@ namespace tap::tools {
                 m_env_hi.reset();
                 m_env_mid.reset();
                 m_env_lo.reset();
-                m_vtrig = 0.0;
+                m_vtrig = Sample(0.0);
             }
 
             // -- panel ---------------------------------------------------------------------
 
             /// Strike/body balance, 0..1 (VR4, CY TONE): 0 = body only, 1 = strike only.
-            void set_tone(double amount) { m_tone = std::clamp(amount, 0.0, 1.0); }
+            void set_tone(Sample amount) { m_tone = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Ring length, 0..1 (VR2, CY DECAY).
-            void set_decay(double amount) {
-                m_decay = std::clamp(amount, 0.0, 1.0);
-                m_env_mid.set_times(k_cy_att_s,
-                                    k_cy_mid_tau_min_s + m_decay * (k_cy_mid_tau_max_s - k_cy_mid_tau_min_s));
+            void set_decay(Sample amount) {
+                m_decay = std::clamp(amount, Sample(0.0), Sample(1.0));
+                m_env_mid.set_times(Sample(k_cy_att_s),
+                                    Sample(k_cy_mid_tau_min_s)
+                                        + m_decay * (Sample(k_cy_mid_tau_max_s) - Sample(k_cy_mid_tau_min_s)));
             }
 
             /// Output level, 0..1.
-            void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
+            void set_level(Sample amount) { m_level = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             // -- bends ---------------------------------------------------------------------
 
-            void set_tuning(double ratio) { m_bank.set_tuning(ratio); }
-            void set_tolerance(double amount) { m_bank.set_tolerance(amount); }
+            void set_tuning(Sample ratio) { m_bank.set_tuning(ratio); }
+            void set_tolerance(Sample amount) { m_bank.set_tolerance(amount); }
             void set_seed(uint64_t seed) { m_bank.set_seed(seed); }
 
             // -- performance ---------------------------------------------------------------
 
-            void trigger(double accent = 1.0) {
-                const double a = std::clamp(accent, 0.0, 1.0);
-                m_vtrig        = (k_cy_vtrig_min + a * (k_cy_vtrig_max - k_cy_vtrig_min)) / k_cy_vtrig_max;
+            void trigger(Sample accent = Sample(1.0)) {
+                const Sample a = std::clamp(accent, Sample(0.0), Sample(1.0));
+                m_vtrig        = (Sample(k_cy_vtrig_min) + a * (Sample(k_cy_vtrig_max) - Sample(k_cy_vtrig_min)))
+                          / Sample(k_cy_vtrig_max);
                 m_env_hi.trigger(m_vtrig);
                 m_env_mid.trigger(m_vtrig);
-                m_env_lo.trigger(m_vtrig * 0.8);
+                m_env_lo.trigger(m_vtrig * Sample(0.8));
             }
 
-            double process() {
+            Sample process() {
                 m_bank.process();
-                const double s  = m_bank.sum();
-                const double hi = m_hi_hp.process(m_bp_hi.process(s));
-                const double lo = m_bp_lo.process(s);
+                const Sample s  = m_bank.sum();
+                const Sample hi = m_hi_hp.process(m_bp_hi.process(s));
+                const Sample lo = m_bp_lo.process(s);
 
-                const double strike = swing_vca(hi, m_env_hi.process());
-                const double ring   = swing_vca(hi, m_env_mid.process());
-                const double body   = swing_vca(lo, m_env_lo.process());
+                const Sample strike = swing_vca(hi, m_env_hi.process());
+                const Sample ring   = swing_vca(hi, m_env_mid.process());
+                const Sample body   = swing_vca(lo, m_env_lo.process());
 
-                const double mix = m_tone * (strike + 0.6 * ring) + (1.0 - m_tone) * (0.45 * body + ring);
-                return mix * m_level * k_cy_out_scale;
+                const Sample mix =
+                    m_tone * (strike + Sample(0.6) * ring) + (Sample(1.0) - m_tone) * (Sample(0.45) * body + ring);
+                return mix * m_level * Sample(k_cy_out_scale);
             }
 
           private:
-            double m_sr{48000.0};
+            Sample m_sr{Sample(48000.0)};
 
-            metal_bank  m_bank;
-            bandpass    m_bp_hi, m_bp_lo;
-            first_order m_hi_hp;
-            decay_env   m_env_hi, m_env_mid, m_env_lo;
+            basic_metal_bank<Sample>  m_bank;
+            basic_bandpass<Sample>    m_bp_hi, m_bp_lo;
+            basic_first_order<Sample> m_hi_hp;
+            basic_decay_env<Sample>   m_env_hi, m_env_mid, m_env_lo;
 
-            double m_tone{0.5}, m_decay{0.5}, m_level{1.0};
-            double m_vtrig{0.0};
+            Sample m_tone{Sample(0.5)}, m_decay{Sample(0.5)}, m_level{Sample(1.0)};
+            Sample m_vtrig{Sample(0.0)};
         };
+
+        /// The double profile — the golden model.
+        using cymbal = basic_cymbal<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using cymbal32 = basic_cymbal<float>;
 
     } // namespace tr808
 } // namespace tap::tools

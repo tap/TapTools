@@ -39,6 +39,7 @@
 #include <cmath>
 
 #include "bridged_t.h"
+#include "numeric.h"
 #include "swing_vca.h"
 
 namespace tap::tools {
@@ -74,11 +75,17 @@ namespace tap::tools {
         constexpr double k_cl_mix = 0.095;
 
         /// The TR-808 rimshot/claves channel. `model` 0 = rimshot, 1 = claves.
-        class rim {
+        template <typename Sample>
+        class basic_rim {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_rim supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             enum model_type { model_rimshot = 0, model_claves = 1 };
 
-            void prepare(double sample_rate) {
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
                 m_env.prepare(sample_rate);
                 revoice();
@@ -90,7 +97,7 @@ namespace tap::tools {
                 m_lo.reset();
                 m_env.reset();
                 m_pulse_remaining = 0;
-                m_vtrig           = 0.0;
+                m_vtrig           = Sample(0.0);
             }
 
             /// 0 = rimshot, 1 = claves (the hardware SW11).
@@ -102,60 +109,61 @@ namespace tap::tools {
             int model() const { return m_model; }
 
             /// Output level, 0..1 (VR16, RS/CL LEVEL).
-            void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
+            void set_level(Sample amount) { m_level = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Swing-VCA drive (the Q62 harmonic VCA). Sentinel < 0 (default) uses each model's
             /// calibrated value — rimshot k_rs_drive (2.2, as always shipped), claves linear (0).
             /// A value >= 0 overrides both models — the experimental hook for the claves fidelity
             /// sweep (plans/tap.808.md; the rimshot already ships saturated).
-            void   set_drive(double amount) { m_drive = std::max(-1.0, amount); }
-            double drive() const { return m_drive; }
+            void   set_drive(Sample amount) { m_drive = std::max(-Sample(1.0), amount); }
+            Sample drive() const { return m_drive; }
 
-            void trigger(double accent = 1.0) {
-                const double a    = std::clamp(accent, 0.0, 1.0);
-                m_vtrig           = k_rim_vtrig_min + a * (k_rim_vtrig_max - k_rim_vtrig_min);
-                m_pulse_remaining = std::max(1, static_cast<int>(k_rim_pulse_ms * 0.001 * m_sr));
-                m_env.trigger(m_vtrig / k_rim_vtrig_max);
+            void trigger(Sample accent = Sample(1.0)) {
+                const Sample a    = std::clamp(accent, Sample(0.0), Sample(1.0));
+                m_vtrig           = Sample(k_rim_vtrig_min) + a * (Sample(k_rim_vtrig_max) - Sample(k_rim_vtrig_min));
+                m_pulse_remaining = std::max(1, static_cast<int>(Sample(k_rim_pulse_ms) * Sample(0.001) * m_sr));
+                m_env.trigger(m_vtrig / Sample(k_rim_vtrig_max));
             }
 
-            double process() {
-                double v_pulse = 0.0;
+            Sample process() {
+                Sample v_pulse = Sample(0.0);
                 if (m_pulse_remaining > 0) {
                     v_pulse = m_vtrig;
                     --m_pulse_remaining;
                 }
 
-                const double exc  = v_pulse * 0.02;
-                double       ring = m_hi.process(exc, 0.0, 0.0);
+                const Sample exc  = v_pulse * Sample(0.02);
+                Sample       ring = m_hi.process(exc, Sample(0.0), Sample(0.0));
                 if (m_model == model_rimshot) {
-                    ring = ring * k_rs_hi_mix + m_lo.process(exc, 0.0, 0.0);
+                    ring = ring * Sample(k_rs_hi_mix) + m_lo.process(exc, Sample(0.0), Sample(0.0));
                 }
 
-                const double env = m_env.process();
+                const Sample env = m_env.process();
                 if (m_model == model_rimshot) {
                     // The Q62 swing VCA's harmonic generation (Service Notes, RS/CL VCA): the shared
                     // swing_shape (vca.h) IS tanh(d*v)/d, so swing_vca(ring, env, k_rs_drive) is the
                     // exact tanh(ring*k_rs_drive*env)/k_rs_drive this always shipped — now unified.
-                    const double d = (m_drive < 0.0) ? k_rs_drive : m_drive;
-                    return swing_vca(ring, env, d) * m_level * k_rim_out_scale * k_rim_vtrig_max;
+                    const Sample d = (m_drive < Sample(0.0)) ? Sample(k_rs_drive) : m_drive;
+                    return swing_vca(ring, env, d) * m_level * Sample(k_rim_out_scale) * Sample(k_rim_vtrig_max);
                 }
                 // Claves: linear by default (m_drive < 0 → 0), with the same opt-in swing saturation.
-                const double d = (m_drive < 0.0) ? 0.0 : m_drive;
-                return swing_vca(ring, env, d) * k_cl_mix * m_level * k_rim_out_scale;
+                const Sample d = (m_drive < Sample(0.0)) ? Sample(0.0) : m_drive;
+                return swing_vca(ring, env, d) * Sample(k_cl_mix) * m_level * Sample(k_rim_out_scale);
             }
 
           private:
-            static void voice(bridged_t& bt, double sample_rate, double fc, double decay_s) {
-                const double      tau = decay_s / 4.6;
-                const double      q   = k_pi * fc * tau;
-                const double      rl  = k_rim_r_bridge / (4.0 * q * q);
-                const double      c   = 1.0 / (2.0 * k_pi * fc * std::sqrt(rl * k_rim_r_bridge));
-                bridged_t::config cfg;
+            static void voice(basic_bridged_t<Sample>& bt, Sample sample_rate, Sample fc, Sample decay_s) {
+                const Sample tau = decay_s / Sample(4.6);
+                const Sample q   = k_pi_for<Sample> * fc * tau;
+                const Sample rl  = Sample(k_rim_r_bridge) / (Sample(4.0) * q * q);
+                const Sample c =
+                    Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * fc * std::sqrt(rl * Sample(k_rim_r_bridge)));
+                typename basic_bridged_t<Sample>::config cfg;
                 cfg.c_arm_in   = c;
                 cfg.c_arm_out  = c;
-                cfg.r_bridge   = k_rim_r_bridge;
-                cfg.r_inject_a = 0.0;
-                cfg.r_inject_b = 0.0;
+                cfg.r_bridge   = Sample(k_rim_r_bridge);
+                cfg.r_inject_a = Sample(0.0);
+                cfg.r_inject_b = Sample(0.0);
                 cfg.r_leg      = rl;
                 bt.configure(cfg);
                 bt.prepare(sample_rate);
@@ -163,27 +171,33 @@ namespace tap::tools {
 
             void revoice() {
                 if (m_model == model_rimshot) {
-                    voice(m_hi, m_sr, k_rs_hi_hz, k_rs_decay_s);
-                    voice(m_lo, m_sr, k_rs_lo_hz, k_rs_decay_s);
-                    m_env.set_times(0.1e-3, k_rs_decay_s / 4.6);
+                    voice(m_hi, m_sr, Sample(k_rs_hi_hz), Sample(k_rs_decay_s));
+                    voice(m_lo, m_sr, Sample(k_rs_lo_hz), Sample(k_rs_decay_s));
+                    m_env.set_times(Sample(0.1e-3), Sample(k_rs_decay_s) / Sample(4.6));
                 }
                 else {
-                    voice(m_hi, m_sr, k_cl_hz, k_cl_decay_s);
-                    m_env.set_times(0.1e-3, k_cl_decay_s / 4.6);
+                    voice(m_hi, m_sr, Sample(k_cl_hz), Sample(k_cl_decay_s));
+                    m_env.set_times(Sample(0.1e-3), Sample(k_cl_decay_s) / Sample(4.6));
                 }
             }
 
-            double m_sr{48000.0};
+            Sample m_sr{Sample(48000.0)};
             int    m_model{model_rimshot};
 
-            bridged_t m_hi, m_lo;
-            decay_env m_env;
+            basic_bridged_t<Sample> m_hi, m_lo;
+            basic_decay_env<Sample> m_env;
 
-            double m_level{1.0};
-            double m_drive{-1.0}; // swing-VCA drive; <0 = per-model calibrated (RS 2.2 / CL linear)
-            double m_vtrig{0.0};
+            Sample m_level{Sample(1.0)};
+            Sample m_drive{-Sample(1.0)}; // swing-VCA drive; <0 = per-model calibrated (RS 2.2 / CL linear)
+            Sample m_vtrig{Sample(0.0)};
             int    m_pulse_remaining{0};
         };
+
+        /// The double profile — the golden model.
+        using rim = basic_rim<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using rim32 = basic_rim<float>;
 
     } // namespace tr808
 } // namespace tap::tools

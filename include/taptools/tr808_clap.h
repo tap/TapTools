@@ -49,6 +49,7 @@
 #include <cmath>
 
 #include "bridged_t.h" // first_order + k_pi
+#include "numeric.h"
 #include "swing_vca.h"
 
 namespace tap::tools {
@@ -78,44 +79,50 @@ namespace tap::tools {
         constexpr double k_ma_out_scale = 0.85;
 
         /// The TR-808 handclap/maracas channel. `model` 0 = clap, 1 = maracas.
-        class clap {
+        template <typename Sample>
+        class basic_clap {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_clap supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             enum model_type { model_clap = 0, model_maracas = 1 };
 
-            void prepare(double sample_rate) {
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
 
                 // Band-pass as an RBJ-style biquad from (fc, Q) — constant-peak-gain form.
-                const double w  = 2.0 * k_pi * k_cp_bp_hz / sample_rate;
-                const double al = std::sin(w) / (2.0 * k_cp_bp_q);
-                const double a0 = 1.0 + al;
+                const Sample w  = Sample(2.0) * k_pi_for<Sample> * Sample(k_cp_bp_hz) / sample_rate;
+                const Sample al = std::sin(w) / (Sample(2.0) * Sample(k_cp_bp_q));
+                const Sample a0 = Sample(1.0) + al;
                 m_bp_b0         = al / a0;
-                m_bp_a1         = -2.0 * std::cos(w) / a0;
-                m_bp_a2         = (1.0 - al) / a0;
+                m_bp_a1         = -Sample(2.0) * std::cos(w) / a0;
+                m_bp_a2         = (Sample(1.0) - al) / a0;
 
                 m_ma_hp1.prepare(sample_rate);
                 m_ma_hp2.prepare(sample_rate);
                 m_ma_lp.prepare(sample_rate);
-                const double tau = 1.0 / (2.0 * k_pi * k_ma_hp_hz);
-                m_ma_hp1.set(tau, 0.0, tau, 1.0);
-                m_ma_hp2.set(tau, 0.0, tau, 1.0);
-                const double tau_lp = 1.0 / (2.0 * k_pi * k_ma_lp_hz);
-                m_ma_lp.set(0.0, 1.0, tau_lp, 1.0);
+                const Sample tau = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_ma_hp_hz));
+                m_ma_hp1.set(tau, Sample(0.0), tau, Sample(1.0));
+                m_ma_hp2.set(tau, Sample(0.0), tau, Sample(1.0));
+                const Sample tau_lp = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_ma_lp_hz));
+                m_ma_lp.set(Sample(0.0), Sample(1.0), tau_lp, Sample(1.0));
 
                 m_ma_env.prepare(sample_rate);
-                m_ma_env.set_times(k_ma_att_s, k_ma_tau_s);
+                m_ma_env.set_times(Sample(k_ma_att_s), Sample(k_ma_tau_s));
 
                 reset();
             }
 
             void reset() {
-                m_bp_z1 = m_bp_z2 = m_bp2_z1 = m_bp2_z2 = 0.0;
+                m_bp_z1 = m_bp_z2 = m_bp2_z1 = m_bp2_z2 = Sample(0.0);
                 m_ma_hp1.reset();
                 m_ma_hp2.reset();
                 m_ma_lp.reset();
                 m_ma_env.reset();
                 m_noise.reset();
-                m_tooth_env = m_tail_env = 0.0;
+                m_tooth_env = m_tail_env = Sample(0.0);
                 m_teeth_left             = 0;
                 m_tooth_timer            = 0;
             }
@@ -127,18 +134,18 @@ namespace tap::tools {
             int  model() const { return m_model; }
 
             /// Output level, 0..1 (VR17, CP/MA LEVEL).
-            void set_level(double amount) { m_level = std::clamp(amount, 0.0, 1.0); }
+            void set_level(Sample amount) { m_level = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Circuit bend: reverberation-tail level scale, 0..2 (1 = stock; 0 removes the
             /// wash, leaving only the three teeth).
-            void set_tail(double amount) { m_tail = std::clamp(amount, 0.0, 2.0); }
+            void set_tail(Sample amount) { m_tail = std::clamp(amount, Sample(0.0), Sample(2.0)); }
 
             /// Swing-VCA drive on the output VCA (0 = the calibrated linear model, bit-identical;
             /// > 0 engages the swing VCA's symmetric harmonic saturation — grit and compression
             /// that ride the envelope). Applies to both the clap and maracas models. See
             /// swing_vca.h / vca.h swing_shape.
-            void   set_drive(double amount) { m_drive = std::max(0.0, amount); }
-            double drive() const { return m_drive; }
+            void   set_drive(Sample amount) { m_drive = std::max(Sample(0.0), amount); }
+            Sample drive() const { return m_drive; }
 
             /// Noise-source seed (deterministic; mc. instances decorrelate by seed).
             void set_seed(uint64_t seed) { m_noise.set_seed(seed); }
@@ -146,8 +153,8 @@ namespace tap::tools {
             // -- performance ---------------------------------------------------------------
 
             /// Fire the voice. `accent` 0..1 scales the envelope drive (the trigger bus).
-            void trigger(double accent = 1.0) {
-                m_accent = 0.3 + 0.7 * std::clamp(accent, 0.0, 1.0);
+            void trigger(Sample accent = Sample(1.0)) {
+                m_accent = Sample(0.3) + Sample(0.7) * std::clamp(accent, Sample(0.0), Sample(1.0));
                 if (m_model == model_clap) {
                     m_teeth_left  = k_cp_teeth;
                     m_tooth_timer = 0; // first tooth fires immediately
@@ -158,13 +165,13 @@ namespace tap::tools {
                 }
             }
 
-            double process() {
-                const double n = m_noise.process();
+            Sample process() {
+                const Sample n = m_noise.process();
 
                 if (m_model == model_maracas) {
-                    const double y =
+                    const Sample y =
                         swing_vca(m_ma_lp.process(m_ma_hp2.process(m_ma_hp1.process(n))), m_ma_env.process(), m_drive);
-                    return y * m_level * k_ma_out_scale;
+                    return y * m_level * Sample(k_ma_out_scale);
                 }
 
                 // Handclap: sawtooth-tooth scheduler (Fig. 13).
@@ -172,51 +179,57 @@ namespace tap::tools {
                     if (m_tooth_timer <= 0) {
                         m_tooth_env = m_accent; // abrupt charge of C144
                         --m_teeth_left;
-                        m_tooth_timer = static_cast<int>(k_cp_tooth_ms * 0.001 * m_sr);
+                        m_tooth_timer = static_cast<int>(Sample(k_cp_tooth_ms) * Sample(0.001) * m_sr);
                     }
                     --m_tooth_timer;
                 }
-                m_tooth_env *= std::exp(-1.0 / (k_cp_tooth_tau * m_sr));
-                m_tail_env *= std::exp(-1.0 / (k_cp_tail_tau * m_sr));
-                if (m_tooth_env < 1e-12)
-                    m_tooth_env = 0.0;
-                if (m_tail_env < 1e-12)
-                    m_tail_env = 0.0;
+                m_tooth_env *= std::exp(-Sample(1.0) / (Sample(k_cp_tooth_tau) * m_sr));
+                m_tail_env *= std::exp(-Sample(1.0) / (Sample(k_cp_tail_tau) * m_sr));
+                if (m_tooth_env < Sample(1e-12))
+                    m_tooth_env = Sample(0.0);
+                if (m_tail_env < Sample(1e-12))
+                    m_tail_env = Sample(0.0);
 
                 // Band-pass the noise (two cascaded sections, transposed direct form II;
                 // b1 = 0, b2 = -b0).
-                const double b1 = m_bp_b0 * n + m_bp_z1;
+                const Sample b1 = m_bp_b0 * n + m_bp_z1;
                 m_bp_z1         = m_bp_z2 - m_bp_a1 * b1;
                 m_bp_z2         = -m_bp_b0 * n - m_bp_a2 * b1;
-                const double bp = m_bp_b0 * b1 + m_bp2_z1;
+                const Sample bp = m_bp_b0 * b1 + m_bp2_z1;
                 m_bp2_z1        = m_bp2_z2 - m_bp_a1 * bp;
                 m_bp2_z2        = -m_bp_b0 * b1 - m_bp_a2 * bp;
 
-                const double env = m_tooth_env + k_cp_tail_level * m_tail * m_tail_env;
-                return swing_vca(bp, env, m_drive) * m_level * k_cp_out_scale;
+                const Sample env = m_tooth_env + Sample(k_cp_tail_level) * m_tail * m_tail_env;
+                return swing_vca(bp, env, m_drive) * m_level * Sample(k_cp_out_scale);
             }
 
           private:
-            double m_sr{48000.0};
+            Sample m_sr{Sample(48000.0)};
             int    m_model{model_clap};
 
             // clap band-pass biquad (shared coefficients, two sections of state)
-            double m_bp_b0{0.0}, m_bp_a1{0.0}, m_bp_a2{0.0};
-            double m_bp_z1{0.0}, m_bp_z2{0.0}, m_bp2_z1{0.0}, m_bp2_z2{0.0};
+            Sample m_bp_b0{Sample(0.0)}, m_bp_a1{Sample(0.0)}, m_bp_a2{Sample(0.0)};
+            Sample m_bp_z1{Sample(0.0)}, m_bp_z2{Sample(0.0)}, m_bp2_z1{Sample(0.0)}, m_bp2_z2{Sample(0.0)};
 
             // clap envelopes
-            double m_tooth_env{0.0}, m_tail_env{0.0};
+            Sample m_tooth_env{Sample(0.0)}, m_tail_env{Sample(0.0)};
             int    m_teeth_left{0}, m_tooth_timer{0};
 
             // maracas path
-            first_order m_ma_hp1, m_ma_hp2, m_ma_lp;
-            decay_env   m_ma_env;
+            basic_first_order<Sample> m_ma_hp1, m_ma_hp2, m_ma_lp;
+            basic_decay_env<Sample>   m_ma_env;
 
-            white_noise m_noise;
+            basic_white_noise<Sample> m_noise;
 
-            double m_level{1.0}, m_tail{1.0}, m_accent{1.0};
-            double m_drive{0.0}; // swing-VCA saturation on the output VCA; 0 = linear (default)
+            Sample m_level{Sample(1.0)}, m_tail{Sample(1.0)}, m_accent{Sample(1.0)};
+            Sample m_drive{Sample(0.0)}; // swing-VCA saturation on the output VCA; 0 = linear (default)
         };
+
+        /// The double profile — the golden model.
+        using clap = basic_clap<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using clap32 = basic_clap<float>;
 
     } // namespace tr808
 } // namespace tap::tools

@@ -39,6 +39,7 @@
 #include <cstdint>
 
 #include "bridged_t.h" // k_pi
+#include "numeric.h"
 #include "swing_vca.h" // white_noise (seed machinery)
 
 namespace tap::tools {
@@ -55,55 +56,67 @@ namespace tap::tools {
         constexpr double k_bank_smoother_vbe    = 0.7258;
 
         /// One constant-peak band-pass biquad (RBJ), transposed direct form II.
-        class bandpass {
+        template <typename Sample>
+        class basic_bandpass {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_bandpass supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate, double fc_hz, double q) {
-                const double w  = 2.0 * k_pi * fc_hz / sample_rate;
-                const double al = std::sin(w) / (2.0 * q);
-                const double a0 = 1.0 + al;
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate, Sample fc_hz, Sample q) {
+                const Sample w  = Sample(2.0) * k_pi_for<Sample> * fc_hz / sample_rate;
+                const Sample al = std::sin(w) / (Sample(2.0) * q);
+                const Sample a0 = Sample(1.0) + al;
                 m_b0            = al / a0;
-                m_a1            = -2.0 * std::cos(w) / a0;
-                m_a2            = (1.0 - al) / a0;
+                m_a1            = -Sample(2.0) * std::cos(w) / a0;
+                m_a2            = (Sample(1.0) - al) / a0;
                 reset();
             }
 
-            void reset() { m_z1 = m_z2 = 0.0; }
+            void reset() { m_z1 = m_z2 = Sample(0.0); }
 
-            double process(double x) {
-                const double y = m_b0 * x + m_z1;
+            Sample process(Sample x) {
+                const Sample y = m_b0 * x + m_z1;
                 m_z1           = m_z2 - m_a1 * y;
                 m_z2           = -m_b0 * x - m_a2 * y;
                 return y;
             }
 
           private:
-            double m_b0{0.0}, m_a1{0.0}, m_a2{0.0};
-            double m_z1{0.0}, m_z2{0.0};
+            Sample m_b0{Sample(0.0)}, m_a1{Sample(0.0)}, m_a2{Sample(0.0)};
+            Sample m_z1{Sample(0.0)}, m_z2{Sample(0.0)};
         };
 
         /// The six-oscillator bank. process() returns the passively-mixed sum (each square
         /// +-1/6); osc(i) exposes the individual outputs (the cowbell taps #5/#6, indices 4/5).
-        class metal_bank {
+        template <typename Sample>
+        class basic_metal_bank {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_metal_bank supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
                 update_increments();
             }
 
             void reset() {
                 for (auto& p : m_phase)
-                    p = 0.0;
+                    p = Sample(0.0);
             }
 
             /// Pitch ratio bend (scales every oscillator; 1 = stock).
-            void set_tuning(double ratio) {
-                m_tuning = std::clamp(ratio, 0.25, 4.0);
+            void set_tuning(Sample ratio) {
+                m_tuning = std::clamp(ratio, Sample(0.25), Sample(4.0));
                 update_increments();
             }
 
             /// Per-unit component spread, 0..1 (0 = exact nominal frequencies).
-            void set_tolerance(double amount) {
-                m_tolerance = std::clamp(amount, 0.0, 1.0);
+            void set_tolerance(Sample amount) {
+                m_tolerance = std::clamp(amount, Sample(0.0), Sample(1.0));
                 update_increments();
             }
 
@@ -116,19 +129,19 @@ namespace tap::tools {
             void process() {
                 for (int i = 0; i < k_bank_oscs; ++i) {
                     m_phase[i] += m_inc[i];
-                    if (m_phase[i] >= 1.0)
-                        m_phase[i] -= 1.0;
-                    m_out[i] = m_phase[i] < k_bank_duty ? 1.0 : -1.0;
+                    if (m_phase[i] >= Sample(1.0))
+                        m_phase[i] -= Sample(1.0);
+                    m_out[i] = m_phase[i] < Sample(k_bank_duty) ? Sample(1.0) : -Sample(1.0);
                 }
             }
 
-            double osc(int i) const { return m_out[i]; }
+            Sample osc(int i) const { return m_out[i]; }
 
-            double sum() const {
-                double s = 0.0;
-                for (double v : m_out)
+            Sample sum() const {
+                Sample s = Sample(0.0);
+                for (Sample v : m_out)
                     s += v;
-                return s / static_cast<double>(k_bank_oscs);
+                return s / static_cast<Sample>(k_bank_oscs);
             }
 
           private:
@@ -140,39 +153,56 @@ namespace tap::tools {
                     s ^= s >> 12;
                     s ^= s << 25;
                     s ^= s >> 27;
-                    const double u =
-                        static_cast<double>((s * 0x2545f4914f6cdd1dULL) >> 11) / 9007199254740992.0; // [0,1)
-                    const double dev = 1.0 + (2.0 * u - 1.0) * k_bank_tolerance * m_tolerance;
-                    m_inc[i]         = k_bank_hz[i] * m_tuning * dev / m_sr;
+                    const Sample u =
+                        static_cast<Sample>((s * 0x2545f4914f6cdd1dULL) >> 11) / Sample(9007199254740992.0); // [0,1)
+                    const Sample dev =
+                        Sample(1.0) + (Sample(2.0) * u - Sample(1.0)) * Sample(k_bank_tolerance) * m_tolerance;
+                    m_inc[i] = Sample(k_bank_hz[i]) * m_tuning * dev / m_sr;
                 }
             }
 
-            double                          m_sr{48000.0};
-            double                          m_tuning{1.0}, m_tolerance{0.0};
+            Sample                          m_sr{Sample(48000.0)};
+            Sample                          m_tuning{Sample(1.0)}, m_tolerance{Sample(0.0)};
             uint64_t                        m_seed{1};
-            std::array<double, k_bank_oscs> m_phase{}, m_inc{}, m_out{};
+            std::array<Sample, k_bank_oscs> m_phase{}, m_inc{}, m_out{};
         };
 
         /// The trigger attack smoother (Q19): a one-pole lag on the accent pulse, less a
         /// base-emitter drop. Returns 0 for inputs below the drop.
-        class attack_smoother {
+        template <typename Sample>
+        class basic_attack_smoother {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_attack_smoother supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
-                m_a = 1.0 - std::exp(-1.0 / (k_bank_smoother_tau_s * sample_rate));
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
+                m_a = Sample(1.0) - std::exp(-Sample(1.0) / (Sample(k_bank_smoother_tau_s) * sample_rate));
                 reset();
             }
 
-            void reset() { m_z = 0.0; }
+            void reset() { m_z = Sample(0.0); }
 
-            double process(double v_trig) {
-                const double in = std::max(v_trig - k_bank_smoother_vbe, 0.0);
+            Sample process(Sample v_trig) {
+                const Sample in = std::max(v_trig - Sample(k_bank_smoother_vbe), Sample(0.0));
                 m_z += m_a * (in - m_z);
                 return m_z;
             }
 
           private:
-            double m_a{1.0}, m_z{0.0};
+            Sample m_a{Sample(1.0)}, m_z{Sample(0.0)};
         };
+
+        /// The double profile — the golden model.
+        using bandpass        = basic_bandpass<double>;
+        using metal_bank      = basic_metal_bank<double>;
+        using attack_smoother = basic_attack_smoother<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using bandpass32        = basic_bandpass<float>;
+        using metal_bank32      = basic_metal_bank<float>;
+        using attack_smoother32 = basic_attack_smoother<float>;
 
     } // namespace tr808
 } // namespace tap::tools

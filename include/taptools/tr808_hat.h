@@ -36,6 +36,7 @@
 #include <cmath>
 
 #include "metal_bank.h"
+#include "numeric.h"
 #include "swing_vca.h"
 
 namespace tap::tools {
@@ -73,24 +74,30 @@ namespace tap::tools {
         constexpr double k_hh_out_scale = 2.6;
 
         /// The TR-808 hi-hat: one circuit, closed and open paths, hardware choke.
-        class hat {
+        template <typename Sample>
+        class basic_hat {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_hat supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
                 m_sr = sample_rate;
                 m_bank.prepare(sample_rate);
                 m_bp.prepare(sample_rate, k_bank_bp2_hz, k_bank_bp_q);
                 m_hp_c.prepare(sample_rate);
                 m_hp_o.prepare(sample_rate);
-                const double tau_c = 1.0 / (2.0 * k_pi * k_hh_hp_closed_hz);
-                const double tau_o = 1.0 / (2.0 * k_pi * k_hh_hp_open_hz);
-                m_hp_c.set(tau_c, 0.0, tau_c, 1.0);
-                m_hp_o.set(tau_o, 0.0, tau_o, 1.0);
+                const Sample tau_c = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_hh_hp_closed_hz));
+                const Sample tau_o = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_hh_hp_open_hz));
+                m_hp_c.set(tau_c, Sample(0.0), tau_c, Sample(1.0));
+                m_hp_o.set(tau_o, Sample(0.0), tau_o, Sample(1.0));
                 m_hp_sz.prepare(sample_rate);
-                const double tau_sz = 1.0 / (2.0 * k_pi * k_hh_sizzle_hp_hz);
-                m_hp_sz.set(tau_sz, 0.0, tau_sz, 1.0);
+                const Sample tau_sz = Sample(1.0) / (Sample(2.0) * k_pi_for<Sample> * Sample(k_hh_sizzle_hp_hz));
+                m_hp_sz.set(tau_sz, Sample(0.0), tau_sz, Sample(1.0));
                 m_env_c.prepare(sample_rate);
                 m_env_o.prepare(sample_rate);
-                m_env_c.set_times(k_hh_att_s, k_hh_closed_tau_s);
+                m_env_c.set_times(Sample(k_hh_att_s), Sample(k_hh_closed_tau_s));
                 set_decay(m_decay);
                 reset();
             }
@@ -109,39 +116,40 @@ namespace tap::tools {
 
             /// Open-hat ring length, 0..1 (VR3, OH DECAY). The closed hat is fixed, like the
             /// hardware.
-            void set_decay(double amount) {
-                m_decay = std::clamp(amount, 0.0, 1.0);
+            void set_decay(Sample amount) {
+                m_decay = std::clamp(amount, Sample(0.0), Sample(1.0));
                 if (!m_choked)
-                    m_env_o.set_times(k_hh_att_s,
-                                      k_hh_open_tau_min_s + m_decay * (k_hh_open_tau_max_s - k_hh_open_tau_min_s));
+                    m_env_o.set_times(Sample(k_hh_att_s),
+                                      Sample(k_hh_open_tau_min_s)
+                                          + m_decay * (Sample(k_hh_open_tau_max_s) - Sample(k_hh_open_tau_min_s)));
             }
 
             /// Closed-hat level, 0..1 (the CH channel's level pot).
-            void set_closed_level(double amount) { m_level_c = std::clamp(amount, 0.0, 1.0); }
+            void set_closed_level(Sample amount) { m_level_c = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             /// Open-hat level, 0..1 (the OH channel's level pot).
-            void set_open_level(double amount) { m_level_o = std::clamp(amount, 0.0, 1.0); }
+            void set_open_level(Sample amount) { m_level_o = std::clamp(amount, Sample(0.0), Sample(1.0)); }
 
             // -- bends ---------------------------------------------------------------------
 
-            void set_tuning(double ratio) { m_bank.set_tuning(ratio); }
-            void set_tolerance(double amount) { m_bank.set_tolerance(amount); }
+            void set_tuning(Sample ratio) { m_bank.set_tuning(ratio); }
+            void set_tolerance(Sample amount) { m_bank.set_tolerance(amount); }
             void set_seed(uint64_t seed) { m_bank.set_seed(seed); }
 
             // -- performance ---------------------------------------------------------------
 
             /// Closed hit. Chokes a sounding open hat, as in the hardware (Q23/R173).
-            void trigger_closed(double accent = 1.0) {
-                const double v = bus(accent);
+            void trigger_closed(Sample accent = Sample(1.0)) {
+                const Sample v = bus(accent);
                 m_env_c.trigger(v);
-                if (m_env_o.value() > 1e-6) {
-                    m_env_o.set_times(k_hh_att_s, k_hh_choke_tau_s);
+                if (m_env_o.value() > Sample(1e-6)) {
+                    m_env_o.set_times(Sample(k_hh_att_s), Sample(k_hh_choke_tau_s));
                     m_choked = true;
                 }
             }
 
             /// Open hit.
-            void trigger_open(double accent = 1.0) {
+            void trigger_open(Sample accent = Sample(1.0)) {
                 if (m_choked) {
                     m_choked = false;
                     set_decay(m_decay); // restore the pot's decay
@@ -149,39 +157,47 @@ namespace tap::tools {
                 m_env_o.trigger(bus(accent));
             }
 
-            double process() {
+            Sample process() {
                 m_bank.process();
-                const double band = m_bp.process(m_bank.sum());
+                const Sample band = m_bp.process(m_bank.sum());
 
-                if (m_choked && m_env_o.value() <= 1e-6) {
+                if (m_choked && m_env_o.value() <= Sample(1e-6)) {
                     m_choked = false;
                     set_decay(m_decay);
                 }
 
-                const double sz     = m_hp_sz.process(m_bank.sum());
-                const double closed = swing_vca(m_hp_c.process(band) + k_hh_sizzle_closed * sz, m_env_c.process())
-                                      * k_hh_trim_closed * m_level_c;
-                const double open = swing_vca(m_hp_o.process(band) + k_hh_sizzle_open * sz, m_env_o.process())
-                                    * k_hh_trim_open * m_level_o;
-                return (closed + open) * k_hh_out_scale;
+                const Sample sz = m_hp_sz.process(m_bank.sum());
+                const Sample closed =
+                    swing_vca(m_hp_c.process(band) + Sample(k_hh_sizzle_closed) * sz, m_env_c.process())
+                    * Sample(k_hh_trim_closed) * m_level_c;
+                const Sample open = swing_vca(m_hp_o.process(band) + Sample(k_hh_sizzle_open) * sz, m_env_o.process())
+                                    * Sample(k_hh_trim_open) * m_level_o;
+                return (closed + open) * Sample(k_hh_out_scale);
             }
 
           private:
-            static double bus(double accent) {
-                const double a = std::clamp(accent, 0.0, 1.0);
-                return (k_hh_vtrig_min + a * (k_hh_vtrig_max - k_hh_vtrig_min)) / k_hh_vtrig_max;
+            static Sample bus(Sample accent) {
+                const Sample a = std::clamp(accent, Sample(0.0), Sample(1.0));
+                return (Sample(k_hh_vtrig_min) + a * (Sample(k_hh_vtrig_max) - Sample(k_hh_vtrig_min)))
+                       / Sample(k_hh_vtrig_max);
             }
 
-            double m_sr{48000.0};
+            Sample m_sr{Sample(48000.0)};
 
-            metal_bank  m_bank;
-            bandpass    m_bp;
-            first_order m_hp_c, m_hp_o, m_hp_sz;
-            decay_env   m_env_c, m_env_o;
+            basic_metal_bank<Sample>  m_bank;
+            basic_bandpass<Sample>    m_bp;
+            basic_first_order<Sample> m_hp_c, m_hp_o, m_hp_sz;
+            basic_decay_env<Sample>   m_env_c, m_env_o;
 
-            double m_decay{0.5}, m_level_c{1.0}, m_level_o{1.0};
+            Sample m_decay{Sample(0.5)}, m_level_c{Sample(1.0)}, m_level_o{Sample(1.0)};
             bool   m_choked{false};
         };
+
+        /// The double profile — the golden model.
+        using hat = basic_hat<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using hat32 = basic_hat<float>;
 
     } // namespace tr808
 } // namespace tap::tools

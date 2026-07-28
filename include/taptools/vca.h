@@ -37,11 +37,18 @@
 #include <algorithm>
 #include <cmath>
 
+#include "numeric.h"
+
 namespace tap::tools {
 
     /// Selectable-circuit gain stage: linear multiply, or the 303's class-A transistor saturator.
-    class vca {
+    template <typename Sample>
+    class basic_vca {
+        static_assert(is_sample_profile<Sample>, "basic_vca supports the two Tap numeric profiles: float and double");
+
       public:
+        using sample_type = Sample;
+
         enum mode : int {
             mode_clean = 0, // pure linear multiply — bit-identical to *~
             mode_warm,      // one-transistor class-A stage (biased, slope-normalized tanh)
@@ -55,8 +62,8 @@ namespace tap::tools {
         static constexpr double k_default_bias  = 0.3;
         static constexpr double k_dc_block_hz   = 20.0; // output-coupling corner (warm mode)
 
-        void prepare(double sample_rate) {
-            m_dc.set(k_dc_block_hz, sample_rate);
+        void prepare(Sample sample_rate) {
+            m_dc.set(static_cast<Sample>(k_dc_block_hz), sample_rate);
             update();
         }
 
@@ -66,17 +73,17 @@ namespace tap::tools {
         void set_mode(int m) { m_mode = std::clamp(m, 0, k_num_modes - 1); }
         int  circuit() const { return m_mode; }
 
-        void set_drive(double d) {
-            m_drive = std::max(1e-6, d);
+        void set_drive(Sample d) {
+            m_drive = std::max(Sample(1e-6), d);
             update();
         }
-        double drive() const { return m_drive; }
+        Sample drive() const { return m_drive; }
 
-        void set_bias(double b) {
+        void set_bias(Sample b) {
             m_bias = b;
             update();
         }
-        double bias() const { return m_bias; }
+        Sample bias() const { return m_bias; }
 
         void set_dc_block(bool on) { m_dc_block = on; }
         bool dc_block() const { return m_dc_block; }
@@ -88,14 +95,16 @@ namespace tap::tools {
         /// envelope). `drive <= 0` is the exact linear passthru, so the 808 noise voices default to
         /// their calibrated linear model bit-for-bit. Static + shared: this is the one implementation
         /// swing_vca.h (the voices) and mode_swing both route through.
-        static double swing_shape(double v, double drive) { return drive > 0.0 ? std::tanh(drive * v) / drive : v; }
+        static Sample swing_shape(Sample v, Sample drive) {
+            return drive > Sample(0.0) ? std::tanh(drive * v) / drive : v;
+        }
 
         // -- processing -------------------------------------------------------------------------
 
         /// The circuit's saturator applied to an already-gained sample. `clean` is the identity, so
         /// upstream code that multiplies by its own gain gets a bit-identical passthru. This is the
         /// shared primitive tb303_voice.h composes (with its own gain and coupling).
-        double shape(double v) const {
+        Sample shape(Sample v) const {
             switch (m_mode) {
             case mode_warm:
                 return (std::tanh(m_drive * v + m_bias) - m_off) * m_norm;
@@ -109,8 +118,8 @@ namespace tap::tools {
         /// The full standalone path: apply `gain`, run the circuit, and in `warm` mode couple the
         /// output through the DC block (unless disabled — `swing` is symmetric and needs none).
         /// `gain` is a plain linear multiplier — feed it a control signal, an envelope, or a constant.
-        double process(double x, double gain) {
-            const double s = shape(x * gain);
+        Sample process(Sample x, Sample gain) {
+            const Sample s = shape(x * gain);
             if (m_mode == mode_warm && m_dc_block)
                 return m_dc.tick(s);
             return s;
@@ -119,28 +128,34 @@ namespace tap::tools {
       private:
         // One-pole leaky-integrator high-pass: y = x - lp, lp += (x - lp) * a. Denormal-flushed.
         struct dc_hp {
-            double a{0.0}, lp{0.0};
-            void   set(double hz, double sr) { a = 1.0 - std::exp(-2.0 * 3.14159265358979323846 * hz / sr); }
-            double tick(double x) {
+            Sample a{Sample(0.0)}, lp{Sample(0.0)};
+            void   set(Sample hz, Sample sr) { a = Sample(1.0) - std::exp(-Sample(2.0) * k_pi_for<Sample> * hz / sr); }
+            Sample tick(Sample x) {
                 lp += (x - lp) * a;
-                lp = (std::abs(lp) < 1e-15) ? 0.0 : lp;
+                lp = anti_denormal(lp);
                 return x - lp;
             }
-            void reset() { lp = 0.0; }
+            void reset() { lp = Sample(0.0); }
         };
 
         // Recompute the operating-point offset and the unity-slope normalization from drive/bias.
         void update() {
             m_off  = std::tanh(m_bias);
-            m_norm = 1.0 / (m_drive * (1.0 - m_off * m_off)); // 1 / (d * sech^2(b))
+            m_norm = Sample(1.0) / (m_drive * (Sample(1.0) - m_off * m_off)); // 1 / (d * sech^2(b))
         }
 
         int    m_mode{mode_clean};
-        double m_drive{k_default_drive};
-        double m_bias{k_default_bias};
-        double m_off{0.0}, m_norm{1.0};
+        Sample m_drive{static_cast<Sample>(k_default_drive)};
+        Sample m_bias{static_cast<Sample>(k_default_bias)};
+        Sample m_off{Sample(0.0)}, m_norm{Sample(1.0)};
         bool   m_dc_block{true};
         dc_hp  m_dc;
     };
+
+    /// The double profile — the golden model (Max's signal chain, the C ABI, the notebooks).
+    using vca = basic_vca<double>;
+
+    /// The float profile — for single-precision targets. See numeric.h.
+    using vca32 = basic_vca<float>;
 
 } // namespace tap::tools
