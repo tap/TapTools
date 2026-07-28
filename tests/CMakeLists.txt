@@ -34,7 +34,7 @@ add_executable(taptools_kernel_tests
     vocoder_test.cpp
     conv_engine_test.cpp
 )
-target_link_libraries(taptools_kernel_tests PRIVATE TapTools::taptools Catch2::Catch2WithMain)
+target_link_libraries(taptools_kernel_tests PRIVATE tap::tools Catch2::Catch2WithMain taptools_warnings)
 set_target_properties(taptools_kernel_tests PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON

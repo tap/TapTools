@@ -2,7 +2,7 @@
 #
 # TapTools kernel — the portable DSP library behind the TapTools Max package.
 # Header-only, plain C++20: no Max SDK, no min-api, no Jamoma. The kernels live
-# under include/taptools/, one self-contained header per object, in the `taptools` namespace.
+# under include/taptools/, one self-contained header per object, in the `tap::tools` namespace.
 #
 # This is a complete standalone CMake project (the AmbiTap / AmbiTap-Max pattern): it lives in
 # kernel/ of the TapTools monorepo and is designed to lift verbatim into its own repository. The
@@ -36,12 +36,36 @@ add_subdirectory(submodules/dsptap)
 
 add_library(taptools INTERFACE)
 add_library(TapTools::taptools ALIAS taptools)
+# The family-wide alias, per the namespace convention in taphouse's README: one
+# `tap::<library>` sub-namespace per repo, and the CMake alias matches it. The
+# older spelling above stays so existing consumers keep working; prefer
+# `tap::tools` in new code. Note this is a build-tree alias only -- the
+# installed config package still exports under its own namespace.
+add_library(tap::tools ALIAS taptools)
 target_compile_features(taptools INTERFACE cxx_std_20)
 target_include_directories(taptools INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 # tap::dsp brings the real-FFT header and links the Ooura static lib.
 target_link_libraries(taptools INTERFACE tap::dsp)
+
+# Warning flags for this project's own targets (tests, tools, benchmarks) --
+# never exported to consumers of the INTERFACE library, and never applied to
+# third-party code. Every sibling *Tap library carries this pair
+# (AMBITAP_WERROR / TAP_DSP_WERROR / MUTAP_WERROR / TAP_RATIO_WERROR /
+# SRT_WERROR); TapTools was the one library holding its own code to a lower
+# standard than the rest of the family, so the flag set here is deliberately the
+# same one they use.
+option(TAPTOOLS_WERROR "Treat warnings as errors in TapTools' own targets" OFF)
+add_library(taptools_warnings INTERFACE)
+target_compile_options(taptools_warnings INTERFACE
+    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Wconversion -Wshadow>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->)
+if (TAPTOOLS_WERROR)
+    target_compile_options(taptools_warnings INTERFACE
+        $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Werror>
+        $<$<CXX_COMPILER_ID:MSVC>:/WX>)
+endif ()
 
 if (TAPTOOLS_BUILD_TESTS)
     enable_testing()
