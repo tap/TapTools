@@ -59,6 +59,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "numeric.h"
+
 namespace tap::tools {
     namespace seq {
 
@@ -85,23 +87,25 @@ namespace tap::tools {
 
         /// One step of the union payload: `velocity` serves trigger rows (0 = rest);
         /// `pitch`/`gate`/`accent`/`slide` serve note rows.
-        struct step {
-            double velocity{0.0};
-            double pitch{45.0}; // A2, the 303's home note
+        template <typename Sample>
+        struct basic_step {
+            Sample velocity{Sample(0.0)};
+            Sample pitch{Sample(45.0)}; // A2, the 303's home note
             bool   gate{false};
             bool   accent{false};
             bool   slide{false};
         };
 
-        struct pattern {
-            int  length{k_default_length};
-            step steps[k_max_steps];
+        template <typename Sample>
+        struct basic_pattern {
+            int                length{k_default_length};
+            basic_step<Sample> steps[k_max_steps];
 
             void set_length(int n) { length = std::clamp(n, 1, k_max_steps); }
 
             void clear() {
                 for (auto& s : steps)
-                    s = step{};
+                    s = basic_step<Sample>{};
             }
         };
 
@@ -109,19 +113,25 @@ namespace tap::tools {
         /// Feed `process()` one phase sample (any real number; wrapped into [0,1)) and read
         /// back which step the sample is in, whether it just entered it, and how far through
         /// the step's actual (swung) span it is.
-        class engine {
+        template <typename Sample>
+        class basic_engine {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_engine supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             struct tick {
                 bool   entered{false};
                 int    index{0};
-                double pos{0.0}; // position within the step's swung span, 0..1
+                Sample pos{Sample(0.0)}; // position within the step's swung span, 0..1
             };
 
-            pattern&       data() { return m_pattern; }
-            const pattern& data() const { return m_pattern; }
+            basic_pattern<Sample>&       data() { return m_pattern; }
+            const basic_pattern<Sample>& data() const { return m_pattern; }
 
-            void   set_swing(double s) { m_swing = std::clamp(s, 0.0, 1.0); }
-            double swing() const { return m_swing; }
+            void   set_swing(Sample s) { m_swing = std::clamp(s, Sample(0.0), Sample(1.0)); }
+            Sample swing() const { return m_swing; }
 
             void set_quantize(int m) { m_quantize = std::clamp(m, 0, 2); }
             int  quantize() const { return m_quantize; }
@@ -153,7 +163,7 @@ namespace tap::tools {
             /// The step the engine is currently in (-1 before any processing) — for UI feedback.
             int current_step() const { return m_prev; }
 
-            tick process(double phase) {
+            tick process(Sample phase) {
                 int k = derive(phase);
 
                 tick t;
@@ -174,43 +184,43 @@ namespace tap::tools {
             }
 
           private:
-            double wrap(double p) const {
+            Sample wrap(Sample p) const {
                 p -= std::floor(p);
-                return (p < 0.0 || p >= 1.0) ? 0.0 : p; // guard float edge cases
+                return (p < Sample(0.0) || p >= Sample(1.0)) ? Sample(0.0) : p; // guard float edge cases
             }
 
             /// Swung start of step k, in phase units. Odd steps start late by swing/2 steps.
-            double start(int k) const {
+            Sample start(int k) const {
                 const int    length = m_pattern.length;
-                const double late   = (k & 1) ? m_swing * 0.5 : 0.0;
-                return (static_cast<double>(k) + late) / static_cast<double>(length);
+                const Sample late   = (k & 1) ? m_swing * Sample(0.5) : Sample(0.0);
+                return (static_cast<Sample>(k) + late) / static_cast<Sample>(length);
             }
 
-            int derive(double phase) const {
+            int derive(Sample phase) const {
                 const int    length = m_pattern.length;
-                const double u      = wrap(phase) * static_cast<double>(length);
+                const Sample u      = wrap(phase) * static_cast<Sample>(length);
                 int          k      = std::min(static_cast<int>(u), length - 1);
                 // An odd step's start is delayed: its first swing/2 belongs to the step before.
-                if ((k & 1) && (u - static_cast<double>(k)) < m_swing * 0.5)
+                if ((k & 1) && (u - static_cast<Sample>(k)) < m_swing * Sample(0.5))
                     --k;
                 return k;
             }
 
-            double position(double phase, int k) const {
-                const double b0   = start(k);
-                const double b1   = (k + 1 < m_pattern.length) ? start(k + 1) : 1.0;
-                const double span = b1 - b0;
-                if (span <= 0.0)
-                    return 0.0;
-                return std::clamp((wrap(phase) - b0) / span, 0.0, 1.0);
+            Sample position(Sample phase, int k) const {
+                const Sample b0   = start(k);
+                const Sample b1   = (k + 1 < m_pattern.length) ? start(k + 1) : Sample(1.0);
+                const Sample span = b1 - b0;
+                if (span <= Sample(0.0))
+                    return Sample(0.0);
+                return std::clamp((wrap(phase) - b0) / span, Sample(0.0), Sample(1.0));
             }
 
-            pattern m_pattern;
-            pattern m_slots[k_num_slots];
-            double  m_swing{0.0};
-            int     m_quantize{quantize_cycle};
-            int     m_armed{-1};
-            int     m_prev{-1};
+            basic_pattern<Sample> m_pattern;
+            basic_pattern<Sample> m_slots[k_num_slots];
+            Sample                m_swing{Sample(0.0)};
+            int                   m_quantize{quantize_cycle};
+            int                   m_armed{-1};
+            int                   m_prev{-1};
         };
 
         /// The tap.808.seq~ emitter: one drum row. Impulses at step starts, amplitude =
@@ -218,34 +228,40 @@ namespace tap::tools {
         /// `pulse_ms` above 0 the impulse widens into a held gate for envelope consumers —
         /// keep it shorter than a step at your clock rate, or back-to-back steps merge and
         /// downstream edge detectors (which re-arm below 1e-3) will miss the second edge.
-        class trigger_row {
+        template <typename Sample>
+        class basic_trigger_row {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_trigger_row supports the two Tap numeric profiles: float and double");
+
           public:
-            void prepare(double sample_rate) {
-                m_sr = std::max(sample_rate, 1.0);
+            using sample_type = Sample;
+
+            void prepare(Sample sample_rate) {
+                m_sr = std::max(sample_rate, Sample(1.0));
                 set_pulse_ms(m_pulse_ms);
                 reset();
             }
 
-            engine&       clock() { return m_engine; }
-            const engine& clock() const { return m_engine; }
+            basic_engine<Sample>&       clock() { return m_engine; }
+            const basic_engine<Sample>& clock() const { return m_engine; }
 
-            void set_pulse_ms(double ms) {
-                m_pulse_ms      = std::max(ms, 0.0);
-                m_pulse_samples = std::max(1, static_cast<int>(std::lround(m_pulse_ms * 0.001 * m_sr)));
+            void set_pulse_ms(Sample ms) {
+                m_pulse_ms      = std::max(ms, Sample(0.0));
+                m_pulse_samples = std::max(1, static_cast<int>(std::lround(m_pulse_ms * Sample(0.001) * m_sr)));
             }
 
             void reset() {
                 m_engine.reset();
                 m_hold  = 0;
-                m_level = 0.0;
+                m_level = Sample(0.0);
             }
 
-            double process(double phase) {
-                const engine::tick t = m_engine.process(phase);
+            Sample process(Sample phase) {
+                const typename basic_engine<Sample>::tick t = m_engine.process(phase);
                 if (t.entered) {
-                    const step& st = m_engine.data().steps[t.index];
-                    if (st.velocity > 0.0) {
-                        m_level = std::clamp(st.velocity, 0.0, 1.0);
+                    const basic_step<Sample>& st = m_engine.data().steps[t.index];
+                    if (st.velocity > Sample(0.0)) {
+                        m_level = std::clamp(st.velocity, Sample(0.0), Sample(1.0));
                         m_hold  = m_pulse_samples;
                     }
                 }
@@ -253,64 +269,70 @@ namespace tap::tools {
                     --m_hold;
                     return m_level;
                 }
-                return 0.0;
+                return Sample(0.0);
             }
 
           private:
-            engine m_engine;
-            double m_sr{48000.0};
-            double m_pulse_ms{0.0};
-            int    m_pulse_samples{1};
-            int    m_hold{0};
-            double m_level{0.0};
+            basic_engine<Sample> m_engine;
+            Sample               m_sr{Sample(48000.0)};
+            Sample               m_pulse_ms{Sample(0.0)};
+            int                  m_pulse_samples{1};
+            int                  m_hold{0};
+            Sample               m_level{Sample(0.0)};
         };
 
         /// The tap.303.seq~ emitter: one bass line. Emits the tap.303~ inlet pair — pitch
         /// (MIDI note number, held between notes) and gate (0 / 1.0 plain / 2.0 accented),
         /// with gate-hold slide (see the header note for the full semantics).
-        class note_row {
+        template <typename Sample>
+        class basic_note_row {
+            static_assert(is_sample_profile<Sample>,
+                          "basic_note_row supports the two Tap numeric profiles: float and double");
+
           public:
+            using sample_type = Sample;
+
             struct out {
-                double pitch{45.0};
-                double gate{0.0};
+                Sample pitch{Sample(45.0)};
+                Sample gate{Sample(0.0)};
             };
 
-            void prepare(double) { reset(); } // nothing rate-dependent; kept for house shape
+            void prepare(Sample) { reset(); } // nothing rate-dependent; kept for house shape
 
-            engine&       clock() { return m_engine; }
-            const engine& clock() const { return m_engine; }
+            basic_engine<Sample>&       clock() { return m_engine; }
+            const basic_engine<Sample>& clock() const { return m_engine; }
 
-            void   set_transpose(double semitones) { m_transpose = semitones; }
-            double transpose() const { return m_transpose; }
+            void   set_transpose(Sample semitones) { m_transpose = semitones; }
+            Sample transpose() const { return m_transpose; }
 
             void reset() {
                 m_engine.reset();
-                m_gate = 0.0;
+                m_gate = Sample(0.0);
             }
 
-            out process(double phase) {
-                const engine::tick t  = m_engine.process(phase);
-                const pattern&     pn = m_engine.data();
-                const step&        st = pn.steps[t.index];
+            out process(Sample phase) {
+                const typename basic_engine<Sample>::tick t  = m_engine.process(phase);
+                const basic_pattern<Sample>&              pn = m_engine.data();
+                const basic_step<Sample>&                 st = pn.steps[t.index];
 
                 if (t.entered) {
                     if (st.gate) {
                         m_pitch = st.pitch + m_transpose;
                         // Legato only if a note is sounding to slide from; a slide flag on a
                         // step after a rest is a plain trigger (the voice does the same).
-                        if (!(st.slide && m_gate > 0.0))
-                            m_gate = st.accent ? k_gate_accent : k_gate_plain;
+                        if (!(st.slide && m_gate > Sample(0.0)))
+                            m_gate = st.accent ? Sample(k_gate_accent) : Sample(k_gate_plain);
                     }
                     else {
-                        m_gate = 0.0;
+                        m_gate = Sample(0.0);
                     }
                 }
-                else if (m_gate > 0.0 && st.gate && t.pos >= k_gate_duty) {
+                else if (m_gate > Sample(0.0) && st.gate && t.pos >= Sample(k_gate_duty)) {
                     // Close at the duty point — unless the next step slides in, which holds
                     // the gate through the boundary. Read live so pattern edits apply now.
-                    const step& nx = pn.steps[(t.index + 1) % pn.length];
+                    const basic_step<Sample>& nx = pn.steps[(t.index + 1) % pn.length];
                     if (!(nx.gate && nx.slide))
-                        m_gate = 0.0;
+                        m_gate = Sample(0.0);
                 }
 
                 out o;
@@ -320,11 +342,26 @@ namespace tap::tools {
             }
 
           private:
-            engine m_engine;
-            double m_pitch{45.0};
-            double m_gate{0.0};
-            double m_transpose{0.0};
+            basic_engine<Sample> m_engine;
+            Sample               m_pitch{Sample(45.0)};
+            Sample               m_gate{Sample(0.0)};
+            Sample               m_transpose{Sample(0.0)};
         };
+
+        using step      = basic_step<double>;
+        using pattern   = basic_pattern<double>;
+        using step32    = basic_step<float>;
+        using pattern32 = basic_pattern<float>;
+
+        /// The double profile — the golden model.
+        using engine      = basic_engine<double>;
+        using trigger_row = basic_trigger_row<double>;
+        using note_row    = basic_note_row<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using engine32      = basic_engine<float>;
+        using trigger_row32 = basic_trigger_row<float>;
+        using note_row32    = basic_note_row<float>;
 
     } // namespace seq
 } // namespace tap::tools

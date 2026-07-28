@@ -110,8 +110,10 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 #include "diode_ladder.h"
+#include "numeric.h"
 #include "vca.h"
 #include "vco.h"
 
@@ -188,29 +190,33 @@ namespace tap::tools {
         constexpr int k_factory_presets = 8; // slots 0..7 ship authored; 8..15 are defaults
 
         /// One full parameter snapshot — a preset slot, and the unit the morph engine interpolates.
-        struct params {
-            std::array<double, k_num_params> v{};
+        template <typename Sample>
+        struct basic_params {
+            std::array<Sample, k_num_params> v{};
 
-            static params defaults() {
-                params p;
-                p.v[p_gain]      = 0.0;
-                p.v[p_tuning]    = 0.0;
-                p.v[p_cutoff]    = 1000.0;
-                p.v[p_resonance] = 0.5;
-                p.v[p_envmod]    = 0.5;
-                p.v[p_decay]     = 400.0;
-                p.v[p_accent]    = 0.5;
-                p.v[p_waveform]  = 0.0;
+            static basic_params defaults() {
+                basic_params p;
+                p.v[p_gain]      = Sample(0.0);
+                p.v[p_tuning]    = Sample(0.0);
+                p.v[p_cutoff]    = Sample(1000.0);
+                p.v[p_resonance] = Sample(0.5);
+                p.v[p_envmod]    = Sample(0.5);
+                p.v[p_decay]     = Sample(400.0);
+                p.v[p_accent]    = Sample(0.5);
+                p.v[p_waveform]  = Sample(0.0);
                 p.v[p_slide]     = k_slide_ms;
                 p.v[p_attack]    = k_vca_attack_ms;
                 p.v[p_accdecay]  = k_meg_accent_ms;
-                p.v[p_drive]     = 0.0;
+                p.v[p_drive]     = Sample(0.0);
                 return p;
             }
         };
 
         /// Clamp a value to the legal range of a parameter. Gain (dB) is unclamped.
-        inline double clamp_param(int index, double value) {
+        /// `Sample` is non-deduced and defaults to double so existing call sites — including
+        /// the Max wrapper's, which passes a Min `atom` — keep compiling unchanged.
+        template <typename Sample = double>
+        Sample clamp_param(int index, std::type_identity_t<Sample> value) {
             switch (index) {
             case p_gain:
                 return value;
@@ -219,15 +225,15 @@ namespace tap::tools {
             case p_cutoff:
                 return std::clamp(value, k_cutoff_min, k_cutoff_max);
             case p_resonance:
-                return std::clamp(value, 0.0, diode::k_res_max);
+                return std::clamp(value, Sample(0.0), diode::k_res_max);
             case p_envmod:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0.0), Sample(1.0));
             case p_decay:
                 return std::clamp(value, k_decay_min_ms, k_decay_max_ms);
             case p_accent:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0.0), Sample(1.0));
             case p_waveform:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0.0), Sample(1.0));
             case p_slide:
                 return std::clamp(value, k_slide_min_ms, k_slide_max_ms);
             case p_attack:
@@ -241,25 +247,33 @@ namespace tap::tools {
             }
         }
 
-        class voice {
+        template <typename Sample>
+
+        class basic_voice {
+            static_assert(is_sample_profile<Sample>,
+
+                          "basic_voice supports the two Tap numeric profiles: float and double");
+
           public:
-            voice() {
-                const params d = params::defaults();
+            using sample_type = Sample;
+
+            basic_voice() {
+                const basic_params<Sample> d = basic_params<Sample>::defaults();
                 for (int i = 0; i < k_num_params; ++i) {
                     m_ramp[i].current = m_ramp[i].target = d.v[i];
                 }
                 m_presets.fill(d);
                 // Factory presets, slots 0..7 (recall 1..8 in the wrapper). Field order:
                 // gain, tuning, cutoff, res, envmod, decay, accent, waveform, slide, attack, accdecay, drive
-                const double factory[k_factory_presets][k_num_params] = {
-                    {0, 0, 500, 0.9, 0.7, 300, 0.8, 0, 60, 3, 200, 0},     // 1 classic squelch
-                    {0, 0, 250, 0.45, 0.3, 800, 0.4, 1, 60, 3, 200, 0},    // 2 deep sub
-                    {0, 0, 900, 1.3, 0.9, 250, 1.0, 0, 60, 3, 150, 6},     // 3 screamer
-                    {0, 0, 400, 0.75, 0.55, 500, 0.6, 1, 90, 5, 250, 0},   // 4 rubber
-                    {0, 0, 650, 1.0, 0.2, 200, 0.9, 1, 60, 3, 120, 0},     // 5 hollow knock
-                    {0, 0, 350, 0.85, 1.0, 2000, 0.5, 0, 120, 10, 400, 0}, // 6 slow bloom
-                    {0, 0, 700, 1.1, 0.65, 350, 0.85, 0, 60, 3, 200, 12},  // 7 overdriven
-                    {0, 0, 2000, 0.6, 0.35, 600, 0.3, 0, 40, 3, 200, -6},  // 8 glass
+                const Sample factory[k_factory_presets][k_num_params] = {
+                    {0, 0, 500, Sample(0.9), Sample(0.7), 300, Sample(0.8), 0, 60, 3, 200, 0},     // 1 classic squelch
+                    {0, 0, 250, Sample(0.45), Sample(0.3), 800, Sample(0.4), 1, 60, 3, 200, 0},    // 2 deep sub
+                    {0, 0, 900, Sample(1.3), Sample(0.9), 250, Sample(1.0), 0, 60, 3, 150, 6},     // 3 screamer
+                    {0, 0, 400, Sample(0.75), Sample(0.55), 500, Sample(0.6), 1, 90, 5, 250, 0},   // 4 rubber
+                    {0, 0, 650, Sample(1.0), Sample(0.2), 200, Sample(0.9), 1, 60, 3, 120, 0},     // 5 hollow knock
+                    {0, 0, 350, Sample(0.85), Sample(1.0), 2000, Sample(0.5), 0, 120, 10, 400, 0}, // 6 slow bloom
+                    {0, 0, 700, Sample(1.1), Sample(0.65), 350, Sample(0.85), 0, 60, 3, 200, 12},  // 7 overdriven
+                    {0, 0, 2000, Sample(0.6), Sample(0.35), 600, Sample(0.3), 0, 40, 3, 200, -6},  // 8 glass
                 };
                 for (int s = 0; s < k_factory_presets; ++s) {
                     for (int i = 0; i < k_num_params; ++i) {
@@ -270,20 +284,20 @@ namespace tap::tools {
 
             // -- lifecycle -------------------------------------------------------------------------------
 
-            void prepare(double sr) {
-                m_sr = (sr > 0.0) ? sr : 48000.0;
+            void prepare(Sample sr) {
+                m_sr = (sr > Sample(0.0)) ? sr : Sample(48000.0);
                 m_osc.prepare(m_sr);
                 m_osc.set_smooth_ms(m_smooth_ms);
                 m_osc.set_waveform(vco::wave_saw); // always the saw core; the square is shaped from it
                 m_osc.snap();
                 m_filter.prepare(m_sr);
-                m_filter.set_smooth_ms(0.0);            // the voice owns all smoothing
-                m_vca_stage.set_drive(k_vca_sat_drive); // stock 303 transistor-stage calibration
-                m_vca_stage.set_bias(k_vca_sat_bias);
+                m_filter.set_smooth_ms(Sample(0.0));            // the voice owns all smoothing
+                m_vca_stage.set_drive(Sample(k_vca_sat_drive)); // stock 303 transistor-stage calibration
+                m_vca_stage.set_bias(Sample(k_vca_sat_bias));
                 m_vca_stage.set_mode(m_vca_mode);
                 apply_unit_spread();
-                m_pre_hp.set(k_pre_hpf_hz, m_sr);
-                m_post_hp.set(k_post_hpf_hz, m_sr);
+                m_pre_hp.set(Sample(k_pre_hpf_hz), m_sr);
+                m_post_hp.set(Sample(k_post_hpf_hz), m_sr);
                 clear();
                 snap();
                 m_prepared = true;
@@ -292,10 +306,10 @@ namespace tap::tools {
             /// Silence the voice and zero all DSP state; parameters untouched.
             void clear() {
                 m_gate = false;
-                m_meg = m_vca = 0.0;
+                m_meg = m_vca = Sample(0.0);
                 m_meg_rising = m_vca_rising = false;
-                m_note_accent               = 0.0;
-                m_c13                       = 0.0;
+                m_note_accent               = Sample(0.0);
+                m_c13                       = Sample(0.0);
                 m_pitch                     = m_pitch_target;
                 m_osc.clear();
                 m_filter.clear();
@@ -306,7 +320,7 @@ namespace tap::tools {
             void snap() {
                 for (auto& r : m_ramp) {
                     r.current   = r.target;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                 }
                 m_ramps_active = 0;
@@ -318,31 +332,31 @@ namespace tap::tools {
             /// (Re)trigger: snap the pitch, fire both envelopes. `accent_depth` 0..1 (0 = plain note;
             /// the wrapper maps gate amplitude 1..2 onto it). If the gate is already held this is a
             /// SLIDE instead: the pitch glides (~60 ms RC), nothing retriggers.
-            void note_on(double midi_note, double accent_depth = 0.0) {
+            void note_on(Sample midi_note, Sample accent_depth = Sample(0.0)) {
                 m_pitch_target = midi_note;
                 if (!m_gate) {
                     m_pitch       = midi_note; // non-legato: the step happens while the gate is low
-                    m_note_accent = std::clamp(accent_depth, 0.0, 1.0);
+                    m_note_accent = std::clamp(accent_depth, Sample(0.0), Sample(1.0));
                     m_meg_rising = m_vca_rising = true;
                     m_gate                      = true;
                 }
             }
 
             /// Change the pitch target without touching the gate — while held, this is the slide.
-            void set_pitch(double midi_note) { m_pitch_target = midi_note; }
+            void set_pitch(Sample midi_note) { m_pitch_target = midi_note; }
 
             void note_off() { m_gate = false; }
             bool gate() const { return m_gate; }
 
             /// The accent-sweep capacitor's current charge (0..~1) — the across-notes memory.
-            double accent_charge() const { return m_c13; }
+            Sample accent_charge() const { return m_c13; }
 
             // -- modes (not part of the morphable parameter set) --------------------------------------------
 
             void set_waveform(int w) {
-                set_param(p_waveform, static_cast<double>(std::clamp(w, 0, k_num_waveforms - 1)));
+                set_param(p_waveform, static_cast<Sample>(std::clamp(w, 0, k_num_waveforms - 1)));
             }
-            int wave() const { return (m_ramp[p_waveform].target >= 0.5) ? wave_square : wave_saw; }
+            int wave() const { return (m_ramp[p_waveform].target >= Sample(0.5)) ? wave_square : wave_saw; }
 
             /// Phase-2 VCA circuit: vca_clean (linear, default — bit-identical to phase 1) or
             /// vca_warm (the one-transistor stage's biased saturation; see the header).
@@ -360,11 +374,11 @@ namespace tap::tools {
             }
             uint32_t seed() const { return m_seed; }
 
-            void set_tolerance(double t) {
-                m_tolerance = std::clamp(t, 0.0, 1.0);
+            void set_tolerance(Sample t) {
+                m_tolerance = std::clamp(t, Sample(0.0), Sample(1.0));
                 apply_unit_spread();
             }
-            double tolerance() const { return m_tolerance; }
+            Sample tolerance() const { return m_tolerance; }
 
             void set_solver(int s) { m_filter.set_solver(s); }
             int  solver() const { return m_filter.solver(); }
@@ -372,33 +386,33 @@ namespace tap::tools {
             void set_oversample(int os) { m_filter.set_oversample(os); }
             int  oversample() const { return m_filter.oversample(); }
 
-            void set_smooth_ms(double ms) {
-                m_smooth_ms = std::max(0.0, ms);
+            void set_smooth_ms(Sample ms) {
+                m_smooth_ms = std::max(Sample(0.0), ms);
                 m_osc.set_smooth_ms(m_smooth_ms);
             }
-            double smooth_ms() const { return m_smooth_ms; }
+            Sample smooth_ms() const { return m_smooth_ms; }
 
             // -- parameter targets (click-free; safe while audio runs) --------------------------------------
 
-            void set_param(int index, double value) {
+            void set_param(int index, Sample value) {
                 if (index < 0 || index >= k_num_params) {
                     return;
                 }
-                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * 0.001 * m_sr));
+                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * Sample(0.001) * m_sr));
             }
 
-            void set_gain(double db) { set_param(p_gain, db); }
-            void set_tuning(double cents) { set_param(p_tuning, cents); }
-            void set_cutoff(double hz) { set_param(p_cutoff, hz); }
-            void set_resonance(double r) { set_param(p_resonance, r); }
-            void set_envmod(double e) { set_param(p_envmod, e); }
-            void set_decay(double ms) { set_param(p_decay, ms); }
-            void set_accent(double a) { set_param(p_accent, a); }
-            void set_wave_blend(double w) { set_param(p_waveform, w); }
-            void set_slide(double ms) { set_param(p_slide, ms); }
-            void set_attack(double ms) { set_param(p_attack, ms); }
-            void set_accdecay(double ms) { set_param(p_accdecay, ms); }
-            void set_drive(double db) { set_param(p_drive, db); }
+            void set_gain(Sample db) { set_param(p_gain, db); }
+            void set_tuning(Sample cents) { set_param(p_tuning, cents); }
+            void set_cutoff(Sample hz) { set_param(p_cutoff, hz); }
+            void set_resonance(Sample r) { set_param(p_resonance, r); }
+            void set_envmod(Sample e) { set_param(p_envmod, e); }
+            void set_decay(Sample ms) { set_param(p_decay, ms); }
+            void set_accent(Sample a) { set_param(p_accent, a); }
+            void set_wave_blend(Sample w) { set_param(p_waveform, w); }
+            void set_slide(Sample ms) { set_param(p_slide, ms); }
+            void set_attack(Sample ms) { set_param(p_attack, ms); }
+            void set_accdecay(Sample ms) { set_param(p_accdecay, ms); }
+            void set_drive(Sample db) { set_param(p_drive, db); }
 
             // -- presets / morph -----------------------------------------------------------------------------
 
@@ -410,18 +424,18 @@ namespace tap::tools {
                 return true;
             }
 
-            bool recall_preset(int slot, double seconds) {
+            bool recall_preset(int slot, Sample seconds) {
                 if (!valid_slot(slot)) {
                     return false;
                 }
-                const long n = static_cast<long>(std::max(0.0, seconds) * m_sr);
+                const long n = static_cast<long>(std::max(Sample(0.0), seconds) * m_sr);
                 for (int i = 0; i < k_num_params; ++i) {
                     ramp_to(i, clamp_param(i, m_presets[slot].v[i]), n);
                 }
                 return true;
             }
 
-            bool set_preset(int slot, const params& p) {
+            bool set_preset(int slot, const basic_params<Sample>& p) {
                 if (!valid_slot(slot)) {
                     return false;
                 }
@@ -429,94 +443,96 @@ namespace tap::tools {
                 return true;
             }
 
-            const params& preset(int slot) const {
+            const basic_params<Sample>& preset(int slot) const {
                 return m_presets[static_cast<size_t>(std::clamp(slot, 0, k_presets - 1))];
             }
 
             bool morphing() const { return m_ramps_active > 0; }
 
-            params snap_targets() const {
-                params p;
+            basic_params<Sample> snap_targets() const {
+                basic_params<Sample> p;
                 for (int i = 0; i < k_num_params; ++i) {
                     p.v[i] = m_ramp[i].target;
                 }
                 return p;
             }
 
-            params snap_current() const {
-                params p;
+            basic_params<Sample> snap_current() const {
+                basic_params<Sample> p;
                 for (int i = 0; i < k_num_params; ++i) {
                     p.v[i] = m_ramp[i].current;
                 }
                 return p;
             }
 
-            double samplerate() const { return m_sr; }
+            Sample samplerate() const { return m_sr; }
 
             // -- audio ---------------------------------------------------------------------------------------
 
             /// One output sample.
-            double process() {
+            Sample process() {
                 tick_ramps();
 
                 // pitch: snap on retrigger, RC glide while sliding
                 m_pitch += (m_pitch_target - m_pitch) * m_slide_coef;
-                const double note = m_pitch + (m_ramp[p_tuning].current + m_unit_tune_cents) * 0.01;
-                const double hz   = 440.0 * std::exp2((note - 69.0) / 12.0);
+                const Sample note = m_pitch + (m_ramp[p_tuning].current + m_unit_tune_cents) * Sample(0.01);
+                const Sample hz   = Sample(440.0) * std::exp2((note - Sample(69.0)) / Sample(12.0));
 
                 // envelopes
-                step_env(m_meg, m_meg_rising, m_meg_attack, (m_note_accent > 0.0) ? m_meg_accent_decay : m_meg_decay);
+                step_env(m_meg, m_meg_rising, m_meg_attack,
+                         (m_note_accent > Sample(0.0)) ? m_meg_accent_decay : m_meg_decay);
                 step_env(m_vca, m_vca_rising, m_vca_attack, m_gate ? m_vca_decay : m_vca_release);
 
                 // the accent sweep circuit: diode-gated charge onto C13, slow drain (the wow memory)
-                const double acc_amt = m_ramp[p_accent].current * m_note_accent;
-                const double drive   = acc_amt * m_meg;
+                const Sample acc_amt = m_ramp[p_accent].current * m_note_accent;
+                const Sample drive   = acc_amt * m_meg;
                 if (drive > m_c13) {
                     m_c13 += (drive - m_c13) * m_c13_charge;
                 }
                 m_c13 -= m_c13 * m_c13_drain;
-                m_c13 = (m_c13 < 1e-15) ? 0.0 : m_c13;
+                m_c13 = (m_c13 < Sample(1e-15)) ? Sample(0.0) : m_c13;
 
                 // cutoff: Open303's measured envmod law (see header), plus the accent sweep injected
                 // directly (bypassing envmod), scaled by the ganged resonance-pot section
-                const double cutoff_hz = m_ramp[p_cutoff].current * m_unit_cutoff_scale;
-                const double e         = m_ramp[p_envmod].current;
-                const double c         = std::clamp(std::log(cutoff_hz / k_knob_lo_hz) * k_inv_log_knob_span, 0.0, 1.0);
-                const double scaler    = (1.0 - c) * (k_env_scaler_lo_f * e + k_env_scaler_lo_c)
-                                      + c * (k_env_scaler_hi_f * e + k_env_scaler_hi_c);
-                const double offset  = k_env_offset_f * c + k_env_offset_c;
-                const double res_mix = 0.3 + 0.7 * std::min(m_ramp[p_resonance].current, 1.0);
-                const double acc_oct =
-                    k_accent_sweep_oct * res_mix * (k_accent_direct * std::max(drive - m_c13, 0.0) + m_c13);
-                const double fc_eff = cutoff_hz * std::exp2(scaler * (m_meg - offset) + acc_oct);
+                const Sample cutoff_hz = m_ramp[p_cutoff].current * m_unit_cutoff_scale;
+                const Sample e         = m_ramp[p_envmod].current;
+                const Sample c = std::clamp(std::log(cutoff_hz / Sample(k_knob_lo_hz)) * Sample(k_inv_log_knob_span),
+                                            Sample(0.0), Sample(1.0));
+                const Sample scaler = (Sample(1.0) - c) * (Sample(k_env_scaler_lo_f) * e + Sample(k_env_scaler_lo_c))
+                                      + c * (Sample(k_env_scaler_hi_f) * e + Sample(k_env_scaler_hi_c));
+                const Sample offset  = Sample(k_env_offset_f) * c + Sample(k_env_offset_c);
+                const Sample res_mix = Sample(0.3) + Sample(0.7) * std::min(m_ramp[p_resonance].current, Sample(1.0));
+                const Sample acc_oct = Sample(k_accent_sweep_oct) * res_mix
+                                       * (Sample(k_accent_direct) * std::max(drive - m_c13, Sample(0.0)) + m_c13);
+                const Sample fc_eff = cutoff_hz * std::exp2(scaler * (m_meg - offset) + acc_oct);
 
                 // oscillator: polyBLEP saw, with the square shaped from its half-cycle-shifted copy
                 // (Open303's measured biased-tanh shaper) and the waveform blend riding the ramps
-                const double saw = m_osc.process_at(hz);
-                const double mix = m_ramp[p_waveform].current;
-                double       osc = saw;
-                if (mix > 0.0) {
-                    const double shifted = (saw < 0.0) ? saw + 1.0 : saw - 1.0;
-                    const double square  = -std::tanh(k_square_gain * shifted + k_square_bias);
+                const Sample saw = m_osc.process_at(hz);
+                const Sample mix = m_ramp[p_waveform].current;
+                Sample       osc = saw;
+                if (mix > Sample(0.0)) {
+                    const Sample shifted = (saw < Sample(0.0)) ? saw + Sample(1.0) : saw - Sample(1.0);
+                    const Sample square  = -std::tanh(Sample(k_square_gain) * shifted + Sample(k_square_bias));
                     osc                  = saw + mix * (square - saw);
                 }
 
                 // -> coupling HPF -> diode ladder -> VCA -> output coupling
-                const double filtered     = m_filter.process(m_pre_hp.tick(osc), fc_eff);
-                const double accent_boost = 1.0 + m_ramp[p_accent].current * m_note_accent;
+                const Sample filtered     = m_filter.process(m_pre_hp.tick(osc), fc_eff);
+                const Sample accent_boost = Sample(1.0) + m_ramp[p_accent].current * m_note_accent;
 
                 if (m_vca_mode == vca_warm) {
                     // hardware order: the transistor stage saturates the enveloped signal, then the
                     // output coupling removes the shaper's signal-dependent DC
-                    const double v = filtered * m_vca * accent_boost;
-                    const double s = m_vca_stage.shape(v); // shared transistor-stage saturator (vca.h)
+                    const Sample v = filtered * m_vca * accent_boost;
+                    const Sample s = m_vca_stage.shape(v); // shared transistor-stage saturator (vca.h)
                     return m_post_hp.tick(s) * m_out_gain;
                 }
-                const double shaped = m_post_hp.tick(filtered);
+                const Sample shaped = m_post_hp.tick(filtered);
                 return shaped * m_vca * accent_boost * m_out_gain;
             }
 
-            void process(double* out, size_t n) {
+            void process(Sample* out, size_t n) {
                 for (size_t i = 0; i < n; ++i) {
                     out[i] = process();
                 }
@@ -524,60 +540,68 @@ namespace tap::tools {
 
           private:
             struct ramp {
-                double current{0.0};
-                double target{0.0};
-                double inc{0.0};
+                Sample current{Sample(0.0)};
+                Sample target{Sample(0.0)};
+                Sample inc{Sample(0.0)};
                 long   remaining{0};
             };
 
             // One-pole high-pass (x minus its one-pole lowpass) for the coupling networks.
             struct hp1 {
-                double a{0.0};
-                double lp{0.0};
-                void   set(double hz, double sr) { a = 1.0 - std::exp(-2.0 * k_pi * hz / sr); }
-                double tick(double x) {
+                Sample a{Sample(0.0)};
+                Sample lp{Sample(0.0)};
+                void   set(Sample hz, Sample sr) {
+                    a = Sample(1.0) - std::exp(-Sample(2.0) * Sample(k_pi_for<Sample>) * hz / sr);
+                }
+                Sample tick(Sample x) {
                     lp += (x - lp) * a;
-                    lp = (std::abs(lp) < 1e-15) ? 0.0 : lp;
+                    lp = anti_denormal(lp);
                     return x - lp;
                 }
-                void reset() { lp = 0.0; }
+                void reset() { lp = Sample(0.0); }
             };
 
             static bool valid_slot(int s) { return s >= 0 && s < k_presets; }
 
             // True RC lag: tau = ms (the slide circuit's time constant).
-            double one_pole_coef(double ms) const { return 1.0 - std::exp(-1000.0 / (std::max(0.01, ms) * m_sr)); }
+            Sample one_pole_coef(Sample ms) const {
+                return Sample(1.0) - std::exp(-Sample(1000.0) / (std::max(Sample(0.01), ms) * m_sr));
+            }
             // Attack: tau = ms/3, so the envelope reaches ~95% of full in roughly the stated time.
-            double attack_coef(double ms) const { return 1.0 - std::exp(-3000.0 / (std::max(0.01, ms) * m_sr)); }
-            double decay_coef(double ms) const { return std::exp(-1000.0 / (std::max(0.01, ms) * m_sr)); }
+            Sample attack_coef(Sample ms) const {
+                return Sample(1.0) - std::exp(-Sample(3000.0) / (std::max(Sample(0.01), ms) * m_sr));
+            }
+            Sample decay_coef(Sample ms) const {
+                return std::exp(-Sample(1000.0) / (std::max(Sample(0.01), ms) * m_sr));
+            }
 
             // Attack: one-pole rise toward 1; past the knee, exponential decay toward 0.
-            static void step_env(double& e, bool& rising, double attack_coef, double decay_mult) {
+            static void step_env(Sample& e, bool& rising, Sample attack_coef, Sample decay_mult) {
                 if (rising) {
-                    e += (1.0 - e) * attack_coef;
-                    if (e >= 0.999) {
-                        e      = 1.0;
+                    e += (Sample(1.0) - e) * attack_coef;
+                    if (e >= Sample(0.999)) {
+                        e      = Sample(1.0);
                         rising = false;
                     }
                 }
                 else {
                     e *= decay_mult;
-                    e = (e < 1e-15) ? 0.0 : e;
+                    e = (e < Sample(1e-15)) ? Sample(0.0) : e;
                 }
             }
 
-            void ramp_to(int index, double tgt, long nsamples) {
+            void ramp_to(int index, Sample tgt, long nsamples) {
                 ramp&      r   = m_ramp[index];
                 const bool was = r.remaining > 0;
                 if (nsamples < 1 || tgt == r.current) {
                     r.current   = tgt;
                     r.target    = tgt;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                 }
                 else {
                     r.target    = tgt;
-                    r.inc       = (tgt - r.current) / static_cast<double>(nsamples);
+                    r.inc       = (tgt - r.current) / static_cast<Sample>(nsamples);
                     r.remaining = nsamples;
                 }
                 m_ramps_active += static_cast<int>(r.remaining > 0) - static_cast<int>(was);
@@ -605,7 +629,7 @@ namespace tap::tools {
             void push_filter_params() {
                 m_filter.set_param(diode::p_resonance, m_ramp[p_resonance].current);
                 m_filter.set_param(diode::p_drive, m_ramp[p_drive].current);
-                m_out_gain         = std::pow(10.0, m_ramp[p_gain].current * 0.05);
+                m_out_gain         = std::pow(Sample(10.0), m_ramp[p_gain].current * Sample(0.05));
                 m_meg_decay        = decay_coef(m_ramp[p_decay].current * m_unit_env);
                 m_meg_accent_decay = decay_coef(m_ramp[p_accdecay].current * m_unit_env);
                 m_vca_attack       = attack_coef(m_ramp[p_attack].current * m_unit_attack);
@@ -613,82 +637,91 @@ namespace tap::tools {
             }
 
             // Deterministic per-unit draw in [-1, 1]: xorshift64* on (seed, salt), house convention.
-            static double unit_draw(uint32_t seed, uint32_t salt) {
+            static Sample unit_draw(uint32_t seed, uint32_t salt) {
                 uint64_t x = (static_cast<uint64_t>(seed) << 32) ^ (0x9e3779b97f4a7c15ULL * (salt + 1));
                 x ^= x >> 12;
                 x ^= x << 25;
                 x ^= x >> 27;
                 x *= 0x2545f4914f6cdd1dULL;
-                return 2.0 * (static_cast<double>(x >> 11) / 9007199254740992.0) - 1.0;
+                return Sample(2.0) * (static_cast<Sample>(x >> 11) / Sample(9007199254740992.0)) - Sample(1.0);
             }
 
             // Recompute the per-unit component offsets and every coefficient built on them.
             // tolerance 0 leaves the nominal schematic exactly (all factors 1, imperfect 0).
             void apply_unit_spread() {
-                const double t      = m_tolerance;
-                m_unit_tune_cents   = 8.0 * t * unit_draw(m_seed, 0);             // converter trim
-                m_unit_cutoff_scale = std::exp2(0.12 * t * unit_draw(m_seed, 1)); // VCF tracking
-                m_unit_env          = 1.0 + 0.10 * t * unit_draw(m_seed, 2);      // envelope caps
-                m_unit_vca          = 1.0 + 0.10 * t * unit_draw(m_seed, 3);
-                m_unit_slide        = 1.0 + 0.15 * t * unit_draw(m_seed, 4); // slide RC
-                m_unit_c13          = 1.0 + 0.15 * t * unit_draw(m_seed, 5); // accent-sweep RC
-                m_unit_attack       = 1.0 + 0.20 * t * unit_draw(m_seed, 6);
-                m_meg_attack        = attack_coef(k_meg_attack_ms);
-                m_vca_decay         = decay_coef(k_vca_decay_ms * m_unit_vca);
-                m_vca_release       = decay_coef(k_vca_release_ms);
-                m_c13_charge        = one_pole_coef(k_c13_charge_ms * m_unit_c13);
-                m_c13_drain         = one_pole_coef(k_c13_discharge_ms * m_unit_c13);
+                const Sample t      = m_tolerance;
+                m_unit_tune_cents   = Sample(8.0) * t * unit_draw(m_seed, 0);                // converter trim
+                m_unit_cutoff_scale = std::exp2(Sample(0.12) * t * unit_draw(m_seed, 1));    // VCF tracking
+                m_unit_env          = Sample(1.0) + Sample(0.10) * t * unit_draw(m_seed, 2); // envelope caps
+                m_unit_vca          = Sample(1.0) + Sample(0.10) * t * unit_draw(m_seed, 3);
+                m_unit_slide        = Sample(1.0) + Sample(0.15) * t * unit_draw(m_seed, 4); // slide RC
+                m_unit_c13          = Sample(1.0) + Sample(0.15) * t * unit_draw(m_seed, 5); // accent-sweep RC
+                m_unit_attack       = Sample(1.0) + Sample(0.20) * t * unit_draw(m_seed, 6);
+                m_meg_attack        = attack_coef(Sample(k_meg_attack_ms));
+                m_vca_decay         = decay_coef(Sample(k_vca_decay_ms) * m_unit_vca);
+                m_vca_release       = decay_coef(Sample(k_vca_release_ms));
+                m_c13_charge        = one_pole_coef(Sample(k_c13_charge_ms) * m_unit_c13);
+                m_c13_drain         = one_pole_coef(Sample(k_c13_discharge_ms) * m_unit_c13);
                 m_osc.set_seed(m_seed);
-                m_osc.set_imperfect(0.6 * t); // waveform imperfection rides the same tolerance
+                m_osc.set_imperfect(Sample(0.6) * t); // waveform imperfection rides the same tolerance
                 push_filter_params();
             }
 
             // configuration
-            double   m_sr{48000.0};
-            double   m_smooth_ms{k_default_smooth_ms};
+            Sample   m_sr{Sample(48000.0)};
+            Sample   m_smooth_ms{Sample(k_default_smooth_ms)};
             uint32_t m_seed{1u};
-            double   m_tolerance{0.0};
+            Sample   m_tolerance{Sample(0.0)};
             bool     m_prepared{false};
 
             // parameters
-            std::array<ramp, k_num_params> m_ramp;
-            std::array<params, k_presets>  m_presets;
-            int                            m_ramps_active{0};
-            double                         m_out_gain{1.0};
+            std::array<ramp, k_num_params>              m_ramp;
+            std::array<basic_params<Sample>, k_presets> m_presets;
+            int                                         m_ramps_active{0};
+            Sample                                      m_out_gain{Sample(1.0)};
 
             // note state
             bool   m_gate{false};
-            double m_pitch{45.0}; // A1 — an acid-appropriate resting pitch
-            double m_pitch_target{45.0};
-            double m_note_accent{0.0};
+            Sample m_pitch{Sample(45.0)}; // A1 — an acid-appropriate resting pitch
+            Sample m_pitch_target{Sample(45.0)};
+            Sample m_note_accent{Sample(0.0)};
 
             // envelope state
-            double m_meg{0.0}, m_vca{0.0};
+            Sample m_meg{Sample(0.0)}, m_vca{Sample(0.0)};
             bool   m_meg_rising{false}, m_vca_rising{false};
-            double m_meg_attack{0.05}, m_vca_attack{0.05};
-            double m_meg_decay{0.9999}, m_meg_accent_decay{0.999};
-            double m_vca_decay{0.9999}, m_vca_release{0.99};
-            double m_slide_coef{0.001};
+            Sample m_meg_attack{Sample(0.05)}, m_vca_attack{Sample(0.05)};
+            Sample m_meg_decay{Sample(0.9999)}, m_meg_accent_decay{Sample(0.999)};
+            Sample m_vca_decay{Sample(0.9999)}, m_vca_release{Sample(0.99)};
+            Sample m_slide_coef{Sample(0.001)};
 
             // phase-2 VCA circuit — the saturator math lives in the shared tap::tools::vca stage
             int               m_vca_mode{vca_clean};
             ::tap::tools::vca m_vca_stage; // shape() only; the voice runs its own coupling + gain
 
             // per-unit component spread (seed/tolerance)
-            double m_unit_tune_cents{0.0};
-            double m_unit_cutoff_scale{1.0};
-            double m_unit_env{1.0}, m_unit_vca{1.0};
-            double m_unit_slide{1.0}, m_unit_c13{1.0}, m_unit_attack{1.0};
+            Sample m_unit_tune_cents{Sample(0.0)};
+            Sample m_unit_cutoff_scale{Sample(1.0)};
+            Sample m_unit_env{Sample(1.0)}, m_unit_vca{Sample(1.0)};
+            Sample m_unit_slide{Sample(1.0)}, m_unit_c13{Sample(1.0)}, m_unit_attack{Sample(1.0)};
 
             // accent-sweep circuit state (C13)
-            double m_c13{0.0};
-            double m_c13_charge{0.001}, m_c13_drain{0.0001};
+            Sample m_c13{Sample(0.0)};
+            Sample m_c13_charge{Sample(0.001)}, m_c13_drain{Sample(0.0001)};
 
             // DSP blocks
             vco::vco_osc        m_osc;
             diode::diode_filter m_filter;
             hp1                 m_pre_hp, m_post_hp;
         };
+
+        using params   = basic_params<double>;
+        using params32 = basic_params<float>;
+
+        /// The double profile — the golden model.
+        using voice = basic_voice<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using voice32 = basic_voice<float>;
 
     } // namespace tb303
 } // namespace tap::tools

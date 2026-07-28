@@ -75,6 +75,9 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <type_traits>
+
+#include "numeric.h"
 
 namespace tap::tools {
     namespace diode {
@@ -106,42 +109,54 @@ namespace tap::tools {
         };
 
         /// One full parameter snapshot — a preset slot, and the unit the morph engine interpolates.
-        struct params {
-            std::array<double, k_num_params> v{};
+        template <typename Sample>
+        struct basic_params {
+            std::array<Sample, k_num_params> v{};
 
-            static params defaults() {
-                params p;
-                p.v[p_gain]      = 0.0;
-                p.v[p_frequency] = 1000.0;
-                p.v[p_resonance] = 0.0;
-                p.v[p_drive]     = 0.0;
+            static basic_params defaults() {
+                basic_params p;
+                p.v[p_gain]      = Sample(0.0);
+                p.v[p_frequency] = Sample(1000.0);
+                p.v[p_resonance] = Sample(0.0);
+                p.v[p_drive]     = Sample(0.0);
                 p.v[p_fbhp]      = k_fbhp_default_hz;
                 return p;
             }
         };
 
         /// Clamp a value to the legal range of a parameter. Gain (dB) is unclamped.
-        inline double clamp_param(int index, double value) {
+        /// `Sample` is non-deduced and defaults to double so existing call sites — including
+        /// the Max wrapper's, which passes a Min `atom` — keep compiling unchanged.
+        template <typename Sample = double>
+        Sample clamp_param(int index, std::type_identity_t<Sample> value) {
             switch (index) {
             case p_gain:
                 return value;
             case p_frequency:
                 return std::clamp(value, k_freq_min, k_freq_max);
             case p_resonance:
-                return std::clamp(value, 0.0, k_res_max);
+                return std::clamp(value, Sample(0.0), k_res_max);
             case p_drive:
                 return std::clamp(value, -k_drive_range_db, k_drive_range_db);
             case p_fbhp:
-                return std::clamp(value, 0.0, k_fbhp_max_hz);
+                return std::clamp(value, Sample(0.0), k_fbhp_max_hz);
             default:
                 return value;
             }
         }
 
-        class diode_filter {
+        template <typename Sample>
+
+        class basic_diode_filter {
+            static_assert(is_sample_profile<Sample>,
+
+                          "basic_diode_filter supports the two Tap numeric profiles: float and double");
+
           public:
-            diode_filter() {
-                const params d = params::defaults();
+            using sample_type = Sample;
+
+            basic_diode_filter() {
+                const basic_params<Sample> d = basic_params<Sample>::defaults();
                 for (int i = 0; i < k_num_params; ++i) {
                     m_ramp[i].current = m_ramp[i].target = d.v[i];
                 }
@@ -151,8 +166,8 @@ namespace tap::tools {
             // -- lifecycle -------------------------------------------------------------------------------
 
             /// Set the sample rate, (re)configure the oversampling chain, clear state, snap all ramps.
-            void prepare(double sr) {
-                m_sr = (sr > 0.0) ? sr : 48000.0;
+            void prepare(Sample sr) {
+                m_sr = (sr > Sample(0.0)) ? sr : Sample(48000.0);
                 configure_resampler();
                 clear();
                 snap();
@@ -161,8 +176,8 @@ namespace tap::tools {
 
             /// Zero all filter and resampler state; parameters untouched.
             void clear() {
-                m_s1 = m_s2 = m_s3 = m_s4 = m_sh = 0.0;
-                m_gamma.fill(1.0);
+                m_s1 = m_s2 = m_s3 = m_s4 = m_sh = Sample(0.0);
+                m_gamma.fill(Sample(1.0));
                 m_up.reset();
                 m_down.reset();
             }
@@ -170,7 +185,7 @@ namespace tap::tools {
             void snap() {
                 for (auto& r : m_ramp) {
                     r.current   = r.target;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                 }
                 m_ramps_active  = 0;
@@ -191,23 +206,23 @@ namespace tap::tools {
             }
             int oversample() const { return m_os; }
 
-            void   set_smooth_ms(double ms) { m_smooth_ms = std::max(0.0, ms); }
-            double smooth_ms() const { return m_smooth_ms; }
+            void   set_smooth_ms(Sample ms) { m_smooth_ms = std::max(Sample(0.0), ms); }
+            Sample smooth_ms() const { return m_smooth_ms; }
 
             // -- parameter targets (click-free; safe while audio runs) --------------------------------------
 
-            void set_param(int index, double value) {
+            void set_param(int index, Sample value) {
                 if (index < 0 || index >= k_num_params) {
                     return;
                 }
-                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * 0.001 * m_sr));
+                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * Sample(0.001) * m_sr));
             }
 
-            void set_gain(double db) { set_param(p_gain, db); }
-            void set_frequency(double hz) { set_param(p_frequency, hz); }
-            void set_resonance(double r) { set_param(p_resonance, r); }
-            void set_drive(double db) { set_param(p_drive, db); }
-            void set_fbhp(double hz) { set_param(p_fbhp, hz); }
+            void set_gain(Sample db) { set_param(p_gain, db); }
+            void set_frequency(Sample hz) { set_param(p_frequency, hz); }
+            void set_resonance(Sample r) { set_param(p_resonance, r); }
+            void set_drive(Sample db) { set_param(p_drive, db); }
+            void set_fbhp(Sample hz) { set_param(p_fbhp, hz); }
 
             void set_solver(int s) { m_solver = std::clamp(s, 0, k_num_solvers - 1); }
             int  solver() const { return m_solver; }
@@ -222,18 +237,18 @@ namespace tap::tools {
                 return true;
             }
 
-            bool recall_preset(int slot, double seconds) {
+            bool recall_preset(int slot, Sample seconds) {
                 if (!valid_slot(slot)) {
                     return false;
                 }
-                const long n = static_cast<long>(std::max(0.0, seconds) * m_sr);
+                const long n = static_cast<long>(std::max(Sample(0.0), seconds) * m_sr);
                 for (int i = 0; i < k_num_params; ++i) {
                     ramp_to(i, clamp_param(i, m_presets[slot].v[i]), n);
                 }
                 return true;
             }
 
-            bool set_preset(int slot, const params& p) {
+            bool set_preset(int slot, const basic_params<Sample>& p) {
                 if (!valid_slot(slot)) {
                     return false;
                 }
@@ -241,34 +256,34 @@ namespace tap::tools {
                 return true;
             }
 
-            const params& preset(int slot) const {
+            const basic_params<Sample>& preset(int slot) const {
                 return m_presets[static_cast<size_t>(std::clamp(slot, 0, k_presets - 1))];
             }
 
             bool morphing() const { return m_ramps_active > 0; }
 
-            params snap_targets() const {
-                params p;
+            basic_params<Sample> snap_targets() const {
+                basic_params<Sample> p;
                 for (int i = 0; i < k_num_params; ++i) {
                     p.v[i] = m_ramp[i].target;
                 }
                 return p;
             }
 
-            params snap_current() const {
-                params p;
+            basic_params<Sample> snap_current() const {
+                basic_params<Sample> p;
                 for (int i = 0; i < k_num_params; ++i) {
                     p.v[i] = m_ramp[i].current;
                 }
                 return p;
             }
 
-            double samplerate() const { return m_sr; }
+            Sample samplerate() const { return m_sr; }
 
             // -- audio ---------------------------------------------------------------------------------------
 
             /// Process one sample with the (ramped) frequency parameter.
-            double process(double x) {
+            Sample process(Sample x) {
                 tick_ramps();
                 if (m_derived_dirty) {
                     update_derived(m_ramp[p_frequency].current);
@@ -278,14 +293,14 @@ namespace tap::tools {
 
             /// Process one sample with a signal-rate cutoff override (Hz). The coefficient is recomputed
             /// every call on this path; the frequency parameter/ramp is left untouched.
-            double process(double x, double cutoff_hz) {
+            Sample process(Sample x, Sample cutoff_hz) {
                 tick_ramps();
                 update_derived(clamp_param(p_frequency, cutoff_hz));
                 m_derived_dirty = true; // the cached gains belong to the override, not the parameter
                 return run(x);
             }
 
-            void process(const double* in, double* out, size_t n) {
+            void process(const Sample* in, Sample* out, size_t n) {
                 for (size_t i = 0; i < n; ++i) {
                     out[i] = process(in[i]);
                 }
@@ -293,45 +308,45 @@ namespace tap::tools {
 
           private:
             struct ramp {
-                double current{0.0};
-                double target{0.0};
-                double inc{0.0};
+                Sample current{Sample(0.0)};
+                Sample target{Sample(0.0)};
+                Sample inc{Sample(0.0)};
                 long   remaining{0};
             };
 
             // RBJ lowpass biquad (Transposed Direct Form II) — two in series make the 4th-order
             // Butterworth anti-image/anti-alias filters for the oversampling chain.
             struct biquad {
-                double b0{1.0}, b1{0.0}, b2{0.0}, a1{0.0}, a2{0.0};
-                double z1{0.0}, z2{0.0};
+                Sample b0{Sample(1.0)}, b1{Sample(0.0)}, b2{Sample(0.0)}, a1{Sample(0.0)}, a2{Sample(0.0)};
+                Sample z1{Sample(0.0)}, z2{Sample(0.0)};
 
-                void design_lowpass(double fc_norm, double q) { // fc_norm = fc / fs
-                    const double w     = 2.0 * k_pi * fc_norm;
-                    const double alpha = std::sin(w) / (2.0 * q);
-                    const double cw    = std::cos(w);
-                    const double a0    = 1.0 + alpha;
-                    b0                 = ((1.0 - cw) * 0.5) / a0;
-                    b1                 = (1.0 - cw) / a0;
+                void design_lowpass(Sample fc_norm, Sample q) { // fc_norm = fc / fs
+                    const Sample w     = Sample(2.0) * Sample(k_pi_for<Sample>) * fc_norm;
+                    const Sample alpha = std::sin(w) / (Sample(2.0) * q);
+                    const Sample cw    = std::cos(w);
+                    const Sample a0    = Sample(1.0) + alpha;
+                    b0                 = ((Sample(1.0) - cw) * Sample(0.5)) / a0;
+                    b1                 = (Sample(1.0) - cw) / a0;
                     b2                 = b0;
-                    a1                 = (-2.0 * cw) / a0;
-                    a2                 = (1.0 - alpha) / a0;
+                    a1                 = (-Sample(2.0) * cw) / a0;
+                    a2                 = (Sample(1.0) - alpha) / a0;
                 }
-                double tick(double x) {
-                    const double y = b0 * x + z1;
+                Sample tick(Sample x) {
+                    const Sample y = b0 * x + z1;
                     z1             = b1 * x - a1 * y + z2;
                     z2             = b2 * x - a2 * y;
                     return y;
                 }
-                void reset() { z1 = z2 = 0.0; }
+                void reset() { z1 = z2 = Sample(0.0); }
             };
 
             struct butterworth4 { // 4th-order Butterworth: two biquads with the standard Q pair
                 biquad s1, s2;
-                void   design(double fc_norm) {
-                    s1.design_lowpass(fc_norm, 0.54119610);
-                    s2.design_lowpass(fc_norm, 1.30656296);
+                void   design(Sample fc_norm) {
+                    s1.design_lowpass(fc_norm, Sample(0.54119610));
+                    s2.design_lowpass(fc_norm, Sample(1.30656296));
                 }
-                double tick(double x) { return s2.tick(s1.tick(x)); }
+                Sample tick(Sample x) { return s2.tick(s1.tick(x)); }
                 void   reset() {
                     s1.reset();
                     s2.reset();
@@ -340,22 +355,18 @@ namespace tap::tools {
 
             static bool valid_slot(int s) { return s >= 0 && s < k_presets; }
 
-            static double anti_denormal(double x) {
-                return (std::abs(x) < 1e-15) ? 0.0 : x; // house idiom (tap.comb~)
-            }
-
-            void ramp_to(int index, double tgt, long nsamples) {
+            void ramp_to(int index, Sample tgt, long nsamples) {
                 ramp&      r   = m_ramp[index];
                 const bool was = r.remaining > 0;
                 if (nsamples < 1 || tgt == r.current) {
                     r.current   = tgt;
                     r.target    = tgt;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                 }
                 else {
                     r.target    = tgt;
-                    r.inc       = (tgt - r.current) / static_cast<double>(nsamples);
+                    r.inc       = (tgt - r.current) / static_cast<Sample>(nsamples);
                     r.remaining = nsamples;
                 }
                 m_ramps_active += static_cast<int>(r.remaining > 0) - static_cast<int>(was);
@@ -381,81 +392,81 @@ namespace tap::tools {
             void configure_resampler() {
                 if (m_os > 1) {
                     // cut just below the original Nyquist, normalized to the oversampled rate
-                    const double fc_norm = 0.45 / m_os;
+                    const Sample fc_norm = Sample(0.45) / m_os;
                     m_up.design(fc_norm);
                     m_down.design(fc_norm);
                 }
             }
 
             // Recompute the DSP coefficients from the (smoothed) parameter values for a given cutoff.
-            void update_derived(double cutoff_hz) {
-                const double fs_os = m_sr * m_os;
-                const double fc    = std::min(cutoff_hz, 0.49 * fs_os);
+            void update_derived(Sample cutoff_hz) {
+                const Sample fs_os = m_sr * m_os;
+                const Sample fc    = std::min(cutoff_hz, Sample(0.49) * fs_os);
                 // Prewarped so the closed loop's sqrt(2)*w_stage oscillation lands exactly on fc.
-                m_g             = std::tan(k_pi * fc / fs_os) * (1.0 / 1.41421356237309515);
-                m_k             = k_fb_at_osc * m_ramp[p_resonance].current;
-                m_gh            = 1.0 - hp_lp_gain(m_ramp[p_fbhp].current, fs_os); // instantaneous HP gain 1-G
-                m_in_gain       = std::pow(10.0, m_ramp[p_drive].current * 0.05);
-                m_out_gain      = std::pow(10.0, m_ramp[p_gain].current * 0.05);
+                m_g  = std::tan(Sample(k_pi_for<Sample>) * fc / fs_os) * (Sample(1.0) / Sample(1.41421356237309515));
+                m_k  = Sample(k_fb_at_osc) * m_ramp[p_resonance].current;
+                m_gh = Sample(1.0) - hp_lp_gain(m_ramp[p_fbhp].current, fs_os); // instantaneous HP gain 1-G
+                m_in_gain       = std::pow(Sample(10.0), m_ramp[p_drive].current * Sample(0.05));
+                m_out_gain      = std::pow(Sample(10.0), m_ramp[p_gain].current * Sample(0.05));
                 m_derived_dirty = (m_ramps_active > 0);
             }
 
-            static double hp_lp_gain(double f_hp, double fs_os) {
-                if (f_hp <= 0.0) {
-                    return 0.0; // fbhp 0: the lowpass never moves — feedback is DC-coupled
+            static Sample hp_lp_gain(Sample f_hp, Sample fs_os) {
+                if (f_hp <= Sample(0.0)) {
+                    return Sample(0.0); // fbhp 0: the lowpass never moves — feedback is DC-coupled
                 }
-                const double gh = std::tan(k_pi * std::min(f_hp, 0.45 * fs_os) / fs_os);
-                return gh / (1.0 + gh);
+                const Sample gh = std::tan(Sample(k_pi_for<Sample>) * std::min(f_hp, Sample(0.45) * fs_os) / fs_os);
+                return gh / (Sample(1.0) + gh);
             }
 
             // The diode-pair conduction curve. Slope 1 at the origin, so at small signals the
             // filter IS the linearized Stinchcombe response; the knee bounds self-oscillation.
-            static double sat(double e) { return std::tanh(e); }
+            static Sample sat(Sample e) { return std::tanh(e); }
 
             // Secant gain S(e)/e of the diode curve (series expansion near zero).
-            static double secant_gain(double e) {
-                const double a = std::abs(e);
-                if (a < 1e-6) {
-                    return 1.0 - e * e * (1.0 / 3.0);
+            static Sample secant_gain(Sample e) {
+                const Sample a = std::abs(e);
+                if (a < Sample(1e-6)) {
+                    return Sample(1.0) - e * e * (Sample(1.0) / Sample(3.0));
                 }
                 return std::tanh(e) / e;
             }
 
             struct solution {
-                double v1, v2, v3, v4, u;
+                Sample v1, v2, v3, v4, u;
             };
 
             // Exact solve of the linear ZDF system with per-edge gains gamma (the coupled chain +
             // high-passed feedback, eliminated bottom-up to closed form; unconditionally stable —
             // every divisor is >= 1 for g > 0, gamma in (0, 1]).
-            solution solve_linear(double drive_in, const std::array<double, 4>& gamma) const {
-                const double g   = m_g;
-                const double g0  = g * gamma[0];
-                const double g1  = g * gamma[1];
-                const double g2  = g * gamma[2];
-                const double g3  = g * gamma[3];
-                const double amp = m_k * m_gh;            // instantaneous feedback gain onto v4
-                const double l2  = drive_in + amp * m_sh; // feedback HPF state enters the loop here
+            solution solve_linear(Sample drive_in, const std::array<Sample, 4>& gamma) const {
+                const Sample g   = m_g;
+                const Sample g0  = g * gamma[0];
+                const Sample g1  = g * gamma[1];
+                const Sample g2  = g * gamma[2];
+                const Sample g3  = g * gamma[3];
+                const Sample amp = m_k * m_gh;            // instantaneous feedback gain onto v4
+                const Sample l2  = drive_in + amp * m_sh; // feedback HPF state enters the loop here
 
-                const double c4d = 1.0 + 2.0 * g3; // v4 = (s4 + 2*g3*v3) / c4d
-                const double c43 = 2.0 * g3 / c4d;
-                const double c40 = m_s4 / c4d;
+                const Sample c4d = Sample(1.0) + Sample(2.0) * g3; // v4 = (s4 + 2*g3*v3) / c4d
+                const Sample c43 = Sample(2.0) * g3 / c4d;
+                const Sample c40 = m_s4 / c4d;
 
-                const double p3d = 1.0 + g2 + g3 - g3 * c43; // v3 = p30 + p32*v2
-                const double p30 = (m_s3 + g3 * c40) / p3d;
-                const double p32 = g2 / p3d;
+                const Sample p3d = Sample(1.0) + g2 + g3 - g3 * c43; // v3 = p30 + p32*v2
+                const Sample p30 = (m_s3 + g3 * c40) / p3d;
+                const Sample p32 = g2 / p3d;
 
-                const double q2d = 1.0 + g1 + g2 - g2 * p32; // v2 = q20 + q21*v1
-                const double q20 = (m_s2 + g2 * p30) / q2d;
-                const double q21 = g1 / q2d;
+                const Sample q2d = Sample(1.0) + g1 + g2 - g2 * p32; // v2 = q20 + q21*v1
+                const Sample q20 = (m_s2 + g2 * p30) / q2d;
+                const Sample q21 = g1 / q2d;
 
-                const double r30 = p30 + p32 * q20; // v3 = r30 + r31*v1
-                const double r31 = p32 * q21;
-                const double w40 = c40 + c43 * r30; // v4 = w40 + w41*v1
-                const double w41 = c43 * r31;
+                const Sample r30 = p30 + p32 * q20; // v3 = r30 + r31*v1
+                const Sample r31 = p32 * q21;
+                const Sample w40 = c40 + c43 * r30; // v4 = w40 + w41*v1
+                const Sample w41 = c43 * r31;
 
-                const double den = 1.0 + g0 + g1 - g1 * q21 + g0 * amp * w41;
-                const double num = m_s1 + g0 * l2 + g1 * q20 - g0 * amp * w40;
+                const Sample den = Sample(1.0) + g0 + g1 - g1 * q21 + g0 * amp * w41;
+                const Sample num = m_s1 + g0 * l2 + g1 * q20 - g0 * amp * w40;
 
                 solution s;
                 s.v1 = num / den;
@@ -467,7 +478,7 @@ namespace tap::tools {
             }
 
             // Refresh the per-edge secant gains at a solution's operating point.
-            void refresh_gamma(const solution& s, std::array<double, 4>& gamma) const {
+            void refresh_gamma(const solution& s, std::array<Sample, 4>& gamma) const {
                 gamma[0] = secant_gain(s.u - s.v1);
                 gamma[1] = secant_gain(s.v1 - s.v2);
                 gamma[2] = secant_gain(s.v2 - s.v3);
@@ -475,8 +486,8 @@ namespace tap::tools {
             }
 
             // The nonlinear diode-ladder core at the oversampled rate.
-            double core(double x) {
-                const double drive_in = m_in_gain * x;
+            Sample core(Sample x) {
+                const Sample drive_in = m_in_gain * x;
 
                 // fast: solve at the previous sample's operating point, correct once.
                 // exact: iterate the re-linearized solve until the node voltages settle.
@@ -489,42 +500,42 @@ namespace tap::tools {
                 else {
                     for (int it = 0; it < 32; ++it) {
                         const solution next = solve_linear(drive_in, m_gamma);
-                        const double   step = std::abs(next.v1 - s.v1) + std::abs(next.v2 - s.v2)
+                        const Sample   step = std::abs(next.v1 - s.v1) + std::abs(next.v2 - s.v2)
                                             + std::abs(next.v3 - s.v3) + std::abs(next.v4 - s.v4);
                         s = next;
                         refresh_gamma(s, m_gamma);
-                        if (step < 1e-12) {
+                        if (step < Sample(1e-12)) {
                             break;
                         }
                     }
                 }
 
                 // trapezoidal state advance with the true diode currents at the solution
-                const double f0 = sat(s.u - s.v1);
-                const double f1 = sat(s.v1 - s.v2);
-                const double f2 = sat(s.v2 - s.v3);
-                const double f3 = sat(s.v3 - s.v4);
+                const Sample f0 = sat(s.u - s.v1);
+                const Sample f1 = sat(s.v1 - s.v2);
+                const Sample f2 = sat(s.v2 - s.v3);
+                const Sample f3 = sat(s.v3 - s.v4);
                 m_s1            = anti_denormal(s.v1 + m_g * (f0 - f1));
                 m_s2            = anti_denormal(s.v2 + m_g * (f1 - f2));
                 m_s3            = anti_denormal(s.v3 + m_g * (f2 - f3));
-                m_s4            = anti_denormal(s.v4 + 2.0 * m_g * f3);
+                m_s4            = anti_denormal(s.v4 + Sample(2.0) * m_g * f3);
                 // feedback HPF's one-pole lowpass state (hp = (1-G)*(v4 - state) = m_gh*(v4 - m_sh))
-                const double ylp = s.v4 - m_gh * (s.v4 - m_sh);
-                m_sh             = anti_denormal(2.0 * ylp - m_sh);
+                const Sample ylp = s.v4 - m_gh * (s.v4 - m_sh);
+                m_sh             = anti_denormal(Sample(2.0) * ylp - m_sh);
 
                 return s.v4;
             }
 
-            double run(double x) {
-                double y;
+            Sample run(Sample x) {
+                Sample y;
                 if (m_os == 1) {
                     y = core(x);
                 }
                 else {
                     // zero-stuff + anti-image filter up, core at the high rate, anti-alias + decimate down
-                    y = 0.0;
+                    y = Sample(0.0);
                     for (int j = 0; j < m_os; ++j) {
-                        const double up = m_up.tick(j == 0 ? x * m_os : 0.0);
+                        const Sample up = m_up.tick(j == 0 ? x * m_os : Sample(0.0));
                         y               = m_down.tick(core(up));
                     }
                 }
@@ -532,31 +543,40 @@ namespace tap::tools {
             }
 
             // configuration
-            double m_sr{48000.0};
-            double m_smooth_ms{k_default_smooth_ms};
+            Sample m_sr{Sample(48000.0)};
+            Sample m_smooth_ms{Sample(k_default_smooth_ms)};
             int    m_os{2};
             int    m_solver{solver_fast};
             bool   m_prepared{false};
 
             // parameters
-            std::array<ramp, k_num_params> m_ramp;
-            std::array<params, k_presets>  m_presets;
-            int                            m_ramps_active{0};
-            bool                           m_derived_dirty{true};
+            std::array<ramp, k_num_params>              m_ramp;
+            std::array<basic_params<Sample>, k_presets> m_presets;
+            int                                         m_ramps_active{0};
+            bool                                        m_derived_dirty{true};
 
             // derived
-            double m_g{0.05};
-            double m_k{0.0};
-            double m_gh{1.0};
-            double m_in_gain{1.0};
-            double m_out_gain{1.0};
+            Sample m_g{Sample(0.05)};
+            Sample m_k{Sample(0.0)};
+            Sample m_gh{Sample(1.0)};
+            Sample m_in_gain{Sample(1.0)};
+            Sample m_out_gain{Sample(1.0)};
 
             // state
-            double                m_s1{0.0}, m_s2{0.0}, m_s3{0.0}, m_s4{0.0};
-            double                m_sh{0.0};                     // feedback HPF one-pole lowpass state
-            std::array<double, 4> m_gamma{{1.0, 1.0, 1.0, 1.0}}; // carried secant gains
+            Sample                m_s1{Sample(0.0)}, m_s2{Sample(0.0)}, m_s3{Sample(0.0)}, m_s4{Sample(0.0)};
+            Sample                m_sh{Sample(0.0)}; // feedback HPF one-pole lowpass state
+            std::array<Sample, 4> m_gamma{{Sample(1.0), Sample(1.0), Sample(1.0), Sample(1.0)}}; // carried secant gains
             butterworth4          m_up, m_down;
         };
+
+        using params   = basic_params<double>;
+        using params32 = basic_params<float>;
+
+        /// The double profile — the golden model.
+        using diode_filter = basic_diode_filter<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using diode_filter32 = basic_diode_filter<float>;
 
     } // namespace diode
 } // namespace tap::tools

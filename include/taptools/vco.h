@@ -54,6 +54,9 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
+
+#include "numeric.h"
 
 namespace tap::tools {
     namespace vco {
@@ -86,54 +89,66 @@ namespace tap::tools {
         };
 
         /// One full parameter snapshot — a preset slot, and the unit the morph engine interpolates.
-        struct params {
-            std::array<double, k_num_params> v{};
+        template <typename Sample>
+        struct basic_params {
+            std::array<Sample, k_num_params> v{};
 
-            static params defaults() {
-                params p;
-                p.v[p_gain]      = 0.0;
-                p.v[p_frequency] = 220.0;
-                p.v[p_shape]     = static_cast<double>(wave_saw);
-                p.v[p_pw]        = 50.0;
-                p.v[p_drift]     = 0.0;
-                p.v[p_detune]    = 0.0;
-                p.v[p_imperfect] = 0.0;
-                p.v[p_jitter]    = 0.0;
-                p.v[p_track]     = 0.0;
+            static basic_params defaults() {
+                basic_params p;
+                p.v[p_gain]      = Sample(0.0);
+                p.v[p_frequency] = Sample(220.0);
+                p.v[p_shape]     = static_cast<Sample>(wave_saw);
+                p.v[p_pw]        = Sample(50.0);
+                p.v[p_drift]     = Sample(0.0);
+                p.v[p_detune]    = Sample(0.0);
+                p.v[p_imperfect] = Sample(0.0);
+                p.v[p_jitter]    = Sample(0.0);
+                p.v[p_track]     = Sample(0.0);
                 return p;
             }
         };
 
         /// Clamp a value to the legal range of a parameter. Gain (dB) is unclamped.
-        inline double clamp_param(int index, double value) {
+        /// `Sample` is non-deduced and defaults to double so existing call sites — including
+        /// the Max wrapper's, which passes a Min `atom` — keep compiling unchanged.
+        template <typename Sample = double>
+        Sample clamp_param(int index, std::type_identity_t<Sample> value) {
             switch (index) {
             case p_gain:
                 return value;
             case p_frequency:
                 return std::clamp(value, k_freq_min, k_freq_max);
             case p_shape:
-                return std::clamp(value, 0.0, 3.0);
+                return std::clamp(value, Sample(0.0), Sample(3.0));
             case p_pw:
-                return std::clamp(value, 1.0, 99.0);
+                return std::clamp(value, Sample(1.0), Sample(99.0));
             case p_drift:
-                return std::clamp(value, 0.0, 100.0);
+                return std::clamp(value, Sample(0.0), Sample(100.0));
             case p_detune:
-                return std::clamp(value, -1200.0, 1200.0);
+                return std::clamp(value, -Sample(1200.0), Sample(1200.0));
             case p_imperfect:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0.0), Sample(1.0));
             case p_jitter:
-                return std::clamp(value, 0.0, 20.0);
+                return std::clamp(value, Sample(0.0), Sample(20.0));
             case p_track:
-                return std::clamp(value, -10.0, 10.0);
+                return std::clamp(value, -Sample(10.0), Sample(10.0));
             default:
                 return value;
             }
         }
 
-        class vco_osc {
+        template <typename Sample>
+
+        class basic_vco_osc {
+            static_assert(is_sample_profile<Sample>,
+
+                          "basic_vco_osc supports the two Tap numeric profiles: float and double");
+
           public:
-            vco_osc() {
-                const params d = params::defaults();
+            using sample_type = Sample;
+
+            basic_vco_osc() {
+                const basic_params<Sample> d = basic_params<Sample>::defaults();
                 for (int i = 0; i < k_num_params; ++i) {
                     m_ramp[i].current = m_ramp[i].target = d.v[i];
                 }
@@ -143,8 +158,8 @@ namespace tap::tools {
 
             // -- lifecycle -------------------------------------------------------------------------------
 
-            void prepare(double sr) {
-                m_sr = (sr > 0.0) ? sr : 48000.0;
+            void prepare(Sample sr) {
+                m_sr = (sr > Sample(0.0)) ? sr : Sample(48000.0);
                 clear();
                 snap();
                 m_prepared = true;
@@ -152,24 +167,24 @@ namespace tap::tools {
 
             /// Reset phase, triangle integrator, sync detector, and noise state; parameters untouched.
             void clear() {
-                m_phase       = 0.0;
-                m_tri_state   = 0.0;
-                m_sync_prev   = 0.0;
-                m_pending     = 0.0;
+                m_phase       = Sample(0.0);
+                m_tri_state   = Sample(0.0);
+                m_sync_prev   = Sample(0.0);
+                m_pending     = Sample(0.0);
                 m_rng         = m_seed;
-                m_drift_sh    = 0.0;
-                m_drift_lp    = 0.0;
+                m_drift_sh    = Sample(0.0);
+                m_drift_lp    = Sample(0.0);
                 m_drift_count = 0;
-                m_jit_sh      = 0.0;
-                m_jit_lp      = 0.0;
+                m_jit_sh      = Sample(0.0);
+                m_jit_lp      = Sample(0.0);
                 m_jit_count   = 0;
-                m_round_lp    = 0.0;
+                m_round_lp    = Sample(0.0);
             }
 
             void snap() {
                 for (auto& r : m_ramp) {
                     r.current   = r.target;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                 }
                 m_ramps_active = 0;
@@ -187,30 +202,30 @@ namespace tap::tools {
             }
             uint32_t seed() const { return m_seed; }
 
-            void   set_smooth_ms(double ms) { m_smooth_ms = std::max(0.0, ms); }
-            double smooth_ms() const { return m_smooth_ms; }
+            void   set_smooth_ms(Sample ms) { m_smooth_ms = std::max(Sample(0.0), ms); }
+            Sample smooth_ms() const { return m_smooth_ms; }
 
             // -- parameter targets (click-free; safe while audio runs) --------------------------------------
 
-            void set_param(int index, double value) {
+            void set_param(int index, Sample value) {
                 if (index < 0 || index >= k_num_params) {
                     return;
                 }
-                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * 0.001 * m_sr));
+                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * Sample(0.001) * m_sr));
             }
 
-            void set_gain(double db) { set_param(p_gain, db); }
-            void set_frequency(double hz) { set_param(p_frequency, hz); }
-            void set_shape(double s) { set_param(p_shape, s); }
-            void set_pw(double pct) { set_param(p_pw, pct); }
-            void set_drift(double cents) { set_param(p_drift, cents); }
-            void set_detune(double cents) { set_param(p_detune, cents); }
-            void set_imperfect(double x) { set_param(p_imperfect, x); }
-            void set_jitter(double cents) { set_param(p_jitter, cents); }
-            void set_track(double cents_per_oct) { set_param(p_track, cents_per_oct); }
+            void set_gain(Sample db) { set_param(p_gain, db); }
+            void set_frequency(Sample hz) { set_param(p_frequency, hz); }
+            void set_shape(Sample s) { set_param(p_shape, s); }
+            void set_pw(Sample pct) { set_param(p_pw, pct); }
+            void set_drift(Sample cents) { set_param(p_drift, cents); }
+            void set_detune(Sample cents) { set_param(p_detune, cents); }
+            void set_imperfect(Sample x) { set_param(p_imperfect, x); }
+            void set_jitter(Sample cents) { set_param(p_jitter, cents); }
+            void set_track(Sample cents_per_oct) { set_param(p_track, cents_per_oct); }
 
             /// Snap the shape to one of the classic waveforms.
-            void set_waveform(int w) { set_shape(static_cast<double>(std::clamp(w, 0, k_num_waveforms - 1))); }
+            void set_waveform(int w) { set_shape(static_cast<Sample>(std::clamp(w, 0, k_num_waveforms - 1))); }
 
             // -- presets / morph ----------------------------------------------------------------------------
 
@@ -222,18 +237,18 @@ namespace tap::tools {
                 return true;
             }
 
-            bool recall_preset(int slot, double seconds) {
+            bool recall_preset(int slot, Sample seconds) {
                 if (!valid_slot(slot)) {
                     return false;
                 }
-                const long n = static_cast<long>(std::max(0.0, seconds) * m_sr);
+                const long n = static_cast<long>(std::max(Sample(0.0), seconds) * m_sr);
                 for (int i = 0; i < k_num_params; ++i) {
                     ramp_to(i, clamp_param(i, m_presets[slot].v[i]), n);
                 }
                 return true;
             }
 
-            bool set_preset(int slot, const params& p) {
+            bool set_preset(int slot, const basic_params<Sample>& p) {
                 if (!valid_slot(slot)) {
                     return false;
                 }
@@ -241,43 +256,43 @@ namespace tap::tools {
                 return true;
             }
 
-            const params& preset(int slot) const {
+            const basic_params<Sample>& preset(int slot) const {
                 return m_presets[static_cast<size_t>(std::clamp(slot, 0, k_presets - 1))];
             }
 
             bool morphing() const { return m_ramps_active > 0; }
 
-            params snap_targets() const {
-                params p;
+            basic_params<Sample> snap_targets() const {
+                basic_params<Sample> p;
                 for (int i = 0; i < k_num_params; ++i) {
                     p.v[i] = m_ramp[i].target;
                 }
                 return p;
             }
 
-            params snap_current() const {
-                params p;
+            basic_params<Sample> snap_current() const {
+                basic_params<Sample> p;
                 for (int i = 0; i < k_num_params; ++i) {
                     p.v[i] = m_ramp[i].current;
                 }
                 return p;
             }
 
-            double samplerate() const { return m_sr; }
+            Sample samplerate() const { return m_sr; }
 
             // -- audio --------------------------------------------------------------------------------------
 
             /// One sample: fm_hz adds linearly (through-zero); sync resets on a rising zero crossing.
-            double process(double fm_hz = 0.0, double sync = 0.0) {
+            Sample process(Sample fm_hz = Sample(0.0), Sample sync = Sample(0.0)) {
                 return step(m_ramp[p_frequency].current, fm_hz, sync);
             }
 
             /// One sample with a signal-rate frequency override (Hz).
-            double process_at(double freq_hz, double fm_hz = 0.0, double sync = 0.0) {
+            Sample process_at(Sample freq_hz, Sample fm_hz = Sample(0.0), Sample sync = Sample(0.0)) {
                 return step(clamp_param(p_frequency, freq_hz), fm_hz, sync);
             }
 
-            void process(double* out, size_t n) {
+            void process(Sample* out, size_t n) {
                 for (size_t i = 0; i < n; ++i) {
                     out[i] = process();
                 }
@@ -285,26 +300,26 @@ namespace tap::tools {
 
           private:
             struct ramp {
-                double current{0.0};
-                double target{0.0};
-                double inc{0.0};
+                Sample current{Sample(0.0)};
+                Sample target{Sample(0.0)};
+                Sample inc{Sample(0.0)};
                 long   remaining{0};
             };
 
             static bool valid_slot(int s) { return s >= 0 && s < k_presets; }
 
-            void ramp_to(int index, double tgt, long nsamples) {
+            void ramp_to(int index, Sample tgt, long nsamples) {
                 ramp&      r   = m_ramp[index];
                 const bool was = r.remaining > 0;
                 if (nsamples < 1 || tgt == r.current) {
                     r.current   = tgt;
                     r.target    = tgt;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                 }
                 else {
                     r.target    = tgt;
-                    r.inc       = (tgt - r.current) / static_cast<double>(nsamples);
+                    r.inc       = (tgt - r.current) / static_cast<Sample>(nsamples);
                     r.remaining = nsamples;
                 }
                 m_ramps_active += static_cast<int>(r.remaining > 0) - static_cast<int>(was);
@@ -325,36 +340,36 @@ namespace tap::tools {
                 }
             }
 
-            double uniform() { // deterministic white noise in [-1, 1]
+            Sample uniform() { // deterministic white noise in [-1, 1]
                 m_rng = m_rng * 1664525u + 1013904223u;
-                return (m_rng / 2147483648.0) - 1.0;
+                return (m_rng / Sample(2147483648.0)) - Sample(1.0);
             }
 
             // Slow random pitch walk in cents: ~2 Hz sample-and-hold through a ~0.5 Hz one-pole.
-            double tick_drift(double depth_cents) {
-                if (depth_cents <= 0.0) {
-                    return 0.0;
+            Sample tick_drift(Sample depth_cents) {
+                if (depth_cents <= Sample(0.0)) {
+                    return Sample(0.0);
                 }
                 if (--m_drift_count <= 0) {
-                    m_drift_count = static_cast<int>(m_sr / 2.0);
+                    m_drift_count = static_cast<int>(m_sr / Sample(2.0));
                     m_drift_sh    = uniform();
                 }
-                const double a = 1.0 - std::exp(-2.0 * k_pi * 0.5 / m_sr);
+                const Sample a = Sample(1.0) - std::exp(-Sample(2.0) * Sample(k_pi_for<Sample>) * Sample(0.5) / m_sr);
                 m_drift_lp += a * (m_drift_sh - m_drift_lp);
                 return depth_cents * m_drift_lp;
             }
 
             // Fast pitch noise in cents: ~80 Hz sample-and-hold through a ~40 Hz one-pole — the
             // short-time instability of a real VCO core (drift's fast companion).
-            double tick_jitter(double depth_cents) {
-                if (depth_cents <= 0.0) {
-                    return 0.0;
+            Sample tick_jitter(Sample depth_cents) {
+                if (depth_cents <= Sample(0.0)) {
+                    return Sample(0.0);
                 }
                 if (--m_jit_count <= 0) {
-                    m_jit_count = std::max(1, static_cast<int>(m_sr / 80.0));
+                    m_jit_count = std::max(1, static_cast<int>(m_sr / Sample(80.0)));
                     m_jit_sh    = uniform();
                 }
-                const double a = 1.0 - std::exp(-2.0 * k_pi * 40.0 / m_sr);
+                const Sample a = Sample(1.0) - std::exp(-Sample(2.0) * Sample(k_pi_for<Sample>) * Sample(40.0) / m_sr);
                 m_jit_lp += a * (m_jit_sh - m_jit_lp);
                 return depth_cents * m_jit_lp;
             }
@@ -366,39 +381,39 @@ namespace tap::tools {
                 uint32_t r    = m_seed * 2654435761u + 12345u;
                 auto     next = [&r]() {
                     r = r * 1664525u + 1013904223u;
-                    return (r / 2147483648.0) - 1.0;
+                    return (r / Sample(2147483648.0)) - Sample(1.0);
                 };
-                m_tol_pw    = next() * 1.5;       // pulse-width offset, % at imperfect 1
-                m_tol_tri   = next() * 6.0;       // triangle skew, % at imperfect 1
-                m_tol_cents = next() * 2.0;       // static pitch offset, cents at imperfect 1
-                m_tol_curve = 0.8 + 0.2 * next(); // per-unit scaling of the saw curvature
+                m_tol_pw    = next() * Sample(1.5);               // pulse-width offset, % at imperfect 1
+                m_tol_tri   = next() * Sample(6.0);               // triangle skew, % at imperfect 1
+                m_tol_cents = next() * Sample(2.0);               // static pitch offset, cents at imperfect 1
+                m_tol_curve = Sample(0.8) + Sample(0.2) * next(); // per-unit scaling of the saw curvature
             }
 
             // Canonical 2-point polyBLEP residual around a phase wrap.
-            static double poly_blep(double t, double dt) {
+            static Sample poly_blep(Sample t, Sample dt) {
                 if (t < dt) {
                     t /= dt;
-                    return t + t - t * t - 1.0;
+                    return t + t - t * t - Sample(1.0);
                 }
-                if (t > 1.0 - dt) {
-                    t = (t - 1.0) / dt;
-                    return t * t + t + t + 1.0;
+                if (t > Sample(1.0) - dt) {
+                    t = (t - Sample(1.0)) / dt;
+                    return t * t + t + t + Sample(1.0);
                 }
-                return 0.0;
+                return Sample(0.0);
             }
 
-            static double wrap01(double p) { return p - std::floor(p); }
+            static Sample wrap01(Sample p) { return p - std::floor(p); }
 
             // Ramp curvature: p + bend*p*(1-p) keeps the endpoints (and thus the BLEP step size)
             // fixed while bowing the interior — the exponential-ish discharge of a real saw core.
-            static double bent(double p, double bend) { return p + bend * p * (1.0 - p); }
+            static Sample bent(Sample p, Sample bend) { return p + bend * p * (Sample(1.0) - p); }
 
-            double saw_at(double p, double dt, double bend) const {
-                return 2.0 * bent(p, bend) - 1.0 - poly_blep(p, dt);
+            Sample saw_at(Sample p, Sample dt, Sample bend) const {
+                return Sample(2.0) * bent(p, bend) - Sample(1.0) - poly_blep(p, dt);
             }
 
-            double pulse_at(double p, double dt, double pw) const {
-                double y = (p < pw) ? 1.0 : -1.0;
+            Sample pulse_at(Sample p, Sample dt, Sample pw) const {
+                Sample y = (p < pw) ? Sample(1.0) : -Sample(1.0);
                 y += poly_blep(p, dt);
                 y -= poly_blep(wrap01(p - pw), dt);
                 return y;
@@ -406,72 +421,75 @@ namespace tap::tools {
 
             // Triangle: leaky integration of the BLEP square. Only ticked when the morph needs it.
             // tri_pw skews the square's duty away from 0.5 (imperfect: asymmetry -> even harmonics).
-            double tri_tick(double p, double adt, double tri_pw) {
-                const double sq = pulse_at(p, adt, tri_pw);
-                m_tri_state     = 0.999 * m_tri_state + 4.0 * adt * sq;
+            Sample tri_tick(Sample p, Sample adt, Sample tri_pw) {
+                const Sample sq = pulse_at(p, adt, tri_pw);
+                m_tri_state     = Sample(0.999) * m_tri_state + Sample(4.0) * adt * sq;
                 return m_tri_state;
             }
 
             // The morphed waveform at the current phase. adt = |dt| for the BLEP windows.
-            double waveform_out(double p, double adt, double shape, double pw, double bend, double tri_pw) {
-                if (shape <= 1.0) { // sine -> triangle
-                    const double a = shape;
-                    const double s = std::sin(2.0 * k_pi * bent(p, 0.5 * bend)); // mild shaper THD
-                    if (a <= 0.0) {
+            Sample waveform_out(Sample p, Sample adt, Sample shape, Sample pw, Sample bend, Sample tri_pw) {
+                if (shape <= Sample(1.0)) { // sine -> triangle
+                    const Sample a = shape;
+                    const Sample s = std::sin(Sample(2.0) * Sample(k_pi_for<Sample>)
+                                              * bent(p, Sample(0.5) * bend)); // mild shaper THD
+                    if (a <= Sample(0.0)) {
                         return s;
                     }
-                    return (1.0 - a) * s + a * tri_tick(p, adt, tri_pw);
+                    return (Sample(1.0) - a) * s + a * tri_tick(p, adt, tri_pw);
                 }
-                if (shape <= 2.0) { // triangle -> saw
-                    const double a = shape - 1.0;
-                    const double t = tri_tick(p, adt, tri_pw);
-                    if (a <= 0.0) {
+                if (shape <= Sample(2.0)) { // triangle -> saw
+                    const Sample a = shape - Sample(1.0);
+                    const Sample t = tri_tick(p, adt, tri_pw);
+                    if (a <= Sample(0.0)) {
                         return t;
                     }
-                    return (1.0 - a) * t + a * saw_at(p, adt, bend);
+                    return (Sample(1.0) - a) * t + a * saw_at(p, adt, bend);
                 }
                 // saw -> pulse
-                const double a = shape - 2.0;
-                const double s = saw_at(p, adt, bend);
-                if (a <= 0.0) {
+                const Sample a = shape - Sample(2.0);
+                const Sample s = saw_at(p, adt, bend);
+                if (a <= Sample(0.0)) {
                     return s;
                 }
-                return (1.0 - a) * s + a * pulse_at(p, adt, pw);
+                return (Sample(1.0) - a) * s + a * pulse_at(p, adt, pw);
             }
 
-            double step(double base_hz, double fm_hz, double sync) {
+            Sample step(Sample base_hz, Sample fm_hz, Sample sync) {
                 tick_ramps();
 
-                const double imp = m_ramp[p_imperfect].current;
+                const Sample imp = m_ramp[p_imperfect].current;
 
-                double cents = m_ramp[p_detune].current + tick_drift(m_ramp[p_drift].current)
+                Sample cents = m_ramp[p_detune].current + tick_drift(m_ramp[p_drift].current)
                                + tick_jitter(m_ramp[p_jitter].current) + imp * m_tol_cents;
-                const double track = m_ramp[p_track].current;
-                if (track != 0.0 && base_hz > 0.0) {
-                    cents += track * std::log2(base_hz / 440.0); // V/oct error from the trim point
+                const Sample track = m_ramp[p_track].current;
+                if (track != Sample(0.0) && base_hz > Sample(0.0)) {
+                    cents += track * std::log2(base_hz / Sample(440.0)); // V/oct error from the trim point
                 }
-                const double f_eff = base_hz * std::exp2(cents / 1200.0) + fm_hz; // through-zero
-                double       dt    = f_eff / m_sr;
-                dt                 = std::clamp(dt, -0.49, 0.49);
-                const double adt   = std::max(std::abs(dt), 1.0e-8);
+                const Sample f_eff = base_hz * std::exp2(cents / Sample(1200.0)) + fm_hz; // through-zero
+                Sample       dt    = f_eff / m_sr;
+                dt                 = std::clamp(dt, -Sample(0.49), Sample(0.49));
+                const Sample adt   = std::max(std::abs(dt), Sample(1.0e-8));
 
-                const double shape  = m_ramp[p_shape].current;
-                const double bend   = 0.35 * imp * m_tol_curve;
-                const double tri_pw = std::clamp(0.5 + imp * m_tol_tri * 0.01, 0.05, 0.95);
-                const double pw     = std::clamp(m_ramp[p_pw].current * 0.01 + imp * m_tol_pw * 0.01, 0.01, 0.99);
+                const Sample shape = m_ramp[p_shape].current;
+                const Sample bend  = Sample(0.35) * imp * m_tol_curve;
+                const Sample tri_pw =
+                    std::clamp(Sample(0.5) + imp * m_tol_tri * Sample(0.01), Sample(0.05), Sample(0.95));
+                const Sample pw = std::clamp(m_ramp[p_pw].current * Sample(0.01) + imp * m_tol_pw * Sample(0.01),
+                                             Sample(0.01), Sample(0.99));
 
                 // hard sync: rising zero crossing resets the phase at the fractional crossing point
-                double correction = m_pending;
-                m_pending         = 0.0;
-                if (m_sync_prev <= 0.0 && sync > 0.0) {
-                    const double frac  = m_sync_prev / (m_sync_prev - sync); // 0..1 within this sample
-                    const double p_old = wrap01(m_phase + dt * frac);
-                    const double p_new = (1.0 - frac) * dt;
-                    const double d =
+                Sample correction = m_pending;
+                m_pending         = Sample(0.0);
+                if (m_sync_prev <= Sample(0.0) && sync > Sample(0.0)) {
+                    const Sample frac  = m_sync_prev / (m_sync_prev - sync); // 0..1 within this sample
+                    const Sample p_old = wrap01(m_phase + dt * frac);
+                    const Sample p_new = (Sample(1.0) - frac) * dt;
+                    const Sample d =
                         waveform_out_peek(p_old, shape, pw, bend) - waveform_out_peek(wrap01(p_new), shape, pw, bend);
                     // one-sided first-order correction of the reset step (minBLEP is the upgrade path)
-                    const double x = 1.0 - frac;
-                    correction += d * 0.5 * x * x;
+                    const Sample x = Sample(1.0) - frac;
+                    correction += d * Sample(0.5) * x * x;
                     m_phase = wrap01(p_new);
                 }
                 else {
@@ -479,14 +497,14 @@ namespace tap::tools {
                 }
                 m_sync_prev = sync;
 
-                double y = waveform_out(m_phase, adt, shape, pw, bend, tri_pw) + correction;
+                Sample y = waveform_out(m_phase, adt, shape, pw, bend, tri_pw) + correction;
 
                 // imperfect: rounded reset corner — a gentle one-pole closing from ~22 kHz toward
                 // ~8 kHz as the imperfection rises. Exactly bypassed at 0.
-                if (imp > 0.0) {
+                if (imp > Sample(0.0)) {
                     if (imp != m_round_imp) {
-                        const double fc = std::min(22000.0 - 14000.0 * imp, 0.45 * m_sr);
-                        m_round_a       = 1.0 - std::exp(-2.0 * k_pi * fc / m_sr);
+                        const Sample fc = std::min(Sample(22000.0) - Sample(14000.0) * imp, Sample(0.45) * m_sr);
+                        m_round_a       = Sample(1.0) - std::exp(-Sample(2.0) * Sample(k_pi_for<Sample>) * fc / m_sr);
                         m_round_imp     = imp;
                     }
                     m_round_lp += m_round_a * (y - m_round_lp);
@@ -496,62 +514,71 @@ namespace tap::tools {
                     m_round_lp = y; // keep the state primed so engaging imperfect is click-free
                 }
 
-                const double g = std::pow(10.0, m_ramp[p_gain].current * 0.05);
+                const Sample g = std::pow(Sample(10.0), m_ramp[p_gain].current * Sample(0.05));
                 return y * g;
             }
 
             // Waveform value without advancing the triangle integrator (for sync discontinuity sizing).
             // No adt parameter: unlike waveform_out(), peek adds no BLEP correction (it reads the
             // triangle integrator rather than ticking it), so it has no use for the window width.
-            double waveform_out_peek(double p, double shape, double pw, double bend) const {
-                if (shape <= 1.0) {
-                    const double a = shape;
-                    const double s = std::sin(2.0 * k_pi * bent(p, 0.5 * bend));
-                    return (1.0 - a) * s + a * m_tri_state;
+            Sample waveform_out_peek(Sample p, Sample shape, Sample pw, Sample bend) const {
+                if (shape <= Sample(1.0)) {
+                    const Sample a = shape;
+                    const Sample s = std::sin(Sample(2.0) * Sample(k_pi_for<Sample>) * bent(p, Sample(0.5) * bend));
+                    return (Sample(1.0) - a) * s + a * m_tri_state;
                 }
-                if (shape <= 2.0) {
-                    const double a = shape - 1.0;
-                    return (1.0 - a) * m_tri_state + a * (2.0 * bent(p, bend) - 1.0);
+                if (shape <= Sample(2.0)) {
+                    const Sample a = shape - Sample(1.0);
+                    return (Sample(1.0) - a) * m_tri_state + a * (Sample(2.0) * bent(p, bend) - Sample(1.0));
                 }
-                const double a = shape - 2.0;
-                const double s = 2.0 * bent(p, bend) - 1.0;
-                const double q = (p < pw) ? 1.0 : -1.0;
-                return (1.0 - a) * s + a * q;
+                const Sample a = shape - Sample(2.0);
+                const Sample s = Sample(2.0) * bent(p, bend) - Sample(1.0);
+                const Sample q = (p < pw) ? Sample(1.0) : -Sample(1.0);
+                return (Sample(1.0) - a) * s + a * q;
             }
 
             // configuration
-            double   m_sr{48000.0};
-            double   m_smooth_ms{k_default_smooth_ms};
+            Sample   m_sr{Sample(48000.0)};
+            Sample   m_smooth_ms{Sample(k_default_smooth_ms)};
             uint32_t m_seed{1u};
             bool     m_prepared{false};
 
             // parameters
-            std::array<ramp, k_num_params> m_ramp;
-            std::array<params, k_presets>  m_presets;
-            int                            m_ramps_active{0};
+            std::array<ramp, k_num_params>              m_ramp;
+            std::array<basic_params<Sample>, k_presets> m_presets;
+            int                                         m_ramps_active{0};
 
             // state
-            double   m_phase{0.0};
-            double   m_tri_state{0.0};
-            double   m_sync_prev{0.0};
-            double   m_pending{0.0};
+            Sample   m_phase{Sample(0.0)};
+            Sample   m_tri_state{Sample(0.0)};
+            Sample   m_sync_prev{Sample(0.0)};
+            Sample   m_pending{Sample(0.0)};
             uint32_t m_rng{1u};
-            double   m_drift_sh{0.0};
-            double   m_drift_lp{0.0};
+            Sample   m_drift_sh{Sample(0.0)};
+            Sample   m_drift_lp{Sample(0.0)};
             int      m_drift_count{0};
-            double   m_jit_sh{0.0};
-            double   m_jit_lp{0.0};
+            Sample   m_jit_sh{Sample(0.0)};
+            Sample   m_jit_lp{Sample(0.0)};
             int      m_jit_count{0};
-            double   m_round_lp{0.0};
-            double   m_round_a{1.0};
-            double   m_round_imp{-1.0};
+            Sample   m_round_lp{Sample(0.0)};
+            Sample   m_round_a{Sample(1.0)};
+            Sample   m_round_imp{-Sample(1.0)};
 
             // per-unit component tolerances (deterministic from the seed; scaled by `imperfect`)
-            double m_tol_pw{0.0};
-            double m_tol_tri{0.0};
-            double m_tol_cents{0.0};
-            double m_tol_curve{1.0};
+            Sample m_tol_pw{Sample(0.0)};
+            Sample m_tol_tri{Sample(0.0)};
+            Sample m_tol_cents{Sample(0.0)};
+            Sample m_tol_curve{Sample(1.0)};
         };
+
+        using params   = basic_params<double>;
+        using params32 = basic_params<float>;
+
+        /// The double profile — the golden model.
+        using vco_osc = basic_vco_osc<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using vco_osc32 = basic_vco_osc<float>;
 
     } // namespace vco
 } // namespace tap::tools

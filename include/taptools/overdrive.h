@@ -60,7 +60,10 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <type_traits>
 #include <vector>
+
+#include "numeric.h"
 
 namespace tap::tools {
     namespace od {
@@ -110,14 +113,17 @@ namespace tap::tools {
         };
 
         /// Clamp a value to the legal range of a parameter.
-        inline double clamp_param(int index, double value) {
+        /// `Sample` is non-deduced and defaults to double so existing call sites — including
+        /// the Max wrapper's, which passes a Min `atom` — keep compiling unchanged.
+        template <typename Sample = double>
+        Sample clamp_param(int index, std::type_identity_t<Sample> value) {
             switch (index) {
             case p_drive:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0.0), Sample(1.0));
             case p_body:
-                return std::clamp(value, -1.0, 1.0);
+                return std::clamp(value, -Sample(1.0), Sample(1.0));
             case p_asymmetry:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0.0), Sample(1.0));
             case p_preamp:
                 return std::clamp(value, -k_gain_range_db, k_gain_range_db);
             case p_output:
@@ -127,10 +133,19 @@ namespace tap::tools {
             }
         }
 
-        class overdrive {
+        template <typename Sample>
+
+        class basic_overdrive {
+            static_assert(is_sample_profile<Sample>,
+
+                          "basic_overdrive supports the two Tap numeric profiles: float and double");
+
           public:
-            overdrive() {
-                static constexpr double k_defaults[k_num_params] = {0.35, 0.0, 0.15, 0.0, 0.0};
+            using sample_type = Sample;
+
+            basic_overdrive() {
+                static constexpr Sample k_defaults[k_num_params] = {Sample(0.35), Sample(0.0), Sample(0.15),
+                                                                    Sample(0.0), Sample(0.0)};
                 for (int i = 0; i < k_num_params; ++i) {
                     m_ramp[i].current = m_ramp[i].target = k_defaults[i];
                 }
@@ -141,8 +156,8 @@ namespace tap::tools {
 
             /// Set the sample rate and channel count, (re)configure oversampling, clear state, snap ramps.
             /// Allocates (the per-channel state vector) — call from the main thread, not the perform loop.
-            void prepare(double sr, int channels = 1) {
-                m_sr       = (sr > 0.0) ? sr : 48000.0;
+            void prepare(Sample sr, int channels = 1) {
+                m_sr       = (sr > Sample(0.0)) ? sr : Sample(48000.0);
                 m_channels = std::max(1, channels);
                 m_state.assign(static_cast<size_t>(m_channels), channel_state{});
                 configure_resampler();
@@ -160,7 +175,7 @@ namespace tap::tools {
             void snap() {
                 for (auto& r : m_ramp) {
                     r.current   = r.target;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                 }
                 m_ramps_active = 0;
@@ -168,7 +183,7 @@ namespace tap::tools {
             }
 
             int    channels() const { return m_channels; }
-            double samplerate() const { return m_sr; }
+            Sample samplerate() const { return m_sr; }
 
             // -- structural settings (not ramped) --------------------------------------------------------
 
@@ -188,25 +203,27 @@ namespace tap::tools {
             }
             int oversample() const { return m_os; }
 
-            void   set_smooth_ms(double ms) { m_smooth_ms = std::max(0.0, ms); }
-            double smooth_ms() const { return m_smooth_ms; }
+            void   set_smooth_ms(Sample ms) { m_smooth_ms = std::max(Sample(0.0), ms); }
+            Sample smooth_ms() const { return m_smooth_ms; }
 
             // -- parameter targets (click-free; safe while audio runs) ------------------------------------
 
-            void set_param(int index, double value) {
+            void set_param(int index, Sample value) {
                 if (index < 0 || index >= k_num_params) {
                     return;
                 }
-                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * 0.001 * m_sr));
+                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * Sample(0.001) * m_sr));
             }
 
-            void set_drive(double v) { set_param(p_drive, v); }
-            void set_body(double v) { set_param(p_body, v); }
-            void set_asymmetry(double v) { set_param(p_asymmetry, v); }
-            void set_preamp(double db) { set_param(p_preamp, db); }
-            void set_output(double db) { set_param(p_output, db); }
+            void set_drive(Sample v) { set_param(p_drive, v); }
+            void set_body(Sample v) { set_param(p_body, v); }
+            void set_asymmetry(Sample v) { set_param(p_asymmetry, v); }
+            void set_preamp(Sample db) { set_param(p_preamp, db); }
+            void set_output(Sample db) { set_param(p_output, db); }
 
-            double param(int index) const { return (index >= 0 && index < k_num_params) ? m_ramp[index].target : 0.0; }
+            Sample param(int index) const {
+                return (index >= 0 && index < k_num_params) ? m_ramp[index].target : Sample(0.0);
+            }
 
             // -- audio -----------------------------------------------------------------------------------
             //
@@ -224,49 +241,49 @@ namespace tap::tools {
 
             /// Process one sample of one channel using the coefficients computed by the last tick().
             /// Precondition: 0 <= channel < channels().
-            double process(int channel, double x) {
+            Sample process(int channel, Sample x) {
                 channel_state& c = m_state[static_cast<size_t>(channel)];
 
                 // input gain, then the body pre-voicing highpass (what stays out of this stays clean)
                 x *= m_pre_gain;
                 c.hp_lp += m_a_hp * (x - c.hp_lp);
-                const double xn = x - c.hp_lp;
+                const Sample xn = x - c.hp_lp;
 
                 // the feedback clipper, inside the oversampled region
-                double y;
+                Sample y;
                 if (m_os == 1) {
                     y = core(c, xn);
                 }
                 else {
                     // zero-stuff + anti-image filter up, core at the high rate, anti-alias + decimate down
-                    y = 0.0;
+                    y = Sample(0.0);
                     for (int j = 0; j < m_os; ++j) {
-                        const double up = c.up.tick(j == 0 ? xn * m_os : 0.0);
+                        const Sample up = c.up.tick(j == 0 ? xn * m_os : Sample(0.0));
                         y               = c.down.tick(core(c, up));
                     }
                 }
 
                 // DC block (asymmetry generates DC), then the post voicing EQ and makeup gain
-                const double d = y - c.dc_x1 + k_dc_r * c.dc_y1;
+                const Sample d = y - c.dc_x1 + Sample(k_dc_r) * c.dc_y1;
                 c.dc_x1        = y;
                 c.dc_y1        = anti_denormal(d);
                 return c.shelf.tick(c.mid.tick(d)) * m_post_gain;
             }
 
             /// Mono conveniences.
-            double process(double x) {
+            Sample process(Sample x) {
                 tick();
                 return process(0, x);
             }
 
-            void process(const double* in, double* out, size_t n) {
+            void process(const Sample* in, Sample* out, size_t n) {
                 for (size_t i = 0; i < n; ++i) {
                     out[i] = process(in[i]);
                 }
             }
 
             /// Multichannel block processing: nch channel pointers in and out.
-            void process(const double* const* in, double* const* out, int nch, size_t n) {
+            void process(const Sample* const* in, Sample* const* out, int nch, size_t n) {
                 const int chans = std::min(nch, m_channels);
                 for (size_t i = 0; i < n; ++i) {
                     tick();
@@ -278,13 +295,13 @@ namespace tap::tools {
 
             /// The static transfer curve of the shaper alone (for tests/plots): smooth, monotonic,
             /// asymptotic to +-1.
-            static double shape(double u) { return u / std::sqrt(1.0 + u * u); }
+            static Sample shape(Sample u) { return u / std::sqrt(Sample(1.0) + u * u); }
 
           private:
             struct ramp {
-                double current{0.0};
-                double target{0.0};
-                double inc{0.0};
+                Sample current{Sample(0.0)};
+                Sample target{Sample(0.0)};
+                Sample inc{Sample(0.0)};
                 long   remaining{0};
             };
 
@@ -292,63 +309,63 @@ namespace tap::tools {
             // anti-image/anti-alias filters for the oversampling chain (tap.ladder~ / tap.svf~
             // pattern); peaking and high-shelf voice the body control.
             struct biquad {
-                double b0{1.0}, b1{0.0}, b2{0.0}, a1{0.0}, a2{0.0};
-                double z1{0.0}, z2{0.0};
+                Sample b0{Sample(1.0)}, b1{Sample(0.0)}, b2{Sample(0.0)}, a1{Sample(0.0)}, a2{Sample(0.0)};
+                Sample z1{Sample(0.0)}, z2{Sample(0.0)};
 
-                void design_lowpass(double fc_norm, double q) { // fc_norm = fc / fs
-                    const double w     = 2.0 * k_pi * fc_norm;
-                    const double alpha = std::sin(w) / (2.0 * q);
-                    const double cw    = std::cos(w);
-                    const double a0    = 1.0 + alpha;
-                    b0                 = ((1.0 - cw) * 0.5) / a0;
-                    b1                 = (1.0 - cw) / a0;
+                void design_lowpass(Sample fc_norm, Sample q) { // fc_norm = fc / fs
+                    const Sample w     = Sample(2.0) * Sample(k_pi_for<Sample>) * fc_norm;
+                    const Sample alpha = std::sin(w) / (Sample(2.0) * q);
+                    const Sample cw    = std::cos(w);
+                    const Sample a0    = Sample(1.0) + alpha;
+                    b0                 = ((Sample(1.0) - cw) * Sample(0.5)) / a0;
+                    b1                 = (Sample(1.0) - cw) / a0;
                     b2                 = b0;
-                    a1                 = (-2.0 * cw) / a0;
-                    a2                 = (1.0 - alpha) / a0;
+                    a1                 = (-Sample(2.0) * cw) / a0;
+                    a2                 = (Sample(1.0) - alpha) / a0;
                 }
-                void design_peaking(double fc_norm, double q, double gain_db) {
-                    const double A     = std::pow(10.0, gain_db / 40.0);
-                    const double w     = 2.0 * k_pi * fc_norm;
-                    const double alpha = std::sin(w) / (2.0 * q);
-                    const double cw    = std::cos(w);
-                    const double a0    = 1.0 + alpha / A;
-                    b0                 = (1.0 + alpha * A) / a0;
-                    b1                 = (-2.0 * cw) / a0;
-                    b2                 = (1.0 - alpha * A) / a0;
+                void design_peaking(Sample fc_norm, Sample q, Sample gain_db) {
+                    const Sample A     = std::pow(Sample(10.0), gain_db / Sample(40.0));
+                    const Sample w     = Sample(2.0) * Sample(k_pi_for<Sample>) * fc_norm;
+                    const Sample alpha = std::sin(w) / (Sample(2.0) * q);
+                    const Sample cw    = std::cos(w);
+                    const Sample a0    = Sample(1.0) + alpha / A;
+                    b0                 = (Sample(1.0) + alpha * A) / a0;
+                    b1                 = (-Sample(2.0) * cw) / a0;
+                    b2                 = (Sample(1.0) - alpha * A) / a0;
                     a1                 = b1;
-                    a2                 = (1.0 - alpha / A) / a0;
+                    a2                 = (Sample(1.0) - alpha / A) / a0;
                 }
-                void design_highshelf(double fc_norm, double gain_db) { // shelf slope S = 1
-                    const double A    = std::pow(10.0, gain_db / 40.0);
-                    const double w    = 2.0 * k_pi * fc_norm;
-                    const double cw   = std::cos(w);
-                    const double sa   = std::sin(w) * 0.5 * std::sqrt(2.0); // RBJ alpha at S = 1
-                    const double ap1  = A + 1.0;
-                    const double am1  = A - 1.0;
-                    const double sqA2 = 2.0 * std::sqrt(A) * sa;
-                    const double a0   = ap1 - am1 * cw + sqA2;
+                void design_highshelf(Sample fc_norm, Sample gain_db) { // shelf slope S = 1
+                    const Sample A    = std::pow(Sample(10.0), gain_db / Sample(40.0));
+                    const Sample w    = Sample(2.0) * Sample(k_pi_for<Sample>) * fc_norm;
+                    const Sample cw   = std::cos(w);
+                    const Sample sa   = std::sin(w) * Sample(0.5) * std::sqrt(Sample(2.0)); // RBJ alpha at S = 1
+                    const Sample ap1  = A + Sample(1.0);
+                    const Sample am1  = A - Sample(1.0);
+                    const Sample sqA2 = Sample(2.0) * std::sqrt(A) * sa;
+                    const Sample a0   = ap1 - am1 * cw + sqA2;
                     b0                = A * (ap1 + am1 * cw + sqA2) / a0;
-                    b1                = -2.0 * A * (am1 + ap1 * cw) / a0;
+                    b1                = -Sample(2.0) * A * (am1 + ap1 * cw) / a0;
                     b2                = A * (ap1 + am1 * cw - sqA2) / a0;
-                    a1                = 2.0 * (am1 - ap1 * cw) / a0;
+                    a1                = Sample(2.0) * (am1 - ap1 * cw) / a0;
                     a2                = (ap1 - am1 * cw - sqA2) / a0;
                 }
-                double tick(double x) {
-                    const double y = b0 * x + z1;
+                Sample tick(Sample x) {
+                    const Sample y = b0 * x + z1;
                     z1             = b1 * x - a1 * y + z2;
                     z2             = b2 * x - a2 * y;
                     return y;
                 }
-                void reset() { z1 = z2 = 0.0; }
+                void reset() { z1 = z2 = Sample(0.0); }
             };
 
             struct butterworth4 {
                 biquad s1, s2;
-                void   design(double fc_norm) {
-                    s1.design_lowpass(fc_norm, 0.54119610);
-                    s2.design_lowpass(fc_norm, 1.30656296);
+                void   design(Sample fc_norm) {
+                    s1.design_lowpass(fc_norm, Sample(0.54119610));
+                    s2.design_lowpass(fc_norm, Sample(1.30656296));
                 }
-                double tick(double x) { return s2.tick(s1.tick(x)); }
+                Sample tick(Sample x) { return s2.tick(s1.tick(x)); }
                 void   reset() {
                     s1.reset();
                     s2.reset();
@@ -356,13 +373,13 @@ namespace tap::tools {
             };
 
             struct channel_state {
-                double       hp_lp{0.0}; // body pre-voicing highpass (one-pole lowpass state)
-                double       lp_s{0.0};  // loop lowpass TPT state
-                double       dc_x1{0.0}, dc_y1{0.0};
+                Sample       hp_lp{Sample(0.0)}; // body pre-voicing highpass (one-pole lowpass state)
+                Sample       lp_s{Sample(0.0)};  // loop lowpass TPT state
+                Sample       dc_x1{Sample(0.0)}, dc_y1{Sample(0.0)};
                 biquad       mid, shelf; // post voicing EQ
                 butterworth4 up, down;   // oversampling chain
                 void         clear() {
-                    hp_lp = lp_s = dc_x1 = dc_y1 = 0.0;
+                    hp_lp = lp_s = dc_x1 = dc_y1 = Sample(0.0);
                     mid.reset();
                     shelf.reset();
                     up.reset();
@@ -370,23 +387,19 @@ namespace tap::tools {
                 }
             };
 
-            static double anti_denormal(double x) {
-                return (std::abs(x) < 1e-15) ? 0.0 : x; // house idiom (tap.comb~)
-            }
-
-            void ramp_to(int index, double tgt, long nsamples) {
+            void ramp_to(int index, Sample tgt, long nsamples) {
                 ramp&      r   = m_ramp[index];
                 const bool was = r.remaining > 0;
                 if (nsamples < 1 || tgt == r.current) {
                     r.current   = tgt;
                     r.target    = tgt;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0.0);
                     r.remaining = 0;
                     m_dirty     = true;
                 }
                 else {
                     r.target    = tgt;
-                    r.inc       = (tgt - r.current) / static_cast<double>(nsamples);
+                    r.inc       = (tgt - r.current) / static_cast<Sample>(nsamples);
                     r.remaining = nsamples;
                 }
                 m_ramps_active += static_cast<int>(r.remaining > 0) - static_cast<int>(was);
@@ -411,7 +424,7 @@ namespace tap::tools {
             void configure_resampler() {
                 if (m_os > 1) {
                     // cut just below the original Nyquist, normalized to the oversampled rate
-                    const double fc_norm = 0.45 / m_os;
+                    const Sample fc_norm = Sample(0.45) / m_os;
                     for (auto& c : m_state) {
                         c.up.design(fc_norm);
                         c.down.design(fc_norm);
@@ -422,40 +435,43 @@ namespace tap::tools {
             // Refresh everything derived from the (ramped) parameters. Runs only when a parameter
             // actually moved — per sample during a ramp, then never again until the next change.
             void update_derived() {
-                const double drive = m_ramp[p_drive].current;
-                const double body  = m_ramp[p_body].current;
-                const double asym  = m_ramp[p_asymmetry].current;
+                const Sample drive = m_ramp[p_drive].current;
+                const Sample body  = m_ramp[p_body].current;
+                const Sample asym  = m_ramp[p_asymmetry].current;
 
                 // drive: dB sweep of the shaper gain; feedback pins the LF loop gain at k_lf_gain
-                const double gain_db = k_drive_min_db + drive * (k_drive_max_db - k_drive_min_db);
-                m_shaper_gain        = std::pow(10.0, gain_db / 20.0);
-                const double g_fb    = std::max(0.0, m_shaper_gain / k_lf_gain - 1.0);
+                const Sample gain_db =
+                    Sample(k_drive_min_db) + drive * (Sample(k_drive_max_db) - Sample(k_drive_min_db));
+                m_shaper_gain     = std::pow(Sample(10.0), gain_db / Sample(20.0));
+                const Sample g_fb = std::max(Sample(0.0), m_shaper_gain / Sample(k_lf_gain) - Sample(1.0));
 
                 // loop lowpass (TPT, at the oversampled rate) and the zero-delay solve constants
-                const double g_lp = std::tan(k_pi * k_loop_lp_hz / (m_sr * m_os));
-                m_lp_norm         = 1.0 / (1.0 + g_lp);
+                const Sample g_lp = std::tan(Sample(k_pi_for<Sample>) * Sample(k_loop_lp_hz) / (m_sr * m_os));
+                m_lp_norm         = Sample(1.0) / (Sample(1.0) + g_lp);
                 m_g_lp            = g_lp;
-                m_gfb_lp          = g_fb * m_lp_norm;                      // g_fb / (1+g)
-                m_loop_norm       = 1.0 / (1.0 + g_fb * g_lp * m_lp_norm); // 1 / (1+beta)
+                m_gfb_lp          = g_fb * m_lp_norm;                                      // g_fb / (1+g)
+                m_loop_norm       = Sample(1.0) / (Sample(1.0) + g_fb * g_lp * m_lp_norm); // 1 / (1+beta)
 
-                m_bias     = k_bias_max * asym;
+                m_bias     = Sample(k_bias_max) * asym;
                 m_bias_out = shape(m_bias);
 
-                m_pre_gain = std::pow(10.0, m_ramp[p_preamp].current / 20.0);
-                m_post_gain =
-                    std::pow(10.0, (m_ramp[p_output].current + k_out_trim_db - drive * k_drive_comp_db) / 20.0);
+                m_pre_gain  = std::pow(Sample(10.0), m_ramp[p_preamp].current / Sample(20.0));
+                m_post_gain = std::pow(
+                    Sample(10.0), (m_ramp[p_output].current + Sample(k_out_trim_db) - drive * Sample(k_drive_comp_db))
+                                      / Sample(20.0));
 
                 // body voicing: pre-clipper highpass corner slides CCW->CW across a log range;
                 // post EQ adds the CW upper-mid push and the CCW treble lift
-                const double hp_hz =
-                    k_voice_hp_min_hz * std::pow(k_voice_hp_max_hz / k_voice_hp_min_hz, 0.5 * (body + 1.0));
-                m_a_hp = 1.0 - std::exp(-2.0 * k_pi * hp_hz / m_sr);
+                const Sample hp_hz = Sample(k_voice_hp_min_hz)
+                                     * std::pow(Sample(k_voice_hp_max_hz) / Sample(k_voice_hp_min_hz),
+                                                Sample(0.5) * (body + Sample(1.0)));
+                m_a_hp = Sample(1.0) - std::exp(-Sample(2.0) * Sample(k_pi_for<Sample>) * hp_hz / m_sr);
 
-                const double mid_db   = k_voice_mid_fix_db + k_voice_mid_db * std::max(0.0, body);
-                const double shelf_db = k_voice_shelf_db * std::max(0.0, -body);
+                const Sample mid_db = Sample(k_voice_mid_fix_db) + Sample(k_voice_mid_db) * std::max(Sample(0.0), body);
+                const Sample shelf_db = Sample(k_voice_shelf_db) * std::max(Sample(0.0), -body);
                 for (auto& c : m_state) {
-                    c.mid.design_peaking(k_voice_mid_hz / m_sr, k_voice_mid_q, mid_db);
-                    c.shelf.design_highshelf(k_voice_shelf_hz / m_sr, shelf_db);
+                    c.mid.design_peaking(Sample(k_voice_mid_hz) / m_sr, Sample(k_voice_mid_q), mid_db);
+                    c.shelf.design_highshelf(Sample(k_voice_shelf_hz) / m_sr, shelf_db);
                 }
 
                 m_dirty = false;
@@ -467,17 +483,17 @@ namespace tap::tools {
             // one-pole state (the tap.svf~ / tap.ladder~ fast one-pass scheme — shape'() <= 1 only
             // ever reduces the loop gain below the prediction, so the step is stable). The unity
             // clean path summed at the end is the non-inverting topology's never-flat trait.
-            double core(channel_state& c, double x) {
-                const double w_lin = (m_shaper_gain * x - m_gfb_lp * c.lp_s) * m_loop_norm;
-                const double w     = shape(w_lin + m_bias) - m_bias_out;
-                const double v     = (m_g_lp * w + c.lp_s) * m_lp_norm;
-                c.lp_s             = anti_denormal(2.0 * v - c.lp_s);
-                return w + k_clean_level * x;
+            Sample core(channel_state& c, Sample x) {
+                const Sample w_lin = (m_shaper_gain * x - m_gfb_lp * c.lp_s) * m_loop_norm;
+                const Sample w     = shape(w_lin + m_bias) - m_bias_out;
+                const Sample v     = (m_g_lp * w + c.lp_s) * m_lp_norm;
+                c.lp_s             = anti_denormal(Sample(2.0) * v - c.lp_s);
+                return w + Sample(k_clean_level) * x;
             }
 
             // configuration
-            double m_sr{48000.0};
-            double m_smooth_ms{k_default_smooth_ms};
+            Sample m_sr{Sample(48000.0)};
+            Sample m_smooth_ms{Sample(k_default_smooth_ms)};
             int    m_channels{1};
             int    m_os{4};
 
@@ -487,15 +503,21 @@ namespace tap::tools {
             bool                           m_dirty{true};
 
             // derived
-            double m_shaper_gain{1.0};
-            double m_g_lp{0.0}, m_lp_norm{1.0}, m_gfb_lp{0.0}, m_loop_norm{1.0};
-            double m_bias{0.0}, m_bias_out{0.0};
-            double m_pre_gain{1.0}, m_post_gain{1.0};
-            double m_a_hp{0.0};
+            Sample m_shaper_gain{Sample(1.0)};
+            Sample m_g_lp{Sample(0.0)}, m_lp_norm{Sample(1.0)}, m_gfb_lp{Sample(0.0)}, m_loop_norm{Sample(1.0)};
+            Sample m_bias{Sample(0.0)}, m_bias_out{Sample(0.0)};
+            Sample m_pre_gain{Sample(1.0)}, m_post_gain{Sample(1.0)};
+            Sample m_a_hp{Sample(0.0)};
 
             // per-channel state
             std::vector<channel_state> m_state;
         };
+
+        /// The double profile — the golden model.
+        using overdrive = basic_overdrive<double>;
+
+        /// The float profile — for single-precision targets. See numeric.h.
+        using overdrive32 = basic_overdrive<float>;
 
     } // namespace od
 } // namespace tap::tools
