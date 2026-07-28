@@ -46,6 +46,20 @@
 ///             As in the other TapTools kernels: parameters ride per-sample linear ramps (no
 ///             zipper), and everything is allocation-free after prepare(); setters are safe while
 ///             audio runs.
+///
+///             **Numeric profiles.** The filter is `basic_svf_filter<Sample>`, instantiated as
+///             `svf_filter` (double — the golden model, what Max's double signal chain and every
+///             measured claim in the book/benchmarks/notebooks run on) and `svf_filter32` (float —
+///             the embedded profile). This follows the DspTap convention (see its `fft.h` /
+///             `yin.h`): the double path never changes for speed, and the two instantiations run
+///             the identical algorithm in their own precision, with cross-precision agreement
+///             pinned by the test battery. The float profile exists for single-precision targets
+///             — an Arm Cortex-M33's FPv5-SP FPU has no double support at all, so the double
+///             profile there compiles to ~142 soft-float library calls per sample while the float
+///             profile compiles to hardware `vmul.f32`/`vfma.f32` (measured, `tests/svf_test.cpp`
+///             documents the geometry). Note the transcendentals (`std::tanh` in the driven
+///             circuit, `std::tan` under cutoff modulation) remain libm calls in both profiles —
+///             precision alone does not make the driven circuit cheap on such a target.
 /// @author     Timothy Place
 // SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
@@ -56,6 +70,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <type_traits>
 #include <vector>
 
 namespace tap::tools {
@@ -127,43 +142,63 @@ namespace tap::tools {
             return butterworth_q(order)[sections_for_order(order) - 1];
         }
 
+        // The three helpers below are parameterized over the numeric profile, but `Sample` is
+        // deliberately NOT deduced from the value argument (std::type_identity_t) and defaults to
+        // double. Two reasons, both load-bearing:
+        //   - Existing call sites (`clamp_param(index, v)`) keep compiling unchanged and keep
+        //     returning double.
+        //   - The Max wrapper passes a Min `atom`, which converts implicitly to double but is not
+        //     itself a floating-point type. With a deduced parameter those call sites would fail
+        //     to deduce `Sample` — the "clang-tidy is a second compiler" class of breakage.
+        // Callers inside the float profile ask for it explicitly: q_from_resonance<float>(r, n).
+
         /// Equivalent Q of the resonant section for a normalized resonance (0..1). At resonance 0 this is
         /// the Butterworth base Q; it grows as 1/(1-resonance) toward infinity at 1.
-        inline double q_from_resonance(double resonance, int order) {
-            const double d = std::max(1.0 - std::clamp(resonance, 0.0, 1.0), 1e-4);
-            return base_q(order) / d;
+        template <typename Sample = double>
+        Sample q_from_resonance(std::type_identity_t<Sample> resonance, int order) {
+            const Sample d = std::max(Sample(1) - std::clamp(resonance, Sample(0), Sample(1)), Sample(1e-4));
+            return static_cast<Sample>(base_q(order)) / d;
         }
 
         /// Inverse of q_from_resonance. Q at or below the Butterworth base maps to 0.
-        inline double resonance_from_q(double q, int order) {
-            if (q <= 0.0) {
-                return 0.0;
+        template <typename Sample = double>
+        Sample resonance_from_q(std::type_identity_t<Sample> q, int order) {
+            if (q <= Sample(0)) {
+                return Sample(0);
             }
-            return std::clamp(1.0 - base_q(order) / q, 0.0, 1.0);
+            return std::clamp(Sample(1) - static_cast<Sample>(base_q(order)) / q, Sample(0), Sample(1));
         }
 
         /// Clamp a value to the legal range of a parameter.
-        inline double clamp_param(int index, double value) {
+        template <typename Sample = double>
+        Sample clamp_param(int index, std::type_identity_t<Sample> value) {
             switch (index) {
             case p_frequency:
-                return std::clamp(value, k_freq_min, k_freq_max);
+                return std::clamp(value, Sample(k_freq_min), Sample(k_freq_max));
             case p_resonance:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0), Sample(1));
             case p_morph:
-                return std::clamp(value, 0.0, 1.0);
+                return std::clamp(value, Sample(0), Sample(1));
             case p_gain:
-                return std::clamp(value, -k_gain_range_db, k_gain_range_db);
+                return std::clamp(value, Sample(-k_gain_range_db), Sample(k_gain_range_db));
             case p_drive:
-                return std::clamp(value, -k_drive_range_db, k_drive_range_db);
+                return std::clamp(value, Sample(-k_drive_range_db), Sample(k_drive_range_db));
             default:
                 return value;
             }
         }
 
-        class svf_filter {
+        template <typename Sample>
+        class basic_svf_filter {
+            static_assert(std::is_floating_point_v<Sample>,
+                          "basic_svf_filter supports the two Tap numeric profiles: float and double");
+
           public:
-            svf_filter() {
-                static constexpr double k_defaults[k_num_params] = {1000.0, 0.0, 0.0, 0.0, 0.0};
+            using sample_type = Sample;
+
+            basic_svf_filter() {
+                static constexpr Sample k_defaults[k_num_params] = {Sample(1000), Sample(0), Sample(0), Sample(0),
+                                                                    Sample(0)};
                 for (int i = 0; i < k_num_params; ++i) {
                     m_ramp[i].current = m_ramp[i].target = k_defaults[i];
                 }
@@ -174,8 +209,8 @@ namespace tap::tools {
 
             /// Set the sample rate and channel count, (re)configure oversampling, clear state, snap ramps.
             /// Allocates (the per-channel state vector) — call from the main thread, not the perform loop.
-            void prepare(double sr, int channels = 1) {
-                m_sr       = (sr > 0.0) ? sr : 48000.0;
+            void prepare(Sample sr, int channels = 1) {
+                m_sr       = (sr > Sample(0)) ? sr : Sample(48000);
                 m_channels = std::max(1, channels);
                 m_state.assign(static_cast<size_t>(m_channels), channel_state{});
                 configure_resampler();
@@ -193,7 +228,7 @@ namespace tap::tools {
             void snap() {
                 for (auto& r : m_ramp) {
                     r.current   = r.target;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0);
                     r.remaining = 0;
                 }
                 m_ramps_active = 0;
@@ -201,7 +236,7 @@ namespace tap::tools {
             }
 
             int    channels() const { return m_channels; }
-            double samplerate() const { return m_sr; }
+            Sample samplerate() const { return m_sr; }
 
             // -- modes (structural; not ramped) ----------------------------------------------------------
 
@@ -240,25 +275,28 @@ namespace tap::tools {
             }
             int oversample() const { return m_os; }
 
-            void   set_smooth_ms(double ms) { m_smooth_ms = std::max(0.0, ms); }
-            double smooth_ms() const { return m_smooth_ms; }
+            void   set_smooth_ms(Sample ms) { m_smooth_ms = std::max(Sample(0), ms); }
+            Sample smooth_ms() const { return m_smooth_ms; }
 
             // -- parameter targets (click-free; safe while audio runs) ------------------------------------
 
-            void set_param(int index, double value) {
+            void set_param(int index, Sample value) {
                 if (index < 0 || index >= k_num_params) {
                     return;
                 }
-                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * 0.001 * m_sr));
+                ramp_to(index, clamp_param<Sample>(index, value),
+                        static_cast<long>(m_smooth_ms * Sample(0.001) * m_sr));
             }
 
-            void set_frequency(double hz) { set_param(p_frequency, hz); }
-            void set_resonance(double r) { set_param(p_resonance, r); }
-            void set_morph(double m) { set_param(p_morph, m); }
-            void set_gain(double db) { set_param(p_gain, db); }
-            void set_drive(double db) { set_param(p_drive, db); }
+            void set_frequency(Sample hz) { set_param(p_frequency, hz); }
+            void set_resonance(Sample r) { set_param(p_resonance, r); }
+            void set_morph(Sample m) { set_param(p_morph, m); }
+            void set_gain(Sample db) { set_param(p_gain, db); }
+            void set_drive(Sample db) { set_param(p_drive, db); }
 
-            double param(int index) const { return (index >= 0 && index < k_num_params) ? m_ramp[index].target : 0.0; }
+            Sample param(int index) const {
+                return (index >= 0 && index < k_num_params) ? m_ramp[index].target : Sample(0);
+            }
 
             // -- audio -----------------------------------------------------------------------------------
             //
@@ -282,17 +320,17 @@ namespace tap::tools {
 
             /// Advance ramps and refresh coefficients with a signal-rate cutoff override (Hz). The
             /// frequency parameter/ramp is left untouched.
-            void tick(double cutoff_hz) {
+            void tick(Sample cutoff_hz) {
                 tick_ramps();
                 if (m_shape_dirty) {
                     update_shape();
                 }
-                update_cutoff(clamp_param(p_frequency, cutoff_hz));
+                update_cutoff(clamp_param<Sample>(p_frequency, cutoff_hz));
             }
 
             /// Process one sample of one channel using the coefficients computed by the last tick().
             /// Precondition: 0 <= channel < channels().
-            double process(int channel, double x) {
+            Sample process(int channel, Sample x) {
                 channel_state& c = m_state[static_cast<size_t>(channel)];
                 if (m_circuit == circuit_clean) {
                     return core<false>(c, x);
@@ -301,32 +339,32 @@ namespace tap::tools {
                     return core<true>(c, x);
                 }
                 // zero-stuff + anti-image filter up, core at the high rate, anti-alias + decimate down
-                double y = 0.0;
+                Sample y = Sample(0);
                 for (int j = 0; j < m_os; ++j) {
-                    const double up = c.up.tick(j == 0 ? x * m_os : 0.0);
+                    const Sample up = c.up.tick(j == 0 ? x * static_cast<Sample>(m_os) : Sample(0));
                     y               = c.down.tick(core<true>(c, up));
                 }
                 return y;
             }
 
             /// Mono conveniences.
-            double process(double x) {
+            Sample process(Sample x) {
                 tick();
                 return process(0, x);
             }
-            double process(double x, double cutoff_hz) {
+            Sample process(Sample x, Sample cutoff_hz) {
                 tick(cutoff_hz);
                 return process(0, x);
             }
 
-            void process(const double* in, double* out, size_t n) {
+            void process(const Sample* in, Sample* out, size_t n) {
                 for (size_t i = 0; i < n; ++i) {
                     out[i] = process(in[i]);
                 }
             }
 
             /// Multichannel block processing: nch channel pointers in and out.
-            void process(const double* const* in, double* const* out, int nch, size_t n) {
+            void process(const Sample* const* in, Sample* const* out, int nch, size_t n) {
                 const int chans = std::min(nch, m_channels);
                 for (size_t i = 0; i < n; ++i) {
                     tick();
@@ -337,46 +375,51 @@ namespace tap::tools {
             }
 
           private:
+            /// pi in the working precision. Using the double `k_pi` directly would promote the
+            /// whole prewarp expression to double in the float profile — the exact soft-float
+            /// path this profile exists to avoid.
+            static constexpr Sample k_pi_s = static_cast<Sample>(k_pi);
+
             struct ramp {
-                double current{0.0};
-                double target{0.0};
-                double inc{0.0};
+                Sample current{0};
+                Sample target{0};
+                Sample inc{0};
                 long   remaining{0};
             };
 
             // RBJ lowpass biquad (Transposed Direct Form II) — two in series make the 4th-order
             // Butterworth anti-image/anti-alias filters for the oversampling chain (tap.ladder~ pattern).
             struct biquad {
-                double b0{1.0}, b1{0.0}, b2{0.0}, a1{0.0}, a2{0.0};
-                double z1{0.0}, z2{0.0};
+                Sample b0{1}, b1{0}, b2{0}, a1{0}, a2{0};
+                Sample z1{0}, z2{0};
 
-                void design_lowpass(double fc_norm, double q) { // fc_norm = fc / fs
-                    const double w     = 2.0 * k_pi * fc_norm;
-                    const double alpha = std::sin(w) / (2.0 * q);
-                    const double cw    = std::cos(w);
-                    const double a0    = 1.0 + alpha;
-                    b0                 = ((1.0 - cw) * 0.5) / a0;
-                    b1                 = (1.0 - cw) / a0;
+                void design_lowpass(Sample fc_norm, Sample q) { // fc_norm = fc / fs
+                    const Sample w     = Sample(2) * k_pi_s * fc_norm;
+                    const Sample alpha = std::sin(w) / (Sample(2) * q);
+                    const Sample cw    = std::cos(w);
+                    const Sample a0    = Sample(1) + alpha;
+                    b0                 = ((Sample(1) - cw) * Sample(0.5)) / a0;
+                    b1                 = (Sample(1) - cw) / a0;
                     b2                 = b0;
-                    a1                 = (-2.0 * cw) / a0;
-                    a2                 = (1.0 - alpha) / a0;
+                    a1                 = (Sample(-2) * cw) / a0;
+                    a2                 = (Sample(1) - alpha) / a0;
                 }
-                double tick(double x) {
-                    const double y = b0 * x + z1;
+                Sample tick(Sample x) {
+                    const Sample y = b0 * x + z1;
                     z1             = b1 * x - a1 * y + z2;
                     z2             = b2 * x - a2 * y;
                     return y;
                 }
-                void reset() { z1 = z2 = 0.0; }
+                void reset() { z1 = z2 = Sample(0); }
             };
 
             struct butterworth4 {
                 biquad s1, s2;
-                void   design(double fc_norm) {
-                    s1.design_lowpass(fc_norm, 0.54119610);
-                    s2.design_lowpass(fc_norm, 1.30656296);
+                void   design(Sample fc_norm) {
+                    s1.design_lowpass(fc_norm, Sample(0.54119610));
+                    s2.design_lowpass(fc_norm, Sample(1.30656296));
                 }
-                double tick(double x) { return s2.tick(s1.tick(x)); }
+                Sample tick(Sample x) { return s2.tick(s1.tick(x)); }
                 void   reset() {
                     s1.reset();
                     s2.reset();
@@ -385,14 +428,14 @@ namespace tap::tools {
 
             // One SVF section's coefficients: the TPT solve constants and the output mix.
             struct section_coeffs {
-                double g{0.0}, k{1.0};
-                double a1{0.0}, a2{0.0}, a3{0.0};
-                double m0{0.0}, m1{0.0}, m2{1.0};
+                Sample g{0}, k{1};
+                Sample a1{0}, a2{0}, a3{0};
+                Sample m0{0}, m1{0}, m2{1};
             };
 
             // One section's state: the two integrator equivalent currents.
             struct section_state {
-                double ic1{0.0}, ic2{0.0};
+                Sample ic1{0}, ic2{0};
             };
 
             struct channel_state {
@@ -400,29 +443,38 @@ namespace tap::tools {
                 butterworth4                              up, down;
                 void                                      clear() {
                     for (auto& sec : s) {
-                        sec.ic1 = sec.ic2 = 0.0;
+                        sec.ic1 = sec.ic2 = Sample(0);
                     }
                     up.reset();
                     down.reset();
                 }
             };
 
-            static double anti_denormal(double x) {
-                return (std::abs(x) < 1e-15) ? 0.0 : x; // house idiom (tap.comb~)
-            }
+            /// Flush-to-zero threshold for the recursive state. The house idiom (tap.comb~) is
+            /// 1e-15, which is a *double*-scale constant: it sits just above the double denormal
+            /// range (~2.2e-308 .. 1e-308) with enormous margin. Reusing it verbatim in the float
+            /// profile would not do its stated job — float denormals live in
+            /// ~1.4e-45 .. 1.18e-38, so 1e-15 flushes a huge swath of perfectly normal floats
+            /// (everything below -300 dBFS, still inaudible, so it is not a *bug* — but it is no
+            /// longer the denormal guard it claims to be). The float profile therefore uses 1e-30:
+            /// above the entire float denormal range, and ~600 dB below full scale.
+            /// The double profile keeps 1e-15 exactly, so its output stays bit-identical.
+            static constexpr Sample k_denormal_floor = std::is_same_v<Sample, float> ? Sample(1e-30) : Sample(1e-15);
 
-            void ramp_to(int index, double tgt, long nsamples) {
+            static Sample anti_denormal(Sample x) { return (std::abs(x) < k_denormal_floor) ? Sample(0) : x; }
+
+            void ramp_to(int index, Sample tgt, long nsamples) {
                 ramp&      r   = m_ramp[index];
                 const bool was = r.remaining > 0;
                 if (nsamples < 1 || tgt == r.current) {
                     r.current   = tgt;
                     r.target    = tgt;
-                    r.inc       = 0.0;
+                    r.inc       = Sample(0);
                     r.remaining = 0;
                 }
                 else {
                     r.target    = tgt;
-                    r.inc       = (tgt - r.current) / static_cast<double>(nsamples);
+                    r.inc       = (tgt - r.current) / static_cast<Sample>(nsamples);
                     r.remaining = nsamples;
                 }
                 m_ramps_active += static_cast<int>(r.remaining > 0) - static_cast<int>(was);
@@ -453,7 +505,7 @@ namespace tap::tools {
             void configure_resampler() {
                 if (m_os > 1) {
                     // cut just below the original Nyquist, normalized to the oversampled rate
-                    const double fc_norm = 0.45 / m_os;
+                    const Sample fc_norm = Sample(0.45) / static_cast<Sample>(m_os);
                     for (auto& c : m_state) {
                         c.up.design(fc_norm);
                         c.down.design(fc_norm);
@@ -469,7 +521,7 @@ namespace tap::tools {
                 if (n > m_active) {
                     for (auto& c : m_state) {
                         for (int i = m_active; i < n; ++i) {
-                            c.s[static_cast<size_t>(i)].ic1 = c.s[static_cast<size_t>(i)].ic2 = 0.0;
+                            c.s[static_cast<size_t>(i)].ic1 = c.s[static_cast<size_t>(i)].ic2 = Sample(0);
                         }
                     }
                 }
@@ -480,41 +532,42 @@ namespace tap::tools {
             // damping k, output mix, drive/EQ gains, and the shelf tuning scale. Runs only when a
             // non-frequency parameter ramps or a mode/order/circuit/oversample change lands.
             void update_shape() {
-                const double res = m_ramp[p_resonance].current;
-                const double A   = std::pow(10.0, m_ramp[p_gain].current / 40.0); // Simper's EQ amplitude
+                const Sample res = m_ramp[p_resonance].current;
+                const Sample A   = std::pow(Sample(10), m_ramp[p_gain].current / Sample(40)); // Simper's EQ amplitude
 
-                m_in_gain = (m_circuit == circuit_driven) ? std::pow(10.0, m_ramp[p_drive].current / 20.0) : 1.0;
+                m_in_gain = (m_circuit == circuit_driven) ? std::pow(Sample(10), m_ramp[p_drive].current / Sample(20))
+                                                          : Sample(1);
 
                 set_active_sections(is_eq_mode(m_mode) ? 1 : sections_for_order(m_order));
 
-                m_g_scale = (m_mode == mode_lowshelf)    ? 1.0 / std::sqrt(A)
+                m_g_scale = (m_mode == mode_lowshelf)    ? Sample(1) / std::sqrt(A)
                             : (m_mode == mode_highshelf) ? std::sqrt(A)
-                                                         : 1.0;
+                                                         : Sample(1);
 
                 const double* qt = butterworth_q(m_order);
 
                 for (int i = 0; i < m_active; ++i) {
                     section_coeffs& c = m_coef[static_cast<size_t>(i)];
 
-                    double k;
+                    Sample k;
                     if (is_eq_mode(m_mode)) {
                         // EQ modes: a single section whose Q comes from the normalized resonance
                         // (Butterworth base at 0); the bell's k folds in the gain for symmetric boost/cut.
-                        const double q = q_from_resonance(res, 2);
-                        k              = (m_mode == mode_bell) ? 1.0 / (q * A) : 1.0 / q;
+                        const Sample q = q_from_resonance<Sample>(res, 2);
+                        k              = (m_mode == mode_bell) ? Sample(1) / (q * A) : Sample(1) / q;
                     }
                     else {
-                        k = 1.0 / qt[i];
+                        k = Sample(1) / static_cast<Sample>(qt[i]);
                         if (i == m_active - 1) {
                             // The user resonance sharpens only the highest-Q section. The clean circuit
                             // floors the damping (finite Q ~ 100x base); the driven circuit is allowed
                             // slightly past the threshold at 1.0 so it truly self-oscillates, with the
                             // tanh limiter bounding the amplitude.
                             if (m_circuit == circuit_driven) {
-                                k *= 1.0 - 1.05 * res;
+                                k *= Sample(1) - Sample(1.05) * res;
                             }
                             else {
-                                k = std::max(k * (1.0 - res), 0.01);
+                                k = std::max(k * (Sample(1) - res), Sample(0.01));
                             }
                         }
                     }
@@ -523,49 +576,49 @@ namespace tap::tools {
 
                     switch (m_mode) {
                     case mode_lowpass:
-                        c.m0 = 0.0;
-                        c.m1 = 0.0;
-                        c.m2 = 1.0;
+                        c.m0 = Sample(0);
+                        c.m1 = Sample(0);
+                        c.m2 = Sample(1);
                         break;
                     case mode_highpass:
-                        c.m0 = 1.0;
+                        c.m0 = Sample(1);
                         c.m1 = -k;
-                        c.m2 = -1.0;
+                        c.m2 = Sample(-1);
                         break;
                     case mode_bandpass:
-                        c.m0 = 0.0;
-                        c.m1 = 1.0;
-                        c.m2 = 0.0;
+                        c.m0 = Sample(0);
+                        c.m1 = Sample(1);
+                        c.m2 = Sample(0);
                         break;
                     case mode_notch:
-                        c.m0 = 1.0;
+                        c.m0 = Sample(1);
                         c.m1 = -k;
-                        c.m2 = 0.0;
+                        c.m2 = Sample(0);
                         break;
                     case mode_peak:
-                        c.m0 = 1.0;
+                        c.m0 = Sample(1);
                         c.m1 = -k;
-                        c.m2 = -2.0;
+                        c.m2 = Sample(-2);
                         break;
                     case mode_allpass:
-                        c.m0 = 1.0;
-                        c.m1 = -2.0 * k;
-                        c.m2 = 0.0;
+                        c.m0 = Sample(1);
+                        c.m1 = Sample(-2) * k;
+                        c.m2 = Sample(0);
                         break;
                     case mode_bell:
-                        c.m0 = 1.0;
-                        c.m1 = k * (A * A - 1.0);
-                        c.m2 = 0.0;
+                        c.m0 = Sample(1);
+                        c.m1 = k * (A * A - Sample(1));
+                        c.m2 = Sample(0);
                         break;
                     case mode_lowshelf:
-                        c.m0 = 1.0;
-                        c.m1 = k * (A - 1.0);
-                        c.m2 = A * A - 1.0;
+                        c.m0 = Sample(1);
+                        c.m1 = k * (A - Sample(1));
+                        c.m2 = A * A - Sample(1);
                         break;
                     case mode_highshelf:
                         c.m0 = A * A;
-                        c.m1 = k * (1.0 - A) * A;
-                        c.m2 = 1.0 - A * A;
+                        c.m1 = k * (Sample(1) - A) * A;
+                        c.m2 = Sample(1) - A * A;
                         break;
                     case mode_morph:
                     default:
@@ -575,24 +628,24 @@ namespace tap::tools {
                 }
 
                 m_shape_dirty = false;
-                m_cur_fc      = -1.0; // the solve constants depend on k and m_g_scale — force a refresh
+                m_cur_fc      = Sample(-1); // the solve constants depend on k and m_g_scale — force a refresh
             }
 
             // Cutoff tier: the prewarped tan and the three solve constants per section. This is the only
             // work that runs per sample under cutoff modulation, and it is skipped entirely when the
             // requested cutoff matches the cached one.
-            void update_cutoff(double fc) {
+            void update_cutoff(Sample fc) {
                 if (fc == m_cur_fc) {
                     return;
                 }
                 m_cur_fc        = fc;
-                const double fs = m_sr * os_active();
-                const double f  = std::min(std::max(fc, k_freq_min), 0.49 * fs);
-                const double g  = std::tan(k_pi * f / fs) * m_g_scale;
+                const Sample fs = m_sr * static_cast<Sample>(os_active());
+                const Sample f  = std::min(std::max(fc, Sample(k_freq_min)), Sample(0.49) * fs);
+                const Sample g  = std::tan(k_pi_s * f / fs) * m_g_scale;
                 for (int i = 0; i < m_active; ++i) {
                     section_coeffs& c = m_coef[static_cast<size_t>(i)];
                     c.g               = g;
-                    c.a1              = 1.0 / (1.0 + g * (g + c.k));
+                    c.a1              = Sample(1) / (Sample(1) + g * (g + c.k));
                     c.a2              = g * c.a1;
                     c.a3              = g * c.a2;
                 }
@@ -600,18 +653,18 @@ namespace tap::tools {
 
             // Continuous output-mix interpolation around the circle LP -> BP -> HP -> notch -> LP.
             // The corners are exactly the discrete modes' mixes (with this section's k).
-            static void morph_mix(section_coeffs& c, double morph) {
-                const double k            = c.k;
-                const double corner[5][3] = {
-                    {0.0, 0.0, 1.0}, // lowpass
-                    {0.0, 1.0, 0.0}, // bandpass
-                    {1.0, -k, -1.0}, // highpass
-                    {1.0, -k, 0.0},  // notch
-                    {0.0, 0.0, 1.0}, // back to lowpass
+            static void morph_mix(section_coeffs& c, Sample morph) {
+                const Sample k            = c.k;
+                const Sample corner[5][3] = {
+                    {Sample(0), Sample(0), Sample(1)}, // lowpass
+                    {Sample(0), Sample(1), Sample(0)}, // bandpass
+                    {Sample(1), -k, Sample(-1)},       // highpass
+                    {Sample(1), -k, Sample(0)},        // notch
+                    {Sample(0), Sample(0), Sample(1)}, // back to lowpass
                 };
-                double       p = std::clamp(morph, 0.0, 1.0) * 4.0;
+                Sample       p = std::clamp(morph, Sample(0), Sample(1)) * Sample(4);
                 int          i = std::min(static_cast<int>(p), 3);
-                const double t = p - i;
+                const Sample t = p - static_cast<Sample>(i);
                 c.m0           = corner[i][0] + t * (corner[i + 1][0] - corner[i][0]);
                 c.m1           = corner[i][1] + t * (corner[i + 1][1] - corner[i][1]);
                 c.m2           = corner[i][2] + t * (corner[i + 1][2] - corner[i][2]);
@@ -623,27 +676,27 @@ namespace tap::tools {
             // corrective solve of the band-node limiter seeded by the linear zero-delay prediction.
             // Templated on the circuit so the per-section branch is resolved at compile time.
             template <bool Driven>
-            double core(channel_state& ch, double x) {
-                double v0 = m_in_gain * x;
+            Sample core(channel_state& ch, Sample x) {
+                Sample v0 = m_in_gain * x;
                 for (int i = 0; i < m_active; ++i) {
                     const section_coeffs& q  = m_coef[static_cast<size_t>(i)];
                     section_state&        s  = ch.s[static_cast<size_t>(i)];
-                    const double          v3 = v0 - s.ic2;
-                    double                v1 = q.a1 * s.ic1 + q.a2 * v3;
+                    const Sample          v3 = v0 - s.ic2;
+                    Sample                v1 = q.a1 * s.ic1 + q.a2 * v3;
                     if (Driven) {
                         v1 = std::tanh(v1);
                     }
-                    const double v2 = s.ic2 + q.g * v1;
-                    s.ic1           = anti_denormal(2.0 * v1 - s.ic1);
-                    s.ic2           = anti_denormal(2.0 * v2 - s.ic2);
+                    const Sample v2 = s.ic2 + q.g * v1;
+                    s.ic1           = anti_denormal(Sample(2) * v1 - s.ic1);
+                    s.ic2           = anti_denormal(Sample(2) * v2 - s.ic2);
                     v0              = q.m0 * v0 + q.m1 * v1 + q.m2 * v2;
                 }
                 return v0;
             }
 
             // configuration
-            double m_sr{48000.0};
-            double m_smooth_ms{k_default_smooth_ms};
+            Sample m_sr{48000};
+            Sample m_smooth_ms{static_cast<Sample>(k_default_smooth_ms)};
             int    m_channels{1};
             int    m_mode{mode_lowpass};
             int    m_order{2};
@@ -658,13 +711,23 @@ namespace tap::tools {
             // derived
             std::array<section_coeffs, k_max_sections> m_coef;
             int                                        m_active{1};
-            double                                     m_in_gain{1.0};
-            double                                     m_g_scale{1.0}; // shelf tuning scale (sqrt(A) up or down)
-            double m_cur_fc{-1.0}; // cutoff the solve constants were computed for (-1 = stale)
+            Sample                                     m_in_gain{1};
+            Sample                                     m_g_scale{1}; // shelf tuning scale (sqrt(A) up or down)
+            Sample                                     m_cur_fc{-1}; // cutoff the solve constants were
+                                                                     // computed for (-1 = stale)
 
             // per-channel state
             std::vector<channel_state> m_state;
         };
+
+        /// The double profile — the golden model. This is what Max's double signal chain, the
+        /// C ABI, the benchmarks and the verification notebooks all use, and its output is
+        /// bit-identical to the pre-template kernel.
+        using svf_filter = basic_svf_filter<double>;
+
+        /// The float profile — for single-precision targets (Cortex-M33 and friends), where the
+        /// double profile would run entirely in soft-float. Same algorithm, its own precision.
+        using svf_filter32 = basic_svf_filter<float>;
 
     } // namespace svf
 } // namespace tap::tools
