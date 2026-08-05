@@ -61,3 +61,4 @@
 - [How to read a recipe](recipes/cookbook.md)
 - [One machine, four decades](recipes/808-classics.md)
 - [Three oscillators into a ladder](recipes/minimoog.md)
+- [The patches with names on them](recipes/moog-classics.md)

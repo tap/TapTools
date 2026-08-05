@@ -1,6 +1,6 @@
 # Plan — the Recipes part
 
-> **Status: drafted.** The part opener and the first two recipes are written and live in
+> **Status: drafted.** The part opener and the first three recipes are written and live in
 > `src/recipes/` per the placement below (2026-08-05). This file remains as the drafting
 > record, the plans-directory way, and carries the backlog of future recipes.
 
@@ -18,6 +18,7 @@ A new part after the machine part:
 - [How to read a recipe](recipes/cookbook.md)
 - [One machine, four decades](recipes/808-classics.md)
 - [Three oscillators into a ladder](recipes/minimoog.md)
+- [The patches with names on them](recipes/moog-classics.md)
 ```
 
 The introduction's organization list gains a matching Part IX bullet.
@@ -57,6 +58,13 @@ Stated in the part opener (`recipes/cookbook.md`), enforced in drafting:
   `tap.adsr~` contours (with the period-correct release-switch note), gate/pitch plumbing,
   and bass + lead settings tables. Evidence borrowed: `vco.ipynb` and `ladder.ipynb` via
   their chapters.
+- **`recipes/moog-classics.md` — The patches with names on them.** The voice above driven
+  at four records as deltas from its bass/lead tables: Winwood's "While You See a Chance"
+  hook, Worrell's "Flash Light" stacked-Minimoog bass, Wright's "Shine On" lead, and
+  Emerson's "Lucky Man" modular solo. Carries the answer to "do we need a Moog modular
+  object?" — no: a modular is routing freedom, and Max is the patch panel; the modules
+  already ship (`tap.vco~`/`tap.ladder~`/`tap.adsr~`/`tap.vca~`/`tap.noise~` + the
+  sequencer pair). Gear provenance is stated per patch (documented vs. reconstruction).
 
 ## Backlog — future recipes, roughly in order of pull
 
@@ -72,6 +80,10 @@ Stated in the part opener (`recipes/cookbook.md`), enforced in drafting:
 - **Borrowed rooms, curated.** A short IR field guide for `tap.convolve~` — what to load,
   true-stereo vs. mono-in, pre-delay by trimming.
 - **The five-string drone.** `tap.5comb~` tunings as chord recipes.
+- **The sequenced modular.** Berlin school and "I Feel Love": `tap.303.seq~` → `mtof~` →
+  the vco stack, gate → `tap.adsr~` — the scaffold is sketched at the top of
+  `moog-classics.md`; the recipe is patterns, ostinato transposition, and the hat-groove
+  glue.
 
 Each lands as one file in `src/recipes/` plus a SUMMARY line; no renumbering needed.
 
