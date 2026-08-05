@@ -88,9 +88,10 @@ single slap and patch feedback around it, or reach for Max's delay objects
 for modulated regeneration.
 
 Glue: an 808 closed-hat row in 16ths from the drum scaffold, mixed low.
-Accents in this scaffold are honest but blunt: `tap.adsr~` ignores the
-gate's 2.0 amplitude today, so accent color comes from the voice you route
-the accent lane to — or from leaning the pattern itself.
+Accents land in this scaffold too: turn up `tap.adsr~`'s `velocity`
+sensitivity and the sequencer's 2.0-amplitude accented gates hit the
+envelopes harder — the loudness contour for punch, the filter contour for
+the quack, or both.
 
 ## When to leave the recipe
 
