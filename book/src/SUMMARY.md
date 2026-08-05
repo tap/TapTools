@@ -55,3 +55,9 @@
 - [Three ways to move a pitch: yin.h, psola.h, pvoc.h](machine/pitch.md)
 - [The nearest allowed note: tune.h](machine/tune.md)
 - [The clipper in the loop: overdrive.h](machine/overdrive.md)
+
+# Part IX — Recipes
+
+- [How to read a recipe](recipes/cookbook.md)
+- [One machine, four decades](recipes/808-classics.md)
+- [Three oscillators into a ladder](recipes/minimoog.md)

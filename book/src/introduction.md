@@ -45,6 +45,10 @@ The book is organized the way a patch is:
   recording *why* each algorithm is written the way it is, alternatives and
   all. Parts I–VII are for driving the objects; Part VIII is for trusting them —
   or changing them.
+- **Part IX — Recipes**: whole patches chasing specific sounds — the TR-808
+  kits behind four decades of records, the three-oscillator Moog voice —
+  with settings you can check against the reference pages and the honest
+  accounting of what each ingredient buys.
 
 More chapters land as objects mature; the utility and Jitter objects live in
 their reference pages, where they belong.
