@@ -62,6 +62,24 @@ pads — the "choir" setting. This knob is the vocoder's attack *and* release;
 Makeup level, since a band-multiplied signal usually lands quieter than
 either input. Linear, boring, necessary.
 
+### `sibilance` — the built-in *s* and *t* budget
+
+The classic channel-vocoder unvoiced path (Dudley's lineage): a seeded
+internal noise source blended into the **carrier** of the bands above
+~4 kHz, still gated by the modulator's envelopes — so consonants articulate
+even over a dull carrier, and only when the modulator actually has
+high-band energy (pinned: a silent carrier with an HF-rich modulator
+speaks at `sibilance 1`; a low-only modulator stays quiet). At the default
+0 the original silent-carrier contract holds exactly, bit-identical —
+turning it up deliberately relaxes that contract for the top bands. The
+noise is deterministic per `seed`, family doctrine.
+
+### `mix` — the synth under its own robot voice
+
+Equal-power blend of the dry **carrier** against the vocoded output — the
+classic parallel move (the pad fades in under itself talking). Endpoints
+are exact: 100 is bit-identical wet, 0 returns the carrier untouched.
+
 ## Choosing the two signals (the actual craft)
 
 - **The carrier must have energy where the modulator has bands.** The eternal
