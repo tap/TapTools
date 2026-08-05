@@ -13,8 +13,11 @@ measured and explained in [five strings, no guitar](../fivecomb.md) and
 
 ## Voicings to keep
 
-Tunings in Hz; MIDI equivalents in parentheses for orientation. (The
-object speaks Hz only — keep `mtof` handy, or this table.)
+Tunings in Hz; MIDI equivalents in parentheses for orientation. The
+`notes` message tunes a voicing in one gesture — up to five MIDI note
+numbers, fractional allowed, so just-intonation intervals land exactly
+(`notes 45 57 64 69.86 76` is the major glow with a true 5/4 third) — and
+the Hz attributes remain for exact ratios like the bell plate.
 
 | voicing | freq1..5 | character |
 |---|---|---|

@@ -43,7 +43,9 @@ position.*
 
 ### `freq1..5` and `freq` — the tuning
 
-Per-voice frequencies (5 Hz floor, the GRM's own) plus a master multiplier
+Per-voice frequencies (5 Hz floor, the GRM's own) — or the `notes`
+message, which tunes up to five combs from MIDI note numbers in one list
+(fractional allowed) — plus a master multiplier
 (0..2) that transposes the whole bank — the master is the *performance*
 control, gliding every voice proportionally so chords stay chords.
 
