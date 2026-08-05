@@ -8,7 +8,9 @@ actually means by "Moog" — the bass that walks and the lead that sings.
 The model here is the classic three-oscillator monosynth voice: three
 oscillators into a mixer, one four-pole ladder, one loudness contour, one
 filter contour, glide on the pitch. Nothing below requires an object the
-package doesn't ship.
+package doesn't ship. And once the voice stands, the [next
+recipe](moog-classics.md) drives it at the records with names on them —
+Winwood, Worrell, Wright, Emerson.
 
 Companion material: the [oscillator chapter](../vco.md) (the stack's
 rationale and the analog section's ranges), the [ladder
