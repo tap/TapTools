@@ -9,13 +9,13 @@
 #include <taptools/autowah.h>
 #include <taptools/conv_engine.h>
 #include <taptools/diode_ladder.h>
+#include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
 #include <taptools/overdrive.h>
 #include <taptools/step_seq.h>
 #include <taptools/svf.h>
 #include <taptools/tb303_voice.h>
 #include <taptools/tr808_kick.h>
-#include <taptools/harmonizer.h>
 #include <taptools/tune.h>
 #include <taptools/vco.h>
 

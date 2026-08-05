@@ -139,8 +139,8 @@ SCENARIO("a chord stays bounded and both voices contribute") {
     }
     rms = std::sqrt(rms / (out.size() / 2.0));
 
-    REQUIRE(peak < 4.0);   // three summed unit-ish voices, sane headroom
-    REQUIRE(rms > 0.05);   // and actually sounding
+    REQUIRE(peak < 4.0); // three summed unit-ish voices, sane headroom
+    REQUIRE(rms > 0.05); // and actually sounding
     const size_t tail = 1 << 15;
     REQUIRE(band_mag(out, 220.0 * std::exp2(4.0 / 12.0), tail) > 0.01); // the third is present
     REQUIRE(band_mag(out, 220.0 * std::exp2(7.0 / 12.0), tail) > 0.01); // the fifth is present
@@ -195,7 +195,7 @@ SCENARIO("interval glide walks the pitch instead of jumping it") {
     auto out = run_saw(hz, 220.0, 0.75);
     hz.set_interval(0, 12.0);
     // Mid-glide (about one time constant in), the pitch must sit strictly between.
-    auto mid = run_saw(hz, 220.0, 0.35);
+    auto         mid    = run_saw(hz, 220.0, 0.35);
     const double mid_hz = measure_hz(mid);
     REQUIRE(mid_hz > 240.0);
     REQUIRE(mid_hz < 425.0);
