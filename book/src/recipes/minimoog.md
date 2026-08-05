@@ -31,11 +31,14 @@ gate (0/1 signal) ──┬───────────▶ tap.adsr~ (filte
 - **Pitch** arrives as note frequencies (floats into each `tap.vco~` left
   inlet; halve for voice 3's octave-down). The oscillators' own `smooth`
   ramp is the glide knob — no portamento object exists or is needed.
-- **Gate** is any signal that goes above 0.5 and back — `tap.adsr~` reads
-  the gate by level, per sample. A `tap.303.seq~` gate output (1.0 plain,
-  2.0 accented) drives it directly, which also gets you slides for free;
-  so does a MIDI-driven 0/1 signal, or the `trigger 1` / `trigger 0`
-  attribute messages for mouse-driven patching.
+- **Gate** is any signal that rises above `tap.adsr~`'s `threshold` and
+  back — the envelope reads the gate by level, per sample. A
+  `tap.303.seq~` gate output (1.0 plain, 2.0 accented) drives it
+  directly, which also gets you slides for free; so does a MIDI-driven
+  0/1 signal, or the `trigger 1` / `trigger 0` attribute messages for
+  mouse-driven patching. The default `mode analog` gives the envelopes
+  below the RC curves a Model D actually had; `velocity` (off by
+  default) lets the gate's amplitude scale the hit.
 - **The filter contour** scales into the cutoff's signal inlet: envelope ×
   `amount` (Hz) + `base` (Hz) into `tap.ladder~`'s right inlet. The classic
   panel's "amount" knob is your `*~`.
