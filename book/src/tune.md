@@ -150,9 +150,10 @@ so what you see is what it acted on.
   coloration to sustained noise. For processing unpitched material there
   are better rooms in this house.
 - **Creative shifting.** If the goal is *an interval* rather than
-  *intonation*, `tap.shift~` is the plain shifter and `tap.pitchaccum~`
-  the spiral; `tap.tune~` always measures first and that measurement is
-  latency you don't need.
+  *intonation*, `tap.shift~` is the plain shifter, `tap.harmony~` the
+  formant-preserving chord stack, and `tap.pitchaccum~` the spiral;
+  `tap.tune~` always measures first and that measurement is latency you
+  don't need.
 
 ## Checkpoint
 

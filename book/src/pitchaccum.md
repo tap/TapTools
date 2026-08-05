@@ -102,9 +102,8 @@ spirals and a timed `recall` between them is a gesture in itself.
 - **One clean transposition, no loop:** `tap.shift~` is the plain shifter —
   same modernized engine, none of the plumbing.
 - **Formant-true vocal shifting:** granular transposition shifts formants
-  with the pitch; chipmunks live this way. A vocoder-based resynthesis
-  (`tap.vocoder~` has other talents) or a dedicated formant tool is the
-  answer there.
+  with the pitch; chipmunks live this way. `tap.harmony~` is the dedicated
+  tool — formant-preserving voices at fixed intervals, chords included.
 - **Rhythmically exact multi-tap echoes:** the delays here serve the loop;
   `tap.multitap~` serves the grid.
 

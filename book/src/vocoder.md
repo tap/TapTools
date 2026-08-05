@@ -95,7 +95,9 @@ either input. Linear, boring, necessary.
 - **High-fidelity cross-synthesis.** Twenty-four bands is a *voice*, not a
   spectrograph; for surgical spectral morphing you want FFT-domain tools
   (`tap.spectra~` is the start of that corridor).
-- **Formant preservation while shifting** — related, but a different machine.
+- **Formant preservation while shifting** — related, but a different machine:
+  `tap.harmony~`, which multiplies the voice itself instead of wearing it
+  over a carrier.
 
 ## Checkpoint
 
