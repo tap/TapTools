@@ -15,6 +15,7 @@
 #include <taptools/svf.h>
 #include <taptools/tb303_voice.h>
 #include <taptools/tr808_kick.h>
+#include <taptools/harmonizer.h>
 #include <taptools/tune.h>
 #include <taptools/vco.h>
 
@@ -753,6 +754,65 @@ int taptools_tune_process(taptools_tune h, const double* in, double* out, int n)
     return with<tune_corrector>(h, [&](tune_corrector& c) {
         for (int i = 0; i < n; ++i) {
             out[i] = c.process(in[i]);
+        }
+    });
+}
+
+// ---- tap.harmony~ ------------------------------------------------------------------------------
+
+using harmony_kernel = tap::tools::harmony::harmonizer;
+
+taptools_harmonizer taptools_harmonizer_create(void) {
+    return static_cast<taptools_harmonizer>(new harmony_kernel());
+}
+
+void taptools_harmonizer_destroy(taptools_harmonizer h) {
+    delete static_cast<harmony_kernel*>(h);
+}
+
+int taptools_harmonizer_prepare(taptools_harmonizer h, double sr, int fft_size) {
+    if (fft_size < 64 || (fft_size & (fft_size - 1)) != 0) {
+        return -1;
+    }
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) { k.prepare(sr, static_cast<size_t>(fft_size)); });
+}
+
+int taptools_harmonizer_clear(taptools_harmonizer h) {
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) { k.clear(); });
+}
+
+int taptools_harmonizer_set_interval(taptools_harmonizer h, int voice, double st) {
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) { k.set_interval(voice, st); });
+}
+
+int taptools_harmonizer_set_gain(taptools_harmonizer h, int voice, double gain) {
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) { k.set_gain(voice, gain); });
+}
+
+int taptools_harmonizer_set_dry(taptools_harmonizer h, double gain) {
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) { k.set_dry(gain); });
+}
+
+int taptools_harmonizer_set_formant(taptools_harmonizer h, int on) {
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) { k.set_formant(on != 0); });
+}
+
+int taptools_harmonizer_set_glide(taptools_harmonizer h, double ms) {
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) { k.set_glide(ms); });
+}
+
+int taptools_harmonizer_latency(taptools_harmonizer h) {
+    auto* k = static_cast<harmony_kernel*>(h);
+    return k ? static_cast<int>(k->latency()) : -1;
+}
+
+int taptools_harmonizer_process(taptools_harmonizer h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<harmony_kernel>(h, [&](harmony_kernel& k) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = k.process(in[i]);
         }
     });
 }

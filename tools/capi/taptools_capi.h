@@ -252,6 +252,22 @@ TAPTOOLS_API double taptools_tune_target_midi(taptools_tune h);
 TAPTOOLS_API double taptools_tune_applied_semitones(taptools_tune h);
 TAPTOOLS_API int    taptools_tune_process(taptools_tune h, const double* in, double* out, int n);
 
+// ---- tap.harmony~ (tap::tools::harmony::harmonizer) ----------------------------------------------
+
+typedef void* taptools_harmonizer;
+
+TAPTOOLS_API taptools_harmonizer taptools_harmonizer_create(void);
+TAPTOOLS_API void                taptools_harmonizer_destroy(taptools_harmonizer h);
+TAPTOOLS_API int                 taptools_harmonizer_prepare(taptools_harmonizer h, double sr, int fft_size);
+TAPTOOLS_API int                 taptools_harmonizer_clear(taptools_harmonizer h);
+TAPTOOLS_API int                 taptools_harmonizer_set_interval(taptools_harmonizer h, int voice, double st);
+TAPTOOLS_API int                 taptools_harmonizer_set_gain(taptools_harmonizer h, int voice, double gain);
+TAPTOOLS_API int                 taptools_harmonizer_set_dry(taptools_harmonizer h, double gain);
+TAPTOOLS_API int                 taptools_harmonizer_set_formant(taptools_harmonizer h, int on);
+TAPTOOLS_API int                 taptools_harmonizer_set_glide(taptools_harmonizer h, double ms);
+TAPTOOLS_API int                 taptools_harmonizer_latency(taptools_harmonizer h);
+TAPTOOLS_API int taptools_harmonizer_process(taptools_harmonizer h, const double* in, double* out, int n);
+
 // ---- pitch detector passthrough (tap::dsp::yin, for the notebooks' pitch tracking) ---------------
 
 typedef void* taptools_yin;

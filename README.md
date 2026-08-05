@@ -62,12 +62,13 @@ header adds no nested namespace, the class) the kernel lives in.
 | Kernel | Max object | Contents |
 |---|---|---|
 | `tune.h` | `tap.tune~` | Monophonic pitch correction (`tap::tools::tune`) |
+| `harmonizer.h` | `tap.harmony~` | Formant-preserving multi-voice harmonizer (`tap::tools::harmony`) |
 | `grm_comb.h` | `tap.5comb~` | GRM comb-bank recreation (`tap::tools::fivecomb`) |
 | `grm_pitchaccum.h` | `tap.pitchaccum~` | GRM PitchAccum recreation (`tap::tools::pitchaccum`) |
 
-`taptools.h` is the umbrella header that pulls in every kernel above. `stft.h`, `tune.h` and
-`conv_engine.h` reach into `tap::dsp` (the pinned DspTap submodule) for the real FFT and the pitch
-primitives; every other kernel is standard library only.
+`taptools.h` is the umbrella header that pulls in every kernel above. `stft.h`, `tune.h`,
+`harmonizer.h` and `conv_engine.h` reach into `tap::dsp` (the pinned DspTap submodule) for the
+real FFT and the pitch primitives; every other kernel is standard library only.
 
 Plus, all Max-free:
 

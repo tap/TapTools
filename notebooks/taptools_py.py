@@ -216,6 +216,17 @@ def load() -> ctypes.CDLL:
         "taptools_tune_target_midi":       ([vp], ctypes.c_double),
         "taptools_tune_applied_semitones": ([vp], ctypes.c_double),
         "taptools_tune_process":           ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_harmonizer_create":       ([], vp),
+        "taptools_harmonizer_destroy":      ([vp], None),
+        "taptools_harmonizer_prepare":      ([vp, ctypes.c_double, ctypes.c_int], ctypes.c_int),
+        "taptools_harmonizer_clear":        ([vp], ctypes.c_int),
+        "taptools_harmonizer_set_interval": ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_harmonizer_set_gain":     ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_harmonizer_set_dry":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_harmonizer_set_formant":  ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_harmonizer_set_glide":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_harmonizer_latency":      ([vp], ctypes.c_int),
+        "taptools_harmonizer_process":      ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -811,6 +822,58 @@ class Tune:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_tune_destroy(h)
+            self._h = None
+
+
+class Harmonizer:
+    """tap.harmony~'s kernel (tap::tools::harmony::harmonizer): up to four
+    formant-preserving pvoc voices at fixed intervals plus a latency-aligned
+    dry path. Intervals are fractional semitones; gains are linear."""
+
+    def __init__(self, sr: float = 48000.0, fft_size: int = 1024, **params):
+        self._h = _LIB.taptools_harmonizer_create()
+        _check(_LIB.taptools_harmonizer_prepare(self._h, float(sr), int(fft_size)), "prepare")
+        self.set(**params)
+
+    def set(self, *, intervals=None, gains=None, dry=None, formant=None, glide=None) -> "Harmonizer":
+        if intervals is not None:
+            for v, st in enumerate(intervals):
+                _check(_LIB.taptools_harmonizer_set_interval(self._h, v, float(st)), "interval")
+        if gains is not None:
+            for v, g in enumerate(gains):
+                _check(_LIB.taptools_harmonizer_set_gain(self._h, v, float(g)), "gain")
+        if dry is not None:
+            _check(_LIB.taptools_harmonizer_set_dry(self._h, float(dry)), "dry")
+        if formant is not None:
+            _check(_LIB.taptools_harmonizer_set_formant(self._h, int(bool(formant))), "formant")
+        if glide is not None:
+            _check(_LIB.taptools_harmonizer_set_glide(self._h, float(glide)), "glide")
+        return self
+
+    def chord(self, intervals, gain: float = 1.0) -> "Harmonizer":
+        """Enable the given intervals at equal gain; silence the remaining voices."""
+        sts = list(intervals)[:4]
+        self.set(intervals=sts + [0.0] * (4 - len(sts)),
+                 gains=[gain] * len(sts) + [0.0] * (4 - len(sts)))
+        return self
+
+    @property
+    def latency(self) -> int:
+        return _LIB.taptools_harmonizer_latency(self._h)
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_harmonizer_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_harmonizer_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_harmonizer_destroy(h)
             self._h = None
 
 
