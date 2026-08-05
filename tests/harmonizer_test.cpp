@@ -240,3 +240,100 @@ SCENARIO("the harmonizer passes input through before prepare") {
     REQUIRE(hz.process(0.25) == 0.25);
     REQUIRE(hz.latency() == 0);
 }
+
+SCENARIO("a stored preset recalls its targets exactly") {
+    tap::tools::harmony::harmonizer hz;
+    hz.prepare(k_sr);
+
+    hz.set_interval(0, 4.0);
+    hz.set_interval(1, 7.0);
+    hz.set_interval(2, -5.0);
+    hz.set_interval(3, 12.0);
+    hz.set_gain(0, 1.0);
+    hz.set_gain(1, 0.5);
+    hz.set_gain(2, 0.25);
+    hz.set_gain(3, 0.75);
+    hz.set_dry(0.5);
+    hz.set_glide(250.0);
+    hz.set_formant(false);
+    REQUIRE(hz.store_preset(5));
+
+    // scribble over everything
+    for (int v = 0; v < 4; ++v) {
+        hz.set_interval(v, 0.0);
+        hz.set_gain(v, 0.0);
+    }
+    hz.set_dry(1.0);
+    hz.set_glide(10.0);
+    hz.set_formant(true);
+
+    REQUIRE(hz.recall_preset(5, 0.0));
+    REQUIRE_FALSE(hz.morphing());
+    CHECK(hz.interval(0) == 4.0);
+    CHECK(hz.interval(1) == 7.0);
+    CHECK(hz.interval(2) == -5.0);
+    CHECK(hz.interval(3) == 12.0);
+    CHECK(hz.gain(0) == 1.0);
+    CHECK(hz.gain(1) == 0.5);
+    CHECK(hz.gain(2) == 0.25);
+    CHECK(hz.gain(3) == 0.75);
+    CHECK(hz.dry() == 0.5);
+    CHECK(hz.glide() == 250.0);
+    CHECK(hz.formant() == false);
+
+    // slot bounds are refused, not wrapped
+    REQUIRE_FALSE(hz.store_preset(-1));
+    REQUIRE_FALSE(hz.store_preset(16));
+    REQUIRE_FALSE(hz.recall_preset(16, 0.0));
+}
+
+SCENARIO("a timed recall glides an interval through the middle") {
+    tap::tools::harmony::harmonizer hz;
+    hz.prepare(k_sr);
+    hz.set_dry(0.0);
+    hz.set_gain(0, 1.0);
+    hz.set_interval(0, 0.0);
+
+    auto settle = run_saw(hz, 220.0, 0.75); // land the first chord
+
+    auto chord                                 = hz.snap_targets(); // the second chord: an octave up
+    chord.v[tap::tools::harmony::p_interval_0] = 12.0;
+    REQUIRE(hz.set_preset(1, chord));
+    REQUIRE(hz.recall_preset(1, 0.7));
+    REQUIRE(hz.morphing());
+
+    // Mid-morph the pitch must sit strictly between the start and the target.
+    auto         mid    = run_saw(hz, 220.0, 0.35);
+    const double mid_hz = measure_hz(mid);
+    REQUIRE(mid_hz > 240.0);
+    REQUIRE(mid_hz < 425.0);
+
+    // And well past the morph it must settle on the octave.
+    auto end = run_saw(hz, 220.0, 2.0);
+    REQUIRE_FALSE(hz.morphing());
+    REQUIRE(std::abs(cents(measure_hz(end), 440.0)) < 10.0);
+    (void)settle;
+}
+
+SCENARIO("recall with zero seconds lands immediately") {
+    tap::tools::harmony::harmonizer hz;
+    hz.prepare(k_sr);
+    hz.set_dry(0.0);
+    hz.set_gain(0, 1.0);
+    hz.set_interval(0, 0.0);
+
+    auto chord                                 = hz.snap_targets();
+    chord.v[tap::tools::harmony::p_interval_0] = 7.0;
+    REQUIRE(hz.set_preset(2, chord));
+
+    auto settle = run_saw(hz, 220.0, 0.5);
+    REQUIRE(hz.recall_preset(2, 0.0));
+    REQUIRE_FALSE(hz.morphing());
+    REQUIRE(hz.interval(0) == 7.0); // the target is there at once ...
+
+    // ... and the ordinary 10 ms glide slew de-clicks the landing, so the pitch is
+    // on the fifth well within the run.
+    auto out = run_saw(hz, 220.0, 1.0);
+    REQUIRE(std::abs(cents(measure_hz(out), 220.0 * std::exp2(7.0 / 12.0))) < 10.0);
+    (void)settle;
+}
