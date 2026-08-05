@@ -216,6 +216,18 @@ def load() -> ctypes.CDLL:
         "taptools_tune_target_midi":       ([vp], ctypes.c_double),
         "taptools_tune_applied_semitones": ([vp], ctypes.c_double),
         "taptools_tune_process":           ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_adsr_create":             ([], vp),
+        "taptools_adsr_destroy":            ([vp], None),
+        "taptools_adsr_prepare":            ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_adsr_clear":              ([vp], ctypes.c_int),
+        "taptools_adsr_set_attack":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_adsr_set_decay":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_adsr_set_sustain_db":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_adsr_set_release":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_adsr_set_mode":           ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_adsr_set_threshold":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_adsr_set_velocity":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_adsr_process":            ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_harmonizer_create":       ([], vp),
         "taptools_harmonizer_destroy":      ([vp], None),
         "taptools_harmonizer_prepare":      ([vp, ctypes.c_double, ctypes.c_int], ctypes.c_int),
@@ -822,6 +834,54 @@ class Tune:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_tune_destroy(h)
+            self._h = None
+
+
+ADSR_MODES = {"analog": 0, "hybrid": 1, "linear": 2, "exponential": 3}
+
+
+class Adsr:
+    """tap.adsr~'s kernel (tap::tools::adsr::generator): the virtual-analog
+    envelope (truncated RC attack, asymptotic decay/release) with the Jamoma
+    curves as compatibility modes. Gate amplitude is velocity under the
+    `velocity` sensitivity; the gate opens above `threshold`."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_adsr_create()
+        _check(_LIB.taptools_adsr_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, attack=None, decay=None, sustain=None, release=None, mode=None,
+            threshold=None, velocity=None) -> "Adsr":
+        if attack is not None:
+            _check(_LIB.taptools_adsr_set_attack(self._h, float(attack)), "attack")
+        if decay is not None:
+            _check(_LIB.taptools_adsr_set_decay(self._h, float(decay)), "decay")
+        if sustain is not None:
+            _check(_LIB.taptools_adsr_set_sustain_db(self._h, float(sustain)), "sustain")
+        if release is not None:
+            _check(_LIB.taptools_adsr_set_release(self._h, float(release)), "release")
+        if mode is not None:
+            _check(_LIB.taptools_adsr_set_mode(self._h, ADSR_MODES[mode]), "mode")
+        if threshold is not None:
+            _check(_LIB.taptools_adsr_set_threshold(self._h, float(threshold)), "threshold")
+        if velocity is not None:
+            _check(_LIB.taptools_adsr_set_velocity(self._h, float(velocity)), "velocity")
+        return self
+
+    def process(self, gate) -> np.ndarray:
+        gate = _f64(gate)
+        out = np.zeros_like(gate)
+        _check(_LIB.taptools_adsr_process(self._h, _p64(gate), _p64(out), gate.size), "process")
+        return out
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_adsr_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_adsr_destroy(h)
             self._h = None
 
 
