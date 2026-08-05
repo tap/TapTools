@@ -9,14 +9,18 @@ intervals you set in semitones, over a dry path the kernel delays into
 alignment so chords land as chords. This recipe is how to sing through it,
 and its worked examples are the modern masters of the effect: Bon Iver.
 
-The claims behind the object are pinned in the kernel's test battery
-(`tests/harmonizer_test.cpp`): each voice lands its commanded interval
-under the DspTap yin oracle, the dry path is sample-aligned with the
-voices to 10⁻⁶, a synthetic formant bump stays where the source put it
-only when `formant` is on, and interval glides walk the pitch through the
-middle instead of jumping. The engine per voice is the DspTap phase
-vocoder — the same peak-locked shifting and LPC formant machinery the
-[pitch machine chapter](../machine/pitch.md) derives.
+The claims behind the object are measured in the executed
+[verification notebook](https://github.com/tap/TapTools/blob/main/notebooks/harmonizer.ipynb)
+and pinned in the kernel's test battery (`tests/harmonizer_test.cpp`):
+across two octaves of voicings every interval lands within **0.04 cents**
+of its equal-tempered target under the DspTap yin oracle; the dry path is
+sample-aligned with the voices to a 3.7×10⁻⁸ residual — why chords land
+as chords, not flams; a synthetic formant bump stays near home only when
+`formant` is on (band centroid 1058 → 1154 Hz on a +7 shift, versus 1439
+riding the full ratio with it off); and interval glides walk the pitch
+through the middle instead of jumping. The engine per voice is the DspTap
+phase vocoder — the same peak-locked shifting and LPC formant machinery
+the [pitch machine chapter](../machine/pitch.md) derives.
 
 ## The instrument
 

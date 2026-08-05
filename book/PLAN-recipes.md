@@ -116,8 +116,10 @@ oracle-based test scenarios, capi + bridge, wrapper with reference page and help
 and **`recipes/choir-of-one.md`** documents it: the instrument (corrector → harmonizer),
 the Bon Iver worked examples ("Woods" as stacked chapel with the overdub-honesty note;
 "715 - CRΞΞKS" as the Messina-school live stack), craft notes, and the robot-vs-choir fork
-back to the vocoder chapter. A proper object chapter (Part VI territory) and an executed
-verification notebook remain future work — the recipe cites the pinned tests meanwhile.
+back to the vocoder chapter. The executed verification notebook shipped the same day
+(`notebooks/harmonizer.ipynb` — 0.04-cent interval accuracy, 3.7e-8 dry-alignment
+residual, the formant-centroid measurement — cited by the recipe). A proper object
+chapter (Part VI territory) remains future work.
 
 Other new recipes wait on new objects (or on the improvements plan landing — e.g. the vco
 performance section would simplify the Moog chapters' vibrato plumbing).
