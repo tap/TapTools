@@ -10,6 +10,7 @@
 #include "autowah.h"
 #include "bridged_t.h"
 #include "conv_engine.h"
+#include "delay.h"
 #include "diode_ladder.h"
 #include "grm_comb.h"
 #include "grm_pitchaccum.h"

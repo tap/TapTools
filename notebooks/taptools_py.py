@@ -13,9 +13,10 @@ Python re-implementation. Exposed kernels: tap.convolve~'s conv_engine
 (`Convolver`), tap.svf~ (`Svf`), tap.ladder~ (`Ladder`), tap.diode~
 (`Diode`), tap.303~ (`TB303`), tap.vco~ (`Vco`), tap.autowah~ (`Wah`),
 tap.overdrive~ (`Overdrive`), the step-sequencer rows behind tap.808.seq~ /
-tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`), and
-tap.tune~'s pitch corrector (`Tune`, with the shared DspTap detector passed
-through as `Yin` for the notebooks' pitch tracking). Parameter names on the
+tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
+tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), and tap.tune~'s pitch
+corrector (`Tune`, with the shared DspTap detector passed through as `Yin`
+for the notebooks' pitch tracking). Parameter names on the
 kernel classes mirror each kernel header's param_index enum.
 
 Copyright 2003-2026 Timothy Place. MIT License.
@@ -239,6 +240,28 @@ def load() -> ctypes.CDLL:
         "taptools_harmonizer_set_glide":    ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_harmonizer_latency":      ([vp], ctypes.c_int),
         "taptools_harmonizer_process":      ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_delay_create":           ([], vp),
+        "taptools_delay_destroy":          ([vp], None),
+        "taptools_delay_prepare":          ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_delay_set_time_ms":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_delay_set_feedback":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_delay_set_mix":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_delay_set_interp":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_delay_set_smooth_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_delay_clear":            ([vp], ctypes.c_int),
+        "taptools_delay_process":          ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_delay_process_mod":      ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_multitap_create":        ([], vp),
+        "taptools_multitap_destroy":       ([vp], None),
+        "taptools_multitap_prepare":       ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_multitap_set_taps":      ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_multitap_set_time_ms":   ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_multitap_set_gain":      ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_multitap_set_pan":       ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_multitap_set_interp":    ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_multitap_set_smooth_ms": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_multitap_clear":         ([vp], ctypes.c_int),
+        "taptools_multitap_process":       ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -935,6 +958,109 @@ class Harmonizer:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_harmonizer_destroy(h)
+            self._h = None
+
+
+class Delay:
+    """tap.delay~'s kernel (tap::tools::delay::line): a single slewed feedback
+    delay with an equal-power dry/wet mix. interp 1 (default) is 4-point
+    Hermite fractional; interp 0 is the legacy integer-sample truncation.
+    Feedback is clamped to 0.99 and the loop is DC-blocked."""
+
+    def __init__(self, sr: float = 48000.0, max_ms: float = 2000.0, **params):
+        self._h = _LIB.taptools_delay_create()
+        _check(_LIB.taptools_delay_prepare(self._h, float(sr), float(max_ms)), "prepare")
+        self.set(**params)
+
+    def set(self, *, time_ms=None, feedback=None, mix=None, interp=None,
+            smooth_ms=None) -> "Delay":
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_delay_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if interp is not None:
+            _check(_LIB.taptools_delay_set_interp(self._h, int(interp)), "interp")
+        if time_ms is not None:
+            _check(_LIB.taptools_delay_set_time_ms(self._h, float(time_ms)), "time_ms")
+        if feedback is not None:
+            _check(_LIB.taptools_delay_set_feedback(self._h, float(feedback)), "feedback")
+        if mix is not None:
+            _check(_LIB.taptools_delay_set_mix(self._h, float(mix)), "mix")
+        return self
+
+    def process(self, x, time_ms=None) -> np.ndarray:
+        """Run the line. `time_ms` may be a per-sample array (the signal-rate
+        override, which bypasses the time slew); omit it to use the slewed
+        set() target."""
+        x = _f64(x)
+        out = np.zeros_like(x)
+        if time_ms is None:
+            _check(_LIB.taptools_delay_process(self._h, _p64(x), _p64(out), x.size), "process")
+        else:
+            t = _f64(np.broadcast_to(np.asarray(time_ms, dtype=np.float64), x.shape))
+            _check(_LIB.taptools_delay_process_mod(self._h, _p64(x), _p64(t), _p64(out), x.size),
+                   "process_mod")
+        return out
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_delay_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_delay_destroy(h)
+            self._h = None
+
+
+class Multitap:
+    """tap.multitap~'s kernel (tap::tools::delay::multitap): up to 100 slewed
+    feedforward taps off one line, each with time (ms), linear gain, and
+    equal-power pan (-1..1), summed to stereo. No dry path, no feedback."""
+
+    def __init__(self, sr: float = 48000.0, max_ms: float = 2000.0, **params):
+        self._h = _LIB.taptools_multitap_create()
+        _check(_LIB.taptools_multitap_prepare(self._h, float(sr), float(max_ms)), "prepare")
+        self.set(**params)
+
+    def set(self, *, taps=None, times=None, gains=None, pans=None, interp=None,
+            smooth_ms=None) -> "Multitap":
+        """`times`/`gains`/`pans` are per-tap sequences; if `taps` (the active
+        count) is omitted and `times` is given, the count follows len(times)."""
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_multitap_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if interp is not None:
+            _check(_LIB.taptools_multitap_set_interp(self._h, int(interp)), "interp")
+        if times is not None:
+            for i, ms in enumerate(times):
+                _check(_LIB.taptools_multitap_set_time_ms(self._h, i, float(ms)), "time_ms")
+            if taps is None:
+                taps = len(list(times))
+        if gains is not None:
+            for i, g in enumerate(gains):
+                _check(_LIB.taptools_multitap_set_gain(self._h, i, float(g)), "gain")
+        if pans is not None:
+            for i, p in enumerate(pans):
+                _check(_LIB.taptools_multitap_set_pan(self._h, i, float(p)), "pan")
+        if taps is not None:
+            _check(_LIB.taptools_multitap_set_taps(self._h, int(taps)), "taps")
+        return self
+
+    def process(self, x):
+        """Returns the stereo tap sum as an (outL, outR) pair."""
+        x = _f64(x)
+        out_l = np.zeros_like(x)
+        out_r = np.zeros_like(x)
+        _check(_LIB.taptools_multitap_process(self._h, _p64(x), _p64(out_l), _p64(out_r), x.size),
+               "process")
+        return out_l, out_r
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_multitap_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_multitap_destroy(h)
             self._h = None
 
 
