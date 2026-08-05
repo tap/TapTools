@@ -64,6 +64,89 @@ the left inlet** (a synth weakly filtered by your voice means the cables
 are backwards), and a silent carrier is silence no matter how loudly you
 speak — pinned by test, and the fastest debugging question in vocoding.
 
+## The songbook
+
+The famous "vocoder songs" are the best syllabus for the craft — partly
+because several of them aren't vocoders, and knowing which is which
+teaches more than any preset. Provenance below follows the part's rule:
+documented where it's documented, labeled reconstruction where it isn't.
+
+### "In the Air Tonight" (1981) — the ghost choir
+
+What's documented: Phil Collins ran the verse vocal through a Roland
+VP-330 — a *soft* vocoder, voiced like a string machine, mixed under a
+nearly whispered dry vocal. The reconstruction: this is the anti-robot
+patch. Carrier: two saws, `detune` ±4, `imperfect 0.3`, **no noise
+layer** — sibilance is what you don't want here — through `tap.svf~`
+(`@type lowpass @frequency 4000`) to take the glass off. Vocoder:
+`q 8–12`, `response_interval 120` — wide bands and a slow mouth blur the
+consonants into breath. Mix the vocoded return *under* the dry voice, a
+shadow rather than a double. The dry whisper carries the words; the
+vocoder carries the dread.
+
+### "Mr. Blue Sky" / "Mr. Roboto" / "Intergalactic" — the front-and-center robot
+
+ELO (EMS vocoders, documented), Styx, and the Beastie Boys are the
+talking-synth patch played as a *lead*: bright carrier, crisp bands
+(`q 20–30`), fast mouth (`response_interval 15–30`), and the melody in
+the carrier's held notes while the words ride the modulator. Kraftwerk —
+the genre's founders, on custom and commercial hardware across the
+years — sit here too, usually with a single unison line rather than
+chords: the robot speaks in monophony. Enunciate. Then enunciate more.
+
+One label to keep straight: Zapp, Roger Troutman, and the P-Funk
+talkbox records are **not vocoders** — a talkbox pipes the carrier into
+the performer's actual mouth and the room mic hears real articulation.
+Chasing that sound with this object gets you a cousin, not the thing.
+
+### "Hide and Seek" (2005) — the one that isn't a vocoder
+
+What's documented: Imogen Heap sang into a harmonizer (the DigiTech
+Vocalist lineage), a keyboard choosing the chord — so every sound on the
+record is her *actual voice*, pitch-shifted into harmony, breath and
+formants intact. That's why it doesn't sound like a robot; there is no
+carrier. Two routes, honestly ranked:
+
+1. **The closer one — a shifter stack.** Voice into parallel
+   `tap.shift~` objects at chord intervals, dry voice summed in the
+   middle. `tap.semitone2ratio` exists for exactly this: `-5`, `+3`,
+   `+7` → ratios into each shifter's middle inlet. Keep the voicing
+   close (within ±7 st) — granular shifting moves formants with the
+   pitch, and wide intervals go chipmunk where the hardware's
+   formant-corrected voices didn't. Change the interval set per chord
+   (messages, or a small Max chord-to-ratios mapping) and you are
+   playing the record's instrument.
+2. **The vibe — the choir patch above.** Speak-sing into the choir row's
+   settings with an `mc.` carrier holding the chords. It will sound like
+   a vocoder doing Imogen Heap, which is its own valid sound — just
+   don't mistake it for the record's mechanism.
+
+### The plugin-era default — an Orange-school carrier
+
+The late-90s software vocoders (the Orange Vocoder the most loved of
+them) changed the *default sound* of the effect: where hardware
+vocoders leaned on whatever synth was nearby, the plugins shipped with
+a built-in, very bright virtual-analog carrier — so "the plugin sound"
+is really a carrier voicing: wide, glossy, present. One honest line
+first: that plugin is still a shipping commercial product, and the
+house provenance rule applies — nothing here reverse-engineers it. What
+follows is *our* bright VA carrier in that school, built from this
+package's own oscillator:
+
+```text
+tap.vco~ (saw, f,   detune -6, seed 11) ──┐
+tap.vco~ (saw, f,   detune +6, seed 22) ──┼─▶ +~ ─▶ tap.svf~ (highshelf) ─▶ carrier
+tap.vco~ (saw, f+12, gain -6,  seed 33) ──┤
+tap.noise~ (white) ─ *~ 0.08 ─────────────┘
+```
+
+All three oscillators `@shape 2 @imperfect 0.2 @jitter 2`; the octave-up
+voice adds the gloss the era is remembered for; `tap.svf~ @type
+highshelf @frequency 6000 @gain 4` is the sheen. Vocoder settings:
+`q 25`, `response_interval 20`. Play the carrier in fifths and octaves
+rather than full triads — the brightness supplies the width, and triads
+in a bright carrier smear the consonant bands.
+
 ## When to leave the recipe
 
 - **You want tuned speech, not a played carrier** — the corrector

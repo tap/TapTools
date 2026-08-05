@@ -90,7 +90,12 @@ scale — corrected in `src/pitchaccum.md`):
   the honest wrinkle that the vco's signal inlet bypasses `smooth` (→ improvements plan).
 - **`recipes/robot-voice.md` — The robot on the radio.** Carrier casting (saw pair + 10 %
   noise as the sibilance budget), the three settings rows (talk/choir/rhythm-transfer),
-  the left-inlet-is-modulator debugging fact.
+  the left-inlet-is-modulator debugging fact. Extended with the songbook: "In the Air
+  Tonight"'s VP-330 ghost choir, the front-and-center robots (ELO/Styx/Beasties/
+  Kraftwerk), the talkbox distinction, "Hide and Seek" honestly labeled a harmonizer
+  (with the `tap.shift~` + `tap.semitone2ratio` stack as the closer route), and an
+  Orange-school plugin-era carrier — built as our own VA voicing, with the house rule
+  against reverse-engineering shipping products stated in print.
 - **`recipes/shimmer.md` — The staircase and the wash.** The full Eno-school chain:
   pitchaccum spiral (+12/+7) into `tap.verb~` or a convolved church; damping as the
   make-or-break; descent, micro-halo, and morph-gesture variants.
