@@ -75,17 +75,16 @@ Then the two moves that carry twenty minutes:
 |---|---|
 | loudness `tap.adsr~` | `@attack 2 @decay 180 @sustain -12 @release 120` |
 | filter `tap.adsr~` | `@attack 2 @decay 160 @sustain -20 @release 160`, amount 1800 Hz, base 150 Hz |
-| ladder | `@mode 0 @resonance 0.3 @drive 6` |
+| ladder | `@mode lp24 @resonance 0.3 @drive 6` |
 | slew (`slide~`) | short; raise it only for deliberate swoops |
 | seq | `@swing 0` — the genre is a grid, and the delay does the humanizing |
 
 Two period tricks worth their lines: pan alternate notes (a `length 8` row
 of accents driving `tap.pan~` recreates the famous ping-pong doubling), and
-put an eighth-note delay after the voice — the echo, not the sequencer, is
-where these records' motion lives. Note `tap.delay~` is a plain
-integer-sample delay (no feedback, no interpolation), so use it for the
-single slap and patch feedback around it, or reach for Max's delay objects
-for modulated regeneration.
+put an eighth-note `tap.delay~` after the voice (`@feedback 40 @mix 30`) —
+the echo, not the sequencer, is where these records' motion lives. Since
+its rebuild the delay interpolates (Hermite) and regenerates through a
+DC-blocked loop; `@interp 0` remains the bit-faithful legacy mode.
 
 Glue: an 808 closed-hat row in 16ths from the drum scaffold, mixed low.
 Accents land in this scaffold too: turn up `tap.adsr~`'s `velocity`

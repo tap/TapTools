@@ -28,11 +28,12 @@ tap.noise~ (white) ─ *~ 0.1┘
   the [Moog recipe's](minimoog.md) stack values; skip the octave-down
   voice — vocoded speech reads clearest with the energy above the
   fundamental.
-- **A tenth of white noise** (`tap.noise~ @mode white` through `*~ 0.1`):
-  this is the *s* and *t* budget. The object has no unvoiced/sibilance
-  path of its own, so the noise rides the carrier full-time and the
-  modulator's high-band envelopes gate it into consonants exactly when
-  needed.
+- **The *s* and *t* budget.** `@sibilance 0.3` is the built-in version —
+  a seeded noise source in the top bands' carrier, gated by the
+  modulator's high-band envelopes, arriving exactly when consonants do.
+  The manual alternative (a tenth of `tap.noise~` summed into the
+  carrier) remains the craftier option when you want to choose the noise
+  color yourself.
 - **Pitch is the performance.** The vocoder never changes the carrier's
   pitch, so the carrier's notes are the melody. Held chords (an `mc.`
   stack of carriers) make the robot a choir; a single line makes it a

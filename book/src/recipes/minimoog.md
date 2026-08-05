@@ -64,9 +64,8 @@ patches alone:
 
 All three: `@shape 2` (saw), `@jitter 3 @track 2 @imperfect 0.3`, and
 `smooth` per the patch below. Sum through `*~ 0.36` (≈ 1/2.8, headroom for
-three voices), then `tap.ladder~` at the chapter's voicing: `@mode 0` (the
-lp24 response — the mode attribute is the numeric pole-mix index)
-`@resonance 0.35 @drive 9 @asym 0.45 @comp 0.25`. Keeping `comp` low
+three voices), then `tap.ladder~` at the chapter's voicing:
+`@mode lp24 @resonance 0.35 @drive 9 @asym 0.45 @comp 0.25`. Keeping `comp` low
 preserves the authentic passband droop; `drive 9` sits where the ladder
 notebook measures the tanh stages just starting to thicken (3.5 % THD at
 8 dB). Spend the character budget in the filter first — the chapter's
