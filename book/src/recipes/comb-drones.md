@@ -16,8 +16,9 @@ measured and explained in [five strings, no guitar](../fivecomb.md) and
 Tunings in Hz; MIDI equivalents in parentheses for orientation. The
 `notes` message tunes a voicing in one gesture — up to five MIDI note
 numbers, fractional allowed, so just-intonation intervals land exactly
-(`notes 45 57 64 69.86 76` is the major glow with a true 5/4 third) — and
-the Hz attributes remain for exact ratios like the bell plate.
+(`notes 45 52 57 60.86 64` is the major glow with its true 5/4 third at
+275 Hz) — and the Hz attributes remain for exact ratios like the bell
+plate.
 
 | voicing | freq1..5 | character |
 |---|---|---|
