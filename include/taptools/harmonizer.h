@@ -46,13 +46,13 @@ namespace tap::tools {
     namespace harmony {
 
         constexpr int    k_max_voices       = 4;
-        constexpr double k_max_interval_st  = 24.0;   // == the pvoc ratio clamp [1/4, 4]
-        constexpr double k_max_gain         = 2.0;    // linear; wrappers speak dB
-        constexpr double k_default_glide_ms = 10.0;   // click-free, not yet audible
+        constexpr double k_max_interval_st  = 24.0; // == the pvoc ratio clamp [1/4, 4]
+        constexpr double k_max_gain         = 2.0;  // linear; wrappers speak dB
+        constexpr double k_default_glide_ms = 10.0; // click-free, not yet audible
         constexpr double k_max_glide_ms     = 2000.0;
         constexpr double k_gain_slew_ms     = 10.0;
-        constexpr double k_gain_epsilon     = 1e-4;   // below this a voice is "off"
-        constexpr size_t k_default_fft      = 1024;   // the pvoc desktop operating point
+        constexpr double k_gain_epsilon     = 1e-4; // below this a voice is "off"
+        constexpr size_t k_default_fft      = 1024; // the pvoc desktop operating point
 
         /// Formant-preserving multi-voice harmonizer. House shape: prepare(sr) buys all
         /// geometry, process(in) is per-sample and allocation-free, every setter is safe
@@ -119,7 +119,7 @@ namespace tap::tools {
             }
 
             /// Dry-path gain (latency-aligned inside the kernel), linear [0, 2], default 1.
-            void set_dry(double gain) { m_target_dry = std::clamp(gain, 0.0, k_max_gain); }
+            void   set_dry(double gain) { m_target_dry = std::clamp(gain, 0.0, k_max_gain); }
             double dry() const { return m_target_dry; }
 
             /// LPC formant preservation on every voice (see tap::dsp::basic_pvoc). On by
@@ -163,10 +163,10 @@ namespace tap::tools {
                 }
 
                 // dry path, delayed to the voices' emission time
-                const double dry            = m_dry_ring[m_dry_write];
-                m_dry_ring[m_dry_write]     = in;
-                m_dry_write                 = (m_dry_write + 1) % m_dry_ring.size();
-                m_current_dry              += m_gain_coeff * (m_target_dry - m_current_dry);
+                const double dry        = m_dry_ring[m_dry_write];
+                m_dry_ring[m_dry_write] = in;
+                m_dry_write             = (m_dry_write + 1) % m_dry_ring.size();
+                m_current_dry += m_gain_coeff * (m_target_dry - m_current_dry);
 
                 double out = m_current_dry * dry;
 
@@ -184,7 +184,7 @@ namespace tap::tools {
                         m_active[i] = true;
                     }
 
-                    m_current_st[i]   += m_glide_coeff * (m_target_st[i] - m_current_st[i]);
+                    m_current_st[i] += m_glide_coeff * (m_target_st[i] - m_current_st[i]);
                     m_current_gain[i] += m_gain_coeff * (m_target_gain[i] - m_current_gain[i]);
 
                     const double ratio = std::exp2(m_current_st[i] / 12.0);
