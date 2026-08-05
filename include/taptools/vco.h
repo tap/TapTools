@@ -39,6 +39,17 @@
 ///                 `track` (-10..10 cents/octave) — V/oct calibration error relative to A440:
 ///                   the pitch offset grows with the distance from the calibration center, like a
 ///                   real exponential converter drifting away from its trim point.
+///             - Performance modulation (deterministic, no RNG; depth 0 stays bit-identical to
+///               the ideal oscillator):
+///                 `vibrato` (0..100 cents) / `vibrato_rate` (0.05..20 Hz) — a sine LFO on the
+///                   pitch, calibrated in cents so the musical width is register-independent
+///                   (the FM inlet, calibrated in Hz, is not).
+///                 `vibrato_delay` (0..5000 ms) — the singing control: the vibrato fades in
+///                   through a one-pole with this time constant, re-armed on every
+///                   frequency-target change (a new note). Signal-rate frequency (process_at)
+///                   does not re-arm — there, the caller is the modulation.
+///                 `bend` (-24..24 semitones) — pitch bend riding the standard smooth ramp: the
+///                   wheel, as a parameter.
 ///
 ///             As in the other TapTools kernels: per-sample linear ramps on every parameter, a
 ///             16-slot preset-morph engine, allocation-free processing, setters safe while audio
@@ -65,15 +76,19 @@ namespace tap::tools {
         constexpr double k_pi                = 3.14159265358979323846;
 
         enum param_index : int {
-            p_gain = 0,  // output gain, dB
-            p_frequency, // Hz
-            p_shape,     // 0 sine .. 1 triangle .. 2 saw .. 3 pulse (continuous morph)
-            p_pw,        // pulse width, 1..99 %
-            p_drift,     // slow random pitch walk depth, cents
-            p_detune,    // static detune, cents
-            p_imperfect, // 0..1 waveform imperfection (Model-D-ish curvature/rounding/asymmetry)
-            p_jitter,    // fast pitch noise depth, cents
-            p_track,     // V/oct calibration error, cents per octave from A440
+            p_gain = 0,      // output gain, dB
+            p_frequency,     // Hz
+            p_shape,         // 0 sine .. 1 triangle .. 2 saw .. 3 pulse (continuous morph)
+            p_pw,            // pulse width, 1..99 %
+            p_drift,         // slow random pitch walk depth, cents
+            p_detune,        // static detune, cents
+            p_imperfect,     // 0..1 waveform imperfection (Model-D-ish curvature/rounding/asymmetry)
+            p_jitter,        // fast pitch noise depth, cents
+            p_track,         // V/oct calibration error, cents per octave from A440
+            p_vibrato,       // periodic pitch modulation depth, cents
+            p_vibrato_rate,  // vibrato rate, Hz
+            p_vibrato_delay, // vibrato onset time constant after a note change, ms (0 = instant)
+            p_bend,          // pitch bend, semitones (rides the smooth ramp — the wheel)
             k_num_params
         };
 
@@ -91,15 +106,19 @@ namespace tap::tools {
 
             static params defaults() {
                 params p;
-                p.v[p_gain]      = 0.0;
-                p.v[p_frequency] = 220.0;
-                p.v[p_shape]     = static_cast<double>(wave_saw);
-                p.v[p_pw]        = 50.0;
-                p.v[p_drift]     = 0.0;
-                p.v[p_detune]    = 0.0;
-                p.v[p_imperfect] = 0.0;
-                p.v[p_jitter]    = 0.0;
-                p.v[p_track]     = 0.0;
+                p.v[p_gain]          = 0.0;
+                p.v[p_frequency]     = 220.0;
+                p.v[p_shape]         = static_cast<double>(wave_saw);
+                p.v[p_pw]            = 50.0;
+                p.v[p_drift]         = 0.0;
+                p.v[p_detune]        = 0.0;
+                p.v[p_imperfect]     = 0.0;
+                p.v[p_jitter]        = 0.0;
+                p.v[p_track]         = 0.0;
+                p.v[p_vibrato]       = 0.0;
+                p.v[p_vibrato_rate]  = 5.0;
+                p.v[p_vibrato_delay] = 0.0;
+                p.v[p_bend]          = 0.0;
                 return p;
             }
         };
@@ -125,6 +144,14 @@ namespace tap::tools {
                 return std::clamp(value, 0.0, 20.0);
             case p_track:
                 return std::clamp(value, -10.0, 10.0);
+            case p_vibrato:
+                return std::clamp(value, 0.0, 100.0);
+            case p_vibrato_rate:
+                return std::clamp(value, 0.05, 20.0);
+            case p_vibrato_delay:
+                return std::clamp(value, 0.0, 5000.0);
+            case p_bend:
+                return std::clamp(value, -24.0, 24.0);
             default:
                 return value;
             }
@@ -164,6 +191,8 @@ namespace tap::tools {
                 m_jit_lp      = 0.0;
                 m_jit_count   = 0;
                 m_round_lp    = 0.0;
+                m_vib_phase   = 0.0;
+                m_vib_env     = 0.0;
             }
 
             void snap() {
@@ -196,7 +225,14 @@ namespace tap::tools {
                 if (index < 0 || index >= k_num_params) {
                     return;
                 }
-                ramp_to(index, clamp_param(index, value), static_cast<long>(m_smooth_ms * 0.001 * m_sr));
+                const double tgt = clamp_param(index, value);
+                // A new note re-arms the vibrato onset envelope (the delayed-vibrato behavior of
+                // a played instrument). Signal-rate frequency (process_at) deliberately does not
+                // re-arm — there, you are the modulation.
+                if (index == p_frequency && tgt != m_ramp[p_frequency].target) {
+                    m_vib_env = 0.0;
+                }
+                ramp_to(index, tgt, static_cast<long>(m_smooth_ms * 0.001 * m_sr));
             }
 
             void set_gain(double db) { set_param(p_gain, db); }
@@ -208,6 +244,10 @@ namespace tap::tools {
             void set_imperfect(double x) { set_param(p_imperfect, x); }
             void set_jitter(double cents) { set_param(p_jitter, cents); }
             void set_track(double cents_per_oct) { set_param(p_track, cents_per_oct); }
+            void set_vibrato(double cents) { set_param(p_vibrato, cents); }
+            void set_vibrato_rate(double hz) { set_param(p_vibrato_rate, hz); }
+            void set_vibrato_delay(double ms) { set_param(p_vibrato_delay, ms); }
+            void set_bend(double semitones) { set_param(p_bend, semitones); }
 
             /// Snap the shape to one of the classic waveforms.
             void set_waveform(int w) { set_shape(static_cast<double>(std::clamp(w, 0, k_num_waveforms - 1))); }
@@ -330,6 +370,31 @@ namespace tap::tools {
                 return (m_rng / 2147483648.0) - 1.0;
             }
 
+            // Periodic pitch modulation in cents: a sine LFO scaled by the onset envelope — a
+            // one-pole rise toward 1 whose time constant is the vibrato_delay parameter,
+            // re-armed by each frequency-target change (the played instrument's delayed
+            // vibrato). Phase and envelope advance deterministically regardless of depth, so
+            // depth 0 stays bit-identical to the ideal oscillator.
+            double tick_vibrato() {
+                const double rate = m_ramp[p_vibrato_rate].current;
+                m_vib_phase       = wrap01(m_vib_phase + rate / m_sr);
+
+                const double delay_ms = m_ramp[p_vibrato_delay].current;
+                if (delay_ms <= 0.0) {
+                    m_vib_env = 1.0;
+                }
+                else {
+                    const double a = 1.0 - std::exp(-1.0 / (delay_ms * 0.001 * m_sr));
+                    m_vib_env += a * (1.0 - m_vib_env);
+                }
+
+                const double depth = m_ramp[p_vibrato].current;
+                if (depth <= 0.0) {
+                    return 0.0;
+                }
+                return depth * m_vib_env * std::sin(2.0 * k_pi * m_vib_phase);
+            }
+
             // Slow random pitch walk in cents: ~2 Hz sample-and-hold through a ~0.5 Hz one-pole.
             double tick_drift(double depth_cents) {
                 if (depth_cents <= 0.0) {
@@ -445,7 +510,8 @@ namespace tap::tools {
                 const double imp = m_ramp[p_imperfect].current;
 
                 double cents = m_ramp[p_detune].current + tick_drift(m_ramp[p_drift].current)
-                               + tick_jitter(m_ramp[p_jitter].current) + imp * m_tol_cents;
+                               + tick_jitter(m_ramp[p_jitter].current) + tick_vibrato() + m_ramp[p_bend].current * 100.0
+                               + imp * m_tol_cents;
                 const double track = m_ramp[p_track].current;
                 if (track != 0.0 && base_hz > 0.0) {
                     cents += track * std::log2(base_hz / 440.0); // V/oct error from the trim point
@@ -542,6 +608,8 @@ namespace tap::tools {
             double   m_jit_sh{0.0};
             double   m_jit_lp{0.0};
             int      m_jit_count{0};
+            double   m_vib_phase{0.0};
+            double   m_vib_env{0.0};
             double   m_round_lp{0.0};
             double   m_round_a{1.0};
             double   m_round_imp{-1.0};

@@ -523,7 +523,8 @@ class Vco(_Kernel):
 
     PREFIX = "taptools_vco"
     PARAMS = {"gain": 0, "frequency": 1, "shape": 2, "pw": 3, "drift": 4, "detune": 5,
-              "imperfect": 6, "jitter": 7, "track": 8}
+              "imperfect": 6, "jitter": 7, "track": 8, "vibrato": 9, "vibrato_rate": 10,
+              "vibrato_delay": 11, "bend": 12}
     SINE, TRIANGLE, SAW, PULSE = range(4)
 
     def process(self, n: int | None = None, fm_hz=None, sync=None) -> np.ndarray:

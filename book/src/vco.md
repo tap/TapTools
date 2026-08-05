@@ -199,6 +199,32 @@ tolerances** so each seed misbehaves in its own direction:
 point to in a mix; 1.0 is a unit with a story. At 0, every seed is the same
 ideal machine — the analog section never costs you the reference oscillator.
 
+## The performance section
+
+Where the analog section models what the circuit does on its own, these
+controls model what a hand does to it — added after the Recipes chapters
+had to teach a scaling formula to get constant-width vibrato out of the
+Hz-calibrated FM inlet.
+
+- **`vibrato` / `vibrato_rate`** — a sine LFO on the pitch, depth in
+  **cents** (0–100) and rate in Hz, so ten cents is ten cents in every
+  register. Measured: at a commanded ±100 cents the peak cycle-to-cycle
+  deviation reads 90–110 cents, and the modulation crosses its mean at
+  exactly twice the commanded rate (pinned by test).
+- **`vibrato_delay`** — the singing control: the vibrato fades in through
+  a one-pole with this time constant (ms), **re-armed on every new note**
+  (every frequency-target change), so held notes bloom and passing notes
+  stay plain. Pinned: early deviation under 60 % of settled, and shallow
+  again right after a note change. The signal-rate frequency inlet
+  deliberately does not re-arm — there, you are the modulation.
+- **`bend`** — pitch bend in semitones (±24), riding the standard `smooth`
+  ramp: the wheel, as an attribute. Pinned within 5 cents of the
+  commanded interval.
+
+All of it is deterministic with no randomness — and at depth 0 the output
+is **bit-identical** to the ideal oscillator (pinned), so the reference
+instrument is still free.
+
 ## The Moog recipe, honestly
 
 The sound everyone wants from this object is three oscillators into a ladder.
