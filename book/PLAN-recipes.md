@@ -1,8 +1,10 @@
 # Plan — the Recipes part
 
-> **Status: drafted.** The part opener and the first three recipes are written and live in
+> **Status: drafted.** The part opener and all ten recipes are written and live in
 > `src/recipes/` per the placement below (2026-08-05). This file remains as the drafting
-> record, the plans-directory way, and carries the backlog of future recipes.
+> record, the plans-directory way. The improvement findings the drafting surfaced live in
+> `plans/recipes-improvements.md` in the TapTools-Max repo (the design-of-record for object
+> changes); new recipes now wait on new objects.
 
 Planning document for Part IX of *Tools on Tap*: **Recipes** — the book's third kind of
 chapter. Parts I–VII say what each object is for; Part VIII says why to trust it; a recipe
@@ -19,6 +21,13 @@ A new part after the machine part:
 - [One machine, four decades](recipes/808-classics.md)
 - [Three oscillators into a ladder](recipes/minimoog.md)
 - [The patches with names on them](recipes/moog-classics.md)
+- [Move a knob while it loops](recipes/acid-line.md)
+- [The ostinato machine](recipes/sequenced-modular.md)
+- [The robot on the radio](recipes/robot-voice.md)
+- [The staircase and the wash](recipes/shimmer.md)
+- [Sixteenths into a listening filter](recipes/funk-filter.md)
+- [A field guide to rooms](recipes/rooms.md)
+- [Chords with no keyboard](recipes/comb-drones.md)
 ```
 
 The introduction's organization list gains a matching Part IX bullet.
@@ -66,26 +75,37 @@ Stated in the part opener (`recipes/cookbook.md`), enforced in drafting:
   already ship (`tap.vco~`/`tap.ladder~`/`tap.adsr~`/`tap.vca~`/`tap.noise~` + the
   sequencer pair). Gear provenance is stated per patch (documented vs. reconstruction).
 
-## Backlog — future recipes, roughly in order of pull
+## The second wave (shipped 2026-08-05)
 
-- **The acid line.** `tap.303.seq~` patterns that exploit the measured couplings: accent
-  runs into the C13 bloom (the ×1.94 wow), slide chains, `envmod`/`decay` interplay.
-  Mostly written already in spirit across the acid chapter; the recipe is patterns.
-- **The robot voice.** `tap.vocoder~` driven properly: carrier choice (saw stack vs.
-  noise blend), band count trades, the sibilance path.
-- **Shimmer.** `tap.pitchaccum~` + `tap.verb~`/`tap.convolve~` — the accumulating-fifths
-  pad, with the honest feedback-headroom accounting.
-- **The funk envelope filter.** `tap.autowah~` against the calibrated hardware curves;
-  clav and bass settings.
-- **Borrowed rooms, curated.** A short IR field guide for `tap.convolve~` — what to load,
-  true-stereo vs. mono-in, pre-delay by trimming.
-- **The five-string drone.** `tap.5comb~` tunings as chord recipes.
-- **The sequenced modular.** Berlin school and "I Feel Love": `tap.303.seq~` → `mtof~` →
-  the vco stack, gate → `tap.adsr~` — the scaffold is sketched at the top of
-  `moog-classics.md`; the recipe is patterns, ostinato transposition, and the hat-groove
-  glue.
+All seven backlog recipes landed in one pass, each drafted against a fresh wrapper-source
+sweep (the audit found and fixed a shipped-chapter drift along the way: the pitchaccum
+chapter's `pitch1`/`feedback1` spellings are actually `trans1`/`fb1`, feedback on a 0–99
+scale — corrected in `src/pitchaccum.md`):
 
-Each lands as one file in `src/recipes/` plus a SUMMARY line; no renumbering needed.
+- **`recipes/acid-line.md` — Move a knob while it loops.** The Phuture method: a 16-step
+  line (grids + the `pitches`/`gates`/`accents`/`slides` lane messages), the knob rides,
+  accent runs into the measured ×1.94 C13 bloom, `tap.overdrive~` after.
+- **`recipes/sequenced-modular.md` — The ostinato machine.** Berlin school / "I Feel
+  Love": `tap.303.seq~` → `mtof~` → external slew → the Moog voice; transpose as harmony;
+  the honest wrinkle that the vco's signal inlet bypasses `smooth` (→ improvements plan).
+- **`recipes/robot-voice.md` — The robot on the radio.** Carrier casting (saw pair + 10 %
+  noise as the sibilance budget), the three settings rows (talk/choir/rhythm-transfer),
+  the left-inlet-is-modulator debugging fact.
+- **`recipes/shimmer.md` — The staircase and the wash.** The full Eno-school chain:
+  pitchaccum spiral (+12/+7) into `tap.verb~` or a convolved church; damping as the
+  make-or-break; descent, micro-halo, and morph-gesture variants.
+- **`recipes/funk-filter.md` — Sixteenths into a listening filter.** Clav chop, bass
+  quack (factory slot 2), cocked wah (slot 4), the sidechain and envelope-outlet patch
+  points; honest Mu-Tron distancing per the autowah chapter.
+- **`recipes/rooms.md` — A field guide to rooms.** IR curation for `tap.convolve~`:
+  shopping list, sixty-second audition drill, placement (`predelay` first, `blocksize` by
+  role, `set` for performance swaps).
+- **`recipes/comb-drones.md` — Chords with no keyboard.** Five `tap.5comb~` voicings as a
+  keepable table (factory, open fifth, just major, dark cluster, √2 bell plate), ringing
+  techniques, the eight-second morph gesture.
+
+New recipes now wait on new objects (or on the improvements plan landing — e.g. the vco
+performance section would simplify the Moog chapters' vibrato plumbing).
 
 ## Notes for drafting
 
