@@ -44,7 +44,7 @@ staircase climbs; in the ordinary patch every echo is the same interval.*
 
 ## The knobs, one by one (per shadow, ×2)
 
-### `pitch1` / `pitch2` — the step of the staircase
+### `trans1` / `trans2` — the step of the staircase
 
 ±24 semitones, continuous. Musical intervals (+7, +12, +5) make harmony;
 small offsets (±0.1–0.3 st) make lush detune-echo instead of a spiral;
@@ -55,12 +55,12 @@ negative values descend into the dark version nobody expects.
 Up to 3 s per shadow. Short (50–150 ms) blurs the passes into a texture;
 long (0.5–2 s) articulates each step of the climb as an audible echo.
 
-### `feedback1` / `feedback2` — how many steps
+### `fb1` / `fb2` — how many steps
 
-How much survives each trip. 0.3 gives two or three audible generations; 0.7
-a long climb; 0.9+ a texture that essentially sustains until the transposition
-walks it out of range (energy shifted past the audible band is the spiral's
-natural exit).
+How much survives each trip, 0–99. 30 gives two or three audible
+generations; 70 a long climb; 90+ a texture that essentially sustains until
+the transposition walks it out of range (energy shifted past the audible
+band is the spiral's natural exit).
 
 ### `xfade` — the grain crossfade
 
@@ -87,13 +87,14 @@ spirals and a timed `recall` between them is a gesture in itself.
 
 ## Recipes
 
-- **Shimmer, the classic:** shadow 1 at +12, delay ~400 ms, feedback 0.75;
-  shadow 2 at +7, delay ~650 ms, feedback 0.6; both into a reverb
+- **Shimmer, the classic:** shadow 1 at +12, delay ~400 ms, `fb1 75`;
+  shadow 2 at +7, delay ~650 ms, `fb2 60`; both into a reverb
   (`tap.convolve~` with a long church, or `tap.verb~`). The reverb is
-  load-bearing — shimmer is spiral *plus* wash.
+  load-bearing — shimmer is spiral *plus* wash. The full patch has its own
+  recipe in Part IX.
 - **The descent:** −5 and −12, long delays, moderate feedback — a staircase
   into the basement, much rarer and much creepier.
-- **Micro-thickener:** ±0.15 st, 60/90 ms delays, feedback 0.5, `xfade`
+- **Micro-thickener:** ±0.15 st, 60/90 ms delays, feedback 50, `xfade`
   wide — not a spiral at all, just an expensive-sounding widener.
 
 ## When it is not the right tool
