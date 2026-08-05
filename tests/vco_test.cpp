@@ -227,3 +227,141 @@ SCENARIO("with imperfection up, different seeds are different units off the line
     }
     REQUIRE(maxdiff > 1e-3); // different seed, audibly different tolerances
 }
+
+namespace {
+
+    /// Per-cycle instantaneous periods (seconds) with their start times, via rising zero crossings.
+    std::vector<std::pair<double, double>> cycle_periods(const std::vector<double>& y) {
+        std::vector<std::pair<double, double>> out;
+        double                                 prev = -1.0;
+        for (size_t i = 1; i < y.size(); ++i) {
+            if (y[i - 1] <= 0.0 && y[i] > 0.0) {
+                const double t = (static_cast<double>(i - 1) + y[i - 1] / (y[i - 1] - y[i])) / k_sr;
+                if (prev >= 0.0) {
+                    out.emplace_back(prev, t - prev);
+                }
+                prev = t;
+            }
+        }
+        return out;
+    }
+
+    /// Peak pitch deviation from the mean, in cents, over cycles within [t0, t1).
+    double peak_cents_in(const std::vector<std::pair<double, double>>& cycles, double t0, double t1) {
+        double mean = 0.0;
+        int    n    = 0;
+        for (const auto& [t, p] : cycles) {
+            if (t >= t0 && t < t1) {
+                mean += p;
+                ++n;
+            }
+        }
+        if (n == 0) {
+            return 0.0;
+        }
+        mean /= n;
+        double peak = 0.0;
+        for (const auto& [t, p] : cycles) {
+            if (t >= t0 && t < t1) {
+                peak = std::max(peak, std::abs(1200.0 * std::log2(mean / p)));
+            }
+        }
+        return peak;
+    }
+
+} // namespace
+
+SCENARIO("vibrato at depth 0 leaves the ideal oscillator bit-identical") {
+    auto a = make(5), b = make(5);
+    for (auto* o : {&a, &b}) {
+        o->set_frequency(440.0);
+        o->set_shape(vco::wave_saw);
+    }
+    b.set_vibrato_rate(7.0);
+    b.set_vibrato_delay(300.0);
+    // depth stays 0 — phase and onset machinery must not perturb the output
+    REQUIRE(render(a, 48000) == render(b, 48000));
+}
+
+SCENARIO("vibrato depth is calibrated in cents and moves at the commanded rate") {
+    auto o = make(3);
+    o.set_frequency(220.0);
+    o.set_shape(vco::wave_sine);
+    o.set_vibrato_rate(2.0);
+    o.set_vibrato(100.0); // +/- one semitone
+    const auto y      = render(o, 3 * 48000);
+    const auto cycles = cycle_periods(y);
+
+    // Depth: the peak deviation across a settled stretch reads the commanded cents.
+    const double peak = peak_cents_in(cycles, 1.0, 3.0);
+    INFO("peak deviation " << peak << " cents");
+    REQUIRE(peak > 90.0);
+    REQUIRE(peak < 110.0);
+
+    // Rate: the period track crosses its mean 2 x rate times per second.
+    double mean = 0.0;
+    int    n    = 0;
+    for (const auto& [t, p] : cycles) {
+        if (t >= 1.0) {
+            mean += p;
+            ++n;
+        }
+    }
+    mean             = mean / n;
+    int    crossings = 0;
+    double prev      = 0.0;
+    bool   first     = true;
+    for (const auto& [t, p] : cycles) {
+        if (t < 1.0) {
+            continue;
+        }
+        const double d = p - mean;
+        if (!first && ((prev <= 0.0 && d > 0.0) || (prev >= 0.0 && d < 0.0))) {
+            ++crossings;
+        }
+        prev  = d;
+        first = false;
+    }
+    INFO("mean crossings over 2 s: " << crossings << " (expect ~8 at 2 Hz)");
+    REQUIRE(crossings >= 6);
+    REQUIRE(crossings <= 10);
+}
+
+SCENARIO("vibrato_delay fades the vibrato in and re-arms on a new note") {
+    auto o = make(4);
+    o.set_frequency(220.0);
+    o.set_shape(vco::wave_sine);
+    o.set_vibrato(100.0);
+    o.set_vibrato_rate(6.0);
+    o.set_vibrato_delay(400.0);
+
+    const auto   y1      = render(o, 3 * 48000);
+    const auto   c1      = cycle_periods(y1);
+    const double early   = peak_cents_in(c1, 0.0, 0.2);
+    const double settled = peak_cents_in(c1, 2.0, 3.0);
+    INFO("early " << early << " cents, settled " << settled << " cents");
+    REQUIRE(early < 0.6 * settled); // still fading in
+    REQUIRE(settled > 90.0);
+
+    // A new note re-arms the onset: right after the frequency change the vibrato is shallow again.
+    o.set_frequency(330.0);
+    const auto   y2      = render(o, 48000);
+    const auto   c2      = cycle_periods(y2);
+    const double rearmed = peak_cents_in(c2, 0.02, 0.2); // skip the frequency ramp itself
+    INFO("re-armed early deviation " << rearmed << " cents");
+    REQUIRE(rearmed < 0.6 * settled);
+}
+
+SCENARIO("bend is calibrated in semitones and rides the ramp") {
+    auto o = make(2);
+    o.set_frequency(220.0);
+    o.set_shape(vco::wave_sine);
+    render(o, 4800);
+    o.set_bend(2.0);
+    const auto   y        = render(o, 48000);
+    const auto   tail     = std::vector<double>(y.begin() + 24000, y.end());
+    const double f        = measure_f0(tail);
+    const double expected = 220.0 * std::exp2(2.0 / 12.0);
+    INFO("bent to " << f << " Hz, expected " << expected);
+    REQUIRE(std::abs(1200.0 * std::log2(f / expected)) < 5.0);
+}

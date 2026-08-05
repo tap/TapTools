@@ -16,11 +16,15 @@ Every patch below is a delta against the wiring and tables of
 [Three oscillators into a ladder](minimoog.md) — build that voice first.
 Two performance tools recur, so here they are once:
 
-- **Vibrato** goes into each `tap.vco~`'s FM inlet, which is calibrated in
-  Hz. For vibrato that reads as a constant musical width, scale the LFO by
-  the note: `cycle~ 5.5` multiplied by 0.006 × the note's frequency is
-  about ±10 cents. Fade the LFO in with `line~` a beat after note-on — the
-  delayed vibrato is most of what makes a lead "sing."
+- **Vibrato** is the oscillator's own now: `@vibrato` (depth in cents, so
+  the musical width holds in every register), `@vibrato_rate` (Hz), and
+  `@vibrato_delay` (ms) — the onset fades in through that time constant
+  and re-arms on every new note, which is most of what makes a lead
+  "sing." ±10 cents at 5.5 Hz with a few hundred milliseconds of delay is
+  the classic setting. (This chapter's first draft had to print a
+  scaling formula into the Hz-calibrated FM inlet here; that formula
+  became the improvements plan's §2, and §2 became these attributes —
+  the audit worked.)
 - **Sequenced lines**: `tap.303.seq~` emits pitch as a MIDI-note signal and
   a gate at 1.0/2.0 — `mtof~` turns the pitch into Hz for the oscillators'
   signal inlets, and the gate drives `tap.adsr~` directly (it opens above
@@ -96,9 +100,9 @@ Deltas from the lead patch:
 | filter contour | `@attack 30 @decay 900 @sustain -10 @release 700`, amount 3000 Hz, base 250 Hz |
 | loudness contour | `@attack 8 @decay 300 @sustain -2 @release 500` |
 
-Then spend all your effort on the vibrato: 5.5 Hz, ±10 cents (the intro's
-formula), faded in over ~400 ms after each phrase begins, and *not* on
-every note. The patch is deliberately close to the ideal oscillator —
+Then spend all your effort on the vibrato: `@vibrato 10 @vibrato_rate 5.5
+@vibrato_delay 400` — ten cents, arriving late, re-arming on each new
+note so held phrase-endings bloom while passing notes stay plain. The patch is deliberately close to the ideal oscillator —
 `imperfect 0.2`, drift at the polite end — because the expressive load is
 carried by the hands, and everything the analog section adds here it adds
 to sustained exposed notes.
