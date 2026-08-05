@@ -105,18 +105,20 @@ What's documented: Imogen Heap sang into a harmonizer (the DigiTech
 Vocalist lineage), a keyboard choosing the chord — so every sound on the
 record is her *actual voice*, pitch-shifted into harmony, breath and
 formants intact. That's why it doesn't sound like a robot; there is no
-carrier. Two routes, honestly ranked:
+carrier. Three routes, honestly ranked:
 
-1. **The closer one — a shifter stack.** Voice into parallel
-   `tap.shift~` objects at chord intervals, dry voice summed in the
-   middle. `tap.semitone2ratio` exists for exactly this: `-5`, `+3`,
-   `+7` → ratios into each shifter's middle inlet. Keep the voicing
-   close (within ±7 st) — granular shifting moves formants with the
-   pitch, and wide intervals go chipmunk where the hardware's
-   formant-corrected voices didn't. Change the interval set per chord
-   (messages, or a small Max chord-to-ratios mapping) and you are
-   playing the record's instrument.
-2. **The vibe — the choir patch above.** Speak-sing into the choir row's
+1. **The right tool — `tap.harmony~`.** This record's mechanism is
+   exactly what the object does: formant-preserving voices holding a
+   chord over the aligned dry voice. Its recipe — with the Bon Iver
+   patches that extend the lineage — is [A choir of one](choir-of-one.md).
+   (This object exists because this section's first draft had to work
+   around its absence; the audit worked.)
+2. **The manual fallback — a shifter stack.** Voice into parallel
+   `tap.shift~` objects at chord intervals (`tap.semitone2ratio` feeds
+   their ratio inlets). Keep the voicing within ±7 st — plain granular
+   shifting moves formants with the pitch, and wide intervals go
+   chipmunk where the formant-corrected routes don't.
+3. **The vibe — the choir patch above.** Speak-sing into the choir row's
    settings with an `mc.` carrier holding the chords. It will sound like
    a vocoder doing Imogen Heap, which is its own valid sound — just
    don't mistake it for the record's mechanism.
