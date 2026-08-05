@@ -9,6 +9,7 @@
 #include <taptools/adsr.h>
 #include <taptools/autowah.h>
 #include <taptools/conv_engine.h>
+#include <taptools/delay.h>
 #include <taptools/diode_ladder.h>
 #include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
@@ -906,6 +907,129 @@ int taptools_yin_track(taptools_yin h, const double* x, int n, int hop, double* 
         periods[count++] = det->analyze(x + start).period;
     }
     return count;
+}
+
+// ---- tap.delay~ ----------------------------------------------------------------------------------
+
+using delay_line = tap::tools::delay::line;
+
+taptools_delay taptools_delay_create(void) {
+    return static_cast<taptools_delay>(new delay_line());
+}
+
+void taptools_delay_destroy(taptools_delay h) {
+    delete static_cast<delay_line*>(h);
+}
+
+int taptools_delay_prepare(taptools_delay h, double sr, double max_ms) {
+    if (max_ms <= 0.0) {
+        return -1;
+    }
+    return with<delay_line>(h, [&](delay_line& d) { d.prepare(sr, max_ms); });
+}
+
+int taptools_delay_set_time_ms(taptools_delay h, double ms) {
+    return with<delay_line>(h, [&](delay_line& d) { d.set_time_ms(ms); });
+}
+
+int taptools_delay_set_feedback(taptools_delay h, double fb) {
+    return with<delay_line>(h, [&](delay_line& d) { d.set_feedback(fb); });
+}
+
+int taptools_delay_set_mix(taptools_delay h, double pct) {
+    return with<delay_line>(h, [&](delay_line& d) { d.set_mix(pct); });
+}
+
+int taptools_delay_set_interp(taptools_delay h, int mode) {
+    return with<delay_line>(h, [&](delay_line& d) { d.set_interp(mode); });
+}
+
+int taptools_delay_set_smooth_ms(taptools_delay h, double ms) {
+    return with<delay_line>(h, [&](delay_line& d) { d.set_smooth_ms(ms); });
+}
+
+int taptools_delay_clear(taptools_delay h) {
+    return with<delay_line>(h, [&](delay_line& d) { d.clear(); });
+}
+
+int taptools_delay_process(taptools_delay h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<delay_line>(h, [&](delay_line& d) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = d.process(in[i]);
+        }
+    });
+}
+
+int taptools_delay_process_mod(taptools_delay h, const double* in, const double* time_ms, double* out, int n) {
+    if (!in || !time_ms || !out || n < 0) {
+        return -1;
+    }
+    return with<delay_line>(h, [&](delay_line& d) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = d.process(in[i], time_ms[i]);
+        }
+    });
+}
+
+// ---- tap.multitap~ -------------------------------------------------------------------------------
+
+using multitap_kernel = tap::tools::delay::multitap;
+
+taptools_multitap taptools_multitap_create(void) {
+    return static_cast<taptools_multitap>(new multitap_kernel());
+}
+
+void taptools_multitap_destroy(taptools_multitap h) {
+    delete static_cast<multitap_kernel*>(h);
+}
+
+int taptools_multitap_prepare(taptools_multitap h, double sr, double max_ms) {
+    if (max_ms <= 0.0) {
+        return -1;
+    }
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.prepare(sr, max_ms); });
+}
+
+int taptools_multitap_set_taps(taptools_multitap h, int count) {
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.set_taps(count); });
+}
+
+int taptools_multitap_set_time_ms(taptools_multitap h, int tap, double ms) {
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.set_time_ms(tap, ms); });
+}
+
+int taptools_multitap_set_gain(taptools_multitap h, int tap, double gain) {
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.set_gain(tap, gain); });
+}
+
+int taptools_multitap_set_pan(taptools_multitap h, int tap, double pan) {
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.set_pan(tap, pan); });
+}
+
+int taptools_multitap_set_interp(taptools_multitap h, int mode) {
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.set_interp(mode); });
+}
+
+int taptools_multitap_set_smooth_ms(taptools_multitap h, double ms) {
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.set_smooth_ms(ms); });
+}
+
+int taptools_multitap_clear(taptools_multitap h) {
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) { m.clear(); });
+}
+
+int taptools_multitap_process(taptools_multitap h, const double* in, double* outL, double* outR, int n) {
+    if (!in || !outL || !outR || n < 0) {
+        return -1;
+    }
+    return with<multitap_kernel>(h, [&](multitap_kernel& m) {
+        for (int i = 0; i < n; ++i) {
+            m.process(in[i], outL[i], outR[i]);
+        }
+    });
 }
 
 // ---- tap.overdrive~ ------------------------------------------------------------------------------

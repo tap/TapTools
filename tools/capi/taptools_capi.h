@@ -296,6 +296,43 @@ TAPTOOLS_API int          taptools_yin_frame_size(taptools_yin h);
 /// (0 where unvoiced). Returns the number written, or -1 on error.
 TAPTOOLS_API int taptools_yin_track(taptools_yin h, const double* x, int n, int hop, double* periods, int max_out);
 
+// ---- tap.delay~ (tap::tools::delay::line) --------------------------------------------------------
+
+typedef void* taptools_delay;
+
+TAPTOOLS_API taptools_delay taptools_delay_create(void);
+TAPTOOLS_API void           taptools_delay_destroy(taptools_delay h);
+/// Allocate the line for `max_ms` at `sr`; snaps ramps and clears state.
+TAPTOOLS_API int taptools_delay_prepare(taptools_delay h, double sr, double max_ms);
+TAPTOOLS_API int taptools_delay_set_time_ms(taptools_delay h, double ms);
+TAPTOOLS_API int taptools_delay_set_feedback(taptools_delay h, double fb); // clamped to [0, 0.99]
+TAPTOOLS_API int taptools_delay_set_mix(taptools_delay h, double pct);     // 0..100, equal-power
+TAPTOOLS_API int taptools_delay_set_interp(taptools_delay h, int mode);    // 0 trunc, 1 Hermite
+TAPTOOLS_API int taptools_delay_set_smooth_ms(taptools_delay h, double ms);
+TAPTOOLS_API int taptools_delay_clear(taptools_delay h);
+TAPTOOLS_API int taptools_delay_process(taptools_delay h, const double* in, double* out, int n);
+/// Per-sample signal-rate delay time (ms) — the external's right-inlet path.
+TAPTOOLS_API int taptools_delay_process_mod(taptools_delay h, const double* in, const double* time_ms, double* out,
+                                            int n);
+
+// ---- tap.multitap~ (tap::tools::delay::multitap) -------------------------------------------------
+
+typedef void* taptools_multitap;
+
+TAPTOOLS_API taptools_multitap taptools_multitap_create(void);
+TAPTOOLS_API void              taptools_multitap_destroy(taptools_multitap h);
+TAPTOOLS_API int               taptools_multitap_prepare(taptools_multitap h, double sr, double max_ms);
+TAPTOOLS_API int               taptools_multitap_set_taps(taptools_multitap h, int count); // 0..100 active taps
+/// Per-tap setters; `tap` is 0-based. Gain is linear; pan is -1 (left) .. 1 (right), equal-power.
+TAPTOOLS_API int taptools_multitap_set_time_ms(taptools_multitap h, int tap, double ms);
+TAPTOOLS_API int taptools_multitap_set_gain(taptools_multitap h, int tap, double gain);
+TAPTOOLS_API int taptools_multitap_set_pan(taptools_multitap h, int tap, double pan);
+TAPTOOLS_API int taptools_multitap_set_interp(taptools_multitap h, int mode); // 0 trunc, 1 Hermite
+TAPTOOLS_API int taptools_multitap_set_smooth_ms(taptools_multitap h, double ms);
+TAPTOOLS_API int taptools_multitap_clear(taptools_multitap h);
+/// Process n samples; the stereo tap sum lands in outL/outR (no dry path).
+TAPTOOLS_API int taptools_multitap_process(taptools_multitap h, const double* in, double* outL, double* outR, int n);
+
 // ---- tap.overdrive~ (tap::tools::od::overdrive, mono) --------------------------------------------
 
 typedef void* taptools_od;
