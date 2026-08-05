@@ -109,7 +109,17 @@ scale — corrected in `src/pitchaccum.md`):
   keepable table (factory, open fifth, just major, dark cluster, √2 bell plate), ringing
   techniques, the eight-second morph gesture.
 
-New recipes now wait on new objects (or on the improvements plan landing — e.g. the vco
+**The audit's first shipped object (2026-08-05):** the songbook's "Hide and Seek" finding
+("the mechanism is a formant-corrected harmonizer and no object provides it") became
+`tap.harmony~` — kernel `taptools/harmonizer.h` on the DspTap pvoc/LPC substrate, seven
+oracle-based test scenarios, capi + bridge, wrapper with reference page and help patcher —
+and **`recipes/choir-of-one.md`** documents it: the instrument (corrector → harmonizer),
+the Bon Iver worked examples ("Woods" as stacked chapel with the overdub-honesty note;
+"715 - CRΞΞKS" as the Messina-school live stack), craft notes, and the robot-vs-choir fork
+back to the vocoder chapter. A proper object chapter (Part VI territory) and an executed
+verification notebook remain future work — the recipe cites the pinned tests meanwhile.
+
+Other new recipes wait on new objects (or on the improvements plan landing — e.g. the vco
 performance section would simplify the Moog chapters' vibrato plumbing).
 
 ## Notes for drafting

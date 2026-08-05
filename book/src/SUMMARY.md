@@ -65,6 +65,7 @@
 - [Move a knob while it loops](recipes/acid-line.md)
 - [The ostinato machine](recipes/sequenced-modular.md)
 - [The robot on the radio](recipes/robot-voice.md)
+- [A choir of one](recipes/choir-of-one.md)
 - [The staircase and the wash](recipes/shimmer.md)
 - [Sixteenths into a listening filter](recipes/funk-filter.md)
 - [A field guide to rooms](recipes/rooms.md)
