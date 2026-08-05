@@ -6,6 +6,7 @@
 #include "taptools_capi.h"
 
 // The DSP cores are the same headers the Max externals compile — no Max/Min dependency.
+#include <taptools/adsr.h>
 #include <taptools/autowah.h>
 #include <taptools/conv_engine.h>
 #include <taptools/diode_ladder.h>
@@ -813,6 +814,65 @@ int taptools_harmonizer_process(taptools_harmonizer h, const double* in, double*
     return with<harmony_kernel>(h, [&](harmony_kernel& k) {
         for (int i = 0; i < n; ++i) {
             out[i] = k.process(in[i]);
+        }
+    });
+}
+
+// ---- tap.adsr~ ---------------------------------------------------------------------------------
+
+using adsr_generator = tap::tools::adsr::generator;
+
+taptools_adsr taptools_adsr_create(void) {
+    return static_cast<taptools_adsr>(new adsr_generator());
+}
+
+void taptools_adsr_destroy(taptools_adsr h) {
+    delete static_cast<adsr_generator*>(h);
+}
+
+int taptools_adsr_prepare(taptools_adsr h, double sr) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.prepare(sr); });
+}
+
+int taptools_adsr_clear(taptools_adsr h) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.clear(); });
+}
+
+int taptools_adsr_set_attack(taptools_adsr h, double ms) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.set_attack_ms(ms); });
+}
+
+int taptools_adsr_set_decay(taptools_adsr h, double ms) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.set_decay_ms(ms); });
+}
+
+int taptools_adsr_set_sustain_db(taptools_adsr h, double db) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.set_sustain_db(db); });
+}
+
+int taptools_adsr_set_release(taptools_adsr h, double ms) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.set_release_ms(ms); });
+}
+
+int taptools_adsr_set_mode(taptools_adsr h, int mode) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.set_mode(mode); });
+}
+
+int taptools_adsr_set_threshold(taptools_adsr h, double t) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.set_threshold(t); });
+}
+
+int taptools_adsr_set_velocity(taptools_adsr h, double s) {
+    return with<adsr_generator>(h, [&](adsr_generator& g) { g.set_velocity(s); });
+}
+
+int taptools_adsr_process(taptools_adsr h, const double* gate, double* out, int n) {
+    if (!gate || !out || n < 0) {
+        return -1;
+    }
+    return with<adsr_generator>(h, [&](adsr_generator& g) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = g.process(gate[i]);
         }
     });
 }

@@ -32,6 +32,7 @@ header adds no nested namespace, the class) the kernel lives in.
 | `autowah.h` | `tap.autowah~` | Snow White-style envelope filter (`tap::tools::autowah`) |
 | `overdrive.h` | `tap.overdrive~` | LGW-voiced feedback overdrive (`tap::tools::od`) |
 | `vca.h` | `tap.vca~` | Voltage-controlled amplifier (`tap::tools::vca`) |
+| `adsr.h` | `tap.adsr~` | Virtual-analog ADSR envelope, legacy Jamoma curves as modes (`tap::tools::adsr`) |
 
 **Voices, drums, and sequencing**
 

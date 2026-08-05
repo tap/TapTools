@@ -268,6 +268,23 @@ TAPTOOLS_API int                 taptools_harmonizer_set_glide(taptools_harmoniz
 TAPTOOLS_API int                 taptools_harmonizer_latency(taptools_harmonizer h);
 TAPTOOLS_API int taptools_harmonizer_process(taptools_harmonizer h, const double* in, double* out, int n);
 
+// ---- tap.adsr~ (tap::tools::adsr::generator) -----------------------------------------------------
+
+typedef void* taptools_adsr;
+
+TAPTOOLS_API taptools_adsr taptools_adsr_create(void);
+TAPTOOLS_API void          taptools_adsr_destroy(taptools_adsr h);
+TAPTOOLS_API int           taptools_adsr_prepare(taptools_adsr h, double sr);
+TAPTOOLS_API int           taptools_adsr_clear(taptools_adsr h);
+TAPTOOLS_API int           taptools_adsr_set_attack(taptools_adsr h, double ms);
+TAPTOOLS_API int           taptools_adsr_set_decay(taptools_adsr h, double ms);
+TAPTOOLS_API int           taptools_adsr_set_sustain_db(taptools_adsr h, double db);
+TAPTOOLS_API int           taptools_adsr_set_release(taptools_adsr h, double ms);
+TAPTOOLS_API int           taptools_adsr_set_mode(taptools_adsr h, int mode); // adsr::mode
+TAPTOOLS_API int           taptools_adsr_set_threshold(taptools_adsr h, double t);
+TAPTOOLS_API int           taptools_adsr_set_velocity(taptools_adsr h, double s);
+TAPTOOLS_API int           taptools_adsr_process(taptools_adsr h, const double* gate, double* out, int n);
+
 // ---- pitch detector passthrough (tap::dsp::yin, for the notebooks' pitch tracking) ---------------
 
 typedef void* taptools_yin;
