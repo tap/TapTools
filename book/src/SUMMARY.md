@@ -18,26 +18,32 @@
 - [Five strings, no guitar](fivecomb.md)
 - [The spiral staircase](pitchaccum.md)
 
-# Part IV — The spectral set
+# Part IV — Tape and time
+
+- [The tape that forgets slowly](discreet.md)
+- [Loops that never line up](airport.md)
+- [The garden that plays itself](garden.md)
+
+# Part V — The spectral set
 
 - [Making the machine talk](vocoder.md)
 - [A gate for every bin](nr.md)
 - [The spectrum, re-plumbed](spectra.md)
 
-# Part V — The rhythm section
+# Part VI — The rhythm section
 
 - [The acid machine](acid.md)
 - [The drum machine](drums.md)
 
-# Part VI — Staying in tune
+# Part VII — Staying in tune
 
 - [The note you meant](tune.md)
 
-# Part VII — The pedalboard
+# Part VIII — The pedalboard
 
 - [Distortion with a memory](overdrive.md)
 
-# Part VIII — The machine, file by file
+# Part IX — The machine, file by file
 
 - [Solving the filter on paper: svf.h](machine/svf.md)
 - [The nonlinear loop: ladder.h](machine/ladder.md)
@@ -55,8 +61,11 @@
 - [Three ways to move a pitch: yin.h, psola.h, pvoc.h](machine/pitch.md)
 - [The nearest allowed note: tune.h](machine/tune.md)
 - [The clipper in the loop: overdrive.h](machine/overdrive.md)
+- [Wear as the stabilizer: tape_loop.h and discreet.h](machine/tape.md)
+- [Free-running heads, one shared clock: airport.h](machine/airport.md)
+- [Events, not audio: garden.h](machine/garden.md)
 
-# Part IX — Recipes
+# Part X — Recipes
 
 - [How to read a recipe](recipes/cookbook.md)
 - [One machine, four decades](recipes/808-classics.md)

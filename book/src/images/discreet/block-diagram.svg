@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#ff725c"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#b8890f"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="26" fill="#1a1a1a" font-weight="bold">tap.discreet~ — two machines, seconds of tape, a worn return</text>
+
+  <!-- forward path: in -> input_level -> sum -> record head -> tape -> play head -> mix -> out -->
+  <text x="16" y="98" fill="#1a1a1a">in</text>
+  <line x1="34" y1="94" x2="56" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="58" y="76" width="102" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="109" y="91" text-anchor="middle" fill="#1a1a1a">input_level</text>
+  <text x="109" y="105" text-anchor="middle" fill="#666666" font-size="10.5">the send fader</text>
+  <line x1="160" y1="94" x2="186" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="204" cy="94" r="15" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="204" y="99" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <line x1="219" y1="94" x2="246" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="248" y="76" width="118" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="307" y="91" text-anchor="middle" fill="#1a1a1a">record head</text>
+  <text x="307" y="105" text-anchor="middle" fill="#666666" font-size="10.5">machine A</text>
+  <line x1="366" y1="94" x2="392" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="394" y="72" width="196" height="44" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="492" y="90" text-anchor="middle" fill="#1a1a1a">tape · loop_seconds of spool</text>
+  <text x="492" y="106" text-anchor="middle" fill="#666666" font-size="10.5">worst case bought at prepare()</text>
+  <line x1="590" y1="94" x2="616" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="618" y="72" width="130" height="44" rx="4" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <text x="683" y="90" text-anchor="middle" fill="#4269d0">play head</text>
+  <text x="683" y="106" text-anchor="middle" fill="#666666" font-size="10">machine B — Hermite read</text>
+  <line x1="748" y1="94" x2="770" y2="94" stroke="#666666" stroke-width="1.6"/>
+  <circle cx="774" cy="94" r="3.5" fill="#666666"/>
+  <line x1="777" y1="94" x2="806" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="808" y="76" width="70" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="843" y="91" text-anchor="middle" fill="#1a1a1a">mix</text>
+  <text x="843" y="105" text-anchor="middle" fill="#666666" font-size="10.5">equal-power</text>
+  <line x1="878" y1="94" x2="906" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="913" y="98" fill="#1a1a1a">out</text>
+
+  <!-- dry path to mix (grey, thin) -->
+  <path d="M 44 108 L 44 46 L 843 46 L 843 74" fill="none" stroke="#666666" stroke-width="1.1" marker-end="url(#a)"/>
+  <text x="440" y="40" fill="#666666" font-size="10.5">dry — the note you just played, heard once before the tape has it</text>
+
+  <!-- the transport (amber): wow/flutter breathing the play head -->
+  <rect x="618" y="150" width="130" height="40" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="683" y="166" text-anchor="middle" fill="#b8890f">wow + flutter</text>
+  <text x="683" y="182" text-anchor="middle" fill="#666666" font-size="10">two sines, deterministic</text>
+  <line x1="683" y1="150" x2="683" y2="118" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+
+  <!-- the wear return (red): play -> darken -> saturate -> dc block -> regen -> sum -->
+  <path d="M 774 98 L 774 250 L 748 250" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="600" y="230" width="148" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="674" y="246" text-anchor="middle" fill="#ff725c">darken lowpass</text>
+  <text x="674" y="262" text-anchor="middle" fill="#666666" font-size="10">generation loss per pass</text>
+  <path d="M 600 250 L 574 250" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="428" y="230" width="146" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="501" y="246" text-anchor="middle" fill="#ff725c">saturate</text>
+  <text x="501" y="262" text-anchor="middle" fill="#666666" font-size="10">tanh(d·v)/d — bounded by 1/d</text>
+  <path d="M 428 250 L 402 250" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="268" y="230" width="134" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="335" y="246" text-anchor="middle" fill="#ff725c">DC blocker</text>
+  <text x="335" y="262" text-anchor="middle" fill="#666666" font-size="10">peak gain normalized to 1</text>
+  <path d="M 268 250 L 242 250" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="158" y="230" width="84" height="40" rx="4" fill="none" stroke="#ff725c" stroke-width="1.6"/>
+  <text x="200" y="246" text-anchor="middle" fill="#ff725c">× regen</text>
+  <text x="200" y="262" text-anchor="middle" fill="#666666" font-size="10">may reach 1.0</text>
+  <path d="M 158 250 L 130 250 L 130 160" fill="none" stroke="#ff725c" stroke-width="1.8"/>
+  <path d="M 130 160 L 197 109" fill="none" stroke="#ff725c" stroke-width="1.8" marker-end="url(#ar)"/>
+  <text x="16" y="296" fill="#ff725c" font-size="11">the wear path IS the stabilizer: no feedback cap — each pass survives because it is degraded</text>
+</svg>
