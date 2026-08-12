@@ -14,7 +14,8 @@ Python re-implementation. Exposed kernels: tap.convolve~'s conv_engine
 (`Diode`), tap.303~ (`TB303`), tap.vco~ (`Vco`), tap.autowah~ (`Wah`),
 tap.overdrive~ (`Overdrive`), the step-sequencer rows behind tap.808.seq~ /
 tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
-tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), and tap.tune~'s pitch
+tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), the Discreet Music
+two-machine tape loop tap.discreet~ (`Discreet`), and tap.tune~'s pitch
 corrector (`Tune`, with the shared DspTap detector passed through as `Yin`
 for the notebooks' pitch tracking). Parameter names on the
 kernel classes mirror each kernel header's param_index enum.
@@ -262,6 +263,20 @@ def load() -> ctypes.CDLL:
         "taptools_multitap_set_smooth_ms": ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_multitap_clear":         ([vp], ctypes.c_int),
         "taptools_multitap_process":       ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_discreet_create":        ([], vp),
+        "taptools_discreet_destroy":       ([vp], None),
+        "taptools_discreet_prepare":       ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_loop_seconds": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_regen":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_darken_hz": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_drive":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_input_level": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_mix":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_wow":       ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_flutter":   ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_set_smooth_ms": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_discreet_clear":         ([vp], ctypes.c_int),
+        "taptools_discreet_process":       ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -1061,6 +1076,65 @@ class Multitap:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_multitap_destroy(h)
+            self._h = None
+
+
+class Discreet:
+    """tap.discreet~'s kernel (tap::tools::discreet::machine): the Discreet
+    Music two-tape-machine regeneration loop. Regen legally reaches 1.0 —
+    stability comes from the wear path (darkening lowpass, bounded soft
+    saturation, DC blocker), not a feedback cap. Loop-time changes glide as
+    tape-speed doppler; wow/flutter are a deterministic periodic transport."""
+
+    def __init__(self, sr: float = 48000.0, max_loop_seconds: float = 30.0, **params):
+        self._h = _LIB.taptools_discreet_create()
+        _check(_LIB.taptools_discreet_prepare(self._h, float(sr), float(max_loop_seconds)),
+               "prepare")
+        self.set(**params)
+
+    def set(self, *, loop_seconds=None, regen=None, darken_hz=None, drive=None,
+            input_level=None, mix=None, wow=None, flutter=None, smooth_ms=None) -> "Discreet":
+        """`wow` and `flutter` take (depth_ms, rate_hz) pairs."""
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_discreet_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if wow is not None:
+            depth, rate = wow
+            _check(_LIB.taptools_discreet_set_wow(self._h, float(depth), float(rate)), "wow")
+        if flutter is not None:
+            depth, rate = flutter
+            _check(_LIB.taptools_discreet_set_flutter(self._h, float(depth), float(rate)),
+                   "flutter")
+        if loop_seconds is not None:
+            _check(_LIB.taptools_discreet_set_loop_seconds(self._h, float(loop_seconds)),
+                   "loop_seconds")
+        if regen is not None:
+            _check(_LIB.taptools_discreet_set_regen(self._h, float(regen)), "regen")
+        if darken_hz is not None:
+            _check(_LIB.taptools_discreet_set_darken_hz(self._h, float(darken_hz)), "darken_hz")
+        if drive is not None:
+            _check(_LIB.taptools_discreet_set_drive(self._h, float(drive)), "drive")
+        if input_level is not None:
+            _check(_LIB.taptools_discreet_set_input_level(self._h, float(input_level)),
+                   "input_level")
+        if mix is not None:
+            _check(_LIB.taptools_discreet_set_mix(self._h, float(mix)), "mix")
+        return self
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_discreet_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        """The eject button: erases the tape, keeps the parameters."""
+        _check(_LIB.taptools_discreet_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_discreet_destroy(h)
             self._h = None
 
 

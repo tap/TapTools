@@ -346,6 +346,26 @@ TAPTOOLS_API int         taptools_od_set_smooth_ms(taptools_od h, double ms);
 TAPTOOLS_API int         taptools_od_clear(taptools_od h);
 TAPTOOLS_API int         taptools_od_process(taptools_od h, const double* in, double* out, int n);
 
+// ---- tap.discreet~ (tap::tools::discreet::machine) -----------------------------------------------
+
+typedef void* taptools_discreet;
+
+TAPTOOLS_API taptools_discreet taptools_discreet_create(void);
+TAPTOOLS_API void              taptools_discreet_destroy(taptools_discreet h);
+/// Buy tape for `max_loop_seconds` at `sr`; snaps ramps and erases the tape.
+TAPTOOLS_API int taptools_discreet_prepare(taptools_discreet h, double sr, double max_loop_seconds);
+TAPTOOLS_API int taptools_discreet_set_loop_seconds(taptools_discreet h, double s);  // slewed: tape-speed doppler
+TAPTOOLS_API int taptools_discreet_set_regen(taptools_discreet h, double r);         // 0..1; 1.0 legally sustains
+TAPTOOLS_API int taptools_discreet_set_darken_hz(taptools_discreet h, double hz);    // per-pass wear corner
+TAPTOOLS_API int taptools_discreet_set_drive(taptools_discreet h, double d);         // >= 0; 0 exactly linear
+TAPTOOLS_API int taptools_discreet_set_input_level(taptools_discreet h, double lin); // the send fader
+TAPTOOLS_API int taptools_discreet_set_mix(taptools_discreet h, double pct);         // 0..100, equal-power
+TAPTOOLS_API int taptools_discreet_set_wow(taptools_discreet h, double depth_ms, double rate_hz);
+TAPTOOLS_API int taptools_discreet_set_flutter(taptools_discreet h, double depth_ms, double rate_hz);
+TAPTOOLS_API int taptools_discreet_set_smooth_ms(taptools_discreet h, double ms);
+TAPTOOLS_API int taptools_discreet_clear(taptools_discreet h);
+TAPTOOLS_API int taptools_discreet_process(taptools_discreet h, const double* in, double* out, int n);
+
 #ifdef __cplusplus
 }
 #endif

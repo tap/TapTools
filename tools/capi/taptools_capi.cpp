@@ -11,6 +11,7 @@
 #include <taptools/conv_engine.h>
 #include <taptools/delay.h>
 #include <taptools/diode_ladder.h>
+#include <taptools/discreet.h>
 #include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
 #include <taptools/overdrive.h>
@@ -1069,6 +1070,72 @@ int taptools_od_process(taptools_od h, const double* in, double* out, int n) {
         return -1;
     }
     return with<overdrive>(h, [&](overdrive& o) { o.process(in, out, static_cast<size_t>(n)); });
+}
+
+// ---- tap.discreet~ -------------------------------------------------------------------------------
+
+using discreet_machine = tap::tools::discreet::machine;
+
+taptools_discreet taptools_discreet_create(void) {
+    return static_cast<taptools_discreet>(new discreet_machine());
+}
+
+void taptools_discreet_destroy(taptools_discreet h) {
+    delete static_cast<discreet_machine*>(h);
+}
+
+int taptools_discreet_prepare(taptools_discreet h, double sr, double max_loop_seconds) {
+    if (max_loop_seconds <= 0.0) {
+        return -1;
+    }
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.prepare(sr, max_loop_seconds); });
+}
+
+int taptools_discreet_set_loop_seconds(taptools_discreet h, double s) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_loop_seconds(s); });
+}
+
+int taptools_discreet_set_regen(taptools_discreet h, double r) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_regen(r); });
+}
+
+int taptools_discreet_set_darken_hz(taptools_discreet h, double hz) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_darken_hz(hz); });
+}
+
+int taptools_discreet_set_drive(taptools_discreet h, double d) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_drive(d); });
+}
+
+int taptools_discreet_set_input_level(taptools_discreet h, double lin) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_input_level(lin); });
+}
+
+int taptools_discreet_set_mix(taptools_discreet h, double pct) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_mix(pct); });
+}
+
+int taptools_discreet_set_wow(taptools_discreet h, double depth_ms, double rate_hz) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_wow(depth_ms, rate_hz); });
+}
+
+int taptools_discreet_set_flutter(taptools_discreet h, double depth_ms, double rate_hz) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_flutter(depth_ms, rate_hz); });
+}
+
+int taptools_discreet_set_smooth_ms(taptools_discreet h, double ms) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.set_smooth_ms(ms); });
+}
+
+int taptools_discreet_clear(taptools_discreet h) {
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.clear(); });
+}
+
+int taptools_discreet_process(taptools_discreet h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<discreet_machine>(h, [&](discreet_machine& m) { m.process(in, out, static_cast<size_t>(n)); });
 }
 
 } // extern "C"
