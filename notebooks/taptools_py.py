@@ -15,7 +15,8 @@ Python re-implementation. Exposed kernels: tap.convolve~'s conv_engine
 tap.overdrive~ (`Overdrive`), the step-sequencer rows behind tap.808.seq~ /
 tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
 tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), the Discreet Music
-two-machine tape loop tap.discreet~ (`Discreet`), and tap.tune~'s pitch
+two-machine tape loop tap.discreet~ (`Discreet`), the Music for Airports
+incommensurate loop bank tap.airport~ (`Airport`), and tap.tune~'s pitch
 corrector (`Tune`, with the shared DspTap detector passed through as `Yin`
 for the notebooks' pitch tracking). Parameter names on the
 kernel classes mirror each kernel header's param_index enum.
@@ -277,6 +278,20 @@ def load() -> ctypes.CDLL:
         "taptools_discreet_set_smooth_ms": ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_discreet_clear":         ([vp], ctypes.c_int),
         "taptools_discreet_process":       ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_airport_create":         ([], vp),
+        "taptools_airport_destroy":        ([vp], None),
+        "taptools_airport_prepare":        ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_airport_set_loops":      ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_airport_set_length_seconds": ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_airport_record":         ([vp, ctypes.c_int, ctypes.c_int], ctypes.c_int),
+        "taptools_airport_set_level":      ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_airport_set_pan":        ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_airport_set_darken_hz":  ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_airport_set_smooth_ms":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_airport_clear":          ([vp], ctypes.c_int),
+        "taptools_airport_phase":          ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_airport_composite_period_seconds": ([vp], ctypes.c_double),
+        "taptools_airport_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -1135,6 +1150,78 @@ class Discreet:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_discreet_destroy(h)
+            self._h = None
+
+
+class Airport:
+    """tap.airport~'s kernel (tap::tools::airport::loop_bank): up to eight
+    free-running tape loops of unequal, incommensurate lengths, each with a
+    single head that both plays and records. No setter ever resets a phase —
+    the free-run is the piece. Per-loop level / equal-power pan / darken;
+    stereo sum, no dry path."""
+
+    def __init__(self, sr: float = 48000.0, max_loop_seconds: float = 30.0, **params):
+        self._h = _LIB.taptools_airport_create()
+        _check(_LIB.taptools_airport_prepare(self._h, float(sr), float(max_loop_seconds)),
+               "prepare")
+        self.set(**params)
+
+    def set(self, *, loops=None, lengths=None, levels=None, pans=None, darkens=None,
+            smooth_ms=None) -> "Airport":
+        """`lengths`/`levels`/`pans`/`darkens` are per-loop sequences (loop i
+        gets element i)."""
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_airport_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if lengths is not None:
+            for i, s in enumerate(lengths):
+                _check(_LIB.taptools_airport_set_length_seconds(self._h, i, float(s)), "length")
+            if loops is None:
+                loops = len(list(lengths))
+        if loops is not None:
+            _check(_LIB.taptools_airport_set_loops(self._h, int(loops)), "loops")
+        if levels is not None:
+            for i, v in enumerate(levels):
+                _check(_LIB.taptools_airport_set_level(self._h, i, float(v)), "level")
+        if pans is not None:
+            for i, p in enumerate(pans):
+                _check(_LIB.taptools_airport_set_pan(self._h, i, float(p)), "pan")
+        if darkens is not None:
+            for i, hz in enumerate(darkens):
+                _check(_LIB.taptools_airport_set_darken_hz(self._h, i, float(hz)), "darken")
+        return self
+
+    def record(self, loop: int, on: bool) -> "Airport":
+        """Punch the process() input onto this loop's tape (True) or freeze it
+        bit-exactly (False). Recording starts wherever the head happens to be."""
+        _check(_LIB.taptools_airport_record(self._h, int(loop), 1 if on else 0), "record")
+        return self
+
+    def phase(self, loop: int) -> float:
+        """This loop's head position as a fraction of its length, 0..1."""
+        return float(_LIB.taptools_airport_phase(self._h, int(loop)))
+
+    @property
+    def composite_period_seconds(self) -> float:
+        """lcm of the active loop lengths (seconds); inf once it overflows."""
+        return float(_LIB.taptools_airport_composite_period_seconds(self._h))
+
+    def process(self, x):
+        x = _f64(x)
+        out_l = np.zeros_like(x)
+        out_r = np.zeros_like(x)
+        _check(_LIB.taptools_airport_process(self._h, _p64(x), _p64(out_l), _p64(out_r), x.size),
+               "process")
+        return out_l, out_r
+
+    def clear(self) -> None:
+        """Erase every tape and rewind every head; parameters are untouched."""
+        _check(_LIB.taptools_airport_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_airport_destroy(h)
             self._h = None
 
 

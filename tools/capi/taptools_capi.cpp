@@ -7,6 +7,7 @@
 
 // The DSP cores are the same headers the Max externals compile — no Max/Min dependency.
 #include <taptools/adsr.h>
+#include <taptools/airport.h>
 #include <taptools/autowah.h>
 #include <taptools/conv_engine.h>
 #include <taptools/delay.h>
@@ -1136,6 +1137,78 @@ int taptools_discreet_process(taptools_discreet h, const double* in, double* out
         return -1;
     }
     return with<discreet_machine>(h, [&](discreet_machine& m) { m.process(in, out, static_cast<size_t>(n)); });
+}
+
+// ---- tap.airport~ --------------------------------------------------------------------------------
+
+using airport_bank = tap::tools::airport::loop_bank;
+
+taptools_airport taptools_airport_create(void) {
+    return static_cast<taptools_airport>(new airport_bank());
+}
+
+void taptools_airport_destroy(taptools_airport h) {
+    delete static_cast<airport_bank*>(h);
+}
+
+int taptools_airport_prepare(taptools_airport h, double sr, double max_loop_seconds) {
+    if (max_loop_seconds <= 0.0) {
+        return -1;
+    }
+    return with<airport_bank>(h, [&](airport_bank& b) { b.prepare(sr, max_loop_seconds); });
+}
+
+int taptools_airport_set_loops(taptools_airport h, int count) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.set_loops(count); });
+}
+
+int taptools_airport_set_length_seconds(taptools_airport h, int loop, double s) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.set_length_seconds(loop, s); });
+}
+
+int taptools_airport_record(taptools_airport h, int loop, int on) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.record(loop, on != 0); });
+}
+
+int taptools_airport_set_level(taptools_airport h, int loop, double lin) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.set_level(loop, lin); });
+}
+
+int taptools_airport_set_pan(taptools_airport h, int loop, double pan) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.set_pan(loop, pan); });
+}
+
+int taptools_airport_set_darken_hz(taptools_airport h, int loop, double hz) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.set_darken_hz(loop, hz); });
+}
+
+int taptools_airport_set_smooth_ms(taptools_airport h, double ms) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.set_smooth_ms(ms); });
+}
+
+int taptools_airport_clear(taptools_airport h) {
+    return with<airport_bank>(h, [&](airport_bank& b) { b.clear(); });
+}
+
+double taptools_airport_phase(taptools_airport h, int loop) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<airport_bank*>(h)->phase(loop);
+}
+
+double taptools_airport_composite_period_seconds(taptools_airport h) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<airport_bank*>(h)->composite_period_seconds();
+}
+
+int taptools_airport_process(taptools_airport h, const double* in, double* outL, double* outR, int n) {
+    if (!in || !outL || !outR || n < 0) {
+        return -1;
+    }
+    return with<airport_bank>(h, [&](airport_bank& b) { b.process(in, outL, outR, static_cast<size_t>(n)); });
 }
 
 } // extern "C"

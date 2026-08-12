@@ -366,6 +366,30 @@ TAPTOOLS_API int taptools_discreet_set_smooth_ms(taptools_discreet h, double ms)
 TAPTOOLS_API int taptools_discreet_clear(taptools_discreet h);
 TAPTOOLS_API int taptools_discreet_process(taptools_discreet h, const double* in, double* out, int n);
 
+// ---- tap.airport~ (tap::tools::airport::loop_bank) -----------------------------------------------
+
+typedef void* taptools_airport;
+
+TAPTOOLS_API taptools_airport taptools_airport_create(void);
+TAPTOOLS_API void             taptools_airport_destroy(taptools_airport h);
+/// Buy k_max_loops (8) reels for `max_loop_seconds` at `sr`; erases tape and rewinds heads.
+TAPTOOLS_API int taptools_airport_prepare(taptools_airport h, double sr, double max_loop_seconds);
+TAPTOOLS_API int taptools_airport_set_loops(taptools_airport h, int count); // 0..8 active loops
+/// Per-loop setters; `loop` is 0-based. A length change is a splice (head re-wraps, no rewind).
+TAPTOOLS_API int taptools_airport_set_length_seconds(taptools_airport h, int loop, double s);
+TAPTOOLS_API int taptools_airport_record(taptools_airport h, int loop, int on); // 1 punch, 0 freeze
+TAPTOOLS_API int taptools_airport_set_level(taptools_airport h, int loop, double lin);
+TAPTOOLS_API int taptools_airport_set_pan(taptools_airport h, int loop, double pan); // -1..1 equal-power
+TAPTOOLS_API int taptools_airport_set_darken_hz(taptools_airport h, int loop, double hz);
+TAPTOOLS_API int taptools_airport_set_smooth_ms(taptools_airport h, double ms);
+TAPTOOLS_API int taptools_airport_clear(taptools_airport h);
+/// This loop's head position as a fraction of its length, 0..1 (-1 on a bad handle/index).
+TAPTOOLS_API double taptools_airport_phase(taptools_airport h, int loop);
+/// lcm of the active loop lengths in seconds; +inf on 64-bit overflow; 0 if unprepared.
+TAPTOOLS_API double taptools_airport_composite_period_seconds(taptools_airport h);
+/// Process n samples; the stereo loop sum lands in outL/outR (no dry path).
+TAPTOOLS_API int taptools_airport_process(taptools_airport h, const double* in, double* outL, double* outR, int n);
+
 #ifdef __cplusplus
 }
 #endif
