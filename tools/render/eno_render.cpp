@@ -7,8 +7,10 @@
 ///             Scenarios: `discreet_basic` (a phrase into the two-machine loop at regen 0.95),
 ///             `discreet_sustain` (regen 1.0 with drive — the Frippertronics wash, input faded
 ///             out at the halfway mark), `airport_two_one` (seven incommensurate loops, stereo,
-///             three minutes), `garden_played` (four planted notes recirculating to silence),
-///             and `garden_idle` (the seeded gardener left alone for two minutes).
+///             three minutes — each loop holding one sung note from a small formant-synthesis
+///             choir, since the "2/1" loops were voices), `garden_played` (four planted notes
+///             recirculating to silence), and `garden_idle` (the seeded gardener left alone for
+///             two minutes).
 ///
 ///             Usage: eno_render [output-directory]   (default: current directory)
 /// @author     Timothy Place
@@ -80,6 +82,102 @@ namespace {
     double midi_hz(double pitch) {
         return 440.0 * std::exp2((pitch - 69.0) / 12.0);
     }
+
+    // ---- the "2/1" voice ----------------------------------------------------------------------
+    //
+    // The Airports loops hold single sung notes, so the airport scenario's phrase model is a
+    // small choir "aah", not an organ tone: an additive harmonic series (1/k source rolloff)
+    // shaped by a five-formant vowel envelope, three detuned unison voices per phrase, and
+    // delayed-onset vibrato. Formant center/level/width values are the published singing-
+    // synthesis tables for the vowel "a" (tenor and alto rows as tabulated in the Csound
+    // manual's formant-values appendix, after Klatt's synthesizer tables).
+
+    struct formant {
+        double hz;
+        double amp_db;
+        double bw;
+    };
+
+    constexpr formant k_tenor_a[5] = {
+        {650.0, 0.0, 80.0}, {1080.0, -6.0, 90.0}, {2650.0, -7.0, 120.0}, {2900.0, -8.0, 130.0}, {3250.0, -22.0, 140.0}};
+    constexpr formant k_alto_a[5] = {{800.0, 0.0, 80.0},
+                                     {1150.0, -4.0, 90.0},
+                                     {2800.0, -20.0, 120.0},
+                                     {3500.0, -36.0, 130.0},
+                                     {4950.0, -60.0, 140.0}};
+
+    /// The vowel envelope sampled at frequency f: resonance-shaped peaks at the table's centers.
+    double vowel_gain(double f, const formant* table) {
+        double g = 0.0;
+        for (int i = 0; i < 5; ++i) {
+            const double sigma = table[i].bw; // the tabulated bandwidth as the peak's spread
+            const double d     = (f - table[i].hz) / sigma;
+            g += std::pow(10.0, table[i].amp_db * 0.05) * std::exp(-0.5 * d * d);
+        }
+        return g;
+    }
+
+    /// One sustained sung note: harmonic amplitudes precomputed from the vowel envelope, then
+    /// three unison voices (detuned a few cents, independent vibrato phases) rendered per sample.
+    class sung_note {
+      public:
+        sung_note(double hz, double dur, const formant* table, uint32_t seed)
+            : m_f0(hz)
+            , m_dur(dur) {
+            const int harmonics = std::min(40, static_cast<int>(16000.0 / hz));
+            double    norm      = 0.0;
+            for (int k = 1; k <= harmonics; ++k) {
+                const double a = vowel_gain(static_cast<double>(k) * hz, table) / static_cast<double>(k);
+                m_amp.push_back(a);
+                norm += a;
+            }
+            for (double& a : m_amp) {
+                a /= norm;
+            }
+            for (int v = 0; v < k_voices; ++v) { // per-voice detune and vibrato, seeded
+                seed           = seed * 1664525u + 1013904223u;
+                m_detune[v]    = std::exp2((static_cast<double>(v - 1) * 5.5 + uniform(seed) * 1.5) / 1200.0);
+                m_vib_rate[v]  = 4.8 + 0.35 * static_cast<double>(v) + 0.2 * uniform(seed);
+                m_vib_phase[v] = 0.5 * (uniform(seed) + 1.0);
+            }
+        }
+
+        double operator()(double t) const {
+            if (t < 0.0 || t >= m_dur) {
+                return 0.0;
+            }
+            // The long swell of a held note: slow rise, gentle release.
+            const double env = std::pow(std::sin(k_g_pi * std::min(t / (0.7 * m_dur), 1.0)), 2.0);
+            // Vibrato arrives after the onset, the way singers land a note and then warm it.
+            const double warm = std::min(t / 1.2, 1.0);
+            double       sum  = 0.0;
+            for (int v = 0; v < k_voices; ++v) {
+                const double f0    = m_f0 * m_detune[v];
+                const double depth = 0.0035 * warm; // ~6 cents peak, grown over the first second
+                // Closed-form phase of a sinusoidally modulated oscillator.
+                const double phase = f0 * t
+                                     - depth * f0 / m_vib_rate[v]
+                                           * (std::cos(2.0 * k_g_pi * (m_vib_rate[v] * t + m_vib_phase[v]))
+                                              - std::cos(2.0 * k_g_pi * m_vib_phase[v]))
+                                           / (2.0 * k_g_pi);
+                for (size_t k = 0; k < m_amp.size(); ++k) {
+                    sum += m_amp[k] * std::sin(2.0 * k_g_pi * static_cast<double>(k + 1) * phase);
+                }
+            }
+            return env * sum / static_cast<double>(k_voices);
+        }
+
+      private:
+        static double uniform(uint32_t s) { return (static_cast<double>(s) / 2147483648.0) - 1.0; }
+
+        static constexpr int k_voices = 3;
+        double               m_f0;
+        double               m_dur;
+        std::vector<double>  m_amp;
+        double               m_detune[k_voices]{};
+        double               m_vib_rate[k_voices]{};
+        double               m_vib_phase[k_voices]{};
+    };
 
     void discreet_basic(const std::string& dir) {
         tap::tools::discreet::machine m;
@@ -154,13 +252,16 @@ namespace {
         stereo.reserve(static_cast<size_t>(180.0 * k_g_sr) * 2);
         double l = 0.0, r = 0.0;
 
-        // Record one phrase onto each loop in turn, then let the system run free.
+        // Record one sung note onto each loop in turn, then let the system run free. Lower
+        // pitches take the tenor "a" table, upper ones the alto — a small mixed choir.
         for (int i = 0; i < 7; ++i) {
-            const double dur = 0.55 * lengths[i];
+            const double    dur = 0.62 * lengths[i];
+            const sung_note voice(midi_hz(pitches[i]), dur, (pitches[i] < 63.0) ? k_tenor_a : k_alto_a,
+                                  static_cast<uint32_t>(1978 + 17 * i));
             b.record(i, true);
             const size_t n = static_cast<size_t>(dur * k_g_sr);
             for (size_t s = 0; s < n; ++s) {
-                b.process(phrase_tone(static_cast<double>(s) / k_g_sr, dur, midi_hz(pitches[i])), l, r);
+                b.process(0.85 * voice(static_cast<double>(s) / k_g_sr), l, r);
                 stereo.push_back(l);
                 stereo.push_back(r);
             }
