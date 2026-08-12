@@ -1,8 +1,7 @@
 # Plan — the Eno-family chapters
 
-> **Status: planned.** Outline for drafting; flips to drafted when the chapters land in
-> `src/` per the placement below. This file then remains as the drafting record, the
-> plans-directory way.
+> **Status: drafted.** All six chapters are written and live in `src/` per the placement
+> below (2026-08-12). This file remains as the drafting record, the plans-directory way.
 
 Planning document for the *Tools on Tap* chapters covering the 2026-08 Eno-family work
 (`tap.discreet~`, `tap.airport~`, `tap.garden~`; `taptools/tape_loop.h`, `discreet.h`,

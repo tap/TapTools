@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" font-family="sans-serif" font-size="12.5">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#666666"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#b8890f"/>
+    </marker>
+    <marker id="abl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#4269d0"/>
+    </marker>
+  </defs>
+
+  <text x="16" y="26" fill="#1a1a1a" font-weight="bold">tap.airport~ — one loop of eight, all free-running, lengths never in agreement</text>
+
+  <!-- the reel: a circle of tape with one head -->
+  <circle cx="150" cy="150" r="72" fill="none" stroke="#666666" stroke-width="1.6"/>
+  <circle cx="150" cy="150" r="12" fill="none" stroke="#666666" stroke-width="1.2"/>
+  <text x="150" y="250" text-anchor="middle" fill="#666666" font-size="10.5">length_seconds of tape — a splice re-wraps, never rewinds</text>
+
+  <!-- the head, riding the rim (blue) -->
+  <circle cx="217" cy="122" r="9" fill="none" stroke="#4269d0" stroke-width="2"/>
+  <path d="M 196 65 A 72 72 0 0 1 219 108" fill="none" stroke="#4269d0" stroke-width="1.4" marker-end="url(#abl)"/>
+  <text x="240" y="70" fill="#4269d0">one head: plays, then records</text>
+  <text x="240" y="86" fill="#666666" font-size="10.5">phase never reset by any setter</text>
+
+  <!-- record punch (amber): in -> gate -> head -->
+  <text x="16" y="98" fill="#1a1a1a">in</text>
+  <line x1="34" y1="94" x2="56" y2="94" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="58" y="76" width="96" height="36" rx="4" fill="none" stroke="#b8890f" stroke-width="1.6"/>
+  <text x="106" y="91" text-anchor="middle" fill="#b8890f">record gate</text>
+  <text x="106" y="105" text-anchor="middle" fill="#666666" font-size="10.5">replaces; off = freeze</text>
+  <path d="M 154 94 L 204 112" fill="none" stroke="#b8890f" stroke-width="1.8" marker-end="url(#ab)"/>
+
+  <!-- playback path: head -> shade -> level -> pan -> stereo sum -->
+  <path d="M 226 126 L 358 126" fill="none" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="360" y="104" width="128" height="44" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="424" y="122" text-anchor="middle" fill="#1a1a1a">darken</text>
+  <text x="424" y="138" text-anchor="middle" fill="#666666" font-size="10">playback tone only —</text>
+  <text x="424" y="149" text-anchor="middle" fill="#666666" font-size="10">bypassed at the ceiling</text>
+  <line x1="488" y1="126" x2="514" y2="126" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="516" y="108" width="76" height="36" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="554" y="130" text-anchor="middle" fill="#1a1a1a">level</text>
+  <line x1="592" y1="126" x2="618" y2="126" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <rect x="620" y="104" width="102" height="44" rx="4" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="671" y="122" text-anchor="middle" fill="#1a1a1a">pan</text>
+  <text x="671" y="138" text-anchor="middle" fill="#666666" font-size="10">equal-power,</text>
+  <text x="671" y="149" text-anchor="middle" fill="#666666" font-size="10">exact endpoints</text>
+  <line x1="722" y1="118" x2="762" y2="104" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="722" y1="134" x2="762" y2="148" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="780" cy="98" r="15" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="780" y="103" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <circle cx="780" cy="154" r="15" fill="none" stroke="#666666" stroke-width="1.4"/>
+  <text x="780" y="159" text-anchor="middle" fill="#1a1a1a" font-size="15">Σ</text>
+  <line x1="795" y1="98" x2="828" y2="98" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="835" y="102" fill="#1a1a1a">out L</text>
+  <line x1="795" y1="154" x2="828" y2="154" stroke="#666666" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="835" y="158" fill="#1a1a1a">out R</text>
+
+  <!-- the other loops, ghosted -->
+  <circle cx="360" cy="232" r="34" fill="none" stroke="#cccccc" stroke-width="1.2"/>
+  <circle cx="452" cy="232" r="34" fill="none" stroke="#cccccc" stroke-width="1.2"/>
+  <circle cx="544" cy="232" r="34" fill="none" stroke="#cccccc" stroke-width="1.2"/>
+  <text x="612" y="237" fill="#666666" font-size="13">… up to 8, each its own length, level, pan, shade</text>
+  <path d="M 360 198 L 700 160" fill="none" stroke="#cccccc" stroke-width="1.1" marker-end="url(#a)"/>
+  <path d="M 452 198 L 706 166" fill="none" stroke="#cccccc" stroke-width="1.1"/>
+  <path d="M 544 198 L 712 172" fill="none" stroke="#cccccc" stroke-width="1.1"/>
+
+  <text x="16" y="300" fill="#666666" font-size="11">the composition is the phase system: incommensurate lengths mean the coincidences never repeat — composite period = lcm of the lengths</text>
+</svg>
