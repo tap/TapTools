@@ -13,6 +13,7 @@
 #include <taptools/delay.h>
 #include <taptools/diode_ladder.h>
 #include <taptools/discreet.h>
+#include <taptools/garden.h>
 #include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
 #include <taptools/overdrive.h>
@@ -1209,6 +1210,95 @@ int taptools_airport_process(taptools_airport h, const double* in, double* outL,
         return -1;
     }
     return with<airport_bank>(h, [&](airport_bank& b) { b.process(in, outL, outR, static_cast<size_t>(n)); });
+}
+
+// ---- tap.garden~ ---------------------------------------------------------------------------------
+
+using garden_bed = tap::tools::garden::bed;
+
+taptools_garden taptools_garden_create(void) {
+    return static_cast<taptools_garden>(new garden_bed());
+}
+
+void taptools_garden_destroy(taptools_garden h) {
+    delete static_cast<garden_bed*>(h);
+}
+
+int taptools_garden_prepare(taptools_garden h, double sr) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.prepare(sr); });
+}
+
+int taptools_garden_note(taptools_garden h, double pitch, double velocity) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.note(pitch, velocity); });
+}
+
+int taptools_garden_set_loop_seconds(taptools_garden h, double s) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_loop_seconds(s); });
+}
+
+int taptools_garden_set_decay(taptools_garden h, double per_pass) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_decay(per_pass); });
+}
+
+int taptools_garden_set_soften(taptools_garden h, double per_pass) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_soften(per_pass); });
+}
+
+int taptools_garden_set_floor(taptools_garden h, double v) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_floor(v); });
+}
+
+int taptools_garden_set_bell(taptools_garden h, double attack_s, double decay_s, double brightness) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_bell(attack_s, decay_s, brightness); });
+}
+
+int taptools_garden_set_root(taptools_garden h, int semitone) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_root(semitone); });
+}
+
+int taptools_garden_set_scale(taptools_garden h, int scale) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_scale(scale); });
+}
+
+int taptools_garden_set_idle_seconds(taptools_garden h, double s) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_idle_seconds(s); });
+}
+
+int taptools_garden_set_seed(taptools_garden h, unsigned long long seed) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_seed(static_cast<uint64_t>(seed)); });
+}
+
+int taptools_garden_set_level(taptools_garden h, double lin) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_level(lin); });
+}
+
+int taptools_garden_set_smooth_ms(taptools_garden h, double ms) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_smooth_ms(ms); });
+}
+
+int taptools_garden_clear(taptools_garden h) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.clear(); });
+}
+
+int taptools_garden_active_events(taptools_garden h) {
+    if (!h) {
+        return -1;
+    }
+    return static_cast<garden_bed*>(h)->active_events();
+}
+
+int taptools_garden_active_voices(taptools_garden h) {
+    if (!h) {
+        return -1;
+    }
+    return static_cast<garden_bed*>(h)->active_voices();
+}
+
+int taptools_garden_process(taptools_garden h, double* out, int n) {
+    if (!out || n < 0) {
+        return -1;
+    }
+    return with<garden_bed>(h, [&](garden_bed& g) { g.process(out, static_cast<size_t>(n)); });
 }
 
 } // extern "C"
