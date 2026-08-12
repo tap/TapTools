@@ -4,6 +4,9 @@
 [![Tap House Style](https://github.com/tap/TapTools/actions/workflows/style.yml/badge.svg)](https://github.com/tap/TapTools/actions/workflows/style.yml)
 [![Docs](https://github.com/tap/TapTools/actions/workflows/docs.yml/badge.svg)](https://github.com/tap/TapTools/actions/workflows/docs.yml)
 
+**📖 [*Tools on Tap*](https://timothy.place/TapTools/)** — the field guide to these kernels,
+one measured chapter per object family — is published from this repo on every merge.
+
 The portable DSP library behind the TapTools Max package: header-only, plain C++20, **no Max SDK,
 no min-api, no Jamoma**. One self-contained header per object under `include/taptools/`, each in
 its own `tap::tools::<family>` namespace. The TapTools Max externals are thin
