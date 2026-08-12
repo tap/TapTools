@@ -18,6 +18,7 @@ add_executable(taptools_kernel_tests
     delay_test.cpp
     diode_ladder_test.cpp
     discreet_test.cpp
+    garden_test.cpp
     grm_comb_test.cpp
     harmonizer_test.cpp
     nr_test.cpp

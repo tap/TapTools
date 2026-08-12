@@ -14,6 +14,7 @@
 #include "delay.h"
 #include "diode_ladder.h"
 #include "discreet.h"
+#include "garden.h"
 #include "grm_comb.h"
 #include "grm_pitchaccum.h"
 #include "ladder.h"

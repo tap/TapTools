@@ -78,6 +78,7 @@ header adds no nested namespace, the class) the kernel lives in.
 | `tape_loop.h` | *(shared)* | Tape reel, wow/flutter transport, generation-loss wear (`tap::tools::tape`) |
 | `discreet.h` | `tap.discreet~` | *Discreet Music* two-machine regeneration loop (`tap::tools::discreet`) |
 | `airport.h` | `tap.airport~` | *Music for Airports* incommensurate loop bank (`tap::tools::airport`) |
+| `garden.h` | `tap.garden~` | Generative event loop on the Bloom principle (`tap::tools::garden`) |
 
 `taptools.h` is the umbrella header that pulls in every kernel above. `stft.h`, `tune.h`,
 `harmonizer.h` and `conv_engine.h` reach into `tap::dsp` (the pinned DspTap submodule) for the
