@@ -16,9 +16,10 @@ tap.overdrive~ (`Overdrive`), the step-sequencer rows behind tap.808.seq~ /
 tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
 tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), the Discreet Music
 two-machine tape loop tap.discreet~ (`Discreet`), the Music for Airports
-incommensurate loop bank tap.airport~ (`Airport`), and tap.tune~'s pitch
-corrector (`Tune`, with the shared DspTap detector passed through as `Yin`
-for the notebooks' pitch tracking). Parameter names on the
+incommensurate loop bank tap.airport~ (`Airport`), the generative event
+loop tap.garden~ (`Garden`), and tap.tune~'s pitch corrector (`Tune`, with
+the shared DspTap detector passed through as `Yin` for the notebooks'
+pitch tracking). Parameter names on the
 kernel classes mirror each kernel header's param_index enum.
 
 Copyright 2003-2026 Timothy Place. MIT License.
@@ -292,6 +293,26 @@ def load() -> ctypes.CDLL:
         "taptools_airport_phase":          ([vp, ctypes.c_int], ctypes.c_double),
         "taptools_airport_composite_period_seconds": ([vp], ctypes.c_double),
         "taptools_airport_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_garden_create":          ([], vp),
+        "taptools_garden_destroy":         ([vp], None),
+        "taptools_garden_prepare":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_note":            ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_loop_seconds": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_decay":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_soften":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_floor":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_bell":        ([vp, ctypes.c_double, ctypes.c_double, ctypes.c_double],
+                                            ctypes.c_int),
+        "taptools_garden_set_root":        ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_garden_set_scale":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_garden_set_idle_seconds": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_seed":        ([vp, ctypes.c_ulonglong], ctypes.c_int),
+        "taptools_garden_set_level":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_smooth_ms":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_clear":           ([vp], ctypes.c_int),
+        "taptools_garden_active_events":   ([vp], ctypes.c_int),
+        "taptools_garden_active_voices":   ([vp], ctypes.c_int),
+        "taptools_garden_process":         ([vp, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -1222,6 +1243,83 @@ class Airport:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_airport_destroy(h)
+            self._h = None
+
+
+class Garden:
+    """tap.garden~'s kernel (tap::tools::garden::bed): a generative event
+    loop on the Bloom principle. Planted notes snap to the scale, bloom on a
+    two-operator FM bell, and return every loop pass a step quieter (decay)
+    and purer (soften) until they retire below the floor; left idle, a
+    seeded gardener plants for you. Scales: 0 chromatic, 1 major, 2 minor,
+    3 major pentatonic, 4 minor pentatonic."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_garden_create()
+        _check(_LIB.taptools_garden_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, loop_seconds=None, decay=None, soften=None, floor=None, bell=None,
+            root=None, scale=None, idle_seconds=None, seed=None, level=None,
+            smooth_ms=None) -> "Garden":
+        """`bell` takes an (attack_s, decay_s, brightness) triple."""
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_garden_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if seed is not None:
+            _check(_LIB.taptools_garden_set_seed(self._h, int(seed)), "seed")
+        if root is not None:
+            _check(_LIB.taptools_garden_set_root(self._h, int(root)), "root")
+        if scale is not None:
+            _check(_LIB.taptools_garden_set_scale(self._h, int(scale)), "scale")
+        if bell is not None:
+            attack_s, decay_s, brightness = bell
+            _check(_LIB.taptools_garden_set_bell(self._h, float(attack_s), float(decay_s),
+                                                 float(brightness)), "bell")
+        if loop_seconds is not None:
+            _check(_LIB.taptools_garden_set_loop_seconds(self._h, float(loop_seconds)),
+                   "loop_seconds")
+        if decay is not None:
+            _check(_LIB.taptools_garden_set_decay(self._h, float(decay)), "decay")
+        if soften is not None:
+            _check(_LIB.taptools_garden_set_soften(self._h, float(soften)), "soften")
+        if floor is not None:
+            _check(_LIB.taptools_garden_set_floor(self._h, float(floor)), "floor")
+        if idle_seconds is not None:
+            _check(_LIB.taptools_garden_set_idle_seconds(self._h, float(idle_seconds)),
+                   "idle_seconds")
+        if level is not None:
+            _check(_LIB.taptools_garden_set_level(self._h, float(level)), "level")
+        return self
+
+    def note(self, pitch: float, velocity: float) -> "Garden":
+        """Plant: MIDI pitch (fractional ok, snaps to root/scale at entry),
+        velocity (0, 1]. Sounds on the next processed sample."""
+        _check(_LIB.taptools_garden_note(self._h, float(pitch), float(velocity)), "note")
+        return self
+
+    @property
+    def active_events(self) -> int:
+        return int(_LIB.taptools_garden_active_events(self._h))
+
+    @property
+    def active_voices(self) -> int:
+        return int(_LIB.taptools_garden_active_voices(self._h))
+
+    def process(self, n: int) -> np.ndarray:
+        """Render n samples (a source: no input)."""
+        out = np.zeros(int(n))
+        _check(_LIB.taptools_garden_process(self._h, _p64(out), out.size), "process")
+        return out
+
+    def clear(self) -> None:
+        """Uproot everything; parameters are untouched."""
+        _check(_LIB.taptools_garden_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_garden_destroy(h)
             self._h = None
 
 
