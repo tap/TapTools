@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "airport.h"
 #include "autowah.h"
 #include "bridged_t.h"
 #include "conv_engine.h"
