@@ -306,6 +306,7 @@ def load() -> ctypes.CDLL:
         "taptools_garden_set_root":        ([vp, ctypes.c_int], ctypes.c_int),
         "taptools_garden_set_scale":       ([vp, ctypes.c_int], ctypes.c_int),
         "taptools_garden_set_idle_seconds": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_garden_set_gust":        ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_garden_set_seed":        ([vp, ctypes.c_ulonglong], ctypes.c_int),
         "taptools_garden_set_level":       ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_garden_set_smooth_ms":   ([vp, ctypes.c_double], ctypes.c_int),
@@ -1261,7 +1262,7 @@ class Garden:
         self.set(**params)
 
     def set(self, *, loop_seconds=None, decay=None, soften=None, floor=None, bell=None,
-            root=None, scale=None, idle_seconds=None, seed=None, level=None,
+            root=None, scale=None, idle_seconds=None, gust=None, seed=None, level=None,
             smooth_ms=None) -> "Garden":
         """`bell` takes an (attack_s, decay_s, brightness) triple."""
         # configuration first, so ramped targets in the same call honor the new slew
@@ -1289,6 +1290,8 @@ class Garden:
         if idle_seconds is not None:
             _check(_LIB.taptools_garden_set_idle_seconds(self._h, float(idle_seconds)),
                    "idle_seconds")
+        if gust is not None:
+            _check(_LIB.taptools_garden_set_gust(self._h, float(gust)), "gust")
         if level is not None:
             _check(_LIB.taptools_garden_set_level(self._h, float(level)), "level")
         return self

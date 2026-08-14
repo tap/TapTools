@@ -17,22 +17,32 @@
 ///             below `floor`, so the live-event population converges no matter how fast you
 ///             plant — and a fixed bell pool (quietest-stolen) hard-bounds the audio regardless.
 ///
-///             The voice is a small wind chime: three decaying sine modes at the transverse-
-///             vibration ratios of a free-free bar, 1 : 2.756 : 5.404 (Fletcher & Rossing, The
-///             Physics of Musical Instruments, 2nd ed. — the bars/tubular-chimes chapter, where
-///             f_n grows as (2n+1)^2). The first mode carries the perceived pitch; the upper
-///             two are inharmonic, softer (scaled by per-event brightness), and faster-dying,
-///             so every strike rings down to its fundamental — which is also where the pitch
-///             contract lives: a detector reads the chime in its tail, once the clang has
-///             cleared (the tests measure there). Each pass multiplies the event's brightness
-///             by `soften`, so a bloom does not just fade: it purifies toward its fundamental.
-///             Mode amplitudes ride the shared tr808 decay_env (one per mode); a steal re-aims
-///             the envelopes without a reset, so stolen voices glide, not click.
+///             The voice is a small wind chime: four decaying mode doublets at the transverse-
+///             vibration ratios of a free-free bar, 1 : 2.756 : 5.404 : 8.933 (Fletcher &
+///             Rossing, The Physics of Musical Instruments, 2nd ed. — the bars/tubular-chimes
+///             chapter, where f_n grows as (2n+1)^2; doublet splitting of degenerate tube mode
+///             pairs is from the same source, a fixed few cents here so tails beat slowly
+///             instead of decaying like lab sines). The first mode carries the perceived pitch;
+///             the upper modes are inharmonic, softer (scaled by per-event brightness times
+///             strike hardness — a soft strike is a dull strike), progressively steeper in
+///             brightness (b, b^2, b^3), and faster-dying (~f^2 radiation damping), the 4th
+///             gone in tens of milliseconds: the contact tick. Ring time scales with
+///             sqrt(440/f) per strike — small high tubes ring shorter. Every strike therefore
+///             rings down to its fundamental, which is where the pitch contract lives: a
+///             detector reads the chime in its tail, once the clang has cleared (the tests
+///             measure there). Each pass multiplies the event's brightness by `soften`, so a
+///             bloom does not just fade: it purifies toward its fundamental, losing its tick
+///             first. Mode amplitudes ride the shared tr808 decay_env (one per mode); a strike
+///             on a silent tube starts its doublets aligned (fresh initial conditions), while
+///             an audible steal keeps free-running phases and glides instead of clicking.
 ///
 ///             Randomness: the idle gardener draws from the family's seeded xorshift64*
 ///             (tr808::white_noise) — deterministic per seed, so renders and tests reproduce and
-///             instances decorrelate by seed. This is the library's first randomized *event*
-///             source (step_seq.h promises "no randomness anywhere"; this kernel is the deliberate
+///             instances decorrelate by seed. The gardener is wind: strikes arrive on a
+///             calm/gust cycle (`gust` sizes the clusters — up to five neighboring tubes within
+///             a fraction of a second — with calms stretched to hold the average near one
+///             strike per pass). This is the library's first randomized *event* source
+///             (step_seq.h promises "no randomness anywhere"; this kernel is the deliberate
 ///             counterpoint, and the seed contract is the bridge back to reproducibility).
 ///
 ///             Geometry: everything is fixed arrays — k_max_events events, k_voices bells —
@@ -45,8 +55,8 @@
 ///               pass, exactly — there is no swing, no drift, no humanization.
 ///             - A full garden (k_max_events live) retires its OLDEST bloom to make room for a
 ///               new plant: a touch must always speak, and the oldest is the quietest.
-///             - The idle gardener is statistical (about one plant per loop pass, uniformly
-///               placed), not a transcription of any published piece or app behavior.
+///             - The idle gardener is a statistical wind (gusts and calms averaging about one
+///               strike per pass), not a transcription of any published piece or app behavior.
 ///             - Mono out; one chime timbre family. It is an instrument, not a polysynth.
 /// @author     Timothy Place
 // SPDX-License-Identifier: MIT
@@ -69,15 +79,28 @@ namespace tap::tools {
 
         constexpr int k_max_events = 64; // live blooms; oldest yields when full
         constexpr int k_voices     = 16; // fixed bell pool; quietest-first steal
-        constexpr int k_modes      = 3;  // a small chime: three transverse modes
+        constexpr int k_modes      = 4;  // a small chime: four transverse modes, the 4th the strike's tick
         // Free-free bar transverse-mode ratios (Fletcher & Rossing, The Physics of Musical
         // Instruments, 2nd ed., ch. on bars and tubular chimes: f_n proportional to (2n+1)^2).
-        constexpr double k_mode_ratio[k_modes] = {1.0, 2.756, 5.404};
-        // Mode levels at brightness 1, summing to <= 1 so a bell is bounded by its velocity;
-        // higher modes ring softer and (below) die faster, as struck chimes do.
-        constexpr double k_mode_level[k_modes] = {0.62, 0.28, 0.10};
-        constexpr double k_mode_haste[k_modes] = {1.0, 2.5, 6.0}; // decay-time divisor per mode
-        constexpr double k_gain_epsilon        = 1e-4;            // below this a voice is "off" (harmonizer.h idiom)
+        constexpr double k_mode_ratio[k_modes] = {1.0, 2.756, 5.404, 8.933};
+        // Mode levels at full hardness sum to <= 1 so a chime is bounded by its velocity; the
+        // upper modes scale with brightness (progressively steeper — see bell::trigger).
+        constexpr double k_mode_level[k_modes] = {0.58, 0.25, 0.10, 0.07};
+        // Decay-time divisor per mode, ~ratio^2: radiation damping grows roughly with f^2, so
+        // higher modes die much faster — the 4th is gone in tens of ms, the contact tick.
+        constexpr double k_mode_haste[k_modes] = {1.0, 7.6, 29.2, 79.8};
+        // Each mode is a doublet: a real tube's degenerate mode pairs are split a few cents by
+        // imperfection (Fletcher & Rossing on doublets in bells/chimes), so tails beat slowly
+        // instead of decaying like lab sines. Fixed split — deterministic, no RNG.
+        constexpr double k_doublet_cents = 1.5;
+        // A soft strike is a dull strike: effective brightness scales with velocity through
+        // this floor (hardness = floor + (1 - floor) * velocity).
+        constexpr double k_hardness_floor = 0.5;
+        // Small high tubes ring shorter than long low ones: per-strike decay scales by
+        // sqrt(440 / f), clamped to this range.
+        constexpr double k_ring_scale_min = 0.5;
+        constexpr double k_ring_scale_max = 2.0;
+        constexpr double k_gain_epsilon   = 1e-4; // below this a voice is "off" (harmonizer.h idiom)
 
         constexpr double k_min_loop_seconds = 0.25;  // beneath this it is a buzzer, not a garden
         constexpr double k_max_loop_seconds = 120.0; // the loop is a counter — no tape is bought
@@ -87,6 +110,7 @@ namespace tap::tools {
         constexpr double k_default_soften       = 0.9;   // brightness multiplier per pass
         constexpr double k_default_floor        = 0.03;  // retirement threshold
         constexpr double k_default_idle_seconds = 30.0;  // the gardener's patience; 0 disables
+        constexpr double k_default_gust         = 0.5;   // the wind: 0 calm/even, 1 blustery clusters
         constexpr double k_default_attack_s     = 0.004; // a clapper's strike, not a bow
         constexpr double k_default_decay_s      = 4.0;
         constexpr double k_default_brightness   = 1.0;
@@ -121,10 +145,13 @@ namespace tap::tools {
             make_mask({0, 3, 5, 7, 10}),       // minor pentatonic
         };
 
-        /// One small wind chime: three decaying sine modes at the free-free bar's transverse
-        /// ratios (k_mode_ratio), each with its own decay_env — higher modes softer (scaled by
-        /// brightness) and faster-dying (k_mode_haste), the way a struck tube rings down to its
-        /// fundamental. Phases free-run so a steal re-aims without a click.
+        /// One small wind chime: four decaying mode doublets at the free-free bar's transverse
+        /// ratios (k_mode_ratio) — each mode a pair of sines split k_doublet_cents so the tail
+        /// beats slowly, the upper modes scaled by brightness (progressively steeper per mode)
+        /// and hardness (a soft strike is duller), all dying faster than the fundamental
+        /// (k_mode_haste, ~f^2 radiation damping — the 4th mode is the strike's tick). Ring
+        /// time scales with sqrt(440/f) at trigger: small high tubes ring shorter. Phases
+        /// free-run so a steal re-aims without a click.
         class bell {
           public:
             void prepare(double sr) {
@@ -135,31 +162,52 @@ namespace tap::tools {
                 set_times(k_default_attack_s, k_default_decay_s);
             }
 
+            /// Stored and applied per strike (ring time depends on the struck pitch), so a
+            /// ringing chime keeps its envelope until retriggered.
             void set_times(double attack_s, double decay_s) {
-                for (int m = 0; m < k_modes; ++m) {
-                    m_env[static_cast<size_t>(m)].set_times(attack_s, decay_s / k_mode_haste[m]);
-                }
+                m_attack_s = attack_s;
+                m_decay_s  = decay_s;
             }
 
             void reset() {
                 for (auto& e : m_env) {
                     e.reset();
                 }
-                for (auto& p : m_phase) {
+                for (auto& p : m_phase_a) {
+                    p = 0.0;
+                }
+                for (auto& p : m_phase_b) {
                     p = 0.0;
                 }
             }
 
             /// Strike at `freq_hz` (the first mode — the perceived pitch), envelope target
-            /// `level`, upper-mode weight `brightness` (0..1). Modes above the audio band stay
+            /// `level`, upper-mode weight `brightness` (0..1). Effective brightness couples to
+            /// the strike level (soft strikes are duller) and steepens per mode (b, b^2, b^3),
+            /// so softening kills the highest partials first. Modes above the audio band stay
             /// silent rather than aliasing.
             void trigger(double freq_hz, double level, double brightness) {
+                if (this->level() <= k_gain_epsilon) { // a strike on a silent tube sets fresh
+                    for (auto& p : m_phase_a) {        // initial conditions: the doublet starts
+                        p = 0.0;                       // aligned and its beat blooms from the
+                    } // strike. Audible steals keep free-running
+                    for (auto& p : m_phase_b) { // phases and glide instead.
+                        p = 0.0;
+                    }
+                }
+                const double hardness = k_hardness_floor + (1.0 - k_hardness_floor) * std::clamp(level, 0.0, 1.0);
+                const double b        = std::clamp(brightness, 0.0, 1.0) * hardness;
+                const double ring     = std::clamp(std::sqrt(440.0 / freq_hz), k_ring_scale_min, k_ring_scale_max);
+                const double split    = std::exp2(k_doublet_cents / 2400.0); // half the split, up and down
+                double       shine    = 1.0;                                 // b^0, b^1, b^2, b^3 per mode
                 for (int m = 0; m < k_modes; ++m) {
                     const size_t i       = static_cast<size_t>(m);
                     const double mode_hz = k_mode_ratio[m] * freq_hz;
-                    m_inc[i]             = mode_hz / m_sr;
-                    const double weight  = (m == 0) ? k_mode_level[0] : k_mode_level[m] * brightness;
-                    m_env[i].trigger((mode_hz < 0.45 * m_sr) ? level * weight : 0.0);
+                    m_inc_a[i]           = mode_hz * split / m_sr;
+                    m_inc_b[i]           = mode_hz / split / m_sr;
+                    m_env[i].set_times(m_attack_s, m_decay_s * ring / k_mode_haste[m]);
+                    m_env[i].trigger((mode_hz < 0.45 * m_sr) ? level * k_mode_level[m] * shine : 0.0);
+                    shine *= b;
                 }
             }
 
@@ -174,17 +222,24 @@ namespace tap::tools {
             double process() {
                 double sum = 0.0;
                 for (size_t i = 0; i < static_cast<size_t>(k_modes); ++i) {
-                    m_phase[i] += m_inc[i];
-                    m_phase[i] -= std::floor(m_phase[i]);
-                    sum += m_env[i].process() * std::sin(2.0 * k_pi * m_phase[i]);
+                    m_phase_a[i] += m_inc_a[i];
+                    m_phase_a[i] -= std::floor(m_phase_a[i]);
+                    m_phase_b[i] += m_inc_b[i];
+                    m_phase_b[i] -= std::floor(m_phase_b[i]);
+                    sum += m_env[i].process() * 0.5
+                           * (std::sin(2.0 * k_pi * m_phase_a[i]) + std::sin(2.0 * k_pi * m_phase_b[i]));
                 }
                 return sum;
             }
 
           private:
             double                                m_sr{48000.0};
-            std::array<double, k_modes>           m_phase{};
-            std::array<double, k_modes>           m_inc{};
+            double                                m_attack_s{k_default_attack_s};
+            double                                m_decay_s{k_default_decay_s};
+            std::array<double, k_modes>           m_phase_a{};
+            std::array<double, k_modes>           m_phase_b{};
+            std::array<double, k_modes>           m_inc_a{};
+            std::array<double, k_modes>           m_inc_b{};
             std::array<tr808::decay_env, k_modes> m_env;
         };
 
@@ -219,6 +274,10 @@ namespace tap::tools {
                 m_pos           = 0;
                 m_planted       = 0;
                 m_since_note    = 0;
+                m_gust_wait     = -1;
+                m_gust_left     = 0;
+                m_gust_size     = 1;
+                m_gust_pitch    = 69.0;
                 m_level_current = m_level_target;
             }
 
@@ -290,6 +349,11 @@ namespace tap::tools {
             /// (and then the seed cannot matter at all — pinned by test).
             void set_idle_seconds(double s) { m_idle_seconds = std::max(0.0, s); }
 
+            /// The wind, 0..1: at 0 the gardener strikes singly and evenly (about one per pass);
+            /// up from there, strikes arrive in gusts — clusters of up to five on neighboring
+            /// tubes within a fraction of a second, then longer calms, same average rate.
+            void set_gust(double amount) { m_gust = std::clamp(amount, 0.0, 1.0); }
+
             /// The gardener's seed — deterministic per seed, house triad contract. Instant.
             void set_seed(uint64_t seed) { m_rng.set_seed(seed); }
 
@@ -324,6 +388,7 @@ namespace tap::tools {
             int      root() const { return m_root; }
             int      scale() const { return m_scale; }
             double   idle_seconds() const { return m_idle_seconds; }
+            double   gust() const { return m_gust; }
             uint64_t seed() const { return m_rng.seed(); }
             double   level() const { return m_level_target; }
             double   smooth_ms() const { return m_smooth_ms; }
@@ -431,8 +496,14 @@ namespace tap::tools {
                 }
             }
 
-            /// The idle gardener: after idle_seconds without a caller plant, sow about one seed
-            /// per loop pass, uniformly placed, on the scale, within two octaves of middle root.
+            double uniform() { return 0.5 * (m_rng.process() + 1.0); } // [0, 1), the gardener's die
+
+            /// The idle gardener as wind: after idle_seconds without a caller plant, strikes
+            /// arrive on a calm/gust cycle. Each gust catches 1 to 5 neighboring tubes (sized by
+            /// `gust`) within a fraction of a second; calms between gusts stretch so the average
+            /// rate stays near one strike per loop pass at any gust setting. The rng is consumed
+            /// only while idling — the seed-triad contract depends on that discipline. A caller
+            /// plant closes the idle gate mid-gust; the gust resumes if the garden idles again.
             void tend() {
                 ++m_since_note;
                 if (m_idle_seconds <= 0.0) {
@@ -441,14 +512,25 @@ namespace tap::tools {
                 if (static_cast<double>(m_since_note) < m_idle_seconds * m_sr) {
                     return;
                 }
-                const double u = 0.5 * (m_rng.process() + 1.0); // [0, 1)
-                if (u * static_cast<double>(loop_samples()) >= 1.0) {
-                    return; // ~one plant per pass
+                if (m_gust_wait < 0) { // the wind arriving: the first strike lands within half a loop
+                    m_gust_wait = static_cast<long>(0.5 * uniform() * static_cast<double>(loop_samples()));
+                    m_gust_left = 0;
                 }
-                const double pitch    = 60.0 + std::floor(12.0 * (m_rng.process() + 1.0)); // [60, 84)
-                const double velocity = 0.3 + 0.2 * (m_rng.process() + 1.0);               // [0.3, 0.7)
+                if (m_gust_wait > 0) {
+                    --m_gust_wait;
+                    return;
+                }
+                if (m_gust_left <= 0) { // a fresh gust: how many tubes does this one catch?
+                    m_gust_size  = 1 + static_cast<int>(uniform() * (1.0 + 4.0 * m_gust));
+                    m_gust_left  = m_gust_size;
+                    m_gust_pitch = 55.0 + 29.0 * uniform(); // a fresh place on the rack
+                }
+                else { // the clapper swings on to a neighboring tube
+                    m_gust_pitch = std::clamp(m_gust_pitch + std::floor(9.0 * uniform()) - 4.0, 48.0, 90.0);
+                }
+                const double velocity = 0.3 + 0.4 * uniform();
                 event&       e        = allocate();
-                e.pitch               = quantize(pitch);
+                e.pitch               = quantize(m_gust_pitch);
                 e.velocity            = velocity;
                 e.brightness          = m_brightness;
                 e.offset              = m_pos;
@@ -456,6 +538,14 @@ namespace tap::tools {
                 e.seq                 = m_planted++;
                 fire(e);
                 bloom(e);
+                --m_gust_left;
+                if (m_gust_left > 0) { // within a gust: strikes tumble 30..280 ms apart
+                    m_gust_wait = static_cast<long>((0.03 + 0.25 * uniform()) * m_sr);
+                }
+                else { // calm, stretched by the gust just spent: the average rate holds
+                    m_gust_wait = static_cast<long>((0.5 + uniform()) * static_cast<double>(m_gust_size)
+                                                    * static_cast<double>(loop_samples()));
+                }
                 // Deliberately does NOT reset m_since_note's gate below the threshold: once the
                 // gardener starts, it keeps tending until the caller plants again.
             }
@@ -472,6 +562,7 @@ namespace tap::tools {
             int    m_root{0};
             int    m_scale{scale_major_pentatonic}; // anything you plant sounds consonant
             double m_idle_seconds{k_default_idle_seconds};
+            double m_gust{k_default_gust};
             double m_level_target{1.0};
             double m_level_current{1.0};
             double m_smooth_ms{k_default_smooth_ms};
@@ -479,6 +570,10 @@ namespace tap::tools {
             long                            m_pos{0};
             uint32_t                        m_planted{0};
             long long                       m_since_note{0};
+            long                            m_gust_wait{-1};
+            int                             m_gust_left{0};
+            int                             m_gust_size{1};
+            double                          m_gust_pitch{69.0};
             tr808::white_noise              m_rng;
             std::array<event, k_max_events> m_events;
             std::array<bell, k_voices>      m_bells;

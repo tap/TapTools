@@ -311,6 +311,7 @@ namespace {
         g.set_scale(tap::tools::garden::scale_minor_pentatonic);
         g.set_root(2);
         g.set_idle_seconds(3.0);
+        g.set_gust(0.7); // a proper breeze: clustered strikes, longer calms
         g.set_seed(2008);
         g.set_level(0.4);
 

@@ -39,25 +39,31 @@ it is three lines of arithmetic instead of a saturator.
 
 ## The chime
 
-Three decaying sine modes at the transverse-vibration ratios of a free-free
-bar — 1 : 2.756 : 5.404, from the bars-and-tubular-chimes chapter of
-Fletcher & Rossing's *The Physics of Musical Instruments* (f_n grows as
-(2n+1)²) — each mode with its own `tr808::decay_env`, the upper two scaled
-by per-event brightness and dying faster (`k_mode_haste`), as struck tubes
-do. Mode levels sum to at most 1, so a chime is bounded by its velocity and
-the pool bound stays arithmetic. The inharmonicity moved the pitch
-contract rather than breaking it: the upper modes clear quickly, so the
-YIN oracle reads each strike in its ring-down — the scale-contract
-scenario measures the tail, where the fundamental is all that remains, and
-still lands every off-scale plant on the scale within 20 cents. Softening
-maps to the upper-mode levels, so "purer every pass" is measurable as a
-Goertzel trajectory: mode two (2.756f) fades return over return by almost
-exactly `soften` while the fundamental holds. Modes that would land above
-0.45·sr stay silent rather than aliasing. Steals re-aim: the pool's
-quietest chime gets `trigger()`ed with new targets while its envelopes and
-phases free-run, so a steal glides where a reset would click; the
-`decay_env` was built for exactly this non-resetting retrigger, one family
-over.
+Four decaying mode doublets at the transverse-vibration ratios of a
+free-free bar — 1 : 2.756 : 5.404 : 8.933, from the bars-and-tubular-chimes
+chapter of Fletcher & Rossing's *The Physics of Musical Instruments* (f_n
+grows as (2n+1)²) — each mode a pair of sines split a fixed few cents, the
+doublet splitting of a real tube's degenerate mode pairs (same source), so
+the tail beats slowly instead of decaying like a lab sine. Each mode rides
+its own `tr808::decay_env`; decay times divide by ~ratio² (radiation
+damping grows with frequency), which makes the fourth mode a
+tens-of-milliseconds contact tick, and scale by √(440/f) per strike, so
+small high tubes ring shorter than long low ones. The upper modes scale
+with per-event brightness *times strike hardness* (a soft strike is a dull
+strike) and progressively steeply (b, b², b³), so `soften` strips the tick
+first and mode two by exactly its ratio. Mode levels sum to at most 1, so a
+chime is bounded by its velocity and the pool bound stays arithmetic; modes
+above 0.45·sr stay silent rather than aliasing.
+
+The phase rule earned a refinement when the doublets arrived: a strike on a
+*silent* tube zeroes its phases — fresh initial conditions, so the pair
+starts aligned and its beat blooms identically at every return, which is
+what keeps per-return spectral measurements deterministic — while an
+audible steal keeps free-running phases and glides instead of clicking.
+The inharmonicity moved the pitch contract rather than breaking it: the
+upper modes clear quickly, so the YIN oracle reads each strike in its
+ring-down, and the scale-contract scenario still lands every off-scale
+plant on the scale within 20 cents.
 
 ## Quantize at entry
 
@@ -73,17 +79,23 @@ stable under live tinkering and makes the contract easy to state.
 
 ## The gardener and the seed
 
-Idle planting consumes the family RNG (`tr808::white_noise`, xorshift64*,
-the seed-folding and clear-reseeds contract) — and *only* idle planting
-does. That consumption discipline is load-bearing: the third leg of the
-seeded triad, "with the gardener disabled the seed cannot matter at all",
-is only true because a disabled gardener never touches the generator, so
-two beds with different seeds run bit-identical until the first idle draw.
-The suite pins all three legs, the way the tr808 voices taught: same seed
-bit-exact, different seed audibly different, seed irrelevant when the
-random feature is off. `step_seq.h` promises "no randomness anywhere"; this
-kernel is the deliberate counterpoint, and the triad is the bridge back to
-a reproducible test suite.
+The gardener is a wind model: once the idle threshold passes, strikes
+arrive on a calm/gust cycle driven by a small state machine — a gust
+catches 1 to 5 neighboring tubes (`gust` sizes it) with 30–280 ms between
+strikes, the clapper walking a few semitones per swing, and the following
+calm stretches with the gust just spent so the average rate stays near one
+strike per pass at any setting. Idle planting consumes the family RNG
+(`tr808::white_noise`, xorshift64*, the seed-folding and clear-reseeds
+contract) — and *only* idle planting does. That consumption discipline is
+load-bearing: the third leg of the seeded triad, "with the gardener
+disabled the seed cannot matter at all", is only true because a disabled
+gardener never touches the generator. The suite pins all three legs, plus
+the wind itself: at gust 1 some strikes tumble inside a gust, at gust 0
+single strikes never come closer than the minimum calm (the scenario sets
+`decay 0` so only the gardener's own strikes are counted — planted seeds
+recirculate, and returns are not wind). `step_seq.h` promises "no
+randomness anywhere"; this kernel is the deliberate counterpoint, and the
+triad is the bridge back to a reproducible test suite.
 
 ## A finding: envelopes never reach zero
 
@@ -102,8 +114,9 @@ pass.
 
 ## The engineering ledger
 
-The suite measures the output, never the internals: peak-per-window ratios
-for the decay staircase (0.5 ± 0.075 across four returns, then
+The suite measures the output, never the internals: fundamental ratios
+for the decay staircase (0.5 ± 0.05 across four returns — the fundamental,
+because hardness makes whole-strike peaks fade faster than velocity, then
 `active_events() == 0` and the render below 1e−6), a strictly-decreasing
 Goertzel sideband for softening, YIN for the scale contract, the seeded
 triad rendered three times over, and structural bounds exercised at their
