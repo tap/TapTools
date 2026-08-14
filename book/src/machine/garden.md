@@ -4,7 +4,7 @@
 which makes it the family's odd one out mechanically and its purest member
 conceptually: the wear-as-stabilizer inversion survives the abstraction jump
 intact, as arithmetic. This appendix walks the machinery — the ring, the
-split between planting and firing, the bell, the quantizer, the gardener —
+split between planting and firing, the chime, the quantizer, the gardener —
 and the two contracts that had to be designed before they could be tested.
 
 ## The event ring
@@ -37,21 +37,27 @@ exactly `ceil(log(floor/velocity)/log(decay))` passes and the population
 converges no matter the planting rate. That is the stability theorem, and
 it is three lines of arithmetic instead of a saturator.
 
-## The bell
+## The chime
 
-Two-operator FM at a fixed ratio of 3 (Chowning 1973), amplitude from the
-shared `tr808::decay_env`, modulation index `velocity · brightness ·
-k_index_max`. The ratio was a *test requirement* before it was an
-aesthetic: an integer ratio keeps the spectrum harmonic, harmonic means the
-YIN oracle reads the fundamental, and the scale-contract scenario — plant
-off-scale pitches, require every sounded note on the scale within 20 cents
-— only exists because the voice is honest to a pitch detector. Softening
-maps to the index, so "purer every pass" is measurable as a Goertzel
-trajectory: the 4f sideband fades return over return while the fundamental
-holds. Steals re-aim: the pool's quietest bell gets `trigger()`ed with new
-targets while its envelope and phases free-run, so a steal glides where a
-reset would click; the `decay_env` was built for exactly this non-resetting
-retrigger, one family over.
+Three decaying sine modes at the transverse-vibration ratios of a free-free
+bar — 1 : 2.756 : 5.404, from the bars-and-tubular-chimes chapter of
+Fletcher & Rossing's *The Physics of Musical Instruments* (f_n grows as
+(2n+1)²) — each mode with its own `tr808::decay_env`, the upper two scaled
+by per-event brightness and dying faster (`k_mode_haste`), as struck tubes
+do. Mode levels sum to at most 1, so a chime is bounded by its velocity and
+the pool bound stays arithmetic. The inharmonicity moved the pitch
+contract rather than breaking it: the upper modes clear quickly, so the
+YIN oracle reads each strike in its ring-down — the scale-contract
+scenario measures the tail, where the fundamental is all that remains, and
+still lands every off-scale plant on the scale within 20 cents. Softening
+maps to the upper-mode levels, so "purer every pass" is measurable as a
+Goertzel trajectory: mode two (2.756f) fades return over return by almost
+exactly `soften` while the fundamental holds. Modes that would land above
+0.45·sr stay silent rather than aliasing. Steals re-aim: the pool's
+quietest chime gets `trigger()`ed with new targets while its envelopes and
+phases free-run, so a steal glides where a reset would click; the
+`decay_env` was built for exactly this non-resetting retrigger, one family
+over.
 
 ## Quantize at entry
 
@@ -109,8 +115,8 @@ could be written against public surface.
 
 ## Checkpoint
 
-A fixed ring of events fired by a loop counter into a fixed pool of FM
-bells: plant and fire kept strictly apart, wear as per-pass arithmetic
+A fixed ring of events fired by a loop counter into a fixed pool of modal
+wind chimes: plant and fire kept strictly apart, wear as per-pass arithmetic
 (decay, soften, floor) with convergence as its theorem, scale masks copied
 from `tune.h` and applied at entry, and a gardener whose RNG discipline
 makes generative behavior compatible with a bit-exact test suite. Third
