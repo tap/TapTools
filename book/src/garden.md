@@ -36,9 +36,11 @@ scale *at entry*, a small wind chime is struck on the next sample,
 and the event takes a seat at the loop's current position. Every pass, it
 fires again at `velocity × decay`, and below `floor` it retires. The
 notebook's staircase is the whole contract in one figure: a plant at 0.8
-with decay 0.5 returns at measured peaks 0.736, 0.367, 0.171, 0.081, 0.042
-— each within a few percent of half the last — then silence, and
-`active_events` reads zero.
+with decay 0.5 returns with its fundamental at exactly half the last, four
+times over (measured ratios 0.500, 0.500, 0.500, 0.500), then silence, and
+`active_events` reads zero. The whole strike fades a shade faster than its
+fundamental — quieter returns are also duller, because strike hardness
+couples brightness to velocity.
 
 ![A rendered waveform showing five returns of one planted note, each half the height of the last, with the measured peak levels labeled and the retirement floor marked](images/garden/staircase.svg)
 
@@ -54,15 +56,21 @@ re-aimed rather than reset so a steal glides instead of clicking.
 
 ## `soften` — returns get purer, not just quieter
 
-The chime is three decaying sine modes at the transverse ratios of a
-free-free bar — 1 : 2.756 : 5.404, the tubular-chime physics in Fletcher &
-Rossing — with the upper two softer and faster-dying, so every strike rings
-down to its fundamental. Each pass multiplies the event's *brightness* by
-`soften`, and brightness is the upper modes' level: a bloom collapses
-toward its fundamental as it recedes — the tape chapters' generation loss,
-restated in modes instead of passbands. The notebook measures the
-mode-two-to-fundamental ratio shrinking by almost exactly `soften` every
-single return, and the pinned test requires it strictly.
+The chime is four decaying mode *doublets* at the transverse ratios of a
+free-free bar — 1 : 2.756 : 5.404 : 8.933, the tubular-chime physics in
+Fletcher & Rossing — with the upper modes softer, steeper in brightness
+(b, b², b³), and dying roughly as f² faster, so the fourth mode is the
+few-millisecond tick of clapper contact and every strike rings down to its
+fundamental. Each mode pair is split a few cents, the way a real tube's
+degenerate modes are, so the tail *beats* slowly instead of decaying like a
+lab sine. Each pass multiplies the event's *brightness* by `soften`, and
+brightness is the upper modes' level: a bloom collapses toward its
+fundamental as it recedes, losing its tick first — the tape chapters'
+generation loss, restated in modes instead of passbands. The notebook
+measures the mode-two-to-fundamental ratio shrinking by exactly `soften`
+every single return, and the pinned tests hold each piece separately: the
+tick confined to the contact, the tail's beat dipping and returning, soft
+strikes duller than hard ones, high tubes ringing shorter than low.
 
 ## The scale contract
 
@@ -78,9 +86,12 @@ seeds only.
 
 ## The gardener
 
-`idle_seconds` is the patience: that long after your last plant, the
-garden begins seeding itself, roughly one note per loop pass, uniformly
-placed, on the scale, within two octaves. The randomness is the family's
+`idle_seconds` is the patience: that long after your last plant, the wind
+picks up. The gardener strikes on a calm/gust cycle — `gust` at 0 is a
+still day, single strikes spaced about one per pass; raise it and strikes
+arrive in flurries of up to five neighboring tubes within a fraction of a
+second, with longer calms between, the average rate holding. The
+randomness is the family's
 seeded xorshift64* with the full tr808 contract, pinned as a triad: same
 seed, bit-identical garden; different seed, a different garden; gardener
 disabled (`idle_seconds 0`), the seed cannot matter at all, because the
@@ -97,8 +108,10 @@ that demands reproducibility.
   no gardener, fast decay: each phrase you play unwinds itself to silence
   in a few passes, a wind-up toy running down.
 - **The endless install:** `@scale minorpentatonic @root 2 @idle 3.
-  @seed 2008 @level 0.35`, never touch it again. Same seed next year,
-  same garden.
+  @gust 0.6 @seed 2008 @level 0.35`, never touch it again. Same seed next
+  year, same garden — gusts and all.
+- **The still day:** `@gust 0 @idle 10.` — no flurries, one unhurried
+  strike at a time, the original music-box gardener.
 - **Duet:** `@idle 6.` and stay at the keyboard — every silence longer
   than six seconds, the gardener answers you; every plant of yours resets
   its patience.

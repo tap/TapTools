@@ -408,6 +408,7 @@ TAPTOOLS_API int taptools_garden_set_bell(taptools_garden h, double attack_s, do
 TAPTOOLS_API int taptools_garden_set_root(taptools_garden h, int semitone);     // 0..11, 0 = C
 TAPTOOLS_API int taptools_garden_set_scale(taptools_garden h, int scale);       // garden::scale_index
 TAPTOOLS_API int taptools_garden_set_idle_seconds(taptools_garden h, double s); // 0 disables the gardener
+TAPTOOLS_API int taptools_garden_set_gust(taptools_garden h, double amount);    // wind: 0 even, 1 blustery
 TAPTOOLS_API int taptools_garden_set_seed(taptools_garden h, unsigned long long seed);
 TAPTOOLS_API int taptools_garden_set_level(taptools_garden h, double lin);
 TAPTOOLS_API int taptools_garden_set_smooth_ms(taptools_garden h, double ms);

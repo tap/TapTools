@@ -1264,6 +1264,10 @@ int taptools_garden_set_idle_seconds(taptools_garden h, double s) {
     return with<garden_bed>(h, [&](garden_bed& g) { g.set_idle_seconds(s); });
 }
 
+int taptools_garden_set_gust(taptools_garden h, double amount) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_gust(amount); });
+}
+
 int taptools_garden_set_seed(taptools_garden h, unsigned long long seed) {
     return with<garden_bed>(h, [&](garden_bed& g) { g.set_seed(static_cast<uint64_t>(seed)); });
 }

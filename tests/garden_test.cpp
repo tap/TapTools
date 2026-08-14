@@ -133,14 +133,17 @@ SCENARIO("each return is quieter by the decay ratio and the bloom retires below 
     std::vector<double> y(at(2.5), 0.0);
     render(g, y);
 
-    // Velocity walks 0.8, 0.4, 0.2, 0.1, 0.05 and then retires: five audible returns.
+    // Velocity walks 0.8, 0.4, 0.2, 0.1, 0.05 and then retires: five audible returns. The
+    // decay ratio is pinned on the fundamental — the whole strike fades a shade faster than
+    // velocity because quieter returns are also duller (the hardness coupling, pinned in its
+    // own scenario below).
     const size_t loop = at(0.25);
-    double       prev = peak(y, 0, loop);
+    double       prev = goertzel(y, 440.0, 0, loop);
     for (size_t k = 1; k <= 4; ++k) {
-        const double p     = peak(y, k * loop, (k + 1) * loop);
+        const double p     = goertzel(y, 440.0, k * loop, (k + 1) * loop);
         const double ratio = p / prev;
-        INFO("return " << k << ": peak " << p << ", ratio " << ratio);
-        CHECK(std::abs(ratio - 0.5) < 0.075);
+        INFO("return " << k << ": fundamental " << p << ", ratio " << ratio);
+        CHECK(std::abs(ratio - 0.5) < 0.05);
         prev = p;
     }
     REQUIRE(g.active_events() == 0);             // retired below the floor
@@ -173,6 +176,130 @@ SCENARIO("each return is purer: the upper chime modes fade by the soften ratio")
         CHECK(tilt[k] < tilt[k - 1]); // strictly purer every pass
     }
     CHECK(tilt.back() < 0.3 * tilt.front()); // and substantially so over three passes
+}
+
+SCENARIO("the strike carries a tick that the returns lose") {
+    bed g = make();
+    g.set_loop_seconds(1.0);
+    g.set_decay(1.0); // hold velocity: only soften moves the tick
+    g.set_floor(0.001);
+    g.set_soften(0.5);
+    g.set_bell(0.001, 1.0, 1.0);
+
+    // The 4th bar mode (8.933f, ~3930 Hz here) is the contact tick: present at the strike,
+    // gone in tens of milliseconds (haste ~ f^2), and fading as b^3 across returns.
+    g.note(69.0, 0.9);
+    std::vector<double> y(at(2.5), 0.0);
+    render(g, y);
+
+    const double tick      = 440.0 * tap::tools::garden::k_mode_ratio[3];
+    const double at_strike = goertzel(y, tick, 0, at(0.05));
+    const double late      = goertzel(y, tick, at(0.2), at(0.4));
+    INFO("tick at strike " << at_strike << ", 200-400 ms later " << late);
+    CHECK(at_strike > 10.0 * late); // confined to the contact
+
+    const double tilt_0 = at_strike / goertzel(y, 440.0, 0, at(0.05));
+    const double tilt_2 = goertzel(y, tick, 2 * at(1.0), 2 * at(1.0) + at(0.05))
+                          / goertzel(y, 440.0, 2 * at(1.0), 2 * at(1.0) + at(0.05));
+    INFO("tick/fundamental at strike " << tilt_0 << ", at return 2 " << tilt_2);
+    CHECK(tilt_0 > 10.0 * tilt_2); // b^3: the returns lose their attack first
+}
+
+SCENARIO("the tail beats: a struck tube is a doublet, not a lab sine") {
+    bed g = make();
+    g.set_loop_seconds(4.0);
+    g.set_bell(0.001, 4.0, 0.0); // brightness 0: the fundamental pair alone
+
+    g.note(69.0, 0.8);
+    std::vector<double> y(at(3.0), 0.0);
+    render(g, y);
+
+    // The pair starts aligned at the strike and beats at delta-f; the fundamental dips near
+    // the half-period null and recovers by the full period — a beat, not a decay.
+    const double split   = std::exp2(tap::tools::garden::k_doublet_cents / 2400.0);
+    const double df      = 440.0 * (split - 1.0 / split);
+    const size_t null_at = at(0.5 / df);
+    const double m0      = goertzel(y, 440.0, at(0.1), at(0.3));
+    const double m1      = goertzel(y, 440.0, null_at - at(0.1), null_at + at(0.1));
+    const double m2      = goertzel(y, 440.0, 2 * null_at - at(0.1), 2 * null_at + at(0.1));
+    INFO("fundamental early " << m0 << ", at the beat null " << m1 << ", recovered " << m2);
+    REQUIRE(std::isfinite(m1));
+    CHECK(m1 < 0.3 * m0); // dips far below what the envelope alone would do
+    CHECK(m2 > 2.0 * m1); // and comes back: a beat, not a decay
+}
+
+SCENARIO("a soft strike is duller than a hard one") {
+    auto tilt_at = [](double velocity) {
+        bed g = make();
+        g.set_loop_seconds(2.0);
+        g.set_bell(0.001, 0.5, 1.0);
+        g.note(69.0, velocity);
+        std::vector<double> y(at(0.2), 0.0);
+        render(g, y);
+        return goertzel(y, 440.0 * tap::tools::garden::k_mode_ratio[1], 0, at(0.15)) / goertzel(y, 440.0, 0, at(0.15));
+    };
+
+    const double hard = tilt_at(0.9);
+    const double soft = tilt_at(0.25);
+    INFO("mode2/fundamental: hard strike " << hard << ", soft strike " << soft);
+    CHECK(hard > 1.3 * soft); // hardness couples brightness to velocity
+}
+
+SCENARIO("small high tubes ring shorter than long low ones") {
+    auto retention = [](double pitch) {
+        bed g = make();
+        g.set_loop_seconds(2.0);
+        g.set_bell(0.001, 1.0, 0.0); // the fundamental alone
+        g.note(pitch, 0.8);
+        std::vector<double> y(at(1.0), 0.0);
+        render(g, y);
+        const double f = midi_hz(pitch);
+        return goertzel(y, f, at(0.8), at(1.0)) / goertzel(y, f, 0, at(0.2));
+    };
+
+    const double low  = retention(48.0); // ~131 Hz: ring time scaled up
+    const double high = retention(84.0); // ~1047 Hz: scaled down
+    INFO("late/early fundamental: low tube " << low << ", high tube " << high);
+    CHECK(low > 1.5 * high);
+}
+
+SCENARIO("the wind arrives in gusts, and calm wind strikes singly") {
+    auto onsets = [](double gust) {
+        bed g = make();
+        g.set_loop_seconds(1.0);
+        g.set_idle_seconds(0.2);
+        g.set_seed(7);
+        g.set_gust(gust);
+        g.set_decay(0.0);             // plants retire after one sounding: only the wind counts
+        g.set_bell(0.001, 0.02, 1.0); // fast pings so strikes are separable
+        std::vector<double> y(at(12.0), 0.0);
+        render(g, y);
+        std::vector<size_t> found;
+        for (size_t i = at(0.01); i < y.size(); ++i) {
+            if (std::abs(y[i]) > 0.02 && peak(y, i - at(0.01), i) < 0.02) {
+                found.push_back(i);
+            }
+        }
+        return found;
+    };
+
+    const std::vector<size_t> blustery = onsets(1.0);
+    const std::vector<size_t> calm     = onsets(0.0);
+    INFO("strikes: blustery " << blustery.size() << ", calm " << calm.size());
+    REQUIRE(blustery.size() >= 4);
+    REQUIRE(calm.size() >= 3);
+
+    bool clustered = false;
+    for (size_t i = 1; i < blustery.size(); ++i) {
+        clustered = clustered || (blustery[i] - blustery[i - 1] < at(0.35));
+    }
+    CHECK(clustered); // at gust 1, some strikes tumble within a gust
+
+    bool evenly = true;
+    for (size_t i = 1; i < calm.size(); ++i) {
+        evenly = evenly && (calm[i] - calm[i - 1] >= at(0.45));
+    }
+    CHECK(evenly); // at gust 0, single strikes separated by at least the minimum calm
 }
 
 SCENARIO("every bloom lands on the scale") {
