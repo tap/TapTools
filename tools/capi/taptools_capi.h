@@ -403,8 +403,10 @@ TAPTOOLS_API int taptools_garden_set_loop_seconds(taptools_garden h, double s);
 TAPTOOLS_API int taptools_garden_set_decay(taptools_garden h, double per_pass);  // velocity/pass, 0..1
 TAPTOOLS_API int taptools_garden_set_soften(taptools_garden h, double per_pass); // brightness/pass, 0..1
 TAPTOOLS_API int taptools_garden_set_floor(taptools_garden h, double v);         // retirement threshold
-/// Bell envelope times in SECONDS + base brightness 0..1 (scales the FM index).
+/// Bell envelope times in SECONDS + base brightness 0..1 (the upper modes' weight).
 TAPTOOLS_API int taptools_garden_set_bell(taptools_garden h, double attack_s, double decay_s, double brightness);
+TAPTOOLS_API int taptools_garden_set_material(taptools_garden h, int material); // garden::material_index
+TAPTOOLS_API int taptools_garden_set_spread(taptools_garden h, double amount);  // rack width, 0 mono .. 1
 TAPTOOLS_API int taptools_garden_set_root(taptools_garden h, int semitone);     // 0..11, 0 = C
 TAPTOOLS_API int taptools_garden_set_scale(taptools_garden h, int scale);       // garden::scale_index
 TAPTOOLS_API int taptools_garden_set_idle_seconds(taptools_garden h, double s); // 0 disables the gardener
@@ -415,8 +417,8 @@ TAPTOOLS_API int taptools_garden_set_smooth_ms(taptools_garden h, double ms);
 TAPTOOLS_API int taptools_garden_clear(taptools_garden h);
 TAPTOOLS_API int taptools_garden_active_events(taptools_garden h); // live blooms (-1 on bad handle)
 TAPTOOLS_API int taptools_garden_active_voices(taptools_garden h); // ringing bells (-1 on bad handle)
-/// A source: renders n samples into out (mono).
-TAPTOOLS_API int taptools_garden_process(taptools_garden h, double* out, int n);
+/// A source: renders n samples of the stereo rack into outL/outR.
+TAPTOOLS_API int taptools_garden_process(taptools_garden h, double* outL, double* outR, int n);
 
 #ifdef __cplusplus
 }

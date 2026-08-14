@@ -24,14 +24,19 @@ namespace {
     constexpr double k_sr = 48000.0;
 
     using tap::tools::garden::bed;
+    using tap::tools::garden::k_mode_ratio;
+    using tap::tools::garden::material_bar;
+    using tap::tools::garden::material_chime;
 
     /// A quiet, instrument-neutral bed: idle gardener off, instant level, percussive bell so
-    /// grid promises are sharp. Tests opt into slow bells and idling explicitly.
+    /// grid promises are sharp, spread 0 so mono measurements read either bus. Tests opt into
+    /// slow bells, idling, and stereo explicitly.
     bed make() {
         bed g;
         g.prepare(k_sr);
         g.set_smooth_ms(0.0);
         g.set_idle_seconds(0.0);
+        g.set_spread(0.0);
         g.set_bell(0.001, 0.02, 1.0);
         g.set_scale(tap::tools::garden::scale_chromatic);
         return g;
@@ -41,9 +46,11 @@ namespace {
         return static_cast<size_t>(seconds * k_sr);
     }
 
+    /// Mono render onto the left bus — every make() bed has spread 0, where left == right.
     void render(bed& g, std::vector<double>& y) {
         for (auto& s : y) {
-            s = g.process();
+            double right = 0.0;
+            g.process(s, right);
         }
     }
 
@@ -163,7 +170,7 @@ SCENARIO("each return is purer: the upper chime modes fade by the soften ratio")
     std::vector<double> y(at(2.5), 0.0);
     render(g, y);
 
-    const double        mode2 = 440.0 * tap::tools::garden::k_mode_ratio[1];
+    const double        mode2 = 440.0 * k_mode_ratio[material_chime][1];
     const size_t        loop  = at(0.5);
     std::vector<double> tilt;
     for (size_t k = 0; k <= 3; ++k) {
@@ -192,7 +199,7 @@ SCENARIO("the strike carries a tick that the returns lose") {
     std::vector<double> y(at(2.5), 0.0);
     render(g, y);
 
-    const double tick      = 440.0 * tap::tools::garden::k_mode_ratio[3];
+    const double tick      = 440.0 * k_mode_ratio[material_chime][3];
     const double at_strike = goertzel(y, tick, 0, at(0.05));
     const double late      = goertzel(y, tick, at(0.2), at(0.4));
     INFO("tick at strike " << at_strike << ", 200-400 ms later " << late);
@@ -236,7 +243,7 @@ SCENARIO("a soft strike is duller than a hard one") {
         g.note(69.0, velocity);
         std::vector<double> y(at(0.2), 0.0);
         render(g, y);
-        return goertzel(y, 440.0 * tap::tools::garden::k_mode_ratio[1], 0, at(0.15)) / goertzel(y, 440.0, 0, at(0.15));
+        return goertzel(y, 440.0 * k_mode_ratio[material_chime][1], 0, at(0.15)) / goertzel(y, 440.0, 0, at(0.15));
     };
 
     const double hard = tilt_at(0.9);
@@ -428,12 +435,18 @@ SCENARIO("the bell pool never exceeds its size and stays finite and bounded unde
     for (int i = 0; i < 2 * tap::tools::garden::k_voices; ++i) {
         g.note(48.0 + i, 0.9);
         for (int s = 0; s < 400; ++s) {
-            y.push_back(g.process());
+            double left  = 0.0;
+            double right = 0.0;
+            g.process(left, right);
+            y.push_back(left);
         }
         REQUIRE(g.active_voices() <= tap::tools::garden::k_voices);
     }
     while (y.size() < at(2.0)) {
-        y.push_back(g.process());
+        double left  = 0.0;
+        double right = 0.0;
+        g.process(left, right);
+        y.push_back(left);
     }
 
     // The hard bound is structural: k_voices bells, each |env * sin| <= 1, level 1.
@@ -452,6 +465,122 @@ SCENARIO("the bell pool never exceeds its size and stays finite and bounded unde
 SCENARIO("unprepared, the garden is silent") {
     bed g;
     g.note(60.0, 1.0); // a safe no-op before prepare
-    REQUIRE(g.process() == 0.0);
+    double left  = 1.0;
+    double right = 1.0;
+    g.process(left, right);
+    REQUIRE(left == 0.0);
+    REQUIRE(right == 0.0);
     REQUIRE(g.active_events() == 0);
+}
+
+SCENARIO("material re-voices the rack: chime partials at tube ratios, bar partials at double octaves") {
+    // The same strike through both mode tables: each material's second partial carries the
+    // energy and the other material's slot is empty (2.756f vs 4f — 1213 Hz vs 1760 Hz here).
+    auto probe = [](int material) {
+        bed g = make();
+        g.set_loop_seconds(2.0);
+        g.set_material(material);
+        g.set_bell(0.001, 0.5, 1.0);
+        g.note(69.0, 0.9);
+        std::vector<double> y(at(0.2), 0.0);
+        render(g, y);
+        const double chime2 = goertzel(y, 440.0 * k_mode_ratio[material_chime][1], 0, at(0.15));
+        const double bar2   = goertzel(y, 440.0 * k_mode_ratio[material_bar][1], 0, at(0.15));
+        return std::make_pair(chime2, bar2);
+    };
+
+    const auto [chime_on_chime, bar_on_chime] = probe(material_chime);
+    const auto [chime_on_bar, bar_on_bar]     = probe(material_bar);
+    INFO("chime material: 2.756f " << chime_on_chime << ", 4f " << bar_on_chime);
+    INFO("bar material:   2.756f " << chime_on_bar << ", 4f " << bar_on_bar);
+    CHECK(chime_on_chime > 5.0 * bar_on_chime);
+    CHECK(bar_on_bar > 5.0 * chime_on_bar);
+}
+
+SCENARIO("each tube's upper modes sit a fixed few cents off — the same cents every strike, different per tube") {
+    // The scatter is a property of the tube, not the strike: a stateless hash of (pitch, mode),
+    // so the detune is bounded by k_scatter_cents, identical across independent instances, and
+    // different from tube to tube. Measured by scanning a Goertzel probe across the second
+    // mode's neighborhood (the scan resolves ~0.25 cents on this window).
+    auto detune_of = [](double pitch) {
+        bed g = make();
+        g.set_loop_seconds(2.0);
+        g.set_bell(0.001, 0.5, 1.0);
+        g.note(pitch, 0.9);
+        std::vector<double> y(at(0.25), 0.0);
+        render(g, y);
+        const double ideal      = midi_hz(pitch) * k_mode_ratio[material_chime][1];
+        double       best_cents = 0.0;
+        double       best       = 0.0;
+        for (int q = -24; q <= 24; ++q) {
+            const double c = 0.25 * static_cast<double>(q);
+            const double m = goertzel(y, ideal * std::exp2(c / 1200.0), at(0.01), at(0.2));
+            if (m > best) {
+                best       = m;
+                best_cents = c;
+            }
+        }
+        return best_cents;
+    };
+
+    const double a      = detune_of(69.0);
+    const double a_gain = detune_of(69.0); // an independent instance: the same tube, the same flaw
+    const double b      = detune_of(84.0);
+    INFO("mode-2 detune: tube 69 " << a << " cents (again " << a_gain << "), tube 84 " << b);
+    CHECK(a == a_gain);
+    CHECK(std::abs(a) < tap::tools::garden::k_scatter_cents + 0.5);
+    CHECK(std::abs(b) < tap::tools::garden::k_scatter_cents + 0.5);
+    CHECK(std::abs(a - b) > 1.0); // a different tube is differently imperfect
+    // And the fundamental stays true: a maker tunes the fundamental (pinned via yin elsewhere;
+    // here, the scattered mode still beats around an in-tune first mode).
+    bed g = make();
+    g.set_loop_seconds(2.0);
+    g.set_bell(0.01, 0.5, 0.4);
+    g.note(69.0, 0.8);
+    std::vector<double> y(at(0.5), 0.0);
+    render(g, y);
+    CHECK(std::abs(cents(measure_hz(y, at(0.1)), 440.0)) < 5.0);
+}
+
+SCENARIO("the rack is stereo: every tube keeps its seat, and spread 0 collapses to mono, bitwise") {
+    // spread 0: the two busses are bitwise identical (the sqrt equal-power seat at pan 0).
+    {
+        bed g = make();
+        g.note(69.0, 0.8);
+        bool same = true;
+        for (size_t i = 0; i < at(0.5); ++i) {
+            double left  = 0.0;
+            double right = 0.0;
+            g.process(left, right);
+            same = same && (left == right);
+        }
+        REQUIRE(same);
+    }
+
+    // spread up: a tube's seat is a fixed property of its pitch — the same left/right balance
+    // in every independent instance, and different tubes hang in different places.
+    auto seat_of = [](double pitch) {
+        bed g = make();
+        g.set_spread(1.0);
+        g.set_loop_seconds(2.0);
+        g.note(pitch, 0.8);
+        double energy_l = 0.0;
+        double energy_r = 0.0;
+        for (size_t i = 0; i < at(0.5); ++i) {
+            double left  = 0.0;
+            double right = 0.0;
+            g.process(left, right);
+            energy_l += left * left;
+            energy_r += right * right;
+        }
+        return energy_r / (energy_l + energy_r);
+    };
+
+    const double a      = seat_of(69.0);
+    const double a_gain = seat_of(69.0);
+    const double b      = seat_of(67.0);
+    INFO("right-bus energy share: tube 69 " << a << " (again " << a_gain << "), tube 67 " << b);
+    REQUIRE(a == a_gain);            // the seat is the tube's, deterministically
+    CHECK(std::abs(a - b) > 0.1);    // a different tube hangs somewhere else
+    CHECK(std::abs(a - 0.5) > 0.05); // and a full-spread seat is audibly off center
 }

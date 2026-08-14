@@ -39,12 +39,17 @@ it is three lines of arithmetic instead of a saturator.
 
 ## The chime
 
-Four decaying mode doublets at the transverse-vibration ratios of a
-free-free bar — 1 : 2.756 : 5.404 : 8.933, from the bars-and-tubular-chimes
-chapter of Fletcher & Rossing's *The Physics of Musical Instruments* (f_n
-grows as (2n+1)²) — each mode a pair of sines split a fixed few cents, the
-doublet splitting of a real tube's degenerate mode pairs (same source), so
-the tail beats slowly instead of decaying like a lab sine. Each mode rides
+Four decaying mode doublets at the transverse-vibration ratios of the
+selected `material` — the free-free tube's 1 : 2.756 : 5.404 : 8.933 from
+the bars-and-tubular-chimes chapter of Fletcher & Rossing's *The Physics of
+Musical Instruments* (f_n grows as (2n+1)²), or the tuned bar's
+double-octave 1 : 4 : 10 : 20 from the mallet-percussion chapter — each
+mode a pair of sines split a fixed few cents, the doublet splitting of a
+real tube's degenerate mode pairs (same source), so the tail beats slowly
+instead of decaying like a lab sine. The ratio and haste tables are indexed
+`[material][mode]` and read at strike time, which is the whole
+implementation of the material switch: instant, allocation-free, and every
+live bloom re-voices at its next return. Each mode rides
 its own `tr808::decay_env`; decay times divide by ~ratio² (radiation
 damping grows with frequency), which makes the fourth mode a
 tens-of-milliseconds contact tick, and scale by √(440/f) per strike, so
@@ -64,6 +69,26 @@ The inharmonicity moved the pitch contract rather than breaking it: the
 upper modes clear quickly, so the YIN oracle reads each strike in its
 ring-down, and the scale-contract scenario still lands every off-scale
 plant on the scale within 20 cents.
+
+## The tube is the identity
+
+Two more properties hang off each pitch, and neither touches the rng. A
+tube's upper modes sit up to ±3 cents off the ideal ratios — the
+fundamental stays true, because a maker tunes the fundamental — and the
+tube keeps a fixed seat on the stereo rack, `spread` scaling how far off
+center. Both are drawn by `tube_unit`, a stateless xorshift64* hash keyed
+by (fundamental-in-centihertz, index) — the `metal_bank.h` per-index idiom,
+index 0 the seat, 1..3 the mode scatter. Stateless is the load-bearing
+word: the gardener's seeded generator is never consumed, so the seed-triad
+contract survives intact, the rack is identical in every instance, and
+every return of a bloom rings from the same place with the same flaws.
+The pinned scenarios measure the scatter by scanning a Goertzel probe
+across the second mode (±0.25-cent steps resolve it), and the seat by
+left/right energy share: deterministic per pitch, different across pitches,
+bounded by the constants. The seat itself follows the phase rule — pan
+gains snap on a silent tube and slew ~10 ms through an audible steal — and
+the equal-power law is the √((1∓p)/2) form, so `spread 0` makes the busses
+*bitwise* identical (also pinned).
 
 ## Quantize at entry
 
@@ -131,8 +156,10 @@ could be written against public surface.
 A fixed ring of events fired by a loop counter into a fixed pool of modal
 wind chimes: plant and fire kept strictly apart, wear as per-pass arithmetic
 (decay, soften, floor) with convergence as its theorem, scale masks copied
-from `tune.h` and applied at entry, and a gardener whose RNG discipline
-makes generative behavior compatible with a bit-exact test suite. Third
+from `tune.h` and applied at entry, tube identity (material voicing, mode
+scatter, stereo seat) as stateless hashes so nothing generative leaks into
+the audio path, and a gardener whose RNG discipline makes generative
+behavior compatible with a bit-exact test suite. Third
 costume, same inversion: the system stays bounded because everything in it
 is always fading. Every claim lives twice — `garden.ipynb` executed,
 `garden_test.cpp` pinned.
