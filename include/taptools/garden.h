@@ -17,14 +17,17 @@
 ///             below `floor`, so the live-event population converges no matter how fast you
 ///             plant — and a fixed bell pool (quietest-stolen) hard-bounds the audio regardless.
 ///
-///             The voice is a two-operator FM bell (Chowning, "The Synthesis of Complex Audio
-///             Spectra by Means of Frequency Modulation", JAES 1973): carrier plus modulator at
-///             the fixed harmonic ratio 3 — odd-partial, bell-ish, and harmonic, so a pitch
-///             detector reads it at the fundamental — with modulation index scaled by velocity
-///             and per-event brightness (velocity-to-index is standard published FM practice).
-///             Each pass multiplies the event's brightness by `soften`, so a bloom does not just
-///             fade: it purifies toward a sine. Amplitude rides the shared tr808 decay_env; a
-///             steal re-aims the envelope without a reset, so stolen voices glide, not click.
+///             The voice is a small wind chime: three decaying sine modes at the transverse-
+///             vibration ratios of a free-free bar, 1 : 2.756 : 5.404 (Fletcher & Rossing, The
+///             Physics of Musical Instruments, 2nd ed. — the bars/tubular-chimes chapter, where
+///             f_n grows as (2n+1)^2). The first mode carries the perceived pitch; the upper
+///             two are inharmonic, softer (scaled by per-event brightness), and faster-dying,
+///             so every strike rings down to its fundamental — which is also where the pitch
+///             contract lives: a detector reads the chime in its tail, once the clang has
+///             cleared (the tests measure there). Each pass multiplies the event's brightness
+///             by `soften`, so a bloom does not just fade: it purifies toward its fundamental.
+///             Mode amplitudes ride the shared tr808 decay_env (one per mode); a steal re-aims
+///             the envelopes without a reset, so stolen voices glide, not click.
 ///
 ///             Randomness: the idle gardener draws from the family's seeded xorshift64*
 ///             (tr808::white_noise) — deterministic per seed, so renders and tests reproduce and
@@ -44,7 +47,7 @@
 ///               new plant: a touch must always speak, and the oldest is the quietest.
 ///             - The idle gardener is statistical (about one plant per loop pass, uniformly
 ///               placed), not a transcription of any published piece or app behavior.
-///             - Mono out; one bell timbre family. It is an instrument, not a polysynth.
+///             - Mono out; one chime timbre family. It is an instrument, not a polysynth.
 /// @author     Timothy Place
 // SPDX-License-Identifier: MIT
 // Copyright 2026 Timothy Place.
@@ -64,21 +67,27 @@ namespace tap::tools {
 
         constexpr double k_pi = 3.14159265358979323846;
 
-        constexpr int    k_max_events   = 64;   // live blooms; oldest yields when full
-        constexpr int    k_voices       = 16;   // fixed bell pool; quietest-first steal
-        constexpr double k_fm_ratio     = 3.0;  // harmonic odd-partial bell (Chowning 1973)
-        constexpr double k_index_max    = 2.0;  // modulation index at velocity 1, brightness 1
-        constexpr double k_gain_epsilon = 1e-4; // below this a voice is "off" (harmonizer.h idiom)
+        constexpr int k_max_events = 64; // live blooms; oldest yields when full
+        constexpr int k_voices     = 16; // fixed bell pool; quietest-first steal
+        constexpr int k_modes      = 3;  // a small chime: three transverse modes
+        // Free-free bar transverse-mode ratios (Fletcher & Rossing, The Physics of Musical
+        // Instruments, 2nd ed., ch. on bars and tubular chimes: f_n proportional to (2n+1)^2).
+        constexpr double k_mode_ratio[k_modes] = {1.0, 2.756, 5.404};
+        // Mode levels at brightness 1, summing to <= 1 so a bell is bounded by its velocity;
+        // higher modes ring softer and (below) die faster, as struck chimes do.
+        constexpr double k_mode_level[k_modes] = {0.62, 0.28, 0.10};
+        constexpr double k_mode_haste[k_modes] = {1.0, 2.5, 6.0}; // decay-time divisor per mode
+        constexpr double k_gain_epsilon        = 1e-4;            // below this a voice is "off" (harmonizer.h idiom)
 
         constexpr double k_min_loop_seconds = 0.25;  // beneath this it is a buzzer, not a garden
         constexpr double k_max_loop_seconds = 120.0; // the loop is a counter — no tape is bought
 
         constexpr double k_default_loop_seconds = 8.0;
-        constexpr double k_default_decay        = 0.85; // velocity multiplier per pass
-        constexpr double k_default_soften       = 0.9;  // brightness multiplier per pass
-        constexpr double k_default_floor        = 0.03; // retirement threshold
-        constexpr double k_default_idle_seconds = 30.0; // the gardener's patience; 0 disables
-        constexpr double k_default_attack_s     = 0.15; // soft mallet, not a hammer
+        constexpr double k_default_decay        = 0.85;  // velocity multiplier per pass
+        constexpr double k_default_soften       = 0.9;   // brightness multiplier per pass
+        constexpr double k_default_floor        = 0.03;  // retirement threshold
+        constexpr double k_default_idle_seconds = 30.0;  // the gardener's patience; 0 disables
+        constexpr double k_default_attack_s     = 0.004; // a clapper's strike, not a bow
         constexpr double k_default_decay_s      = 4.0;
         constexpr double k_default_brightness   = 1.0;
         constexpr double k_default_smooth_ms    = 20.0; // one-pole slew for the master level
@@ -112,48 +121,71 @@ namespace tap::tools {
             make_mask({0, 3, 5, 7, 10}),       // minor pentatonic
         };
 
-        /// One two-operator FM bell: carrier + modulator at k_fm_ratio, amplitude from the shared
-        /// decay_env. Phases free-run so a steal re-aims without a click.
+        /// One small wind chime: three decaying sine modes at the free-free bar's transverse
+        /// ratios (k_mode_ratio), each with its own decay_env — higher modes softer (scaled by
+        /// brightness) and faster-dying (k_mode_haste), the way a struck tube rings down to its
+        /// fundamental. Phases free-run so a steal re-aims without a click.
         class bell {
           public:
             void prepare(double sr) {
                 m_sr = (sr > 0.0) ? sr : 48000.0;
-                m_env.prepare(m_sr);
-                m_env.set_times(k_default_attack_s, k_default_decay_s);
+                for (auto& e : m_env) {
+                    e.prepare(m_sr);
+                }
+                set_times(k_default_attack_s, k_default_decay_s);
             }
 
-            void set_times(double attack_s, double decay_s) { m_env.set_times(attack_s, decay_s); }
+            void set_times(double attack_s, double decay_s) {
+                for (int m = 0; m < k_modes; ++m) {
+                    m_env[static_cast<size_t>(m)].set_times(attack_s, decay_s / k_mode_haste[m]);
+                }
+            }
 
             void reset() {
-                m_env.reset();
-                m_carrier_phase = m_mod_phase = 0.0;
+                for (auto& e : m_env) {
+                    e.reset();
+                }
+                for (auto& p : m_phase) {
+                    p = 0.0;
+                }
             }
 
-            /// Fire at `freq_hz`, envelope target `level`, modulation index `index`.
-            void trigger(double freq_hz, double level, double index) {
-                m_carrier_inc = freq_hz / m_sr;
-                m_mod_inc     = k_fm_ratio * freq_hz / m_sr;
-                m_index       = index;
-                m_env.trigger(level);
+            /// Strike at `freq_hz` (the first mode — the perceived pitch), envelope target
+            /// `level`, upper-mode weight `brightness` (0..1). Modes above the audio band stay
+            /// silent rather than aliasing.
+            void trigger(double freq_hz, double level, double brightness) {
+                for (int m = 0; m < k_modes; ++m) {
+                    const size_t i       = static_cast<size_t>(m);
+                    const double mode_hz = k_mode_ratio[m] * freq_hz;
+                    m_inc[i]             = mode_hz / m_sr;
+                    const double weight  = (m == 0) ? k_mode_level[0] : k_mode_level[m] * brightness;
+                    m_env[i].trigger((mode_hz < 0.45 * m_sr) ? level * weight : 0.0);
+                }
             }
 
-            double level() const { return m_env.value(); } // the quietest-first steal key
+            double level() const { // the quietest-first steal key
+                double sum = 0.0;
+                for (const auto& e : m_env) {
+                    sum += e.value();
+                }
+                return sum;
+            }
 
             double process() {
-                m_mod_phase += m_mod_inc;
-                m_mod_phase -= std::floor(m_mod_phase);
-                m_carrier_phase += m_carrier_inc;
-                m_carrier_phase -= std::floor(m_carrier_phase);
-                const double mod = m_index * std::sin(2.0 * k_pi * m_mod_phase);
-                return m_env.process() * std::sin(2.0 * k_pi * m_carrier_phase + mod);
+                double sum = 0.0;
+                for (size_t i = 0; i < static_cast<size_t>(k_modes); ++i) {
+                    m_phase[i] += m_inc[i];
+                    m_phase[i] -= std::floor(m_phase[i]);
+                    sum += m_env[i].process() * std::sin(2.0 * k_pi * m_phase[i]);
+                }
+                return sum;
             }
 
           private:
-            double           m_sr{48000.0};
-            double           m_carrier_phase{0.0}, m_carrier_inc{0.0};
-            double           m_mod_phase{0.0}, m_mod_inc{0.0};
-            double           m_index{0.0};
-            tr808::decay_env m_env;
+            double                                m_sr{48000.0};
+            std::array<double, k_modes>           m_phase{};
+            std::array<double, k_modes>           m_inc{};
+            std::array<tr808::decay_env, k_modes> m_env;
         };
 
         /// The garden bed: plant notes, they bloom on the loop, fade, and retire; left alone,
@@ -374,7 +406,7 @@ namespace tap::tools {
                 return *oldest;
             }
 
-            /// Sound this event now on the pool: an idle voice if any, else steal the quietest.
+            /// Strike this event now on the pool: an idle voice if any, else steal the quietest.
             void fire(event& e) {
                 bell* voice = &m_bells[0];
                 for (auto& v : m_bells) {
@@ -387,7 +419,7 @@ namespace tap::tools {
                     }
                 }
                 const double freq = 440.0 * std::exp2((e.pitch - 69.0) / 12.0);
-                voice->trigger(freq, e.velocity, e.brightness * k_index_max * e.velocity);
+                voice->trigger(freq, e.velocity, e.brightness);
             }
 
             /// One pass of wear, one level up: quieter, purer, and gone below the floor.

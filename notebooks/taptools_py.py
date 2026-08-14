@@ -1248,11 +1248,12 @@ class Airport:
 
 class Garden:
     """tap.garden~'s kernel (tap::tools::garden::bed): a generative event
-    loop on the Bloom principle. Planted notes snap to the scale, bloom on a
-    two-operator FM bell, and return every loop pass a step quieter (decay)
-    and purer (soften) until they retire below the floor; left idle, a
-    seeded gardener plants for you. Scales: 0 chromatic, 1 major, 2 minor,
-    3 major pentatonic, 4 minor pentatonic."""
+    loop on the Bloom principle. Planted notes snap to the scale, strike a
+    small modal wind chime (free-free bar mode ratios 1 : 2.756 : 5.404),
+    and return every loop pass a step quieter (decay) and purer (soften)
+    until they retire below the floor; left idle, a seeded gardener plants
+    for you. Scales: 0 chromatic, 1 major, 2 minor, 3 major pentatonic,
+    4 minor pentatonic."""
 
     def __init__(self, sr: float = 48000.0, **params):
         self._h = _LIB.taptools_garden_create()

@@ -25,18 +25,19 @@ every claim below, and the `eno_render` tool's `garden_played` and
 `garden_idle` scenarios, the listening copies. The Max wrapper lands in the
 TapTools-Max package alongside the rest of the family.
 
-![Signal-flow diagram of tap.garden~: notes through a scale quantizer into a 64-event ring, fired at their loop positions into a 16-voice FM bell pool, with a red per-pass path multiplying velocity by decay and brightness by soften back into the ring, and a dashed seeded gardener planting into the ring](images/garden/block-diagram.svg)
+![Signal-flow diagram of tap.garden~: notes through a scale quantizer into a 64-event ring, fired at their loop positions into a 16-voice wind-chime pool, with a red per-pass path multiplying velocity by decay and brightness by soften back into the ring, and a dashed seeded gardener planting into the ring](images/garden/block-diagram.svg)
 
 *Events on a loop instead of audio on a tape — the same recirculation, one level of abstraction up.*
 
 ## Plant and return
 
 `note(pitch, velocity)` plants: the pitch snaps to the current root and
-scale *at entry*, a soft two-operator FM bell sounds on the next sample,
+scale *at entry*, a small wind chime is struck on the next sample,
 and the event takes a seat at the loop's current position. Every pass, it
 fires again at `velocity × decay`, and below `floor` it retires. The
 notebook's staircase is the whole contract in one figure: a plant at 0.8
-with decay 0.5 returns at 0.795, 0.399, 0.2, 0.1, 0.05 — then silence, and
+with decay 0.5 returns at measured peaks 0.736, 0.367, 0.171, 0.081, 0.042
+— each within a few percent of half the last — then silence, and
 `active_events` reads zero.
 
 ![A rendered waveform showing five returns of one planted note, each half the height of the last, with the measured peak levels labeled and the retirement floor marked](images/garden/staircase.svg)
@@ -47,17 +48,20 @@ That arithmetic is also the stability story. The family's inversion —
 degradation as the stabilizer — reaches its third form here: a bloom lives
 exactly `ceil(log(floor/velocity) / log(decay))` passes, so the population
 of live events *converges by construction* no matter how fast you plant.
-And beneath the arithmetic sits a hard bound: sixteen bells in a fixed
-pool, the quietest stolen when a seventeenth is needed, its envelope
+And beneath the arithmetic sits a hard bound: sixteen chimes in a fixed
+pool, the quietest stolen when a seventeenth is needed, its envelopes
 re-aimed rather than reset so a steal glides instead of clicking.
 
 ## `soften` — returns get purer, not just quieter
 
-Each pass also multiplies the event's *brightness* by `soften`, and
-brightness is the bell's FM index: the upper partial fades while the
-fundamental holds, so a bloom collapses toward a sine as it recedes — the
-tape chapters' generation loss, restated in partials instead of passbands.
-The notebook measures the sideband-to-fundamental ratio shrinking every
+The chime is three decaying sine modes at the transverse ratios of a
+free-free bar — 1 : 2.756 : 5.404, the tubular-chime physics in Fletcher &
+Rossing — with the upper two softer and faster-dying, so every strike rings
+down to its fundamental. Each pass multiplies the event's *brightness* by
+`soften`, and brightness is the upper modes' level: a bloom collapses
+toward its fundamental as it recedes — the tape chapters' generation loss,
+restated in modes instead of passbands. The notebook measures the
+mode-two-to-fundamental ratio shrinking by almost exactly `soften` every
 single return, and the pinned test requires it strictly.
 
 ## The scale contract
@@ -107,13 +111,14 @@ that demands reproducibility.
 - **Rhythm.** Events return on the loop grid, exactly, forever — no swing,
   no humanization. For patterns as *rhythm*, `tap.808.seq~` is the
   machine.
-- **Any other timbre.** One soft bell family, on purpose. It is an
-  instrument, not a polysynth; for FM as a playground, patch oscillators.
+- **Any other timbre.** One wind-chime family, on purpose. It is an
+  instrument, not a polysynth; for synthesis as a playground, patch
+  oscillators.
 
 ## Checkpoint
 
 Notes become events; events recirculate on a loop, quieter by `decay` and
-purer by `soften` each pass, retiring below `floor`; a sixteen-bell pool
+purer by `soften` each pass, retiring below `floor`; a sixteen-chime pool
 bounds the sound and a sixty-four-seat ring bounds the score, oldest bloom
 yielding first. The scale makes wrong notes unrepresentable, and a seeded
 gardener keeps the piece alive exactly as long as you neglect it. Every

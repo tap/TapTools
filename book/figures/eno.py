@@ -141,14 +141,14 @@ def staircase():
     fig, ax = plt.subplots()
     ax.plot(t, y, color=BLUE, lw=0.5)
     for k in range(5):
-        v = 0.8 * 0.5 ** k
+        v = np.abs(y[int(k * 0.5 * fs): int((k + 1) * 0.5 * fs)]).max()
         ax.plot([k * 0.5, k * 0.5 + 0.22], [v, v], color=AMBER, lw=1.6)
-        ax.text(k * 0.5 + 0.24, v, f"{v:g}", color=AMBER, va="center", fontsize=8.5)
+        ax.text(k * 0.5 + 0.24, v, f"{v:.2f}", color=AMBER, va="center", fontsize=8.5)
     ax.axhline(0.05, color=RED, lw=0.9, ls=":")
     ax.text(3.44, 0.075, "floor 0.05 — retirement", color=RED, ha="right", fontsize=8.5)
     ax.set_xlabel("time (s)")
     ax.set_ylabel("output")
-    ax.set_title("decay 0.5: each return half as loud, then the bloom retires")
+    ax.set_title("decay 0.5: each return half the previous peak, then the bloom retires")
     fig.savefig(out_dir("garden") / "staircase.svg", bbox_inches="tight")
     plt.close(fig)
 

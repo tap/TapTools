@@ -281,7 +281,7 @@ namespace {
         g.set_loop_seconds(5.0);
         g.set_decay(0.8);
         g.set_soften(0.85);
-        g.set_bell(0.1, 2.5, 0.9);
+        g.set_bell(0.005, 2.5, 0.9); // a real strike: the chime rings, not swells
         g.set_scale(tap::tools::garden::scale_major_pentatonic);
         g.set_root(9);
         g.set_idle_seconds(0.0); // played only: no gardener in this render
@@ -307,7 +307,7 @@ namespace {
         g.set_loop_seconds(6.0);
         g.set_decay(0.85);
         g.set_soften(0.9);
-        g.set_bell(0.12, 3.0, 0.9);
+        g.set_bell(0.006, 3.0, 0.9);
         g.set_scale(tap::tools::garden::scale_minor_pentatonic);
         g.set_root(2);
         g.set_idle_seconds(3.0);

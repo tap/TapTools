@@ -147,7 +147,7 @@ SCENARIO("each return is quieter by the decay ratio and the bloom retires below 
     REQUIRE(peak(y, 6 * loop, y.size()) < 1e-6); // and audibly gone
 }
 
-SCENARIO("each return is purer: the fm partial fades by the soften ratio") {
+SCENARIO("each return is purer: the upper chime modes fade by the soften ratio") {
     bed g = make();
     g.set_loop_seconds(0.5);
     g.set_decay(1.0); // hold velocity still so only brightness moves
@@ -155,17 +155,19 @@ SCENARIO("each return is purer: the fm partial fades by the soften ratio") {
     g.set_soften(0.6);
     g.set_bell(0.005, 0.06, 1.0);
 
-    g.note(69.0, 0.8); // 440 Hz carrier; first upper FM sideband at 4f = 1760 Hz
+    // 440 Hz fundamental; the chime's second mode rings at the free-free bar ratio 2.756.
+    g.note(69.0, 0.8);
     std::vector<double> y(at(2.5), 0.0);
     render(g, y);
 
-    const size_t        loop = at(0.5);
+    const double        mode2 = 440.0 * tap::tools::garden::k_mode_ratio[1];
+    const size_t        loop  = at(0.5);
     std::vector<double> tilt;
     for (size_t k = 0; k <= 3; ++k) {
         const double fund = goertzel(y, 440.0, k * loop, k * loop + at(0.2));
-        const double side = goertzel(y, 1760.0, k * loop, k * loop + at(0.2));
+        const double side = goertzel(y, mode2, k * loop, k * loop + at(0.2));
         tilt.push_back(side / fund);
-        INFO("return " << k << ": sideband/fundamental = " << side / fund);
+        INFO("return " << k << ": mode2/fundamental = " << side / fund);
     }
     for (size_t k = 1; k < tilt.size(); ++k) {
         CHECK(tilt[k] < tilt[k - 1]); // strictly purer every pass
@@ -181,7 +183,7 @@ SCENARIO("every bloom lands on the scale") {
         g.set_scale(tap::tools::garden::scale_major_pentatonic);
         g.set_root(0);
         g.set_loop_seconds(2.0);
-        g.set_bell(0.01, 0.5, 0.4); // gentle index keeps the fundamental dominant for yin
+        g.set_bell(0.01, 0.5, 0.4); // gentle brightness: the tail is the fundamental, where yin reads
 
         g.note(pitch, 0.8);
         std::vector<double> y(at(0.5), 0.0);
