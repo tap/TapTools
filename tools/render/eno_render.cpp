@@ -288,17 +288,18 @@ namespace {
         g.set_level(0.4);
 
         const double        plants[][3] = {{69, 0.7, 0.2}, {76, 0.5, 1.7}, {64, 0.6, 3.4}, {81, 0.4, 4.6}};
-        std::vector<double> y(static_cast<size_t>(75.0 * k_g_sr));
+        const size_t        frames      = static_cast<size_t>(75.0 * k_g_sr);
+        std::vector<double> stereo(2 * frames);
         size_t              next = 0;
-        for (size_t i = 0; i < y.size(); ++i) {
+        for (size_t i = 0; i < frames; ++i) {
             const double t = static_cast<double>(i) / k_g_sr;
             if (next < 4 && t >= plants[next][2]) {
                 g.note(plants[next][0], plants[next][1]);
                 ++next;
             }
-            y[i] = g.process();
+            g.process(stereo[2 * i], stereo[2 * i + 1]);
         }
-        write_wav(dir + "/garden_played.wav", y, k_g_sr);
+        write_wav(dir + "/garden_played.wav", stereo, k_g_sr, 2);
     }
 
     void garden_idle(const std::string& dir) {
@@ -315,11 +316,12 @@ namespace {
         g.set_seed(2008);
         g.set_level(0.4);
 
-        std::vector<double> y(static_cast<size_t>(120.0 * k_g_sr));
-        for (auto& s : y) {
-            s = g.process();
+        const size_t        frames = static_cast<size_t>(120.0 * k_g_sr);
+        std::vector<double> stereo(2 * frames);
+        for (size_t i = 0; i < frames; ++i) {
+            g.process(stereo[2 * i], stereo[2 * i + 1]);
         }
-        write_wav(dir + "/garden_idle.wav", y, k_g_sr);
+        write_wav(dir + "/garden_idle.wav", stereo, k_g_sr, 2);
     }
 
 } // namespace

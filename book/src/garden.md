@@ -25,7 +25,7 @@ every claim below, and the `eno_render` tool's `garden_played` and
 `garden_idle` scenarios, the listening copies. The Max wrapper lands in the
 TapTools-Max package alongside the rest of the family.
 
-![Signal-flow diagram of tap.garden~: notes through a scale quantizer into a 64-event ring, fired at their loop positions into a 16-voice wind-chime pool, with a red per-pass path multiplying velocity by decay and brightness by soften back into the ring, and a dashed seeded gardener planting into the ring](images/garden/block-diagram.svg)
+![Signal-flow diagram of tap.garden~: notes through a scale quantizer into a 64-event ring, fired at their loop positions into a 16-voice wind-chime pool that sums onto a stereo pair, with a red per-pass path multiplying velocity by decay and brightness by soften back into the ring, and a dashed seeded gardener planting into the ring](images/garden/block-diagram.svg)
 
 *Events on a loop instead of audio on a tape — the same recirculation, one level of abstraction up.*
 
@@ -56,9 +56,9 @@ re-aimed rather than reset so a steal glides instead of clicking.
 
 ## `soften` — returns get purer, not just quieter
 
-The chime is four decaying mode *doublets* at the transverse ratios of a
-free-free bar — 1 : 2.756 : 5.404 : 8.933, the tubular-chime physics in
-Fletcher & Rossing — with the upper modes softer, steeper in brightness
+The chime is four decaying mode *doublets* at the transverse ratios of the
+chosen material — by default 1 : 2.756 : 5.404 : 8.933, the free-free-tube
+physics in Fletcher & Rossing — with the upper modes softer, steeper in brightness
 (b, b², b³), and dying roughly as f² faster, so the fourth mode is the
 few-millisecond tick of clapper contact and every strike rings down to its
 fundamental. Each mode pair is split a few cents, the way a real tube's
@@ -71,6 +71,27 @@ measures the mode-two-to-fundamental ratio shrinking by exactly `soften`
 every single return, and the pinned tests hold each piece separately: the
 tick confined to the contact, the tail's beat dipping and returning, soft
 strikes duller than hard ones, high tubes ringing shorter than low.
+
+## The rack: material, flaws, and seats
+
+`material` swaps what the tubes are made of — a mode, not a fader. At 0 the
+rack is wind chimes, the free-free tube's 1 : 2.756 : 5.404 : 8.933; at 1 it
+is a tuned bar, the mallet instrument's double-octave 1 : 4 : 10 : 20 (both
+tables from Fletcher & Rossing). The table is read at strike time, so every
+live bloom re-voices at its next return: the notebook measures the second
+partial's energy moving cleanly from 2.756× to 4× when the material flips.
+
+And the tube is the identity. Each pitch is a physical tube whose
+imperfections are properties of the tube, not the strike: its upper modes
+sit a fixed few cents off the ideal ratios (bounded by ±3 cents — the
+fundamental stays true, because a maker tunes the fundamental and the
+overtones land where the metal puts them), and it hangs at a fixed seat on
+the stereo rack, width set by `spread` (0 collapses to center mono, bitwise
+identical busses). Both draws come from a stateless hash of the pitch, so
+the rack is the same rack in every instance and every return of a bloom
+rings from the same place with the same flaws — the notebook's seat chart
+is a bar per pitch, and the seed triad below is untouched because no
+generator is ever consumed for it.
 
 ## The scale contract
 
@@ -112,6 +133,9 @@ that demands reproducibility.
   year, same garden — gusts and all.
 - **The still day:** `@gust 0 @idle 10.` — no flurries, one unhurried
   strike at a time, the original music-box gardener.
+- **The marimba loft:** `@material 1 @spread 1. @decay 0.7 @soften 0.8` —
+  tuned bars instead of tubes, the rack thrown wide: drier, woodier blooms
+  that each speak from their own place in the image.
 - **Duet:** `@idle 6.` and stay at the keyboard — every silence longer
   than six seconds, the gardener answers you; every plant of yours resets
   its patience.
@@ -124,16 +148,21 @@ that demands reproducibility.
 - **Rhythm.** Events return on the loop grid, exactly, forever — no swing,
   no humanization. For patterns as *rhythm*, `tap.808.seq~` is the
   machine.
-- **Any other timbre.** One wind-chime family, on purpose. It is an
-  instrument, not a polysynth; for synthesis as a playground, patch
+- **Any other timbre.** Two materials, one chime family, on purpose. It is
+  an instrument, not a polysynth; for synthesis as a playground, patch
   oscillators.
+- **A stereo panner.** The image is a rack of fixed seats keyed by pitch —
+  there is no per-strike pan and no motion. For placement as a *parameter*,
+  pan the object's output.
 
 ## Checkpoint
 
 Notes become events; events recirculate on a loop, quieter by `decay` and
 purer by `soften` each pass, retiring below `floor`; a sixteen-chime pool
 bounds the sound and a sixty-four-seat ring bounds the score, oldest bloom
-yielding first. The scale makes wrong notes unrepresentable, and a seeded
-gardener keeps the piece alive exactly as long as you neglect it. Every
+yielding first. Two materials share the rack, every tube keeps its own
+flaws and its own stereo seat, the scale makes wrong notes unrepresentable,
+and a seeded gardener keeps the piece alive exactly as long as you neglect
+it. Every
 number above lives twice: as an executed cell in `garden.ipynb` and as a
 pinned scenario in `tests/garden_test.cpp`, which CI runs on every push.

@@ -132,10 +132,10 @@ def raster():
 
 def staircase():
     """garden: the decay-0.5 return staircase, retiring below the floor."""
-    g = tap.Garden(fs, smooth_ms=0, idle_seconds=0, loop_seconds=0.5,
+    g = tap.Garden(fs, smooth_ms=0, idle_seconds=0, spread=0, loop_seconds=0.5,
                    decay=0.5, floor=0.05, bell=(0.002, 0.05, 1.0), scale=0)
     g.note(69, 0.8)
-    y = g.process(int(3.5 * fs))
+    y, _ = g.process(int(3.5 * fs))  # spread 0: both busses identical, plot the left
 
     t = np.arange(y.size) / fs
     fig, ax = plt.subplots()

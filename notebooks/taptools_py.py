@@ -303,6 +303,8 @@ def load() -> ctypes.CDLL:
         "taptools_garden_set_floor":       ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_garden_set_bell":        ([vp, ctypes.c_double, ctypes.c_double, ctypes.c_double],
                                             ctypes.c_int),
+        "taptools_garden_set_material":    ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_garden_set_spread":      ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_garden_set_root":        ([vp, ctypes.c_int], ctypes.c_int),
         "taptools_garden_set_scale":       ([vp, ctypes.c_int], ctypes.c_int),
         "taptools_garden_set_idle_seconds": ([vp, ctypes.c_double], ctypes.c_int),
@@ -313,7 +315,7 @@ def load() -> ctypes.CDLL:
         "taptools_garden_clear":           ([vp], ctypes.c_int),
         "taptools_garden_active_events":   ([vp], ctypes.c_int),
         "taptools_garden_active_voices":   ([vp], ctypes.c_int),
-        "taptools_garden_process":         ([vp, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_garden_process":         ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -1250,11 +1252,13 @@ class Airport:
 class Garden:
     """tap.garden~'s kernel (tap::tools::garden::bed): a generative event
     loop on the Bloom principle. Planted notes snap to the scale, strike a
-    small modal wind chime (free-free bar mode ratios 1 : 2.756 : 5.404),
+    small modal wind chime (mode ratios by material: 0 chime, the free-free
+    tube's 1 : 2.756 : 5.404 : 8.933; 1 bar, the tuned bar's 1 : 4 : 10 : 20),
     and return every loop pass a step quieter (decay) and purer (soften)
     until they retire below the floor; left idle, a seeded gardener plants
-    for you. Scales: 0 chromatic, 1 major, 2 minor, 3 major pentatonic,
-    4 minor pentatonic."""
+    for you. Each tube hangs at a fixed stereo seat (width set by spread)
+    with its own fixed upper-mode scatter, both keyed by pitch. Scales:
+    0 chromatic, 1 major, 2 minor, 3 major pentatonic, 4 minor pentatonic."""
 
     def __init__(self, sr: float = 48000.0, **params):
         self._h = _LIB.taptools_garden_create()
@@ -1262,14 +1266,18 @@ class Garden:
         self.set(**params)
 
     def set(self, *, loop_seconds=None, decay=None, soften=None, floor=None, bell=None,
-            root=None, scale=None, idle_seconds=None, gust=None, seed=None, level=None,
-            smooth_ms=None) -> "Garden":
+            material=None, spread=None, root=None, scale=None, idle_seconds=None, gust=None,
+            seed=None, level=None, smooth_ms=None) -> "Garden":
         """`bell` takes an (attack_s, decay_s, brightness) triple."""
         # configuration first, so ramped targets in the same call honor the new slew
         if smooth_ms is not None:
             _check(_LIB.taptools_garden_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
         if seed is not None:
             _check(_LIB.taptools_garden_set_seed(self._h, int(seed)), "seed")
+        if material is not None:
+            _check(_LIB.taptools_garden_set_material(self._h, int(material)), "material")
+        if spread is not None:
+            _check(_LIB.taptools_garden_set_spread(self._h, float(spread)), "spread")
         if root is not None:
             _check(_LIB.taptools_garden_set_root(self._h, int(root)), "root")
         if scale is not None:
@@ -1310,11 +1318,14 @@ class Garden:
     def active_voices(self) -> int:
         return int(_LIB.taptools_garden_active_voices(self._h))
 
-    def process(self, n: int) -> np.ndarray:
-        """Render n samples (a source: no input)."""
-        out = np.zeros(int(n))
-        _check(_LIB.taptools_garden_process(self._h, _p64(out), out.size), "process")
-        return out
+    def process(self, n: int) -> tuple[np.ndarray, np.ndarray]:
+        """Render n samples of the stereo rack (a source: no input);
+        returns (left, right)."""
+        out_l = np.zeros(int(n))
+        out_r = np.zeros(int(n))
+        _check(_LIB.taptools_garden_process(self._h, _p64(out_l), _p64(out_r), out_l.size),
+               "process")
+        return out_l, out_r
 
     def clear(self) -> None:
         """Uproot everything; parameters are untouched."""

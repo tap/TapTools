@@ -1252,6 +1252,14 @@ int taptools_garden_set_bell(taptools_garden h, double attack_s, double decay_s,
     return with<garden_bed>(h, [&](garden_bed& g) { g.set_bell(attack_s, decay_s, brightness); });
 }
 
+int taptools_garden_set_material(taptools_garden h, int material) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_material(material); });
+}
+
+int taptools_garden_set_spread(taptools_garden h, double amount) {
+    return with<garden_bed>(h, [&](garden_bed& g) { g.set_spread(amount); });
+}
+
 int taptools_garden_set_root(taptools_garden h, int semitone) {
     return with<garden_bed>(h, [&](garden_bed& g) { g.set_root(semitone); });
 }
@@ -1298,11 +1306,11 @@ int taptools_garden_active_voices(taptools_garden h) {
     return static_cast<garden_bed*>(h)->active_voices();
 }
 
-int taptools_garden_process(taptools_garden h, double* out, int n) {
-    if (!out || n < 0) {
+int taptools_garden_process(taptools_garden h, double* outL, double* outR, int n) {
+    if (!outL || !outR || n < 0) {
         return -1;
     }
-    return with<garden_bed>(h, [&](garden_bed& g) { g.process(out, static_cast<size_t>(n)); });
+    return with<garden_bed>(h, [&](garden_bed& g) { g.process(outL, outR, static_cast<size_t>(n)); });
 }
 
 } // extern "C"
