@@ -94,6 +94,17 @@ like tape, run it through `tap.discreet~` on the way in.
   regen 0) before the record gate — tape transport on the way in, stable
   free-run once captured.
 
+## The same machine, in pieces
+
+There was never a loop bank doing loop-bank things in here — there is an
+array of eight identical lanes and a summing loop. That lane is now an
+object of its own, `tap.reel~`, and three of them summed are a
+`tap.airport~` bitwise (pinned in `tests/airport_test.cpp`). Patch it
+instead of using this object when you want an insert on *one* loop, a
+varispeed on one reel, more than eight loops, or tape you actually use —
+the bank buys all eight worst-case reels at DSP start regardless. See
+[The same machine, in pieces](components.md).
+
 ## When it is not the right tool
 
 - **Synchronized looping.** This machine never lines up *by design*. A
