@@ -420,6 +420,106 @@ TAPTOOLS_API int taptools_garden_active_voices(taptools_garden h); // ringing be
 /// A source: renders n samples of the stereo rack into outL/outR.
 TAPTOOLS_API int taptools_garden_process(taptools_garden h, double* outL, double* outR, int n);
 
+// ---- the components the monoliths are made of ----------------------------------------------------
+//
+// tap.airport~ is a sum of tap.reel~ lanes; tap.garden~ is tap.scale into tap.bloom into
+// tap.chime~ with tap.gardener planting when idle. These entry points reach the same classes the
+// monoliths hold, so a notebook can null-test the patch against the object through one ABI.
+
+// ---- tap.reel~ (tap::tools::airport::loop) -------------------------------------------------------
+
+typedef void* taptools_reel;
+
+TAPTOOLS_API taptools_reel taptools_reel_create(void);
+TAPTOOLS_API void          taptools_reel_destroy(taptools_reel h);
+
+TAPTOOLS_API int taptools_reel_prepare(taptools_reel h, double sr, double max_loop_seconds);
+TAPTOOLS_API int taptools_reel_set_length_seconds(taptools_reel h, double s);
+TAPTOOLS_API int taptools_reel_record(taptools_reel h, int on); // 1 punch, 0 freeze
+TAPTOOLS_API int taptools_reel_set_level(taptools_reel h, double lin);
+TAPTOOLS_API int taptools_reel_set_pan(taptools_reel h, double pan); // -1..1 equal-power
+TAPTOOLS_API int taptools_reel_set_darken_hz(taptools_reel h, double hz);
+TAPTOOLS_API int taptools_reel_set_smooth_ms(taptools_reel h, double ms);
+TAPTOOLS_API int taptools_reel_clear(taptools_reel h);
+
+TAPTOOLS_API double taptools_reel_phase(taptools_reel h);          // 0..1 (-1 on bad handle)
+TAPTOOLS_API double taptools_reel_length_seconds(taptools_reel h); // as quantized to samples
+TAPTOOLS_API int    taptools_reel_loop_samples(taptools_reel h);   // what the lcm arithmetic reads
+
+/// Renders n samples. ASSIGNS outL/outR (the lane's block form), so this is one reel on its own.
+TAPTOOLS_API int taptools_reel_process(taptools_reel h, const double* in, double* outL, double* outR, int n);
+
+// ---- tap.chime~ (tap::tools::garden::rack) -------------------------------------------------------
+
+typedef void* taptools_chime;
+
+TAPTOOLS_API taptools_chime taptools_chime_create(void);
+TAPTOOLS_API void           taptools_chime_destroy(taptools_chime h);
+
+TAPTOOLS_API int taptools_chime_prepare(taptools_chime h, double sr);
+TAPTOOLS_API int taptools_chime_set_times(taptools_chime h, double attack_s, double decay_s);
+TAPTOOLS_API int taptools_chime_set_material(taptools_chime h, int material); // garden::material_index
+TAPTOOLS_API int taptools_chime_set_spread(taptools_chime h, double amount);  // 0 mono .. 1
+TAPTOOLS_API int taptools_chime_clear(taptools_chime h);
+
+/// Strike a tube: MIDI pitch (fractional accepted) or a raw frequency. Velocity and brightness 0..1.
+TAPTOOLS_API int taptools_chime_strike(taptools_chime h, double pitch, double velocity, double brightness);
+TAPTOOLS_API int taptools_chime_strike_hz(taptools_chime h, double freq_hz, double velocity, double brightness);
+
+TAPTOOLS_API int taptools_chime_active_voices(taptools_chime h); // ringing bells (-1 on bad handle)
+
+/// A source: renders n samples of the stereo rack, ASSIGNING outL/outR.
+TAPTOOLS_API int taptools_chime_process(taptools_chime h, double* outL, double* outR, int n);
+
+// ---- tap.bloom (tap::tools::garden::ring) --------------------------------------------------------
+
+typedef void* taptools_bloom;
+
+TAPTOOLS_API taptools_bloom taptools_bloom_create(void);
+TAPTOOLS_API void           taptools_bloom_destroy(taptools_bloom h);
+
+TAPTOOLS_API int taptools_bloom_prepare(taptools_bloom h, double sr);
+TAPTOOLS_API int taptools_bloom_set_loop_seconds(taptools_bloom h, double s);
+TAPTOOLS_API int taptools_bloom_set_decay(taptools_bloom h, double per_pass);
+TAPTOOLS_API int taptools_bloom_set_soften(taptools_bloom h, double per_pass);
+TAPTOOLS_API int taptools_bloom_set_floor(taptools_bloom h, double v);
+TAPTOOLS_API int taptools_bloom_set_brightness(taptools_bloom h, double b);
+TAPTOOLS_API int taptools_bloom_clear(taptools_bloom h);
+
+/// Plant at the current loop position; it fires on the next due() and every pass after.
+TAPTOOLS_API int taptools_bloom_plant(taptools_bloom h, double pitch, double velocity);
+
+/// The strikes due on this sample, written into caller arrays of at least `max` entries. Returns
+/// how many were written, or -1 on a bad handle. Does NOT advance the loop — call step() after.
+TAPTOOLS_API int taptools_bloom_due(taptools_bloom h, double* pitch, double* velocity, double* brightness, int max);
+TAPTOOLS_API int taptools_bloom_step(taptools_bloom h);
+
+TAPTOOLS_API int taptools_bloom_active_events(taptools_bloom h); // live blooms (-1 on bad handle)
+TAPTOOLS_API int taptools_bloom_loop_samples(taptools_bloom h);
+
+// ---- tap.gardener (tap::tools::garden::gardener) -------------------------------------------------
+
+typedef void* taptools_gardener;
+
+TAPTOOLS_API taptools_gardener taptools_gardener_create(void);
+TAPTOOLS_API void              taptools_gardener_destroy(taptools_gardener h);
+
+TAPTOOLS_API int taptools_gardener_prepare(taptools_gardener h, double sr);
+TAPTOOLS_API int taptools_gardener_set_idle_seconds(taptools_gardener h, double s); // 0 disables
+TAPTOOLS_API int taptools_gardener_set_gust(taptools_gardener h, double amount);
+TAPTOOLS_API int taptools_gardener_set_seed(taptools_gardener h, unsigned long long seed);
+TAPTOOLS_API int taptools_gardener_notice_plant(taptools_gardener h); // a caller plant closes the gate
+TAPTOOLS_API int taptools_gardener_clear(taptools_gardener h);
+
+/// Advance the idle clock one sample. Returns 1 if the wind wants a strike (writing the RAW,
+/// unquantized pitch and the velocity), 0 if not, -1 on a bad handle.
+TAPTOOLS_API int taptools_gardener_tick(taptools_gardener h, int loop_samples, double* pitch, double* velocity);
+
+// ---- tap.scale (tap::tools::garden::scale_quantizer) ---------------------------------------------
+
+/// Stateless enough to need no handle: snap MIDI semitones to the nearest pitch in root/scale.
+TAPTOOLS_API double taptools_scale_quantize(double pitch, int root, int scale);
+
 #ifdef __cplusplus
 }
 #endif

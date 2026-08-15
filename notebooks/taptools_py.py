@@ -19,7 +19,11 @@ two-machine tape loop tap.discreet~ (`Discreet`), the Music for Airports
 incommensurate loop bank tap.airport~ (`Airport`), the generative event
 loop tap.garden~ (`Garden`), and tap.tune~'s pitch corrector (`Tune`, with
 the shared DspTap detector passed through as `Yin` for the notebooks'
-pitch tracking). Parameter names on the
+pitch tracking). The components those last two are built from are reachable
+too — one tape lane (`Reel`), the chime rack (`Chime`), the event ring
+(`Bloom`), the idle wind (`Gardener`), and the entry quantizer
+(`scale_quantize`) — so a notebook can null-test the patch against the
+object through one ABI. Parameter names on the
 kernel classes mirror each kernel header's param_index enum.
 
 Copyright 2003-2026 Timothy Place. MIT License.
@@ -316,6 +320,59 @@ def load() -> ctypes.CDLL:
         "taptools_garden_active_events":   ([vp], ctypes.c_int),
         "taptools_garden_active_voices":   ([vp], ctypes.c_int),
         "taptools_garden_process":         ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        # the components the monoliths are made of
+        "taptools_reel_create":            ([], vp),
+        "taptools_reel_destroy":           ([vp], None),
+        "taptools_reel_prepare":           ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_reel_set_length_seconds": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_reel_record":            ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_reel_set_level":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_reel_set_pan":           ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_reel_set_darken_hz":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_reel_set_smooth_ms":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_reel_clear":             ([vp], ctypes.c_int),
+        "taptools_reel_phase":             ([vp], ctypes.c_double),
+        "taptools_reel_length_seconds":    ([vp], ctypes.c_double),
+        "taptools_reel_loop_samples":      ([vp], ctypes.c_int),
+        "taptools_reel_process":           ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_chime_create":           ([], vp),
+        "taptools_chime_destroy":          ([vp], None),
+        "taptools_chime_prepare":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_chime_set_times":        ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_chime_set_material":     ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_chime_set_spread":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_chime_clear":            ([vp], ctypes.c_int),
+        "taptools_chime_strike":           ([vp, ctypes.c_double, ctypes.c_double, ctypes.c_double],
+                                            ctypes.c_int),
+        "taptools_chime_strike_hz":        ([vp, ctypes.c_double, ctypes.c_double, ctypes.c_double],
+                                            ctypes.c_int),
+        "taptools_chime_active_voices":    ([vp], ctypes.c_int),
+        "taptools_chime_process":          ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_bloom_create":           ([], vp),
+        "taptools_bloom_destroy":          ([vp], None),
+        "taptools_bloom_prepare":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_bloom_set_loop_seconds": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_bloom_set_decay":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_bloom_set_soften":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_bloom_set_floor":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_bloom_set_brightness":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_bloom_clear":            ([vp], ctypes.c_int),
+        "taptools_bloom_plant":            ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_bloom_due":              ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_bloom_step":             ([vp], ctypes.c_int),
+        "taptools_bloom_active_events":    ([vp], ctypes.c_int),
+        "taptools_bloom_loop_samples":     ([vp], ctypes.c_int),
+        "taptools_gardener_create":        ([], vp),
+        "taptools_gardener_destroy":       ([vp], None),
+        "taptools_gardener_prepare":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_gardener_set_idle_seconds": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_gardener_set_gust":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_gardener_set_seed":      ([vp, ctypes.c_ulonglong], ctypes.c_int),
+        "taptools_gardener_notice_plant":  ([vp], ctypes.c_int),
+        "taptools_gardener_clear":         ([vp], ctypes.c_int),
+        "taptools_gardener_tick":          ([vp, ctypes.c_int, f64p, f64p], ctypes.c_int),
+        "taptools_scale_quantize":         ([ctypes.c_double, ctypes.c_int, ctypes.c_int],
+                                            ctypes.c_double),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -1336,6 +1393,250 @@ class Garden:
         if h:
             _LIB.taptools_garden_destroy(h)
             self._h = None
+
+
+class Reel:
+    """One lane of tap.airport~ (tap::tools::airport::loop) — a single
+    free-running tape loop with one head that both plays and records. A bank
+    is an array of these and nothing more, so summing N of them reproduces
+    `Airport` exactly; that is what the null-test cells check."""
+
+    def __init__(self, sr: float = 48000.0, max_loop_seconds: float = 30.0, **params):
+        self._h = _LIB.taptools_reel_create()
+        _check(_LIB.taptools_reel_prepare(self._h, float(sr), float(max_loop_seconds)), "prepare")
+        self.set(**params)
+
+    def set(self, *, length=None, level=None, pan=None, darken=None, smooth_ms=None) -> "Reel":
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_reel_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if length is not None:
+            _check(_LIB.taptools_reel_set_length_seconds(self._h, float(length)), "length")
+        if level is not None:
+            _check(_LIB.taptools_reel_set_level(self._h, float(level)), "level")
+        if pan is not None:
+            _check(_LIB.taptools_reel_set_pan(self._h, float(pan)), "pan")
+        if darken is not None:
+            _check(_LIB.taptools_reel_set_darken_hz(self._h, float(darken)), "darken")
+        return self
+
+    def record(self, on: bool) -> "Reel":
+        """Punch the process() input onto the tape (True) or freeze it
+        bit-exactly (False). Recording starts wherever the head happens to be."""
+        _check(_LIB.taptools_reel_record(self._h, 1 if on else 0), "record")
+        return self
+
+    @property
+    def phase(self) -> float:
+        """The head position as a fraction of the loop length, 0..1."""
+        return float(_LIB.taptools_reel_phase(self._h))
+
+    @property
+    def length_seconds(self) -> float:
+        """The loop length, as quantized to a whole number of samples."""
+        return float(_LIB.taptools_reel_length_seconds(self._h))
+
+    @property
+    def loop_samples(self) -> int:
+        return int(_LIB.taptools_reel_loop_samples(self._h))
+
+    def process(self, x):
+        x = _f64(x)
+        out_l = np.zeros_like(x)
+        out_r = np.zeros_like(x)
+        _check(_LIB.taptools_reel_process(self._h, _p64(x), _p64(out_l), _p64(out_r), x.size),
+               "process")
+        return out_l, out_r
+
+    def clear(self) -> None:
+        """Erase the tape and rewind the head; parameters are untouched."""
+        _check(_LIB.taptools_reel_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_reel_destroy(h)
+            self._h = None
+
+
+class Chime:
+    """tap.garden~'s voice rack (tap::tools::garden::rack) — the fixed pool of
+    16 wind chimes plus the quietest-first allocator, which steals by re-aiming
+    rather than resetting so a steal glides instead of clicking. The allocator
+    is kernel code on purpose: Max's poly~ steals round-robin and does not
+    exist off Max."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_chime_create()
+        _check(_LIB.taptools_chime_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, attack=None, decay=None, material=None, spread=None) -> "Chime":
+        if attack is not None or decay is not None:
+            a = 0.004 if attack is None else float(attack)
+            d = 4.0 if decay is None else float(decay)
+            _check(_LIB.taptools_chime_set_times(self._h, a, d), "times")
+        if material is not None:
+            _check(_LIB.taptools_chime_set_material(self._h, int(material)), "material")
+        if spread is not None:
+            _check(_LIB.taptools_chime_set_spread(self._h, float(spread)), "spread")
+        return self
+
+    def strike(self, pitch: float, velocity: float = 1.0, brightness: float = 1.0) -> "Chime":
+        """Strike the tube at a MIDI pitch (fractional pitches are distinct
+        tubes, with their own scatter and their own seat on the rack)."""
+        _check(_LIB.taptools_chime_strike(self._h, float(pitch), float(velocity), float(brightness)),
+               "strike")
+        return self
+
+    def strike_hz(self, freq_hz: float, velocity: float = 1.0, brightness: float = 1.0) -> "Chime":
+        _check(_LIB.taptools_chime_strike_hz(self._h, float(freq_hz), float(velocity),
+                                            float(brightness)), "strike_hz")
+        return self
+
+    @property
+    def active_voices(self) -> int:
+        return int(_LIB.taptools_chime_active_voices(self._h))
+
+    def process(self, n: int):
+        """A source: render n samples of the stereo rack."""
+        out_l = np.zeros(int(n))
+        out_r = np.zeros(int(n))
+        _check(_LIB.taptools_chime_process(self._h, _p64(out_l), _p64(out_r), out_l.size), "process")
+        return out_l, out_r
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_chime_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_chime_destroy(h)
+            self._h = None
+
+
+class Bloom:
+    """tap.garden~'s event ring (tap::tools::garden::ring) — plant a bloom and
+    it returns at its own loop position every pass, velocity times `decay` and
+    brightness times `soften`, retiring below `floor`. It knows nothing about
+    chimes: it emits strikes, and what sounds them is your business. A plant at
+    velocity v lives exactly ceil(log(floor/v)/log(decay)) strikes."""
+
+    _MAX_EVENTS = 64
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_bloom_create()
+        _check(_LIB.taptools_bloom_prepare(self._h, float(sr)), "prepare")
+        self._pitch = np.zeros(self._MAX_EVENTS)
+        self._vel = np.zeros(self._MAX_EVENTS)
+        self._bright = np.zeros(self._MAX_EVENTS)
+        self.set(**params)
+
+    def set(self, *, loop_seconds=None, decay=None, soften=None, floor=None,
+            brightness=None) -> "Bloom":
+        if loop_seconds is not None:
+            _check(_LIB.taptools_bloom_set_loop_seconds(self._h, float(loop_seconds)), "loop")
+        if decay is not None:
+            _check(_LIB.taptools_bloom_set_decay(self._h, float(decay)), "decay")
+        if soften is not None:
+            _check(_LIB.taptools_bloom_set_soften(self._h, float(soften)), "soften")
+        if floor is not None:
+            _check(_LIB.taptools_bloom_set_floor(self._h, float(floor)), "floor")
+        if brightness is not None:
+            _check(_LIB.taptools_bloom_set_brightness(self._h, float(brightness)), "brightness")
+        return self
+
+    def plant(self, pitch: float, velocity: float) -> "Bloom":
+        """Plant at the current loop position; it fires on the next due()."""
+        _check(_LIB.taptools_bloom_plant(self._h, float(pitch), float(velocity)), "plant")
+        return self
+
+    def due(self):
+        """The strikes due on this sample as a list of (pitch, velocity,
+        brightness). Fires and wears them, but does NOT advance — call step()."""
+        n = _LIB.taptools_bloom_due(self._h, _p64(self._pitch), _p64(self._vel),
+                                    _p64(self._bright), self._MAX_EVENTS)
+        _check(0 if n >= 0 else -1, "due")
+        return [(self._pitch[i], self._vel[i], self._bright[i]) for i in range(n)]
+
+    def step(self) -> None:
+        """Advance the loop one sample."""
+        _check(_LIB.taptools_bloom_step(self._h), "step")
+
+    @property
+    def active_events(self) -> int:
+        return int(_LIB.taptools_bloom_active_events(self._h))
+
+    @property
+    def loop_samples(self) -> int:
+        return int(_LIB.taptools_bloom_loop_samples(self._h))
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_bloom_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_bloom_destroy(h)
+            self._h = None
+
+
+class Gardener:
+    """tap.garden~'s idle wind (tap::tools::garden::gardener) — after
+    `idle_seconds` without a caller plant, strikes arrive on a calm/gust cycle.
+    The rng is drawn from ONLY while idling, which is what makes the seed triad
+    hold. Pitches come out RAW: quantizing them is the caller's job, because the
+    scale is the caller's field, not the wind's."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_gardener_create()
+        _check(_LIB.taptools_gardener_prepare(self._h, float(sr)), "prepare")
+        self._pitch = np.zeros(1)
+        self._vel = np.zeros(1)
+        self.set(**params)
+
+    def set(self, *, idle_seconds=None, gust=None, seed=None) -> "Gardener":
+        if idle_seconds is not None:
+            _check(_LIB.taptools_gardener_set_idle_seconds(self._h, float(idle_seconds)), "idle")
+        if gust is not None:
+            _check(_LIB.taptools_gardener_set_gust(self._h, float(gust)), "gust")
+        if seed is not None:
+            _check(_LIB.taptools_gardener_set_seed(self._h, int(seed)), "seed")
+        return self
+
+    def notice_plant(self) -> "Gardener":
+        """A caller planted: close the idle gate."""
+        _check(_LIB.taptools_gardener_notice_plant(self._h), "notice_plant")
+        return self
+
+    def tick(self, loop_samples: int):
+        """Advance one sample. Returns (pitch, velocity) if the wind wants a
+        strike this sample, else None."""
+        n = _LIB.taptools_gardener_tick(self._h, int(loop_samples), _p64(self._pitch),
+                                        _p64(self._vel))
+        _check(0 if n >= 0 else -1, "tick")
+        return (self._pitch[0], self._vel[0]) if n == 1 else None
+
+    def clear(self) -> None:
+        """Re-seed the rng and restart the idle clock and the wind."""
+        _check(_LIB.taptools_gardener_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_gardener_destroy(h)
+            self._h = None
+
+
+def scale_quantize(pitch, root: int = 0, scale: int = 3):
+    """tap.garden~'s entry quantizer (tap::tools::garden::scale_quantizer):
+    snap MIDI semitones to the nearest pitch in root/scale. `scale` indexes
+    garden::scale_index — 0 chromatic, 1 major, 2 minor, 3 major pentatonic,
+    4 minor pentatonic. Accepts a scalar or an array."""
+    if np.isscalar(pitch):
+        return float(_LIB.taptools_scale_quantize(float(pitch), int(root), int(scale)))
+    return np.array([float(_LIB.taptools_scale_quantize(float(p), int(root), int(scale)))
+                     for p in np.asarray(pitch, dtype=float)])
 
 
 class Yin:
