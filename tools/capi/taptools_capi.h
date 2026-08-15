@@ -366,6 +366,33 @@ TAPTOOLS_API int taptools_discreet_set_smooth_ms(taptools_discreet h, double ms)
 TAPTOOLS_API int taptools_discreet_clear(taptools_discreet h);
 TAPTOOLS_API int taptools_discreet_process(taptools_discreet h, const double* in, double* out, int n);
 
+// ---- tap.tapecho~ (tap::tools::tapecho::machine) -------------------------------------------------
+
+typedef void* taptools_tapecho;
+
+TAPTOOLS_API taptools_tapecho taptools_tapecho_create(void);
+TAPTOOLS_API void             taptools_tapecho_destroy(taptools_tapecho h);
+/// Buy tape for `max_span_seconds` at `sr`; snaps ramps and erases the tape.
+TAPTOOLS_API int taptools_tapecho_prepare(taptools_tapecho h, double sr, double max_span_seconds);
+TAPTOOLS_API int taptools_tapecho_set_span_ms(taptools_tapecho h, double ms); // the motor; slewed = varispeed
+TAPTOOLS_API int taptools_tapecho_set_heads(taptools_tapecho h, int count);   // 0..4 active playback heads
+/// Per-head setters; `head` is 0-based. `ratio` is the head's position as a fraction of the span.
+TAPTOOLS_API int taptools_tapecho_set_head_ratio(taptools_tapecho h, int head, double ratio); // (0, 1]
+TAPTOOLS_API int taptools_tapecho_set_head_level(taptools_tapecho h, int head, double lin);
+TAPTOOLS_API int taptools_tapecho_set_head_pan(taptools_tapecho h, int head, double pan); // -1..1 equal-power
+/// 0..1.5. Above 1.0 self-oscillates and is only reached while drive > 0 (the saturator bounds it).
+TAPTOOLS_API int taptools_tapecho_set_regen(taptools_tapecho h, double r);
+TAPTOOLS_API int taptools_tapecho_set_darken_hz(taptools_tapecho h, double hz);    // per-pass wear corner
+TAPTOOLS_API int taptools_tapecho_set_drive(taptools_tapecho h, double d);         // >= 0; 0 caps regen at 1.0
+TAPTOOLS_API int taptools_tapecho_set_input_level(taptools_tapecho h, double lin); // into the record head
+TAPTOOLS_API int taptools_tapecho_set_mix(taptools_tapecho h, double pct);         // 0..100, equal-power
+TAPTOOLS_API int taptools_tapecho_set_wow(taptools_tapecho h, double depth_ms, double rate_hz);
+TAPTOOLS_API int taptools_tapecho_set_flutter(taptools_tapecho h, double depth_ms, double rate_hz);
+TAPTOOLS_API int taptools_tapecho_set_smooth_ms(taptools_tapecho h, double ms);
+TAPTOOLS_API int taptools_tapecho_clear(taptools_tapecho h);
+/// Process n samples mono-in / stereo-out (the dry path is mixed to both busses).
+TAPTOOLS_API int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL, double* outR, int n);
+
 // ---- tap.airport~ (tap::tools::airport::loop_bank) -----------------------------------------------
 
 typedef void* taptools_airport;
