@@ -1,7 +1,7 @@
 # Plan — the Radiohead family
 
-> **Status: in progress — `tap.tapecho~` has shipped end-to-end and `tap.stammer~`'s kernel
-> has landed (both 2026-08-15); the rest is plan.** This is the drafting record of the 2026-08-15 survey ("are there
+> **Status: in progress — `tap.tapecho~` and `tap.stammer~` have both shipped end-to-end
+> (2026-08-15); the rest is plan.** This is the drafting record of the 2026-08-15 survey ("are there
 > Radiohead-inspired objects we should consider?"), amended the same day against the Eno
 > components wave (`d4cf28a`) before any code was written. It stays after the objects ship,
 > the plans-directory way; per-chapter drafting records will follow separately when the book
@@ -31,7 +31,7 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 | Object | Kernel | Recreates | Standing on | Status |
 |--------|--------|-----------|-------------|--------|
 | `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel + Max vertical slice); chapter pending |
-| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ kernel shipped 2026-08-15; Max slice + chapter pending |
+| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel + Max vertical slice); chapter pending |
 | `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom, `vco.h`/`vca.h` | planned — gated on source collection |
 | `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic | planned |
 | `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
@@ -112,7 +112,7 @@ the C ABI in the notebook. Measured at ship: per-pass generation loss within 0.2
 analytic wear transfer on both sides of the corner; wow 10.91 cents measured against 10.88
 predicted; every past-unity drive setting plateaus under its analytic ceiling.
 
-### 2. `tap.stammer~` — the live stutter rig *(second; the most "us")* — ✅ kernel shipped
+### 2. `tap.stammer~` — the live stutter rig *(second; the most "us")* — ✅ shipped
 
 > **Shipped 2026-08-15**: `include/taptools/stammer.h` (the planned `capture` + `slicer` split
 > under a thin `machine`), `tests/stammer_test.cpp` (9 scenarios), the C ABI + ctypes surface
@@ -127,8 +127,9 @@ predicted; every past-unity drive setting plateaus under its analytic ceiling.
 > bitwise; a seed replays bit-identically while a different seed changes 89% of samples; at
 > density 0 the rng is provably untouched and the object is a bitwise bypass at any mix; and the
 > material contract is measured at its premise — slices of a sustained sine are 1.000 alike by
-> magnitude spectrum, slices of a plucked phrase 0.286. Still to come: the Max vertical slice
-> and the book chapter.
+> magnitude spectrum, slices of a plucked phrase 0.286. The Max vertical slice followed the
+> same day (wrapper, five min-api scenarios, maxref, help patcher, pin bump — REVIVAL.md entry
+> 19). Still to come: the book chapter and the on-Mac validation pass.
 
 The disintegrating guitar at the end of *Go To Sleep* and the mangling in *The Gloaming*
 come from Greenwood's own Max patches: capture the live input, re-fire randomized slices
@@ -232,7 +233,8 @@ is to make that sharing literal, not copied.
    `tape_loop.h` as the library the components chapter claims it is. ✅ *Kernel done; the
    stress test passed — the shared machinery needed no changes to serve a second topology.*
 2. **`tap.stammer~`** — original design (no sourcing gate), highest Max-lineage
-   resonance, establishes the family's capture + seeded-performance conventions.
+   resonance, establishes the family's capture + seeded-performance conventions. ✅ *Done; both
+   conventions are now in place for `tap.scrub~` to inherit.*
 3. **`tap.ondes~`** — the flagship; source collection starts immediately (it
    parallelizes with 1–2), implementation begins when the gate clears.
 4. **`tap.fuzz~`** — small and independent; slots into any gap.
