@@ -140,6 +140,20 @@ that demands reproducibility.
   than six seconds, the gardener answers you; every plant of yours resets
   its patience.
 
+## The same machine, in pieces
+
+The four machines inside this one — the entry quantizer, the event ring,
+the chime rack, the seeded gardener — are objects too: `tap.scale`,
+`tap.bloom`, `tap.chime~`, `tap.gardener`. Chained, they are this object
+bitwise, gardener and all (pinned in `tests/garden_test.cpp`). The one
+worth reaching for on its own is `tap.bloom`: separated from the chime it
+recirculates *notes* and has no opinion about what sounds them, so the
+principle will drive a sampler or MIDI out just as happily. One difference
+to know before you patch it — out here the ring runs on Max's scheduler
+rather than the audio clock, so returns land within a millisecond of the
+grid instead of exactly on it. See
+[The same machine, in pieces](components.md).
+
 ## When it is not the right tool
 
 - **Melodies with wrong notes in them.** Quantization is always on;

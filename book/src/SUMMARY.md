@@ -23,6 +23,7 @@
 - [The tape that forgets slowly](discreet.md)
 - [Loops that never line up](airport.md)
 - [The garden that plays itself](garden.md)
+- [The same machine, in pieces](components.md)
 
 # Part V — The spectral set
 
