@@ -61,6 +61,24 @@
 ///             Geometry: everything is fixed arrays — k_max_events events, k_voices bells —
 ///             so prepare(sr) allocates nothing at all and no later call ever does.
 ///
+///             Five classes, because a garden is a system and the parts are worth having alone:
+///             - `bell` — one wind chime, four decaying mode doublets (see below).
+///             - `rack` — the fixed pool of k_voices bells plus the allocator: an idle bell if
+///               there is one, else the quietest is stolen and RE-AIMED (free-running phases, a
+///               gliding seat) rather than reset. That allocator lives here, in portable C++,
+///               rather than being delegated to a host's polyphony container — Max's poly~ steals
+///               round-robin and is Max-only, so a kernel that leaned on it would lose both the
+///               glide-not-click promise and every non-Max target. This is what tap.chime~ wraps.
+///             - `ring` — the event recirculation: plant, fire on the loop grid, multiply velocity
+///               by `decay` and brightness by `soften` each pass, retire below `floor`. It carries
+///               the convergence theorem and knows nothing about chimes, which is the point: point
+///               it at any voice you like (tap.bloom).
+///             - `gardener` — the seeded wind: gusts and calms, emitting plant requests once the
+///               garden has been idle. Consumes its rng ONLY while idling (tap.gardener).
+///             - `scale_quantizer` — the root/scale snap applied at entry (tap.scale).
+///             `bed` is those four wired together and a master level, and nothing else; the wiring
+///             is what the null test pins.
+///
 ///             Honest limits:
 ///             - Pitch is quantized AT ENTRY: changing root or scale re-pitches nothing already
 ///               planted, only future plants (replants pick up the new field).
@@ -331,8 +349,424 @@ namespace tap::tools {
             std::array<tr808::decay_env, k_modes> m_env;
         };
 
+        /// The root/scale snap applied at entry — the tune.h nearest-allowed search (any non-empty
+        /// mask has a note within a tritone). Copied, not included: tune.h reaches into tap::dsp.
+        /// A mode, not a fader: changing it re-pitches nothing already planted, only future plants.
+        class scale_quantizer {
+          public:
+            /// Root pitch class, 0..11 (0 = C).
+            void set_root(int semitone) { m_root = ((semitone % 12) + 12) % 12; }
+
+            /// Scale preset (scale_index).
+            void set_scale(int scale) { m_scale = std::clamp(scale, 0, k_num_scales - 1); }
+
+            int root() const { return m_root; }
+            int scale() const { return m_scale; }
+
+            /// Snap MIDI semitones to the nearest pitch in the current root/scale.
+            double quantize(double pitch) const {
+                const unsigned mask = k_scale_masks[static_cast<size_t>(m_scale)];
+                const int      p    = static_cast<int>(std::lround(pitch));
+                for (int off = 0; off <= 6; ++off) {
+                    for (const int cand : {p + off, p - off}) {
+                        const int pc = (((cand - m_root) % 12) + 12) % 12;
+                        if ((mask & (1u << pc)) != 0u) {
+                            return static_cast<double>(cand);
+                        }
+                    }
+                }
+                return static_cast<double>(p); // unreachable for any non-empty mask
+            }
+
+          private:
+            int m_root{0};
+            int m_scale{scale_major_pentatonic}; // anything you plant sounds consonant
+        };
+
+        /// The chime rack: a fixed pool of k_voices bells and the allocator that hands them out.
+        /// An idle bell if there is one, else the QUIETEST is stolen — and stolen by re-aiming,
+        /// not resetting, so its phases keep free-running and its seat glides instead of clicking.
+        ///
+        /// The allocator lives here rather than in the host on purpose. Max's poly~ steals
+        /// round-robin, and it does not exist off Max at all; a kernel that delegated voice
+        /// stealing would lose the glide-not-click promise and every non-Max target with it. The
+        /// pool is also the hard bound on the audio: however fast strikes arrive, k_voices chimes
+        /// is all that can ever be ringing.
+        class rack {
+          public:
+            void prepare(double sr) {
+                m_sr = (sr > 0.0) ? sr : 48000.0;
+                for (auto& v : m_bells) {
+                    v.prepare(m_sr);
+                    v.set_times(m_attack_s, m_decay_s);
+                }
+                clear();
+            }
+
+            /// Silence every bell.
+            void clear() {
+                for (auto& v : m_bells) {
+                    v.reset();
+                }
+            }
+
+            /// Envelope times in SECONDS (decay_env contract). Ringing voices keep their envelope
+            /// until retriggered; the strike scales decay by sqrt(440/f) on top of this.
+            void set_times(double attack_s, double decay_s) {
+                m_attack_s = std::max(attack_s, 1e-6);
+                m_decay_s  = std::max(decay_s, 1e-6);
+                for (auto& v : m_bells) {
+                    v.set_times(m_attack_s, m_decay_s);
+                }
+            }
+
+            /// What the tubes are made of (material_index). A mode, not a fader: instant, and read
+            /// at strike time, so every later strike re-voices.
+            void set_material(int material) { m_material = std::clamp(material, 0, k_num_materials - 1); }
+
+            /// The rack's stereo width, [0, 1]. Each tube hangs at a fixed seat drawn from its
+            /// pitch (the same stateless hash as its scatter), scaled by spread; 0 collapses the
+            /// rack to center mono, bitwise equal on both busses.
+            void set_spread(double amount) { m_spread = std::clamp(amount, 0.0, 1.0); }
+
+            /// Strike the tube at a MIDI pitch (fractional accepted — fractional pitches are
+            /// distinct tubes with their own flaws and their own seat).
+            void strike(double pitch, double velocity, double brightness) {
+                strike_hz(440.0 * std::exp2((pitch - 69.0) / 12.0), velocity, brightness);
+            }
+
+            /// Strike the tube at a frequency: allocate an idle bell if there is one, else steal
+            /// the quietest and re-aim it. The seat comes from the tube's own hash, so the rack is
+            /// the same rack in every instance and a returning bloom rings from the same place.
+            void strike_hz(double freq_hz, double velocity, double brightness) {
+                bell* voice = &m_bells[0];
+                for (auto& v : m_bells) {
+                    if (v.level() <= k_gain_epsilon) {
+                        voice = &v;
+                        break;
+                    }
+                    if (v.level() < voice->level()) {
+                        voice = &v;
+                    }
+                }
+                const double pan = m_spread * tube_unit(tube_key(freq_hz), 0); // index 0: the seat
+                voice->trigger(freq_hz, velocity, brightness, m_material, pan);
+            }
+
+            /// Sum every ringing chime onto the stereo busses. ACCUMULATES, like bell::process.
+            void process(double& out_left, double& out_right) {
+                for (auto& v : m_bells) {
+                    v.process(out_left, out_right);
+                }
+            }
+
+            int active_voices() const {
+                int n = 0;
+                for (const auto& v : m_bells) {
+                    n += (v.level() > k_gain_epsilon) ? 1 : 0;
+                }
+                return n;
+            }
+
+            double attack_s() const { return m_attack_s; }
+            double decay_s() const { return m_decay_s; }
+            int    material() const { return m_material; }
+            double spread() const { return m_spread; }
+            double samplerate() const { return m_sr; }
+
+          private:
+            double                     m_sr{48000.0};
+            double                     m_attack_s{k_default_attack_s};
+            double                     m_decay_s{k_default_decay_s};
+            int                        m_material{material_chime};
+            double                     m_spread{k_default_spread};
+            std::array<bell, k_voices> m_bells;
+        };
+
+        /// One strike falling out of the ring: what to hit, how hard, how bright.
+        struct strike {
+            double pitch{0.0};      // MIDI semitones, already quantized by whoever planted it
+            double velocity{0.0};   // this pass's velocity, before the pass's decay is applied
+            double brightness{0.0}; // this pass's brightness, likewise
+        };
+
+        /// The event ring: plant a bloom and it returns at its own position every pass, a little
+        /// quieter (`decay`) and a little purer (`soften`), until it falls below `floor` and
+        /// retires. It knows nothing about chimes — it emits strikes, and what sounds them is the
+        /// caller's business, which is the whole reason it is worth having on its own.
+        ///
+        /// The stabilizer and its theorem: with floor f and a plant at velocity v, a bloom lives
+        /// exactly ceil(log(f/v)/log(decay)) passes, so the live population converges no matter
+        /// how fast you plant. A full ring retires its OLDEST bloom to make room for a new plant —
+        /// a touch must always speak, and the oldest is the quietest.
+        class ring {
+          public:
+            void prepare(double sr) {
+                m_sr = (sr > 0.0) ? sr : 48000.0;
+                clear();
+            }
+
+            /// Uproot everything: kill every event and rewind the loop. Parameters are untouched.
+            void clear() {
+                for (auto& e : m_events) {
+                    e.alive = false;
+                }
+                m_pos     = 0;
+                m_planted = 0;
+            }
+
+            /// Loop length in seconds, clamped to [k_min_loop_seconds, k_max_loop_seconds].
+            /// Instant (the loop is a counter): blooms keep their positions modulo the new length.
+            void set_loop_seconds(double s) {
+                m_loop_seconds = std::clamp(s, k_min_loop_seconds, k_max_loop_seconds);
+                const long n   = loop_samples();
+                m_pos          = m_pos % n;
+                for (auto& e : m_events) {
+                    e.offset = e.offset % n;
+                }
+            }
+
+            /// Velocity multiplier per pass, [0, 1] — the stabilizer.
+            void set_decay(double per_pass) { m_decay = std::clamp(per_pass, 0.0, 1.0); }
+
+            /// Brightness multiplier per pass, [0, 1]: each return is purer, collapsing to sine.
+            void set_soften(double per_pass) { m_soften = std::clamp(per_pass, 0.0, 1.0); }
+
+            /// Retirement threshold, [1e-4, 1].
+            void set_floor(double v) { m_floor = std::clamp(v, 1e-4, 1.0); }
+
+            /// The brightness a new plant starts at, [0, 1]; it softens from there.
+            void set_brightness(double b) { m_brightness = std::clamp(b, 0.0, 1.0); }
+
+            /// Plant a bloom at the current loop position. Velocity is clamped to (0, 1]. It fires
+            /// on the next due() — the coming sample — and then every pass until it retires.
+            void plant(double pitch, double velocity) { plant_event(pitch, velocity); }
+
+            /// The blooms due on this sample: each is reported and then worn by one pass. Writes
+            /// at most `max` strikes into `out` and returns how many. Does NOT advance the loop —
+            /// call step() once the gardener has had its turn, which is the order bed keeps.
+            int due(strike* out, int max) {
+                int n = 0;
+                for (auto& e : m_events) {
+                    if (e.alive && e.offset == m_pos) {
+                        if (n < max) {
+                            out[n].pitch      = e.pitch;
+                            out[n].velocity   = e.velocity;
+                            out[n].brightness = e.brightness;
+                            ++n;
+                        }
+                        bloom(e);
+                    }
+                }
+                return n;
+            }
+
+            /// Plant at the current position and take its first strike immediately — the
+            /// gardener's door, which opens after due() has already run for this sample.
+            strike plant_now(double pitch, double velocity) {
+                event& e = plant_event(pitch, velocity);
+                strike s;
+                s.pitch      = e.pitch;
+                s.velocity   = e.velocity;
+                s.brightness = e.brightness;
+                bloom(e);
+                return s;
+            }
+
+            /// Advance the loop one sample.
+            void step() {
+                if (++m_pos >= loop_samples()) {
+                    m_pos = 0;
+                }
+            }
+
+            int active_events() const {
+                int n = 0;
+                for (const auto& e : m_events) {
+                    n += e.alive ? 1 : 0;
+                }
+                return n;
+            }
+
+            long   loop_samples() const { return static_cast<long>(m_loop_seconds * m_sr); }
+            long   position() const { return m_pos; }
+            double loop_seconds() const { return m_loop_seconds; }
+            double decay() const { return m_decay; }
+            double soften() const { return m_soften; }
+            double floor_level() const { return m_floor; }
+            double brightness() const { return m_brightness; }
+            double samplerate() const { return m_sr; }
+
+          private:
+            struct event {
+                double   pitch{0.0};      // MIDI semitones, already quantized
+                double   velocity{0.0};   // decays per pass
+                double   brightness{0.0}; // softens per pass
+                long     offset{0};       // position on the loop, samples
+                uint32_t seq{0};          // plant order; lowest live seq = oldest
+                bool     alive{false};
+            };
+
+            /// Find a slot for a new plant: a dead one if any, else the oldest live bloom yields.
+            event& allocate() {
+                event* oldest = &m_events[0];
+                for (auto& e : m_events) {
+                    if (!e.alive) {
+                        return e;
+                    }
+                    if (e.seq < oldest->seq) {
+                        oldest = &e;
+                    }
+                }
+                return *oldest;
+            }
+
+            /// Take a slot and stamp a plant into it, handing back the slot so a caller that
+            /// wants the first strike immediately (plant_now) does not have to hunt for it.
+            event& plant_event(double pitch, double velocity) {
+                event& e     = allocate();
+                e.pitch      = pitch;
+                e.velocity   = std::min(velocity, 1.0);
+                e.brightness = m_brightness;
+                e.offset     = m_pos;
+                e.alive      = true;
+                e.seq        = m_planted++;
+                return e;
+            }
+
+            /// One pass of wear, one level up: quieter, purer, and gone below the floor.
+            void bloom(event& e) {
+                e.velocity *= m_decay;
+                e.brightness *= m_soften;
+                if (e.velocity < m_floor) {
+                    e.alive = false;
+                }
+            }
+
+            double                          m_sr{48000.0};
+            double                          m_loop_seconds{k_default_loop_seconds};
+            double                          m_decay{k_default_decay};
+            double                          m_soften{k_default_soften};
+            double                          m_floor{k_default_floor};
+            double                          m_brightness{k_default_brightness};
+            long                            m_pos{0};
+            uint32_t                        m_planted{0};
+            std::array<event, k_max_events> m_events;
+        };
+
+        /// The idle gardener as wind: after idle_seconds without a caller plant, strikes arrive on
+        /// a calm/gust cycle. Each gust catches 1 to 5 neighboring tubes (sized by `gust`) within a
+        /// fraction of a second; calms between gusts stretch so the average rate stays near one
+        /// strike per loop pass at any gust setting.
+        ///
+        /// The rng is consumed ONLY while idling — the seed-triad contract depends on that
+        /// discipline, and with idling disabled the seed cannot matter at all. A caller plant
+        /// closes the idle gate mid-gust; the gust resumes if the garden idles again.
+        class gardener {
+          public:
+            /// What the wind wants planted this sample. `pitch` is RAW — the caller quantizes,
+            /// because the scale is the caller's field, not the wind's.
+            struct request {
+                double pitch{0.0};
+                double velocity{0.0};
+                bool   wanted{false};
+            };
+
+            void prepare(double sr) {
+                m_sr = (sr > 0.0) ? sr : 48000.0;
+                clear();
+            }
+
+            /// Re-seed the rng and restart the idle clock and the wind.
+            void clear() {
+                m_rng.reset();
+                m_since_note = 0;
+                m_gust_wait  = -1;
+                m_gust_left  = 0;
+                m_gust_size  = 1;
+                m_gust_pitch = 69.0;
+            }
+
+            /// Seconds of silence before the gardener starts planting; 0 disables self-seeding
+            /// (and then the seed cannot matter at all — pinned by test).
+            void set_idle_seconds(double s) { m_idle_seconds = std::max(0.0, s); }
+
+            /// The wind, 0..1: at 0 the gardener strikes singly and evenly (about one per pass);
+            /// up from there, strikes arrive in gusts — clusters of up to five on neighboring
+            /// tubes within a fraction of a second, then longer calms, same average rate.
+            void set_gust(double amount) { m_gust = std::clamp(amount, 0.0, 1.0); }
+
+            /// The gardener's seed — deterministic per seed, house triad contract. Instant.
+            void set_seed(uint64_t seed) { m_rng.set_seed(seed); }
+
+            /// A caller planted: close the idle gate.
+            void notice_plant() { m_since_note = 0; }
+
+            /// Advance the idle clock one sample and report whether the wind wants a strike.
+            /// `loop_samples` is the ring's current loop length, which sizes gusts and calms.
+            request tick(long loop_samples) {
+                request req;
+                ++m_since_note;
+                if (m_idle_seconds <= 0.0) {
+                    return req; // disabled: the rng is never consumed, so the seed cannot matter
+                }
+                if (static_cast<double>(m_since_note) < m_idle_seconds * m_sr) {
+                    return req;
+                }
+                if (m_gust_wait < 0) { // the wind arriving: the first strike lands within half a loop
+                    m_gust_wait = static_cast<long>(0.5 * uniform() * static_cast<double>(loop_samples));
+                    m_gust_left = 0;
+                }
+                if (m_gust_wait > 0) {
+                    --m_gust_wait;
+                    return req;
+                }
+                if (m_gust_left <= 0) { // a fresh gust: how many tubes does this one catch?
+                    m_gust_size  = 1 + static_cast<int>(uniform() * (1.0 + 4.0 * m_gust));
+                    m_gust_left  = m_gust_size;
+                    m_gust_pitch = 55.0 + 29.0 * uniform(); // a fresh place on the rack
+                }
+                else { // the clapper swings on to a neighboring tube
+                    m_gust_pitch = std::clamp(m_gust_pitch + std::floor(9.0 * uniform()) - 4.0, 48.0, 90.0);
+                }
+                req.velocity = 0.3 + 0.4 * uniform();
+                req.pitch    = m_gust_pitch;
+                req.wanted   = true;
+                --m_gust_left;
+                if (m_gust_left > 0) { // within a gust: strikes tumble 30..280 ms apart
+                    m_gust_wait = static_cast<long>((0.03 + 0.25 * uniform()) * m_sr);
+                }
+                else { // calm, stretched by the gust just spent: the average rate holds
+                    m_gust_wait = static_cast<long>((0.5 + uniform()) * static_cast<double>(m_gust_size)
+                                                    * static_cast<double>(loop_samples));
+                }
+                // Deliberately does NOT reset m_since_note's gate below the threshold: once the
+                // gardener starts, it keeps tending until the caller plants again.
+                return req;
+            }
+
+            double   idle_seconds() const { return m_idle_seconds; }
+            double   gust() const { return m_gust; }
+            uint64_t seed() const { return m_rng.seed(); }
+            double   samplerate() const { return m_sr; }
+
+          private:
+            double uniform() { return 0.5 * (m_rng.process() + 1.0); } // [0, 1), the gardener's die
+
+            double             m_sr{48000.0};
+            double             m_idle_seconds{k_default_idle_seconds};
+            double             m_gust{k_default_gust};
+            long long          m_since_note{0};
+            long               m_gust_wait{-1};
+            int                m_gust_left{0};
+            int                m_gust_size{1};
+            double             m_gust_pitch{69.0};
+            tr808::white_noise m_rng;
+        };
+
         /// The garden bed: plant notes, they bloom on the loop, fade, and retire; left alone,
-        /// the gardener plants for you.
+        /// the gardener plants for you. A quantizer, a ring, a rack, and a gardener wired
+        /// together, plus a master level — the wiring is all this class is.
         class bed {
           public:
             // -- lifecycle -----------------------------------------------------------------------
@@ -341,10 +775,9 @@ namespace tap::tools {
             /// (fixed arrays); still not real-time-safe by the house contract.
             void prepare(double sr) {
                 m_sr = (sr > 0.0) ? sr : 48000.0;
-                for (auto& v : m_bells) {
-                    v.prepare(m_sr);
-                    v.set_times(m_attack_s, m_decay_s);
-                }
+                m_rack.prepare(m_sr);
+                m_ring.prepare(m_sr);
+                m_gardener.prepare(m_sr);
                 m_prepared = true;
                 clear();
             }
@@ -352,20 +785,9 @@ namespace tap::tools {
             /// Uproot everything: kill all events and voices, rewind the loop, re-seed the
             /// gardener, restart the idle clock. Parameters are untouched.
             void clear() {
-                for (auto& e : m_events) {
-                    e.alive = false;
-                }
-                for (auto& v : m_bells) {
-                    v.reset();
-                }
-                m_rng.reset();
-                m_pos           = 0;
-                m_planted       = 0;
-                m_since_note    = 0;
-                m_gust_wait     = -1;
-                m_gust_left     = 0;
-                m_gust_size     = 1;
-                m_gust_pitch    = 69.0;
+                m_ring.clear();
+                m_rack.clear();
+                m_gardener.clear();
                 m_level_current = m_level_target;
             }
 
@@ -382,114 +804,92 @@ namespace tap::tools {
                 if (!m_prepared || velocity <= 0.0) {
                     return;
                 }
-                event& e     = allocate();
-                e.pitch      = quantize(pitch);
-                e.velocity   = std::min(velocity, 1.0);
-                e.brightness = m_brightness;
-                e.offset     = m_pos; // process() fires it this coming sample, then every pass
-                e.alive      = true;
-                e.seq        = m_planted++;
-                m_since_note = 0;
+                m_ring.plant(m_quantizer.quantize(pitch), velocity);
+                m_gardener.notice_plant();
             }
 
             // -- parameter targets (safe while audio runs) ---------------------------------------
 
-            /// Loop length in seconds, clamped to [k_min_loop_seconds, k_max_loop_seconds].
-            /// Instant (the loop is a counter): blooms keep their positions modulo the new length.
-            void set_loop_seconds(double s) {
-                m_loop_seconds = std::clamp(s, k_min_loop_seconds, k_max_loop_seconds);
-                const long n   = loop_samples();
-                m_pos          = m_pos % n;
-                for (auto& e : m_events) {
-                    e.offset = e.offset % n;
-                }
-            }
+            /// Loop length in seconds — see ring::set_loop_seconds.
+            void set_loop_seconds(double s) { m_ring.set_loop_seconds(s); }
 
             /// Velocity multiplier per pass, [0, 1]. The stabilizer: with floor f and a plant at
             /// velocity v, a bloom lives ceil(log(f/v)/log(decay)) passes, always.
-            void set_decay(double per_pass) { m_decay = std::clamp(per_pass, 0.0, 1.0); }
+            void set_decay(double per_pass) { m_ring.set_decay(per_pass); }
 
             /// Brightness multiplier per pass, [0, 1]: each return is purer, collapsing to sine.
-            void set_soften(double per_pass) { m_soften = std::clamp(per_pass, 0.0, 1.0); }
+            void set_soften(double per_pass) { m_ring.set_soften(per_pass); }
 
             /// Retirement threshold, [1e-4, 1].
-            void set_floor(double v) { m_floor = std::clamp(v, 1e-4, 1.0); }
+            void set_floor(double v) { m_ring.set_floor(v); }
 
             /// The bell: envelope times in SECONDS (decay_env contract) and base brightness
             /// (0..1 scale on the modulation index). Applies to future blooms; ringing voices
             /// keep their envelope times until retriggered.
             void set_bell(double attack_s, double decay_s, double brightness) {
-                m_attack_s   = std::max(attack_s, 1e-6);
-                m_decay_s    = std::max(decay_s, 1e-6);
-                m_brightness = std::clamp(brightness, 0.0, 1.0);
-                for (auto& v : m_bells) {
-                    v.set_times(m_attack_s, m_decay_s);
-                }
+                m_rack.set_times(attack_s, decay_s);
+                m_ring.set_brightness(brightness);
             }
 
-            /// What the tubes are made of (material_index): the free-free chime rack or the
-            /// tuned-bar plank. A mode, not a fader: instant, and read at strike time, so every
-            /// live bloom re-voices at its next return.
-            void set_material(int material) { m_material = std::clamp(material, 0, k_num_materials - 1); }
+            /// What the tubes are made of (material_index). A mode, not a fader: instant, and read
+            /// at strike time, so every live bloom re-voices at its next return.
+            void set_material(int material) { m_rack.set_material(material); }
 
-            /// The rack's stereo width, [0, 1]. Each tube hangs at a fixed seat drawn from its
-            /// pitch (the same stateless hash as its scatter), scaled by spread; 0 collapses
-            /// the rack to center mono, bitwise equal on both busses.
-            void set_spread(double amount) { m_spread = std::clamp(amount, 0.0, 1.0); }
+            /// The rack's stereo width, [0, 1] — see rack::set_spread.
+            void set_spread(double amount) { m_rack.set_spread(amount); }
 
             /// Root pitch class, 0..11 (0 = C). A mode: instant, affects future plants only.
-            void set_root(int semitone) { m_root = ((semitone % 12) + 12) % 12; }
+            void set_root(int semitone) { m_quantizer.set_root(semitone); }
 
             /// Scale preset (scale_index). A mode: instant, affects future plants only.
-            void set_scale(int scale) { m_scale = std::clamp(scale, 0, k_num_scales - 1); }
+            void set_scale(int scale) { m_quantizer.set_scale(scale); }
 
-            /// Seconds of silence before the gardener starts planting; 0 disables self-seeding
-            /// (and then the seed cannot matter at all — pinned by test).
-            void set_idle_seconds(double s) { m_idle_seconds = std::max(0.0, s); }
+            /// Seconds of silence before the gardener starts planting; 0 disables self-seeding.
+            void set_idle_seconds(double s) { m_gardener.set_idle_seconds(s); }
 
-            /// The wind, 0..1: at 0 the gardener strikes singly and evenly (about one per pass);
-            /// up from there, strikes arrive in gusts — clusters of up to five on neighboring
-            /// tubes within a fraction of a second, then longer calms, same average rate.
-            void set_gust(double amount) { m_gust = std::clamp(amount, 0.0, 1.0); }
+            /// The wind, 0..1 — see gardener::set_gust.
+            void set_gust(double amount) { m_gardener.set_gust(amount); }
 
             /// The gardener's seed — deterministic per seed, house triad contract. Instant.
-            void set_seed(uint64_t seed) { m_rng.set_seed(seed); }
+            void set_seed(uint64_t seed) { m_gardener.set_seed(seed); }
 
             /// Master linear output level, one-pole slewed over smooth_ms.
             void set_level(double lin) { m_level_target = lin; }
 
             void set_smooth_ms(double ms) { m_smooth_ms = std::max(0.0, ms); }
 
+            // -- components ----------------------------------------------------------------------
+
+            /// Direct access to the parts, so a caller (or a null test) can drive the bed and the
+            /// components it is made of through one code path. Named for the part rather than the
+            /// type, so the accessors do not shadow the class names inside this scope.
+            ring&                  event_ring() { return m_ring; }
+            const ring&            event_ring() const { return m_ring; }
+            rack&                  chime_rack() { return m_rack; }
+            const rack&            chime_rack() const { return m_rack; }
+            gardener&              wind() { return m_gardener; }
+            const gardener&        wind() const { return m_gardener; }
+            scale_quantizer&       quantizer() { return m_quantizer; }
+            const scale_quantizer& quantizer() const { return m_quantizer; }
+
             // -- introspection -------------------------------------------------------------------
 
-            int active_events() const {
-                int n = 0;
-                for (const auto& e : m_events) {
-                    n += e.alive ? 1 : 0;
-                }
-                return n;
-            }
-            int active_voices() const {
-                int n = 0;
-                for (const auto& v : m_bells) {
-                    n += (v.level() > k_gain_epsilon) ? 1 : 0;
-                }
-                return n;
-            }
-            double   loop_seconds() const { return m_loop_seconds; }
-            double   decay() const { return m_decay; }
-            double   soften() const { return m_soften; }
-            double   floor_level() const { return m_floor; }
-            double   attack_s() const { return m_attack_s; }
-            double   decay_s() const { return m_decay_s; }
-            double   brightness() const { return m_brightness; }
-            int      material() const { return m_material; }
-            double   spread() const { return m_spread; }
-            int      root() const { return m_root; }
-            int      scale() const { return m_scale; }
-            double   idle_seconds() const { return m_idle_seconds; }
-            double   gust() const { return m_gust; }
-            uint64_t seed() const { return m_rng.seed(); }
+            int      active_events() const { return m_ring.active_events(); }
+            int      active_voices() const { return m_rack.active_voices(); }
+            double   loop_seconds() const { return m_ring.loop_seconds(); }
+            double   decay() const { return m_ring.decay(); }
+            double   soften() const { return m_ring.soften(); }
+            double   floor_level() const { return m_ring.floor_level(); }
+            double   attack_s() const { return m_rack.attack_s(); }
+            double   decay_s() const { return m_rack.decay_s(); }
+            double   brightness() const { return m_ring.brightness(); }
+            int      material() const { return m_rack.material(); }
+            double   spread() const { return m_rack.spread(); }
+            int      root() const { return m_quantizer.root(); }
+            int      scale() const { return m_quantizer.scale(); }
+            double   idle_seconds() const { return m_gardener.idle_seconds(); }
+            double   gust() const { return m_gardener.gust(); }
+            uint64_t seed() const { return m_gardener.seed(); }
             double   level() const { return m_level_target; }
             double   smooth_ms() const { return m_smooth_ms; }
             double   samplerate() const { return m_sr; }
@@ -505,22 +905,21 @@ namespace tap::tools {
                     out_right = 0.0;
                     return;
                 }
-                for (auto& e : m_events) {
-                    if (e.alive && e.offset == m_pos) {
-                        fire(e);
-                        bloom(e);
-                    }
+                const int n = m_ring.due(m_fired.data(), k_max_events);
+                for (int i = 0; i < n; ++i) {
+                    m_rack.strike(m_fired[static_cast<size_t>(i)].pitch, m_fired[static_cast<size_t>(i)].velocity,
+                                  m_fired[static_cast<size_t>(i)].brightness);
                 }
-                tend();
-                if (++m_pos >= loop_samples()) {
-                    m_pos = 0;
+                const gardener::request req = m_gardener.tick(m_ring.loop_samples());
+                if (req.wanted) { // the wind plants raw; the bed's scale is what it lands on
+                    const strike s = m_ring.plant_now(m_quantizer.quantize(req.pitch), req.velocity);
+                    m_rack.strike(s.pitch, s.velocity, s.brightness);
                 }
+                m_ring.step();
 
                 double sum_l = 0.0;
                 double sum_r = 0.0;
-                for (auto& v : m_bells) {
-                    v.process(sum_l, sum_r);
-                }
+                m_rack.process(sum_l, sum_r);
                 const double coeff = (m_smooth_ms > 0.0) ? 1.0 - std::exp(-1.0 / (m_smooth_ms * 0.001 * m_sr)) : 1.0;
                 m_level_current += coeff * (m_level_target - m_level_current);
                 out_left  = sum_l * m_level_current;
@@ -535,156 +934,17 @@ namespace tap::tools {
             }
 
           private:
-            struct event {
-                double   pitch{0.0};      // MIDI semitones, already quantized
-                double   velocity{0.0};   // decays per pass
-                double   brightness{0.0}; // softens per pass
-                long     offset{0};       // position on the loop, samples
-                uint32_t seq{0};          // plant order; lowest live seq = oldest
-                bool     alive{false};
-            };
-
-            long loop_samples() const { return static_cast<long>(m_loop_seconds * m_sr); }
-
-            /// Snap MIDI semitones to the nearest pitch in the current root/scale — the tune.h
-            /// nearest-allowed search (any non-empty mask has a note within a tritone).
-            double quantize(double pitch) const {
-                const unsigned mask = k_scale_masks[static_cast<size_t>(m_scale)];
-                const int      p    = static_cast<int>(std::lround(pitch));
-                for (int off = 0; off <= 6; ++off) {
-                    for (const int cand : {p + off, p - off}) {
-                        const int pc = (((cand - m_root) % 12) + 12) % 12;
-                        if ((mask & (1u << pc)) != 0u) {
-                            return static_cast<double>(cand);
-                        }
-                    }
-                }
-                return static_cast<double>(p); // unreachable for any non-empty mask
-            }
-
-            /// Find a slot for a new plant: a dead one if any, else the oldest live bloom yields.
-            event& allocate() {
-                event* oldest = &m_events[0];
-                for (auto& e : m_events) {
-                    if (!e.alive) {
-                        return e;
-                    }
-                    if (e.seq < oldest->seq) {
-                        oldest = &e;
-                    }
-                }
-                return *oldest;
-            }
-
-            /// Strike this event now on the pool: an idle voice if any, else steal the quietest.
-            void fire(event& e) {
-                bell* voice = &m_bells[0];
-                for (auto& v : m_bells) {
-                    if (v.level() <= k_gain_epsilon) {
-                        voice = &v;
-                        break;
-                    }
-                    if (v.level() < voice->level()) {
-                        voice = &v;
-                    }
-                }
-                const double freq = 440.0 * std::exp2((e.pitch - 69.0) / 12.0);
-                const double pan  = m_spread * tube_unit(tube_key(freq), 0); // index 0: the seat
-                voice->trigger(freq, e.velocity, e.brightness, m_material, pan);
-            }
-
-            /// One pass of wear, one level up: quieter, purer, and gone below the floor.
-            void bloom(event& e) {
-                e.velocity *= m_decay;
-                e.brightness *= m_soften;
-                if (e.velocity < m_floor) {
-                    e.alive = false;
-                }
-            }
-
-            double uniform() { return 0.5 * (m_rng.process() + 1.0); } // [0, 1), the gardener's die
-
-            /// The idle gardener as wind: after idle_seconds without a caller plant, strikes
-            /// arrive on a calm/gust cycle. Each gust catches 1 to 5 neighboring tubes (sized by
-            /// `gust`) within a fraction of a second; calms between gusts stretch so the average
-            /// rate stays near one strike per loop pass at any gust setting. The rng is consumed
-            /// only while idling — the seed-triad contract depends on that discipline. A caller
-            /// plant closes the idle gate mid-gust; the gust resumes if the garden idles again.
-            void tend() {
-                ++m_since_note;
-                if (m_idle_seconds <= 0.0) {
-                    return; // disabled: the rng is never consumed, so the seed cannot matter
-                }
-                if (static_cast<double>(m_since_note) < m_idle_seconds * m_sr) {
-                    return;
-                }
-                if (m_gust_wait < 0) { // the wind arriving: the first strike lands within half a loop
-                    m_gust_wait = static_cast<long>(0.5 * uniform() * static_cast<double>(loop_samples()));
-                    m_gust_left = 0;
-                }
-                if (m_gust_wait > 0) {
-                    --m_gust_wait;
-                    return;
-                }
-                if (m_gust_left <= 0) { // a fresh gust: how many tubes does this one catch?
-                    m_gust_size  = 1 + static_cast<int>(uniform() * (1.0 + 4.0 * m_gust));
-                    m_gust_left  = m_gust_size;
-                    m_gust_pitch = 55.0 + 29.0 * uniform(); // a fresh place on the rack
-                }
-                else { // the clapper swings on to a neighboring tube
-                    m_gust_pitch = std::clamp(m_gust_pitch + std::floor(9.0 * uniform()) - 4.0, 48.0, 90.0);
-                }
-                const double velocity = 0.3 + 0.4 * uniform();
-                event&       e        = allocate();
-                e.pitch               = quantize(m_gust_pitch);
-                e.velocity            = velocity;
-                e.brightness          = m_brightness;
-                e.offset              = m_pos;
-                e.alive               = true;
-                e.seq                 = m_planted++;
-                fire(e);
-                bloom(e);
-                --m_gust_left;
-                if (m_gust_left > 0) { // within a gust: strikes tumble 30..280 ms apart
-                    m_gust_wait = static_cast<long>((0.03 + 0.25 * uniform()) * m_sr);
-                }
-                else { // calm, stretched by the gust just spent: the average rate holds
-                    m_gust_wait = static_cast<long>((0.5 + uniform()) * static_cast<double>(m_gust_size)
-                                                    * static_cast<double>(loop_samples()));
-                }
-                // Deliberately does NOT reset m_since_note's gate below the threshold: once the
-                // gardener starts, it keeps tending until the caller plants again.
-            }
-
             double m_sr{48000.0};
             bool   m_prepared{false};
-            double m_loop_seconds{k_default_loop_seconds};
-            double m_decay{k_default_decay};
-            double m_soften{k_default_soften};
-            double m_floor{k_default_floor};
-            double m_attack_s{k_default_attack_s};
-            double m_decay_s{k_default_decay_s};
-            double m_brightness{k_default_brightness};
-            int    m_material{material_chime};
-            double m_spread{k_default_spread};
-            int    m_root{0};
-            int    m_scale{scale_major_pentatonic}; // anything you plant sounds consonant
-            double m_idle_seconds{k_default_idle_seconds};
-            double m_gust{k_default_gust};
             double m_level_target{1.0};
             double m_level_current{1.0};
             double m_smooth_ms{k_default_smooth_ms};
 
-            long                            m_pos{0};
-            uint32_t                        m_planted{0};
-            long long                       m_since_note{0};
-            long                            m_gust_wait{-1};
-            int                             m_gust_left{0};
-            int                             m_gust_size{1};
-            double                          m_gust_pitch{69.0};
-            tr808::white_noise              m_rng;
-            std::array<event, k_max_events> m_events;
-            std::array<bell, k_voices>      m_bells;
+            scale_quantizer                  m_quantizer;
+            ring                             m_ring;
+            rack                             m_rack;
+            gardener                         m_gardener;
+            std::array<strike, k_max_events> m_fired; // due() scratch: a member, so no per-sample cost
         };
 
     } // namespace garden

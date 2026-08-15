@@ -24,9 +24,16 @@ namespace {
     constexpr double k_sr = 48000.0;
 
     using tap::tools::garden::bed;
+    using tap::tools::garden::gardener;
+    using tap::tools::garden::k_max_events;
     using tap::tools::garden::k_mode_ratio;
+    using tap::tools::garden::k_voices;
     using tap::tools::garden::material_bar;
     using tap::tools::garden::material_chime;
+    using tap::tools::garden::rack;
+    using tap::tools::garden::ring;
+    using tap::tools::garden::scale_quantizer;
+    using tap::tools::garden::strike;
 
     /// A quiet, instrument-neutral bed: idle gardener off, instant level, percussive bell so
     /// grid promises are sharp, spread 0 so mono measurements read either bus. Tests opt into
@@ -583,4 +590,233 @@ SCENARIO("the rack is stereo: every tube keeps its seat, and spread 0 collapses 
     REQUIRE(a == a_gain);            // the seat is the tube's, deterministically
     CHECK(std::abs(a - b) > 0.1);    // a different tube hangs somewhere else
     CHECK(std::abs(a - 0.5) > 0.05); // and a full-spread seat is audibly off center
+}
+
+SCENARIO("the bed is exactly its components wired together, bitwise") {
+    // The decomposition's load-bearing claim, one level up from airport's: tap.scale into
+    // tap.bloom into tap.chime~, with tap.gardener planting when idle, IS tap.garden~. The
+    // gardener runs here on purpose — it puts the rng consumption order under test too, which
+    // is the part a careless split would silently move.
+    bed g;
+    g.prepare(k_sr);
+    g.set_smooth_ms(0.0); // level 1 through an un-slewed master stage: an exact no-op
+    g.set_level(1.0);
+    g.set_loop_seconds(1.5);
+    g.set_decay(0.75);
+    g.set_soften(0.85);
+    g.set_floor(0.04);
+    g.set_bell(0.003, 2.0, 0.9);
+    g.set_material(material_bar);
+    g.set_spread(0.6);
+    g.set_root(3);
+    g.set_scale(tap::tools::garden::scale_minor_pentatonic);
+    g.set_seed(0xBEEFULL);
+    g.set_idle_seconds(0.3);
+    g.set_gust(0.6);
+
+    // The same machine, wired by hand — this is the patch.
+    scale_quantizer q;
+    ring            rg;
+    rack            rk;
+    gardener        gd;
+    rk.prepare(k_sr); // bed::prepare's order: rack, ring, gardener, then clear
+    rg.prepare(k_sr);
+    gd.prepare(k_sr);
+    rg.clear();
+    rk.clear();
+    gd.clear();
+    rg.set_loop_seconds(1.5);
+    rg.set_decay(0.75);
+    rg.set_soften(0.85);
+    rg.set_floor(0.04);
+    rk.set_times(0.003, 2.0);
+    rg.set_brightness(0.9);
+    rk.set_material(material_bar);
+    rk.set_spread(0.6);
+    q.set_root(3);
+    q.set_scale(tap::tools::garden::scale_minor_pentatonic);
+    gd.set_seed(0xBEEFULL);
+    gd.set_idle_seconds(0.3);
+    gd.set_gust(0.6);
+
+    std::array<strike, k_max_events> fired{};
+    bool                             exact = true;
+    double                           pk    = 0.0;
+    for (size_t i = 0; i < at(20.0); ++i) {
+        if (i == 1000 || i == 40000 || i == 150000) { // caller plants, closing the idle gate
+            const double pitch = 60.0 + static_cast<double>(i % 7);
+            g.note(pitch, 0.8);
+            rg.plant(q.quantize(pitch), 0.8);
+            gd.notice_plant();
+        }
+
+        double lb = 0.0, rb = 0.0;
+        g.process(lb, rb);
+
+        const int n = rg.due(fired.data(), k_max_events);
+        for (int k = 0; k < n; ++k) {
+            rk.strike(fired[static_cast<size_t>(k)].pitch, fired[static_cast<size_t>(k)].velocity,
+                      fired[static_cast<size_t>(k)].brightness);
+        }
+        const gardener::request req = gd.tick(rg.loop_samples());
+        if (req.wanted) {
+            const strike s = rg.plant_now(q.quantize(req.pitch), req.velocity);
+            rk.strike(s.pitch, s.velocity, s.brightness);
+        }
+        rg.step();
+        double lp = 0.0, rp = 0.0;
+        rk.process(lp, rp);
+
+        exact = exact && (lp == lb) && (rp == rb);
+        pk    = std::max(pk, std::max(std::abs(lb), std::abs(rb)));
+    }
+    REQUIRE(exact);
+    REQUIRE(pk > 0.05); // and the two agreed about a garden, not about silence
+    REQUIRE(g.active_events() == rg.active_events());
+}
+
+SCENARIO("the ring's convergence theorem is exact when nothing sounds it") {
+    // Separating the ring from the chime makes the population arithmetic directly countable:
+    // a plant at velocity v under decay d retires after ceil(log(floor/v)/log(d)) strikes,
+    // with no envelope tail or detector threshold in the way.
+    struct trial {
+        double velocity;
+        double decay;
+        double floor;
+    };
+    const trial trials[] = {{0.9, 0.5, 0.05}, {1.0, 0.8, 0.01}, {0.6, 0.25, 0.02}, {0.75, 0.9, 0.1}};
+
+    for (const trial& t : trials) {
+        ring rg;
+        rg.prepare(k_sr);
+        rg.set_loop_seconds(tap::tools::garden::k_min_loop_seconds);
+        rg.set_decay(t.decay);
+        rg.set_floor(t.floor);
+        rg.plant(60.0, t.velocity);
+
+        std::array<strike, k_max_events> out{};
+        int                              strikes = 0;
+        const long                       period  = rg.loop_samples();
+        for (long pass = 0; pass < 64; ++pass) { // far more passes than any trial needs
+            for (long i = 0; i < period; ++i) {
+                strikes += rg.due(out.data(), k_max_events);
+                rg.step();
+            }
+        }
+
+        const int expected = static_cast<int>(std::ceil(std::log(t.floor / t.velocity) / std::log(t.decay)));
+        INFO("v " << t.velocity << " decay " << t.decay << " floor " << t.floor);
+        CHECK(strikes == expected);
+        CHECK(rg.active_events() == 0); // and the population really did converge to nothing
+    }
+}
+
+SCENARIO("the rack fills idle bells first, then steals the quietest") {
+    rack rk;
+    rk.prepare(k_sr);
+    rk.set_spread(0.0);       // mono: either bus carries the whole rack
+    rk.set_times(0.001, 6.0); // long ring, so nothing retires on its own during the test
+    rk.set_material(material_chime);
+
+    auto render = [&](size_t n) {
+        std::vector<double> y(n, 0.0);
+        for (size_t i = 0; i < n; ++i) {
+            double r = 0.0;
+            rk.process(y[i], r);
+        }
+        return y;
+    };
+
+    // Strikes are separated by a short render on purpose. A bell's envelope reads zero until
+    // it has been processed at least once (decay_env::trigger only aims the target), so the
+    // allocator cannot tell a just-struck bell from an idle one — strikes issued back to back
+    // in the same sample all land on the same voice. That is the rack's real contract, and the
+    // bed meets it: blooms are separated by the loop grid.
+    const double quiet_pitch = 48.0;
+    const double loud_pitch  = 61.0;
+    const size_t gap         = at(0.01);
+    rk.strike(quiet_pitch, 0.05, 1.0); // one deliberately faint tube
+    render(gap);
+    rk.strike(loud_pitch, 1.0, 1.0);
+    render(gap);
+    for (int i = 2; i < k_voices; ++i) { // fill the rest of the pool loudly
+        rk.strike(60.0 + static_cast<double>(i), 1.0, 1.0);
+        render(gap);
+    }
+    REQUIRE(rk.active_voices() == k_voices);
+
+    const size_t              win          = at(0.25);
+    const std::vector<double> before       = render(win);
+    const double              quiet_before = goertzel(before, midi_hz(quiet_pitch), 0, win);
+    const double              loud_before  = goertzel(before, midi_hz(loud_pitch), 0, win);
+    REQUIRE(quiet_before > 0.0);
+
+    rk.strike(90.0, 1.0, 1.0); // the seventeenth strike: somebody has to yield
+    REQUIRE(rk.active_voices() == k_voices);
+
+    const std::vector<double> after       = render(win);
+    const double              quiet_after = goertzel(after, midi_hz(quiet_pitch), 0, win);
+    const double              loud_after  = goertzel(after, midi_hz(loud_pitch), 0, win);
+    const double              newcomer    = goertzel(after, midi_hz(90.0), 0, win);
+
+    // The stolen bell is RE-AIMED, not reset, so its old partial glides away over a few
+    // milliseconds rather than vanishing — that residual is the promise, not a leak. So the
+    // claim is comparative: the taken tube must lose its partial far faster than an untouched
+    // one, which separates "the quietest was stolen" from "something was stolen".
+    const double quiet_kept = quiet_after / quiet_before;
+    const double loud_kept  = loud_after / loud_before;
+    INFO("quiet kept " << quiet_kept << ", loud kept " << loud_kept);
+    CHECK(quiet_kept < 0.5 * loud_kept); // the faint tube was the one taken
+    CHECK(loud_kept > 0.5);              // and the loud one was left alone
+    CHECK(newcomer > 0.0);               // the newcomer is ringing on the stolen bell
+}
+
+SCENARIO("the gardener touches its rng only while idling") {
+    const long period = static_cast<long>(k_sr); // a one-second loop, the units tick() expects
+
+    // Idling disabled: no requests ever, and the seed cannot matter, because the stream is
+    // never drawn from. Two gardeners seeded differently must agree sample for sample.
+    gardener off_a, off_b;
+    off_a.prepare(k_sr);
+    off_b.prepare(k_sr);
+    off_a.set_idle_seconds(0.0);
+    off_b.set_idle_seconds(0.0);
+    off_a.set_seed(1ULL);
+    off_b.set_seed(0xFFFFFFFFULL);
+    bool agreed = true;
+    bool asked  = false;
+    for (size_t i = 0; i < at(5.0); ++i) {
+        const gardener::request ra = off_a.tick(period);
+        const gardener::request rb = off_b.tick(period);
+        agreed                     = agreed && (ra.wanted == rb.wanted);
+        asked                      = asked || ra.wanted || rb.wanted;
+    }
+    REQUIRE(agreed);
+    REQUIRE_FALSE(asked);
+
+    // Idling enabled: the same seed is bit-exact, a different seed goes its own way.
+    gardener same_a, same_b, other;
+    for (gardener* p : {&same_a, &same_b, &other}) {
+        p->prepare(k_sr);
+        p->set_idle_seconds(0.1);
+        p->set_gust(0.5);
+    }
+    same_a.set_seed(0x5EEDULL);
+    same_b.set_seed(0x5EEDULL);
+    other.set_seed(0x5EED0001ULL);
+
+    bool twins_match        = true;
+    bool other_ever_differs = false;
+    int  plants             = 0;
+    for (size_t i = 0; i < at(30.0); ++i) {
+        const gardener::request a = same_a.tick(period);
+        const gardener::request b = same_b.tick(period);
+        const gardener::request c = other.tick(period);
+        twins_match = twins_match && (a.wanted == b.wanted) && (a.pitch == b.pitch) && (a.velocity == b.velocity);
+        other_ever_differs = other_ever_differs || (c.wanted != a.wanted) || (c.pitch != a.pitch);
+        plants += a.wanted ? 1 : 0;
+    }
+    REQUIRE(twins_match);
+    REQUIRE(other_ever_differs);
+    REQUIRE(plants > 0); // the wind really did blow
 }
