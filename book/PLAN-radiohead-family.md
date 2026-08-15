@@ -1,6 +1,6 @@
 # Plan — the Radiohead family
 
-> **Status: in progress — `tap.tapecho~`'s kernel has landed (2026-08-15); the rest is
+> **Status: in progress — `tap.tapecho~` has shipped end-to-end (2026-08-15); the rest is
 > plan.** This is the drafting record of the 2026-08-15 survey ("are there
 > Radiohead-inspired objects we should consider?"), amended the same day against the Eno
 > components wave (`d4cf28a`) before any code was written. It stays after the objects ship,
@@ -30,7 +30,7 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 
 | Object | Kernel | Recreates | Standing on | Status |
 |--------|--------|-----------|-------------|--------|
-| `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ kernel shipped 2026-08-15; Max wrapper + chapter pending |
+| `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel + Max vertical slice); chapter pending |
 | `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | planned |
 | `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom, `vco.h`/`vca.h` | planned — gated on source collection |
 | `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic | planned |
@@ -67,14 +67,17 @@ The survey predated the Eno components wave by hours. Five amendments, now assum
 
 ## Per-object plans
 
-### 1. `tap.tapecho~` — the multi-head tape echo *(first; small)* — ✅ kernel shipped
+### 1. `tap.tapecho~` — the multi-head tape echo *(first; small)* — ✅ shipped
 
 > **Shipped 2026-08-15**: `include/taptools/tapecho.h`, `tests/tapecho_test.cpp` (11
 > scenarios), the C ABI + ctypes surface (`TapEcho`), the executed `notebooks/tapecho.ipynb`,
-> and `tools/render/radiohead_render.cpp` with four performed scenarios. What the plan
-> predicted held: the kernel is composition — the null test below is *bitwise*. Still to
-> come: the Max wrapper (`tap.tapecho~` vertical slice) in TapTools-Max, and the book
-> chapter. Design decisions taken during implementation that this record should carry:
+> and `tools/render/radiohead_render.cpp` with four performed scenarios; then the Max
+> vertical slice in TapTools-Max (wrapper, six min-api scenarios, maxref, help patcher,
+> pin bump — REVIVAL.md entry 18). What the plan predicted held: the kernel is composition
+> — the null test below is *bitwise*, and `tape_loop.h` needed no changes at all to serve a
+> second topology. Still to come: the book chapter, and the on-Mac validation pass.
+>
+> Design decisions taken during implementation that this record should carry:
 > the head layout is `span_ms` (the motor, = a ratio-1.0 head) times a per-head ratio, so
 > four evenly spaced heads is the default and a three-head Copicat layout is set explicitly
 > (the "preset + free" open question, resolved toward *free with an even-spacing default* —
