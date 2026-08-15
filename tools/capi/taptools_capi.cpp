@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <vector>
 
 // The DSP cores are the same headers the Max externals compile — no Max/Min dependency.
 #include <taptools/adsr.h>
@@ -1587,6 +1588,65 @@ double taptools_scale_quantize(double pitch, int root, int scale) {
     q.set_root(root);
     q.set_scale(scale);
     return q.quantize(pitch);
+}
+
+// ---- per-voice taps ------------------------------------------------------------------------------
+
+int taptools_chime_process_voices(taptools_chime h, double* out, int voices, int n) {
+    if (!out || voices < 1 || n < 0) {
+        return -1;
+    }
+    return with<garden_rack>(h, [&](garden_rack& r) {
+        std::vector<double> frame(static_cast<size_t>(voices), 0.0);
+        for (int i = 0; i < n; ++i) {
+            r.process_voices(frame.data(), voices);
+            for (int v = 0; v < voices; ++v) { // voice-major, so each voice is a contiguous block
+                out[static_cast<size_t>(v) * static_cast<size_t>(n) + static_cast<size_t>(i)] =
+                    frame[static_cast<size_t>(v)];
+            }
+        }
+    });
+}
+
+double taptools_chime_voice_hz(taptools_chime h, int voice) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<garden_rack*>(h)->voice_hz(voice);
+}
+
+double taptools_chime_voice_level(taptools_chime h, int voice) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<garden_rack*>(h)->voice_level(voice);
+}
+
+double taptools_chime_voice_gain_left(taptools_chime h, int voice) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<garden_rack*>(h)->voice_gain_left(voice);
+}
+
+double taptools_chime_voice_gain_right(taptools_chime h, int voice) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<garden_rack*>(h)->voice_gain_right(voice);
+}
+
+// ---- tap.period ----------------------------------------------------------------------------------
+
+double taptools_composite_period_seconds(const double* loop_seconds, int count, double sr) {
+    if (!loop_seconds || count < 1 || sr <= 0.0) {
+        return 0.0;
+    }
+    std::vector<long> samples(static_cast<size_t>(count));
+    for (int i = 0; i < count; ++i) {
+        samples[static_cast<size_t>(i)] = tap::tools::airport::loop_samples_for(loop_seconds[i], sr);
+    }
+    return tap::tools::airport::composite_period_seconds(samples.data(), count, sr);
 }
 
 } // extern "C"
