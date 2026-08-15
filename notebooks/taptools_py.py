@@ -15,7 +15,8 @@ Python re-implementation. Exposed kernels: tap.convolve~'s conv_engine
 tap.overdrive~ (`Overdrive`), the step-sequencer rows behind tap.808.seq~ /
 tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
 tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), the Discreet Music
-two-machine tape loop tap.discreet~ (`Discreet`), the Music for Airports
+two-machine tape loop tap.discreet~ (`Discreet`), the multi-head tape echo
+tap.tapecho~ (`TapEcho`), the Music for Airports
 incommensurate loop bank tap.airport~ (`Airport`), the generative event
 loop tap.garden~ (`Garden`), and tap.tune~'s pitch corrector (`Tune`, with
 the shared DspTap detector passed through as `Yin` for the notebooks'
@@ -283,6 +284,25 @@ def load() -> ctypes.CDLL:
         "taptools_discreet_set_smooth_ms": ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_discreet_clear":         ([vp], ctypes.c_int),
         "taptools_discreet_process":       ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+
+        "taptools_tapecho_create":         ([], vp),
+        "taptools_tapecho_destroy":        ([vp], None),
+        "taptools_tapecho_prepare":        ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_span_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_heads":      ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_tapecho_set_head_ratio": ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_head_level": ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_head_pan":   ([vp, ctypes.c_int, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_regen":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_darken_hz":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_drive":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_input_level": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_mix":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_wow":        ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_flutter":    ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_set_smooth_ms":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_tapecho_clear":          ([vp], ctypes.c_int),
+        "taptools_tapecho_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_airport_create":         ([], vp),
         "taptools_airport_destroy":        ([vp], None),
         "taptools_airport_prepare":        ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
@@ -1237,6 +1257,86 @@ class Discreet:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_discreet_destroy(h)
+            self._h = None
+
+
+class TapEcho:
+    """tap.tapecho~'s kernel (tap::tools::tapecho::machine): the multi-head
+    tape echo of the Copicat / Space Echo school, composed over the same
+    tape_loop.h machinery as `Discreet`. One motor (`span_ms`) sets the
+    delay of a ratio-1.0 head and moves every head together; up to four
+    heads sit at settable positions along the path with their own level and
+    equal-power pan. Regeneration may pass 1.0 into deliberate
+    self-oscillation, bounded by the saturator rather than a feedback cap —
+    at drive 0 the effective regen is capped back to 1.0. Mono in, stereo
+    out."""
+
+    def __init__(self, sr: float = 48000.0, max_span_seconds: float = 4.0, **params):
+        self._h = _LIB.taptools_tapecho_create()
+        _check(_LIB.taptools_tapecho_prepare(self._h, float(sr), float(max_span_seconds)),
+               "prepare")
+        self.set(**params)
+
+    def set(self, *, span_ms=None, heads=None, ratios=None, levels=None, pans=None,
+            regen=None, darken_hz=None, drive=None, input_level=None, mix=None,
+            wow=None, flutter=None, smooth_ms=None) -> "TapEcho":
+        """`ratios`/`levels`/`pans` are per-head sequences (head i gets element
+        i); `wow` and `flutter` take (depth_ms, rate_hz) pairs."""
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_tapecho_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if wow is not None:
+            depth, rate = wow
+            _check(_LIB.taptools_tapecho_set_wow(self._h, float(depth), float(rate)), "wow")
+        if flutter is not None:
+            depth, rate = flutter
+            _check(_LIB.taptools_tapecho_set_flutter(self._h, float(depth), float(rate)),
+                   "flutter")
+        if ratios is not None:
+            for i, r in enumerate(ratios):
+                _check(_LIB.taptools_tapecho_set_head_ratio(self._h, i, float(r)), "head_ratio")
+            if heads is None:
+                heads = len(list(ratios))
+        if heads is not None:
+            _check(_LIB.taptools_tapecho_set_heads(self._h, int(heads)), "heads")
+        if levels is not None:
+            for i, v in enumerate(levels):
+                _check(_LIB.taptools_tapecho_set_head_level(self._h, i, float(v)), "head_level")
+        if pans is not None:
+            for i, p in enumerate(pans):
+                _check(_LIB.taptools_tapecho_set_head_pan(self._h, i, float(p)), "head_pan")
+        if span_ms is not None:
+            _check(_LIB.taptools_tapecho_set_span_ms(self._h, float(span_ms)), "span_ms")
+        if regen is not None:
+            _check(_LIB.taptools_tapecho_set_regen(self._h, float(regen)), "regen")
+        if darken_hz is not None:
+            _check(_LIB.taptools_tapecho_set_darken_hz(self._h, float(darken_hz)), "darken_hz")
+        if drive is not None:
+            _check(_LIB.taptools_tapecho_set_drive(self._h, float(drive)), "drive")
+        if input_level is not None:
+            _check(_LIB.taptools_tapecho_set_input_level(self._h, float(input_level)),
+                   "input_level")
+        if mix is not None:
+            _check(_LIB.taptools_tapecho_set_mix(self._h, float(mix)), "mix")
+        return self
+
+    def process(self, x):
+        x = _f64(x)
+        out_l = np.zeros_like(x)
+        out_r = np.zeros_like(x)
+        _check(_LIB.taptools_tapecho_process(self._h, _p64(x), _p64(out_l), _p64(out_r), x.size),
+               "process")
+        return out_l, out_r
+
+    def clear(self) -> None:
+        """Erase the tape and the transport/wear state; parameters are kept.
+        Also the fastest way to stop a self-oscillating loop."""
+        _check(_LIB.taptools_tapecho_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_tapecho_destroy(h)
             self._h = None
 
 

@@ -26,6 +26,7 @@
 #include "svf.h"
 #include "swing_vca.h"
 #include "tape_loop.h"
+#include "tapecho.h"
 #include "tb303_voice.h"
 #include "tr808_clap.h"
 #include "tr808_cowbell.h"

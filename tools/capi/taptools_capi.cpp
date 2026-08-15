@@ -23,6 +23,7 @@
 #include <taptools/overdrive.h>
 #include <taptools/step_seq.h>
 #include <taptools/svf.h>
+#include <taptools/tapecho.h>
 #include <taptools/tb303_voice.h>
 #include <taptools/tr808_kick.h>
 #include <taptools/tune.h>
@@ -1142,6 +1143,88 @@ int taptools_discreet_process(taptools_discreet h, const double* in, double* out
         return -1;
     }
     return with<discreet_machine>(h, [&](discreet_machine& m) { m.process(in, out, static_cast<size_t>(n)); });
+}
+
+// ---- tap.tapecho~ --------------------------------------------------------------------------------
+
+using tapecho_machine = tap::tools::tapecho::machine;
+
+taptools_tapecho taptools_tapecho_create(void) {
+    return static_cast<taptools_tapecho>(new tapecho_machine());
+}
+
+void taptools_tapecho_destroy(taptools_tapecho h) {
+    delete static_cast<tapecho_machine*>(h);
+}
+
+int taptools_tapecho_prepare(taptools_tapecho h, double sr, double max_span_seconds) {
+    if (max_span_seconds <= 0.0) {
+        return -1;
+    }
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.prepare(sr, max_span_seconds); });
+}
+
+int taptools_tapecho_set_span_ms(taptools_tapecho h, double ms) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_span_ms(ms); });
+}
+
+int taptools_tapecho_set_heads(taptools_tapecho h, int count) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_heads(count); });
+}
+
+int taptools_tapecho_set_head_ratio(taptools_tapecho h, int head, double ratio) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_head_ratio(head, ratio); });
+}
+
+int taptools_tapecho_set_head_level(taptools_tapecho h, int head, double lin) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_head_level(head, lin); });
+}
+
+int taptools_tapecho_set_head_pan(taptools_tapecho h, int head, double pan) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_head_pan(head, pan); });
+}
+
+int taptools_tapecho_set_regen(taptools_tapecho h, double r) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_regen(r); });
+}
+
+int taptools_tapecho_set_darken_hz(taptools_tapecho h, double hz) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_darken_hz(hz); });
+}
+
+int taptools_tapecho_set_drive(taptools_tapecho h, double d) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_drive(d); });
+}
+
+int taptools_tapecho_set_input_level(taptools_tapecho h, double lin) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_input_level(lin); });
+}
+
+int taptools_tapecho_set_mix(taptools_tapecho h, double pct) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_mix(pct); });
+}
+
+int taptools_tapecho_set_wow(taptools_tapecho h, double depth_ms, double rate_hz) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_wow(depth_ms, rate_hz); });
+}
+
+int taptools_tapecho_set_flutter(taptools_tapecho h, double depth_ms, double rate_hz) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_flutter(depth_ms, rate_hz); });
+}
+
+int taptools_tapecho_set_smooth_ms(taptools_tapecho h, double ms) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.set_smooth_ms(ms); });
+}
+
+int taptools_tapecho_clear(taptools_tapecho h) {
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.clear(); });
+}
+
+int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL, double* outR, int n) {
+    if (!in || !outL || !outR || n < 0) {
+        return -1;
+    }
+    return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.process(in, outL, outR, static_cast<size_t>(n)); });
 }
 
 // ---- tap.airport~ --------------------------------------------------------------------------------

@@ -1,10 +1,11 @@
 # Plan — the Radiohead family
 
-> **Status: plan.** Nothing here is implemented. This is the drafting record of the
-> 2026-08-15 survey ("are there Radiohead-inspired objects we should consider?"), amended
-> the same day against the Eno components wave (`d4cf28a`) before any code was written.
-> It stays after the objects ship, the plans-directory way; per-chapter drafting records
-> will follow separately when the book chapters are drafted.
+> **Status: in progress — `tap.tapecho~`'s kernel has landed (2026-08-15); the rest is
+> plan.** This is the drafting record of the 2026-08-15 survey ("are there
+> Radiohead-inspired objects we should consider?"), amended the same day against the Eno
+> components wave (`d4cf28a`) before any code was written. It stays after the objects ship,
+> the plans-directory way; per-chapter drafting records will follow separately when the book
+> chapters are drafted. Per-object status lives in the table below.
 
 Planning document for a family of kernels drawn from Radiohead's performed electronics:
 the Ondes Martenot, the live Max/MSP mangling rigs, the tape echoes, the Kaoss-pad vocal
@@ -27,13 +28,13 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 
 ## The family at a glance
 
-| Object | Kernel | Recreates | Standing on |
-|--------|--------|-----------|-------------|
-| `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition |
-| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng |
-| `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom, `vco.h`/`vca.h` |
-| `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic |
-| `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine |
+| Object | Kernel | Recreates | Standing on | Status |
+|--------|--------|-----------|-------------|--------|
+| `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ kernel shipped 2026-08-15; Max wrapper + chapter pending |
+| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | planned |
+| `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom, `vco.h`/`vca.h` | planned — gated on source collection |
+| `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic | planned |
+| `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
 
 Parked (surveyed, deliberately not planned): a spectral freeze on the `stft.h` scaffold
 (`tap.sustain~` and `tap.discreet~` now cover most of that ground between them), a Klatt
@@ -66,7 +67,20 @@ The survey predated the Eno components wave by hours. Five amendments, now assum
 
 ## Per-object plans
 
-### 1. `tap.tapecho~` — the multi-head tape echo *(first; small)*
+### 1. `tap.tapecho~` — the multi-head tape echo *(first; small)* — ✅ kernel shipped
+
+> **Shipped 2026-08-15**: `include/taptools/tapecho.h`, `tests/tapecho_test.cpp` (11
+> scenarios), the C ABI + ctypes surface (`TapEcho`), the executed `notebooks/tapecho.ipynb`,
+> and `tools/render/radiohead_render.cpp` with four performed scenarios. What the plan
+> predicted held: the kernel is composition — the null test below is *bitwise*. Still to
+> come: the Max wrapper (`tap.tapecho~` vertical slice) in TapTools-Max, and the book
+> chapter. Design decisions taken during implementation that this record should carry:
+> the head layout is `span_ms` (the motor, = a ratio-1.0 head) times a per-head ratio, so
+> four evenly spaced heads is the default and a three-head Copicat layout is set explicitly
+> (the "preset + free" open question, resolved toward *free with an even-spacing default* —
+> no spacings are claimed as measured from any unit); regeneration reaches
+> `k_regen_max_driven` = 1.5 but is capped **per sample** back to 1.0 whenever drive is 0,
+> since the saturator is the only thing bounding the past-unity regime.
 
 The Watkins Copicat sits in Ed O'Brien's rig; the Space Echo school is all over the
 catalog. The house delay family (`delay.h`, multitap, procrastinate) is clean digital;
@@ -85,13 +99,15 @@ this is the dirty one, and nearly all of it exists:
   sound-on-sound howl — the dub move, made safe by the same inversion `discreet.h` runs
   on. At drive 0 the fb cap falls back to the `delay.h` rule.
 
-Head layout: default to a fixed three-head Copicat-style spacing preset with heads freely
-settable underneath (open question below). Tests, house patterns: an oracle measurement of
-wow — drive a sine through one head and read the pitch deviation with `tap::dsp::yin`
-against the analytic transport excursion; and a null test — wow 0, wear at the band
-ceiling (the `airport.h` bypass), drive 0 should collapse the echo to a plain multitap
-delay (bitwise if the interpolators align — both are the family Hermite — otherwise pinned
-to a measured error bound, honestly stated).
+Head layout: four evenly spaced heads by default, every ratio freely settable underneath.
+Tests, house patterns: an oracle measurement of wow — drive a sine through one head and read
+the pitch deviation with `tap::dsp::yin` against the analytic transport excursion; and a null
+test — wow 0, drive 0, regen 0 should collapse the echo to a plain multitap delay. *Both
+landed, and the null is bitwise* (the interpolators do align — same family Hermite, same
+fractional position, same equal-power pan law), measured in the kernel test and again across
+the C ABI in the notebook. Measured at ship: per-pass generation loss within 0.2% of the
+analytic wear transfer on both sides of the corner; wow 10.91 cents measured against 10.88
+predicted; every past-unity drive setting plateaus under its analytic ceiling.
 
 ### 2. `tap.stammer~` — the live stutter rig *(second; the most "us")*
 
@@ -194,7 +210,8 @@ is to make that sharing literal, not copied.
 ## Order, and why
 
 1. **`tap.tapecho~`** — smallest distance from shipped code, and it stress-tests
-   `tape_loop.h` as the library the components chapter claims it is.
+   `tape_loop.h` as the library the components chapter claims it is. ✅ *Kernel done; the
+   stress test passed — the shared machinery needed no changes to serve a second topology.*
 2. **`tap.stammer~`** — original design (no sourcing gate), highest Max-lineage
    resonance, establishes the family's capture + seeded-performance conventions.
 3. **`tap.ondes~`** — the flagship; source collection starts immediately (it
@@ -208,9 +225,9 @@ is to make that sharing literal, not copied.
 - **The fuzz's name.** `tap.fuzz~` (generic, safe, dull) vs `tap.shred~` (generic English
   word, but adjacent to the mark) vs something from the family's own metaphor. Decide
   before the vertical slice; the kernel header name can follow.
-- **Echo head layout.** Fixed Copicat-style preset spacings with free placement
-  underneath, or free placement only with presets as Max-side messages? Leaning preset +
-  free, so the default sounds like *a* machine out of the box.
+- ~~**Echo head layout.**~~ Resolved at ship: free ratios with a nominal even-spacing
+  default (0.25 / 0.5 / 0.75 / 1.0), rather than a named-machine preset — no head spacings
+  are claimed as measured from any unit, and a Copicat-style three is two lines to set.
 - **One capture component or two.** Stammer and scrub both record the live input into a
   reel; whether that is one shared class with two heads of use, or two thin wrappers over
   `tape::reel`, is a design call to make when the stammer lands.
