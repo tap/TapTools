@@ -21,12 +21,19 @@ namespace {
     constexpr double k_sr = 48000.0;
 
     using tap::tools::airport::loop_bank;
+    // Spelled `lane` here: several scenarios use `loop` as a local sample count.
+    using lane = tap::tools::airport::loop;
 
     loop_bank make(double max_loop_seconds = 2.0) {
         loop_bank b;
         b.prepare(k_sr, max_loop_seconds);
         b.set_smooth_ms(0.0);
         return b;
+    }
+
+    void make_lane(lane& l, double max_loop_seconds = 2.0) {
+        l.prepare(k_sr, max_loop_seconds);
+        l.set_smooth_ms(0.0);
     }
 
     size_t at(double seconds) {
@@ -238,4 +245,110 @@ SCENARIO("unprepared, the bank emits silence") {
     b.process(0.7, l, r);
     REQUIRE(l == 0.0);
     REQUIRE(r == 0.0);
+}
+
+SCENARIO("standalone lanes summed are the bank, bitwise") {
+    // The decomposition's load-bearing claim: tap.reel~ patched N times into a sum IS
+    // tap.airport~. Bitwise, because every stage the claim passes through (transparent
+    // playback, exact pan endpoints, the bypassed shade) is a bitwise promise already.
+    constexpr int n_lanes      = 3;
+    const double  len[n_lanes] = {0.53, 0.61, 0.71}; // incommensurate, all above the floor
+    const double  lvl[n_lanes] = {0.4, 0.7, 0.55};
+    const double  pn[n_lanes]  = {-1.0, 0.25, 1.0}; // both exact endpoints and one interior
+    const double  drk[n_lanes] = {1000.0, tap::tools::tape::k_darken_ceil_hz, 4000.0}; // shaded, bypassed, shaded
+
+    loop_bank b = make(1.5);
+    b.set_loops(n_lanes);
+    for (int i = 0; i < n_lanes; ++i) {
+        b.set_length_seconds(i, len[i]);
+        b.set_level(i, lvl[i]);
+        b.set_pan(i, pn[i]);
+        b.set_darken_hz(i, drk[i]);
+    }
+
+    std::vector<lane> lanes(n_lanes);
+    for (int i = 0; i < n_lanes; ++i) {
+        make_lane(lanes[static_cast<size_t>(i)], 1.5);
+        lanes[static_cast<size_t>(i)].set_length_seconds(len[i]);
+        lanes[static_cast<size_t>(i)].set_level(lvl[i]);
+        lanes[static_cast<size_t>(i)].set_pan(pn[i]);
+        lanes[static_cast<size_t>(i)].set_darken_hz(drk[i]);
+    }
+
+    bool         exact = true;
+    double       peak  = 0.0;
+    const size_t n     = at(2.0);
+    for (size_t i = 0; i < n; ++i) {
+        // Punch each lane in and out at staggered, unquantized points — identical schedules.
+        for (int k = 0; k < n_lanes; ++k) {
+            const size_t on  = 500 + 1300 * static_cast<size_t>(k);
+            const size_t off = 20000 + 4100 * static_cast<size_t>(k);
+            if (i == on) {
+                b.record(k, true);
+                lanes[static_cast<size_t>(k)].record(true);
+            }
+            if (i == off) {
+                b.record(k, false);
+                lanes[static_cast<size_t>(k)].record(false);
+            }
+        }
+
+        const double t = static_cast<double>(i) / k_sr;
+        const double x = 0.6 * std::sin(2.0 * 3.14159265358979323846 * 220.0 * t)
+                         + 0.3 * std::sin(2.0 * 3.14159265358979323846 * 987.0 * t);
+
+        double lb = 0.0, rb = 0.0;
+        b.process(x, lb, rb);
+
+        double ls = 0.0, rs = 0.0; // the patch: zero the busses, sum the lanes
+        for (auto& one : lanes) {
+            one.process(x, ls, rs);
+        }
+
+        exact = exact && (ls == lb) && (rs == rb);
+        peak  = std::max(peak, std::max(std::abs(lb), std::abs(rb)));
+    }
+    REQUIRE(exact);
+    REQUIRE(peak > 0.1); // and it was carrying the phrases, not agreeing about silence
+}
+
+SCENARIO("a lone lane's head is as sacred as one in the bank") {
+    lane ln;
+    make_lane(ln);
+    ln.set_length_seconds(0.5);
+    ln.set_pan(-1.0); // hard left: the left bus carries the lane bitwise
+
+    double l = 0.0, r = 0.0;
+    ln.record(true);
+    ln.process(1.0, l, r); // plant a click wherever the head is
+    ln.record(false);
+
+    const size_t        loop = at(0.5);
+    std::vector<double> yl(4 * loop, 0.0);
+    for (size_t i = 0; i < yl.size(); ++i) {
+        if (i == loop + 100) { // the same storm the bank scenario fires, one level down
+            ln.set_level(1.0);
+            ln.set_darken_hz(tap::tools::tape::k_darken_ceil_hz);
+            ln.record(false);
+            ln.set_length_seconds(0.5);
+        }
+        double rr = 0.0;
+        ln.process(0.0, yl[i], rr); // process accumulates; yl[i] starts at zero
+    }
+
+    for (size_t k = 1; k <= 3; ++k) {
+        INFO("return " << k);
+        CHECK(yl[k * loop - 1] == 1.0);
+    }
+    INFO("phase after 4 loops + 1 planted sample: " << ln.phase());
+    CHECK(std::abs(ln.phase() - 1.0 / static_cast<double>(loop)) < 1e-9);
+}
+
+SCENARIO("unprepared, a lone lane is silent and leaves the busses alone") {
+    lane   ln;
+    double l = 1.0, r = -1.0; // process() accumulates, so an unprepared lane must add nothing
+    ln.process(0.7, l, r);
+    REQUIRE(l == 1.0);
+    REQUIRE(r == -1.0);
+    REQUIRE(ln.phase() == 0.0);
 }
