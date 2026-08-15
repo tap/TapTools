@@ -79,13 +79,31 @@ evidence is that every pre-existing scenario passes unchanged, plus the null tes
   voice. Pre-existing, surfaced by the new rack test, documented rather than fixed —
   fixing it would change the sound.
 
+## The two follow-ups (shipped after the first draft)
+
+Both were flagged as open in the first pass and then closed, so the chapter now reads as a
+finished decomposition rather than one with a known hole.
+
+- **`tap.chime.voices~`** — the rack with each bell on its own outlet, dry. Wanted because
+  filtering one voice is a different instrument from filtering the rack. Kernel side this
+  is `bell::process_mono` factored out with `process` rewritten on top of it (one
+  oscillator path, bit-identical), plus `rack::process_voices` and the per-slot reporting
+  that makes the taps usable at all — the pool reassigns bells as it steals, so a slot is
+  not a pitch. *Evidence: "the per-voice taps summed through their seats are the stereo
+  rack" (20 strikes, four past the pool size), "a voice reports which tube it is holding".*
+  Two wrapper constraints are recorded in the chapter because they will otherwise be
+  re-derived: outlet count is fixed at construction (hence a separate object), and
+  min-api's `mc` is inlet-side only — `Z_MC_INLETS`, no `multichanneloutputs` — so a
+  variable-channel `mc` outlet is not available to a Min external today.
+- **`tap.period`** — the composite period as its own object. `composite_period_seconds`
+  came out of `loop_bank` as a free function the bank now calls, and `loop_samples_for`
+  shares the reel's quantization rather than copying it. That sharing is the point worth
+  writing down: the lcm is over sample counts, so lengths that look commensurate as
+  decimals are not as samples. *Evidence: "the composite period is the same arithmetic
+  whether a bank asks it or a patch does".*
+
 ## Deliberately left out
 
-- `composite_period` has nowhere to live in a patch of independent reels (it needs all the
-  lengths at once). `tap.reel~` reports `loopsamples`, which is the raw material; a
-  `tap.period` utility is the obvious follow-up and is flagged in `REVIVAL.md` rather than
-  quietly dropped. The chapter names the loss instead of pretending the decomposition is
-  free.
 - No new notebook sections. The claims here are structural (bitwise identity, exact
   arithmetic), which pinned tests carry better than measured cells.
 
