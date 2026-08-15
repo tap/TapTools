@@ -19,9 +19,11 @@ block diagrams at the top of the last two chapters are patchable:
 |---|---|---|
 | `tap.reel~` | one free-running tape loop | a lane of `tap.airport~` |
 | `tap.chime~` | the sixteen-bell wind-chime rack | the voice pool of `tap.garden~` |
+| `tap.chime.voices~` | the same rack, one bell per outlet | — |
 | `tap.bloom` | the event ring — plant, return, fade, retire | the recirculation of `tap.garden~` |
 | `tap.scale` | snap a pitch to a root and scale | the entry quantizer |
 | `tap.gardener` | the idle wind, seeded | the self-seeding half |
+| `tap.period` | when a set of loops realigns | the bank's `period` message |
 
 The monoliths remain exactly what they were. This is additive: the same
 kernel classes, reached two ways.
@@ -65,6 +67,25 @@ For the airport, four things the monolith cannot give you:
 - **Tape you actually use.** The bank buys all eight worst-case reels at
   DSP start whether you use them or not: about 92 MB of double tape at
   the 30-second default. Three `tap.reel~` buy three, about 11 MB each.
+
+The rack has a second form worth knowing about. `tap.chime.voices~` is the
+same sixteen bells with each one on its own outlet, carrying its tube dry —
+before the seat in the stereo image. Filter one voice and you are filtering
+whichever bell happens to be in that slot, not the rack; it is a different
+instrument, and there is no way to ask `tap.chime~` for it. Because the pool
+reassigns bells as it steals, a slot is not a pitch, so the object will tell
+you which tube it is holding and what seat it would have been given. Sum the
+sixteen back through those seats and you have `tap.chime~` again, bitwise —
+pinned by *"the per-voice taps summed through their seats are the stereo
+rack"*, across twenty strikes, four more than the pool holds, so stealing is
+under test too.
+
+It is a separate object rather than a switch because outlet count is fixed
+when a Min object is built, and it is sixteen discrete outlets rather than one
+multichannel outlet because min-api's `mc` support is inlet-side only: it sets
+`Z_MC_INLETS` and offers no `multichanneloutputs`, which is what Max requires
+before an external may declare a variable-channel `mc` outlet. That is a
+limitation of the wrapper we have, not of the idea.
 
 For the garden, the interesting one is `tap.bloom`. Separated from the
 chime it turns out to be the most portable idea in the family, because it
@@ -113,16 +134,23 @@ bed this only happens when two blooms share a loop position; it is
 pre-existing behaviour, and it is documented in the rack scenario rather
 than fixed, because fixing it would change how the object sounds.
 
-One thing the airport decomposition genuinely loses: `composite_period`,
-the report of when the whole system realigns, needs every length at once
-and so has nowhere to live in a patch of independent reels. `tap.reel~`
-answers `loopsamples` with its own length in samples, which is the raw
-material for that arithmetic, but the lcm itself is still the monolith's.
+The one thing the airport decomposition looked like it would lose is
+`composite_period` — the report of when the whole system realigns, which
+needs every length at once and so has nowhere to live inside a single reel.
+That arithmetic came out of the bank as a free function instead, and
+`tap.period` is it: hand it the lengths and it answers in seconds, `inf`
+included. The detail that makes it trustworthy rather than merely
+convenient is that it shares the reel's seconds-to-samples quantization
+rather than copying it. The lcm is over *sample counts*, and lengths that
+look commensurate written down are usually nothing of the kind once
+rounded to samples — 0.5 and 0.625 seconds realign at 2.5 s, while the
+terminal recipe's seven lengths leave the 64-bit range entirely. Both are
+pinned in `tests/airport_test.cpp`.
 
 ## Checkpoint
 
-Five objects, no new DSP: the same kernel classes the monoliths hold, given
-names and inlets. Three `tap.reel~` summed are a `tap.airport~` bitwise;
+Seven objects, almost no new DSP: the same kernel classes the monoliths
+hold, given names and inlets. Three `tap.reel~` summed are a `tap.airport~` bitwise;
 `tap.gardener` into `tap.scale` into `tap.bloom` into `tap.chime~` is a
 `tap.garden~` bitwise, gardener and all. Both identities are pinned
 scenarios in `tests/airport_test.cpp` and `tests/garden_test.cpp`, which
