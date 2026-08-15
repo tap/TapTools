@@ -5,6 +5,9 @@
 
 #include "taptools_capi.h"
 
+#include <algorithm>
+#include <array>
+
 // The DSP cores are the same headers the Max externals compile — no Max/Min dependency.
 #include <taptools/adsr.h>
 #include <taptools/airport.h>
@@ -1311,6 +1314,279 @@ int taptools_garden_process(taptools_garden h, double* outL, double* outR, int n
         return -1;
     }
     return with<garden_bed>(h, [&](garden_bed& g) { g.process(outL, outR, static_cast<size_t>(n)); });
+}
+
+// ---- tap.reel~ -----------------------------------------------------------------------------------
+
+using airport_lane = tap::tools::airport::loop;
+
+taptools_reel taptools_reel_create(void) {
+    return static_cast<taptools_reel>(new airport_lane());
+}
+
+void taptools_reel_destroy(taptools_reel h) {
+    delete static_cast<airport_lane*>(h);
+}
+
+int taptools_reel_prepare(taptools_reel h, double sr, double max_loop_seconds) {
+    if (max_loop_seconds <= 0.0) {
+        return -1;
+    }
+    return with<airport_lane>(h, [&](airport_lane& l) { l.prepare(sr, max_loop_seconds); });
+}
+
+int taptools_reel_set_length_seconds(taptools_reel h, double s) {
+    return with<airport_lane>(h, [&](airport_lane& l) { l.set_length_seconds(s); });
+}
+
+int taptools_reel_record(taptools_reel h, int on) {
+    return with<airport_lane>(h, [&](airport_lane& l) { l.record(on != 0); });
+}
+
+int taptools_reel_set_level(taptools_reel h, double lin) {
+    return with<airport_lane>(h, [&](airport_lane& l) { l.set_level(lin); });
+}
+
+int taptools_reel_set_pan(taptools_reel h, double pan) {
+    return with<airport_lane>(h, [&](airport_lane& l) { l.set_pan(pan); });
+}
+
+int taptools_reel_set_darken_hz(taptools_reel h, double hz) {
+    return with<airport_lane>(h, [&](airport_lane& l) { l.set_darken_hz(hz); });
+}
+
+int taptools_reel_set_smooth_ms(taptools_reel h, double ms) {
+    return with<airport_lane>(h, [&](airport_lane& l) { l.set_smooth_ms(ms); });
+}
+
+int taptools_reel_clear(taptools_reel h) {
+    return with<airport_lane>(h, [&](airport_lane& l) { l.clear(); });
+}
+
+double taptools_reel_phase(taptools_reel h) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<airport_lane*>(h)->phase();
+}
+
+double taptools_reel_length_seconds(taptools_reel h) {
+    if (!h) {
+        return -1.0;
+    }
+    return static_cast<airport_lane*>(h)->length_seconds();
+}
+
+int taptools_reel_loop_samples(taptools_reel h) {
+    if (!h) {
+        return -1;
+    }
+    return static_cast<int>(static_cast<airport_lane*>(h)->loop_samples());
+}
+
+int taptools_reel_process(taptools_reel h, const double* in, double* outL, double* outR, int n) {
+    if (!in || !outL || !outR || n < 0) {
+        return -1;
+    }
+    return with<airport_lane>(h, [&](airport_lane& l) { l.process(in, outL, outR, static_cast<size_t>(n)); });
+}
+
+// ---- tap.chime~ ----------------------------------------------------------------------------------
+
+using garden_rack = tap::tools::garden::rack;
+
+taptools_chime taptools_chime_create(void) {
+    return static_cast<taptools_chime>(new garden_rack());
+}
+
+void taptools_chime_destroy(taptools_chime h) {
+    delete static_cast<garden_rack*>(h);
+}
+
+int taptools_chime_prepare(taptools_chime h, double sr) {
+    return with<garden_rack>(h, [&](garden_rack& r) { r.prepare(sr); });
+}
+
+int taptools_chime_set_times(taptools_chime h, double attack_s, double decay_s) {
+    return with<garden_rack>(h, [&](garden_rack& r) { r.set_times(attack_s, decay_s); });
+}
+
+int taptools_chime_set_material(taptools_chime h, int material) {
+    return with<garden_rack>(h, [&](garden_rack& r) { r.set_material(material); });
+}
+
+int taptools_chime_set_spread(taptools_chime h, double amount) {
+    return with<garden_rack>(h, [&](garden_rack& r) { r.set_spread(amount); });
+}
+
+int taptools_chime_clear(taptools_chime h) {
+    return with<garden_rack>(h, [&](garden_rack& r) { r.clear(); });
+}
+
+int taptools_chime_strike(taptools_chime h, double pitch, double velocity, double brightness) {
+    return with<garden_rack>(h, [&](garden_rack& r) { r.strike(pitch, velocity, brightness); });
+}
+
+int taptools_chime_strike_hz(taptools_chime h, double freq_hz, double velocity, double brightness) {
+    if (freq_hz <= 0.0) {
+        return -1;
+    }
+    return with<garden_rack>(h, [&](garden_rack& r) { r.strike_hz(freq_hz, velocity, brightness); });
+}
+
+int taptools_chime_active_voices(taptools_chime h) {
+    if (!h) {
+        return -1;
+    }
+    return static_cast<garden_rack*>(h)->active_voices();
+}
+
+int taptools_chime_process(taptools_chime h, double* outL, double* outR, int n) {
+    if (!outL || !outR || n < 0) {
+        return -1;
+    }
+    return with<garden_rack>(h, [&](garden_rack& r) {
+        for (int i = 0; i < n; ++i) { // rack::process accumulates, so a standalone caller zeroes
+            outL[i] = 0.0;
+            outR[i] = 0.0;
+            r.process(outL[i], outR[i]);
+        }
+    });
+}
+
+// ---- tap.bloom -----------------------------------------------------------------------------------
+
+using garden_ring = tap::tools::garden::ring;
+
+taptools_bloom taptools_bloom_create(void) {
+    return static_cast<taptools_bloom>(new garden_ring());
+}
+
+void taptools_bloom_destroy(taptools_bloom h) {
+    delete static_cast<garden_ring*>(h);
+}
+
+int taptools_bloom_prepare(taptools_bloom h, double sr) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.prepare(sr); });
+}
+
+int taptools_bloom_set_loop_seconds(taptools_bloom h, double s) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.set_loop_seconds(s); });
+}
+
+int taptools_bloom_set_decay(taptools_bloom h, double per_pass) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.set_decay(per_pass); });
+}
+
+int taptools_bloom_set_soften(taptools_bloom h, double per_pass) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.set_soften(per_pass); });
+}
+
+int taptools_bloom_set_floor(taptools_bloom h, double v) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.set_floor(v); });
+}
+
+int taptools_bloom_set_brightness(taptools_bloom h, double b) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.set_brightness(b); });
+}
+
+int taptools_bloom_clear(taptools_bloom h) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.clear(); });
+}
+
+int taptools_bloom_plant(taptools_bloom h, double pitch, double velocity) {
+    if (velocity <= 0.0) {
+        return -1;
+    }
+    return with<garden_ring>(h, [&](garden_ring& r) { r.plant(pitch, velocity); });
+}
+
+int taptools_bloom_due(taptools_bloom h, double* pitch, double* velocity, double* brightness, int max) {
+    if (!h || !pitch || !velocity || !brightness || max < 0) {
+        return -1;
+    }
+    std::array<tap::tools::garden::strike, tap::tools::garden::k_max_events> fired{};
+    const int limit = std::min(max, tap::tools::garden::k_max_events);
+    const int n     = static_cast<garden_ring*>(h)->due(fired.data(), limit);
+    for (int i = 0; i < n; ++i) {
+        pitch[i]      = fired[static_cast<size_t>(i)].pitch;
+        velocity[i]   = fired[static_cast<size_t>(i)].velocity;
+        brightness[i] = fired[static_cast<size_t>(i)].brightness;
+    }
+    return n;
+}
+
+int taptools_bloom_step(taptools_bloom h) {
+    return with<garden_ring>(h, [&](garden_ring& r) { r.step(); });
+}
+
+int taptools_bloom_active_events(taptools_bloom h) {
+    if (!h) {
+        return -1;
+    }
+    return static_cast<garden_ring*>(h)->active_events();
+}
+
+int taptools_bloom_loop_samples(taptools_bloom h) {
+    if (!h) {
+        return -1;
+    }
+    return static_cast<int>(static_cast<garden_ring*>(h)->loop_samples());
+}
+
+// ---- tap.gardener --------------------------------------------------------------------------------
+
+using garden_wind = tap::tools::garden::gardener;
+
+taptools_gardener taptools_gardener_create(void) {
+    return static_cast<taptools_gardener>(new garden_wind());
+}
+
+void taptools_gardener_destroy(taptools_gardener h) {
+    delete static_cast<garden_wind*>(h);
+}
+
+int taptools_gardener_prepare(taptools_gardener h, double sr) {
+    return with<garden_wind>(h, [&](garden_wind& g) { g.prepare(sr); });
+}
+
+int taptools_gardener_set_idle_seconds(taptools_gardener h, double s) {
+    return with<garden_wind>(h, [&](garden_wind& g) { g.set_idle_seconds(s); });
+}
+
+int taptools_gardener_set_gust(taptools_gardener h, double amount) {
+    return with<garden_wind>(h, [&](garden_wind& g) { g.set_gust(amount); });
+}
+
+int taptools_gardener_set_seed(taptools_gardener h, unsigned long long seed) {
+    return with<garden_wind>(h, [&](garden_wind& g) { g.set_seed(static_cast<uint64_t>(seed)); });
+}
+
+int taptools_gardener_notice_plant(taptools_gardener h) {
+    return with<garden_wind>(h, [&](garden_wind& g) { g.notice_plant(); });
+}
+
+int taptools_gardener_clear(taptools_gardener h) {
+    return with<garden_wind>(h, [&](garden_wind& g) { g.clear(); });
+}
+
+int taptools_gardener_tick(taptools_gardener h, int loop_samples, double* pitch, double* velocity) {
+    if (!h || !pitch || !velocity || loop_samples < 1) {
+        return -1;
+    }
+    const garden_wind::request req = static_cast<garden_wind*>(h)->tick(static_cast<long>(loop_samples));
+    *pitch                         = req.pitch;
+    *velocity                      = req.velocity;
+    return req.wanted ? 1 : 0;
+}
+
+// ---- tap.scale -----------------------------------------------------------------------------------
+
+double taptools_scale_quantize(double pitch, int root, int scale) {
+    tap::tools::garden::scale_quantizer q;
+    q.set_root(root);
+    q.set_scale(scale);
+    return q.quantize(pitch);
 }
 
 } // extern "C"
