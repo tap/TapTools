@@ -393,6 +393,30 @@ TAPTOOLS_API int taptools_tapecho_clear(taptools_tapecho h);
 /// Process n samples mono-in / stereo-out (the dry path is mixed to both busses).
 TAPTOOLS_API int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL, double* outR, int n);
 
+// ---- tap.stammer~ (tap::tools::stammer::machine) -------------------------------------------------
+
+typedef void* taptools_stammer;
+
+TAPTOOLS_API taptools_stammer taptools_stammer_create(void);
+TAPTOOLS_API void             taptools_stammer_destroy(taptools_stammer h);
+/// Buy the capture for `max_history_ms` at `sr`; resets the grid and re-seeds.
+TAPTOOLS_API int taptools_stammer_prepare(taptools_stammer h, double sr, double max_history_ms);
+TAPTOOLS_API int taptools_stammer_set_step_ms(taptools_stammer h, double ms); // the grid
+TAPTOOLS_API int taptools_stammer_set_density(taptools_stammer h, double p);  // 0..1; 0 never rolls
+TAPTOOLS_API int taptools_stammer_set_divisions(taptools_stammer h, int n);   // slice = step / [1, n]
+TAPTOOLS_API int taptools_stammer_set_repeats(taptools_stammer h, int n);     // passes per fired slice
+TAPTOOLS_API int taptools_stammer_set_reverse(taptools_stammer h, double p);  // 0..1, drawn per repeat
+TAPTOOLS_API int taptools_stammer_set_jump_ms(taptools_stammer h, double ms); // extra reach-back
+TAPTOOLS_API int taptools_stammer_set_fade_ms(taptools_stammer h, double ms); // per-repeat flank
+TAPTOOLS_API int taptools_stammer_set_seed(taptools_stammer h, unsigned long long seed);
+TAPTOOLS_API int taptools_stammer_set_input_level(taptools_stammer h, double lin);
+TAPTOOLS_API int taptools_stammer_set_mix(taptools_stammer h, double pct); // only bites while firing
+TAPTOOLS_API int taptools_stammer_set_smooth_ms(taptools_stammer h, double ms);
+TAPTOOLS_API int taptools_stammer_clear(taptools_stammer h);
+/// 1 while a slice is sounding, else 0 (-1 on a bad handle).
+TAPTOOLS_API int taptools_stammer_playing(taptools_stammer h);
+TAPTOOLS_API int taptools_stammer_process(taptools_stammer h, const double* in, double* out, int n);
+
 // ---- tap.airport~ (tap::tools::airport::loop_bank) -----------------------------------------------
 
 typedef void* taptools_airport;

@@ -16,7 +16,8 @@ tap.overdrive~ (`Overdrive`), the step-sequencer rows behind tap.808.seq~ /
 tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
 tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), the Discreet Music
 two-machine tape loop tap.discreet~ (`Discreet`), the multi-head tape echo
-tap.tapecho~ (`TapEcho`), the Music for Airports
+tap.tapecho~ (`TapEcho`), the live buffer-stutter rig tap.stammer~
+(`Stammer`), the Music for Airports
 incommensurate loop bank tap.airport~ (`Airport`), the generative event
 loop tap.garden~ (`Garden`), and tap.tune~'s pitch corrector (`Tune`, with
 the shared DspTap detector passed through as `Yin` for the notebooks'
@@ -303,6 +304,24 @@ def load() -> ctypes.CDLL:
         "taptools_tapecho_set_smooth_ms":  ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_tapecho_clear":          ([vp], ctypes.c_int),
         "taptools_tapecho_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+
+        "taptools_stammer_create":         ([], vp),
+        "taptools_stammer_destroy":        ([vp], None),
+        "taptools_stammer_prepare":        ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_step_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_density":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_divisions":  ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_stammer_set_repeats":    ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_stammer_set_reverse":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_jump_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_fade_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_seed":       ([vp, ctypes.c_ulonglong], ctypes.c_int),
+        "taptools_stammer_set_input_level": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_mix":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_set_smooth_ms":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_stammer_clear":          ([vp], ctypes.c_int),
+        "taptools_stammer_playing":        ([vp], ctypes.c_int),
+        "taptools_stammer_process":        ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
         "taptools_airport_create":         ([], vp),
         "taptools_airport_destroy":        ([vp], None),
         "taptools_airport_prepare":        ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
@@ -1337,6 +1356,75 @@ class TapEcho:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_tapecho_destroy(h)
+            self._h = None
+
+
+class Stammer:
+    """tap.stammer~'s kernel (tap::tools::stammer::machine): the live
+    buffer-stutter rig. The input is captured continuously; on a `step_ms`
+    grid the machine rolls dice and re-fires a slice of what just went past
+    — `density` how often it grabs, `divisions` how finely it chops (slice =
+    step / [1, divisions]), `repeats` how many passes it holds on for,
+    `reverse` the per-repeat chance of running backwards, `jump_ms` how far
+    further back it may reach. Every draw comes from the family's seeded
+    xorshift64*, so a seed is a performance you can replay; at density 0 the
+    dice are never rolled and the object is a bitwise bypass. Mono."""
+
+    def __init__(self, sr: float = 48000.0, max_history_ms: float = 4000.0, **params):
+        self._h = _LIB.taptools_stammer_create()
+        _check(_LIB.taptools_stammer_prepare(self._h, float(sr), float(max_history_ms)),
+               "prepare")
+        self.set(**params)
+
+    def set(self, *, step_ms=None, density=None, divisions=None, repeats=None, reverse=None,
+            jump_ms=None, fade_ms=None, seed=None, input_level=None, mix=None,
+            smooth_ms=None) -> "Stammer":
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_stammer_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if seed is not None:
+            _check(_LIB.taptools_stammer_set_seed(self._h, int(seed)), "seed")
+        if step_ms is not None:
+            _check(_LIB.taptools_stammer_set_step_ms(self._h, float(step_ms)), "step_ms")
+        if density is not None:
+            _check(_LIB.taptools_stammer_set_density(self._h, float(density)), "density")
+        if divisions is not None:
+            _check(_LIB.taptools_stammer_set_divisions(self._h, int(divisions)), "divisions")
+        if repeats is not None:
+            _check(_LIB.taptools_stammer_set_repeats(self._h, int(repeats)), "repeats")
+        if reverse is not None:
+            _check(_LIB.taptools_stammer_set_reverse(self._h, float(reverse)), "reverse")
+        if jump_ms is not None:
+            _check(_LIB.taptools_stammer_set_jump_ms(self._h, float(jump_ms)), "jump_ms")
+        if fade_ms is not None:
+            _check(_LIB.taptools_stammer_set_fade_ms(self._h, float(fade_ms)), "fade_ms")
+        if input_level is not None:
+            _check(_LIB.taptools_stammer_set_input_level(self._h, float(input_level)),
+                   "input_level")
+        if mix is not None:
+            _check(_LIB.taptools_stammer_set_mix(self._h, float(mix)), "mix")
+        return self
+
+    @property
+    def playing(self) -> bool:
+        """True while a slice is sounding."""
+        return bool(_LIB.taptools_stammer_playing(self._h))
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_stammer_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        """Erase the capture, drop the slice in flight, and rewind the seeded
+        stream — the same seed replays the same performance."""
+        _check(_LIB.taptools_stammer_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_stammer_destroy(h)
             self._h = None
 
 

@@ -1,6 +1,6 @@
 /// @file
 /// @brief      Offline renderer for the Radiohead family — writes demo WAVs for listening checks.
-/// @details    Exercises tapecho.h with no Max involved (the kernels' portability, demonstrated).
+/// @details    Exercises tapecho.h and stammer.h with no Max involved (the kernels' portability, demonstrated).
 ///             The tape echo is a *performed* effect, so these scenarios move the controls while
 ///             they render rather than auditioning static settings — that is the only way to hear
 ///             what the kernel is actually for.
@@ -12,7 +12,12 @@
 ///             howl with the saturator holding it bounded, the input faded out under it, then
 ///             regeneration pulled back to let it decay), and `tapecho_varispeed` (the motor
 ///             slewed from a short span to a long one mid-phrase — the doppler that a tape
-///             machine's speed change *is*).
+///             machine's speed change *is*); then `stammer_grid` (the stutter's five dials held
+///             still so the mechanism is audible), `stammer_disintegrate` (the performance the
+///             object exists for — density, chop, hold and reversal all ridden up until the part
+///             comes apart, then the reach-back opened so it quotes material from seconds ago),
+///             and `stammer_two_seeds` (the same settings on two seeds back to back: a seed is a
+///             performance).
 ///
 ///             Usage: radiohead_render [output-directory]   (default: current directory)
 /// @author     Timothy Place
@@ -26,6 +31,7 @@
 #include <string>
 #include <vector>
 
+#include <taptools/stammer.h>
 #include <taptools/tapecho.h>
 
 namespace {
@@ -73,11 +79,11 @@ namespace {
     /// these renders this tool is the caller. Each scenario carries an explicit trim chosen so the
     /// file peaks below unity on playback; nothing here is normalized after the fact, so the
     /// relative loudness *within* a render (a howl building over a phrase) is the kernel's own.
-    void write_scenario(const std::string& path, std::vector<double> stereo, double trim) {
-        for (double& s : stereo) {
+    void write_scenario(const std::string& path, std::vector<double> samples, double trim, uint16_t channels = 2) {
+        for (double& s : samples) {
             s *= trim;
         }
-        write_wav(path, stereo, k_r_sr, 2);
+        write_wav(path, samples, k_r_sr, channels);
     }
 
     double midi_hz(double pitch) {
@@ -120,6 +126,12 @@ namespace {
         static const std::vector<note> notes = {{0.00, 45.0}, {0.75, 52.0}, {1.50, 57.0}, {2.25, 60.0},
                                                 {3.00, 64.0}, {4.50, 57.0}, {6.00, 52.0}};
         return notes;
+    }
+
+    /// The phrase, looped — the stammer scenarios run long enough that seven notes would leave
+    /// the machine chewing on silence.
+    double looping_phrase(double t) {
+        return phrase(demo_phrase(), std::fmod(t, 7.5));
     }
 
     // ---- scenarios -----------------------------------------------------------------------------
@@ -246,6 +258,89 @@ namespace {
         write_scenario(dir + "/tapecho_varispeed.wav", stereo, 0.35);
     }
 
+    // ---- tap.stammer~ ----------------------------------------------------------------------------
+
+    /// The five dials that are the instrument, held still so the mechanism is audible on its own.
+    void stammer_grid(const std::string& dir) {
+        tap::tools::stammer::machine m;
+        m.prepare(k_r_sr, 2000.0);
+        m.set_step_ms(250.0);
+        m.set_density(0.55);
+        m.set_divisions(4);
+        m.set_repeats(4);
+        m.set_reverse(0.2);
+        m.set_fade_ms(3.0);
+        m.set_seed(1999); // the year the first TapTools shipped
+        m.set_mix(100.0);
+
+        const size_t        frames = static_cast<size_t>(24.0 * k_r_sr);
+        std::vector<double> mono(frames);
+        for (size_t i = 0; i < frames; ++i) {
+            mono[i] = m.process(looping_phrase(static_cast<double>(i) / k_r_sr));
+        }
+        write_scenario(dir + "/stammer_grid.wav", mono, 0.8, 1);
+    }
+
+    /// The performance the object exists for: a part that comes apart in your hands. Density,
+    /// chop, hold and reversal all ride up over the render, and the reach-back opens at the end so
+    /// the machine starts quoting material from seconds ago rather than the bar just played.
+    void stammer_disintegrate(const std::string& dir) {
+        tap::tools::stammer::machine m;
+        m.prepare(k_r_sr, 4000.0);
+        m.set_step_ms(250.0);
+        m.set_density(0.15);
+        m.set_divisions(1);
+        m.set_repeats(1);
+        m.set_reverse(0.0);
+        m.set_fade_ms(4.0);
+        m.set_seed(2003); // Hail to the Thief
+        m.set_mix(100.0);
+
+        const double        seconds = 40.0;
+        const size_t        frames  = static_cast<size_t>(seconds * k_r_sr);
+        std::vector<double> mono(frames);
+        for (size_t i = 0; i < frames; ++i) {
+            const double t = static_cast<double>(i) / k_r_sr;
+            const double u = t / seconds; // 0 -> 1 across the render: the hands on the machine
+            m.set_density(0.15 + 0.8 * u);
+            m.set_divisions(1 + static_cast<int>(u * 7.99));
+            m.set_repeats(1 + static_cast<int>(u * 9.99));
+            m.set_reverse(0.6 * u);
+            m.set_step_ms(250.0 - 130.0 * u);
+            if (t > 0.75 * seconds) {
+                m.set_jump_ms(1500.0); // and now it reaches back past the bar
+            }
+            mono[i] = m.process(looping_phrase(t));
+        }
+        write_scenario(dir + "/stammer_disintegrate.wav", mono, 0.8, 1);
+    }
+
+    /// A seed is a performance: the same settings on two seeds, back to back in one file, so the
+    /// difference is the dice and nothing else. Each half is bit-reproducible on its own.
+    void stammer_two_seeds(const std::string& dir) {
+        const double        half   = 12.0;
+        const size_t        frames = static_cast<size_t>(half * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(2 * frames);
+
+        for (uint64_t seed : {uint64_t{1}, uint64_t{2}}) {
+            tap::tools::stammer::machine m;
+            m.prepare(k_r_sr, 2000.0);
+            m.set_step_ms(200.0);
+            m.set_density(0.7);
+            m.set_divisions(4);
+            m.set_repeats(5);
+            m.set_reverse(0.35);
+            m.set_fade_ms(3.0);
+            m.set_seed(seed);
+            m.set_mix(100.0);
+            for (size_t i = 0; i < frames; ++i) {
+                mono.push_back(m.process(looping_phrase(static_cast<double>(i) / k_r_sr)));
+            }
+        }
+        write_scenario(dir + "/stammer_two_seeds.wav", mono, 0.8, 1);
+    }
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -254,5 +349,8 @@ int main(int argc, char** argv) {
     tapecho_three_head(dir);
     tapecho_selfosc(dir);
     tapecho_varispeed(dir);
+    stammer_grid(dir);
+    stammer_disintegrate(dir);
+    stammer_two_seeds(dir);
     return 0;
 }

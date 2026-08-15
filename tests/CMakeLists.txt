@@ -25,6 +25,7 @@ add_executable(taptools_kernel_tests
     overdrive_test.cpp
     spectra_test.cpp
     step_seq_test.cpp
+    stammer_test.cpp
     tapecho_test.cpp
     tune_test.cpp
     tr808_clap_test.cpp

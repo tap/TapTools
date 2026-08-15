@@ -21,6 +21,7 @@
 #include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
 #include <taptools/overdrive.h>
+#include <taptools/stammer.h>
 #include <taptools/step_seq.h>
 #include <taptools/svf.h>
 #include <taptools/tapecho.h>
@@ -1225,6 +1226,85 @@ int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL,
         return -1;
     }
     return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.process(in, outL, outR, static_cast<size_t>(n)); });
+}
+
+// ---- tap.stammer~ --------------------------------------------------------------------------------
+
+using stammer_machine = tap::tools::stammer::machine;
+
+taptools_stammer taptools_stammer_create(void) {
+    return static_cast<taptools_stammer>(new stammer_machine());
+}
+
+void taptools_stammer_destroy(taptools_stammer h) {
+    delete static_cast<stammer_machine*>(h);
+}
+
+int taptools_stammer_prepare(taptools_stammer h, double sr, double max_history_ms) {
+    if (max_history_ms <= 0.0) {
+        return -1;
+    }
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.prepare(sr, max_history_ms); });
+}
+
+int taptools_stammer_set_step_ms(taptools_stammer h, double ms) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_step_ms(ms); });
+}
+
+int taptools_stammer_set_density(taptools_stammer h, double p) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_density(p); });
+}
+
+int taptools_stammer_set_divisions(taptools_stammer h, int n) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_divisions(n); });
+}
+
+int taptools_stammer_set_repeats(taptools_stammer h, int n) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_repeats(n); });
+}
+
+int taptools_stammer_set_reverse(taptools_stammer h, double p) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_reverse(p); });
+}
+
+int taptools_stammer_set_jump_ms(taptools_stammer h, double ms) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_jump_ms(ms); });
+}
+
+int taptools_stammer_set_fade_ms(taptools_stammer h, double ms) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_fade_ms(ms); });
+}
+
+int taptools_stammer_set_seed(taptools_stammer h, unsigned long long seed) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_seed(static_cast<uint64_t>(seed)); });
+}
+
+int taptools_stammer_set_input_level(taptools_stammer h, double lin) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_input_level(lin); });
+}
+
+int taptools_stammer_set_mix(taptools_stammer h, double pct) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_mix(pct); });
+}
+
+int taptools_stammer_set_smooth_ms(taptools_stammer h, double ms) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.set_smooth_ms(ms); });
+}
+
+int taptools_stammer_clear(taptools_stammer h) {
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.clear(); });
+}
+
+int taptools_stammer_playing(taptools_stammer h) {
+    stammer_machine* m = static_cast<stammer_machine*>(h);
+    return m ? (m->playing() ? 1 : 0) : -1;
+}
+
+int taptools_stammer_process(taptools_stammer h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<stammer_machine>(h, [&](stammer_machine& m) { m.process(in, out, static_cast<size_t>(n)); });
 }
 
 // ---- tap.airport~ --------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 # Plan — the Radiohead family
 
-> **Status: in progress — `tap.tapecho~` has shipped end-to-end (2026-08-15); the rest is
-> plan.** This is the drafting record of the 2026-08-15 survey ("are there
+> **Status: in progress — `tap.tapecho~` has shipped end-to-end and `tap.stammer~`'s kernel
+> has landed (both 2026-08-15); the rest is plan.** This is the drafting record of the 2026-08-15 survey ("are there
 > Radiohead-inspired objects we should consider?"), amended the same day against the Eno
 > components wave (`d4cf28a`) before any code was written. It stays after the objects ship,
 > the plans-directory way; per-chapter drafting records will follow separately when the book
@@ -31,7 +31,7 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 | Object | Kernel | Recreates | Standing on | Status |
 |--------|--------|-----------|-------------|--------|
 | `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel + Max vertical slice); chapter pending |
-| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | planned |
+| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ kernel shipped 2026-08-15; Max slice + chapter pending |
 | `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom, `vco.h`/`vca.h` | planned — gated on source collection |
 | `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic | planned |
 | `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
@@ -112,7 +112,23 @@ the C ABI in the notebook. Measured at ship: per-pass generation loss within 0.2
 analytic wear transfer on both sides of the corner; wow 10.91 cents measured against 10.88
 predicted; every past-unity drive setting plateaus under its analytic ceiling.
 
-### 2. `tap.stammer~` — the live stutter rig *(second; the most "us")*
+### 2. `tap.stammer~` — the live stutter rig *(second; the most "us")* — ✅ kernel shipped
+
+> **Shipped 2026-08-15**: `include/taptools/stammer.h` (the planned `capture` + `slicer` split
+> under a thin `machine`), `tests/stammer_test.cpp` (9 scenarios), the C ABI + ctypes surface
+> (`Stammer`), the executed `notebooks/stammer.ipynb`, and three more `radiohead_render`
+> scenarios. The design decision worth carrying: the suite and the notebook both lean on a
+> **pinned-dice identity** — with density 1, whole-step slices, one forward pass and no flank,
+> the machine must reduce to *exactly* a one-step delay, bitwise. One identity pins the grid
+> countdown, the slice origin and the playback head together, which is far stronger than
+> testing three off-by-ones separately. The capture/slicer split is a component boundary for
+> composition and testing only: a slicer needs a capture, so (like tapecho.h's `head`) it is
+> honestly documented as not standalone-external material. Measured at ship: the identity holds
+> bitwise; a seed replays bit-identically while a different seed changes 89% of samples; at
+> density 0 the rng is provably untouched and the object is a bitwise bypass at any mix; and the
+> material contract is measured at its premise — slices of a sustained sine are 1.000 alike by
+> magnitude spectrum, slices of a plucked phrase 0.286. Still to come: the Max vertical slice
+> and the book chapter.
 
 The disintegrating guitar at the end of *Go To Sleep* and the mangling in *The Gloaming*
 come from Greenwood's own Max patches: capture the live input, re-fire randomized slices

@@ -22,6 +22,7 @@
 #include "nr.h"
 #include "overdrive.h"
 #include "spectra.h"
+#include "stammer.h"
 #include "stft.h"
 #include "svf.h"
 #include "swing_vca.h"
