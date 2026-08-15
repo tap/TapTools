@@ -520,6 +520,29 @@ TAPTOOLS_API int taptools_gardener_tick(taptools_gardener h, int loop_samples, d
 /// Stateless enough to need no handle: snap MIDI semitones to the nearest pitch in root/scale.
 TAPTOOLS_API double taptools_scale_quantize(double pitch, int root, int scale);
 
+// ---- per-voice taps (tap.chime.voices~) ----------------------------------------------------------
+
+/// Render n samples of each of the rack's voices, RAW — before each bell's seat is applied.
+/// `out` is voice-major and must hold voices*n doubles: voice v's block starts at out[v*n].
+/// `voices` beyond the rack's pool are filled with silence. This is the same advance as
+/// taptools_chime_process; take one or the other for a given span, never both.
+TAPTOOLS_API int taptools_chime_process_voices(taptools_chime h, double* out, int voices, int n);
+
+/// Which tube a voice is holding (Hz, 0 if never struck), how loudly, and the seat gains that
+/// taptools_chime_process would multiply its mono sum by.
+TAPTOOLS_API double taptools_chime_voice_hz(taptools_chime h, int voice);
+TAPTOOLS_API double taptools_chime_voice_level(taptools_chime h, int voice);
+TAPTOOLS_API double taptools_chime_voice_gain_left(taptools_chime h, int voice);
+TAPTOOLS_API double taptools_chime_voice_gain_right(taptools_chime h, int voice);
+
+// ---- tap.period (tap::tools::airport::composite_period_seconds) ----------------------------------
+
+/// How long until a set of free-running loops realigns, in seconds — the lcm of their lengths
+/// once each is quantized to the sample grid exactly as a reel would quantize it. Returns +inf
+/// when the lcm leaves the 64-bit range (which incommensurate lengths reach fast, and which is
+/// the point of the piece), and 0 on degenerate input.
+TAPTOOLS_API double taptools_composite_period_seconds(const double* loop_seconds, int count, double sr);
+
 #ifdef __cplusplus
 }
 #endif

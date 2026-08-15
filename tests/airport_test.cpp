@@ -352,3 +352,28 @@ SCENARIO("unprepared, a lone lane is silent and leaves the busses alone") {
     REQUIRE(r == -1.0);
     REQUIRE(ln.phase() == 0.0);
 }
+
+SCENARIO("the composite period is the same arithmetic whether a bank asks it or a patch does") {
+    // tap.period exists because a patch of independent tap.reel~ has no bank to ask when the
+    // whole system realigns. It must be the SAME arithmetic, so the free function is pinned on
+    // the cases the bank scenario already establishes.
+    const long pair[2] = {24000, 30000}; // gcd 6000 -> lcm 120000 samples = 2.5 s at 48k
+    REQUIRE(tap::tools::airport::composite_period_seconds(pair, 2, k_sr) == 2.5);
+
+    // And it agrees with a bank configured to those same lengths, lane for lane.
+    loop_bank b = make();
+    b.set_loops(2);
+    b.set_length_seconds(0, 0.5);
+    b.set_length_seconds(1, 0.625);
+    const long from_lanes[2] = {b.lane(0).loop_samples(), b.lane(1).loop_samples()};
+    REQUIRE(tap::tools::airport::composite_period_seconds(from_lanes, 2, k_sr) == b.composite_period_seconds());
+
+    // Incommensurate lengths leave the 64-bit range, and that is the point of the piece.
+    const long awkward[7] = {854401, 916801, 1022401, 1147201, 1257601, 1377601, 1483201};
+    REQUIRE(std::isinf(tap::tools::airport::composite_period_seconds(awkward, 7, k_sr)));
+
+    // Degenerate input answers zero rather than dividing by something.
+    REQUIRE(tap::tools::airport::composite_period_seconds(pair, 0, k_sr) == 0.0);
+    REQUIRE(tap::tools::airport::composite_period_seconds(nullptr, 2, k_sr) == 0.0);
+    REQUIRE(tap::tools::airport::composite_period_seconds(pair, 2, 0.0) == 0.0);
+}

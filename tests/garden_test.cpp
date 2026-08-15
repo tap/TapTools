@@ -820,3 +820,73 @@ SCENARIO("the gardener touches its rng only while idling") {
     REQUIRE(other_ever_differs);
     REQUIRE(plants > 0); // the wind really did blow
 }
+
+SCENARIO("the per-voice taps summed through their seats are the stereo rack") {
+    // tap.chime.voices~ hands you the sixteen bells raw, before their seats are applied. The
+    // claim that costs nothing to make and something to check: put them back through the seats
+    // and you have tap.chime~ again, to the bit. Two racks driven identically, one asked for
+    // its stereo pair and one for its voices.
+    rack stereo;
+    rack split;
+    stereo.prepare(k_sr);
+    split.prepare(k_sr);
+    for (rack* r : {&stereo, &split}) {
+        r->set_times(0.002, 3.0);
+        r->set_material(material_chime);
+        r->set_spread(0.8); // a wide rack, so the seats are doing real work
+    }
+
+    std::array<double, k_voices> taps{};
+    bool                         exact = true;
+    double                       pk    = 0.0;
+    const size_t                 gap   = at(0.02);
+    for (int strike = 0; strike < 20; ++strike) { // past sixteen, so stealing is under test too
+        const double pitch = 52.0 + 2.7 * static_cast<double>(strike);
+        const double vel   = 0.3 + 0.03 * static_cast<double>(strike % 8);
+        stereo.strike(pitch, vel, 0.9);
+        split.strike(pitch, vel, 0.9);
+
+        for (size_t i = 0; i < gap; ++i) {
+            double ls = 0.0, rs = 0.0;
+            stereo.process(ls, rs);
+
+            split.process_voices(taps.data(), k_voices);
+            double lv = 0.0, rv = 0.0;
+            for (int v = 0; v < k_voices; ++v) {
+                lv += taps[static_cast<size_t>(v)] * split.voice_gain_left(v);
+                rv += taps[static_cast<size_t>(v)] * split.voice_gain_right(v);
+            }
+
+            exact = exact && (lv == ls) && (rv == rs);
+            pk    = std::max(pk, std::abs(ls));
+        }
+    }
+    REQUIRE(exact);
+    REQUIRE(pk > 0.05); // and the two agreed about a rack, not about silence
+}
+
+SCENARIO("a voice reports which tube it is holding") {
+    rack rk;
+    rk.prepare(k_sr);
+    rk.set_times(0.002, 4.0);
+    rk.set_spread(0.0);
+
+    REQUIRE(rk.voice_hz(0) == 0.0); // nothing struck yet
+    rk.strike(69.0, 0.9, 1.0);      // A440 lands on the first idle bell
+    CHECK(std::abs(rk.voice_hz(0) - 440.0) < 1e-9);
+
+    // Out-of-range indices answer zero rather than reading past the pool.
+    CHECK(rk.voice_hz(-1) == 0.0);
+    CHECK(rk.voice_hz(k_voices) == 0.0);
+    CHECK(rk.voice_level(k_voices) == 0.0);
+
+    // process_voices zeroes anything asked for beyond the pool rather than leaving it stale.
+    std::array<double, k_voices + 4> taps{};
+    for (auto& t : taps) {
+        t = 1.0;
+    }
+    rk.process_voices(taps.data(), k_voices + 4);
+    for (int i = k_voices; i < k_voices + 4; ++i) {
+        CHECK(taps[static_cast<size_t>(i)] == 0.0);
+    }
+}

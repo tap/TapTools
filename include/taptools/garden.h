@@ -288,13 +288,14 @@ namespace tap::tools {
                     m_gain_l = m_gain_l_target;
                     m_gain_r = m_gain_r_target;
                 }
-                const size_t   mat      = static_cast<size_t>(std::clamp(material, 0, k_num_materials - 1));
-                const uint64_t tube     = tube_key(freq_hz);
-                const double   hardness = k_hardness_floor + (1.0 - k_hardness_floor) * std::clamp(level, 0.0, 1.0);
-                const double   b        = std::clamp(brightness, 0.0, 1.0) * hardness;
-                const double   ring     = std::clamp(std::sqrt(440.0 / freq_hz), k_ring_scale_min, k_ring_scale_max);
-                const double   split    = std::exp2(k_doublet_cents / 2400.0); // half the split, up and down
-                double         shine    = 1.0;                                 // b^0, b^1, b^2, b^3 per mode
+                const size_t   mat    = static_cast<size_t>(std::clamp(material, 0, k_num_materials - 1));
+                const uint64_t tube   = tube_key(freq_hz);
+                m_freq_hz             = freq_hz; // which tube this bell is holding, for per-voice callers
+                const double hardness = k_hardness_floor + (1.0 - k_hardness_floor) * std::clamp(level, 0.0, 1.0);
+                const double b        = std::clamp(brightness, 0.0, 1.0) * hardness;
+                const double ring     = std::clamp(std::sqrt(440.0 / freq_hz), k_ring_scale_min, k_ring_scale_max);
+                const double split    = std::exp2(k_doublet_cents / 2400.0); // half the split, up and down
+                double       shine    = 1.0;                                 // b^0, b^1, b^2, b^3 per mode
                 for (int m = 0; m < k_modes; ++m) {
                     const size_t i = static_cast<size_t>(m);
                     const double scatter =
@@ -316,8 +317,11 @@ namespace tap::tools {
                 return sum;
             }
 
-            /// Sum this chime, panned to its seat, into the running busses.
-            void process(double& out_left, double& out_right) {
+            /// Advance this chime one sample and return its RAW mono sum, before the seat is
+            /// applied — the tube as it would sound with your ear against it. The seat still
+            /// glides on this call, so the two process paths stay in step and a caller that
+            /// wants the dry voice does not have to give up the panning state.
+            double process_mono() {
                 double sum = 0.0;
                 for (size_t i = 0; i < static_cast<size_t>(k_modes); ++i) {
                     m_phase_a[i] += m_inc_a[i];
@@ -329,15 +333,32 @@ namespace tap::tools {
                 }
                 m_gain_l += m_pan_coeff * (m_gain_l_target - m_gain_l);
                 m_gain_r += m_pan_coeff * (m_gain_r_target - m_gain_r);
+                return sum;
+            }
+
+            /// Sum this chime, panned to its seat, into the running busses.
+            void process(double& out_left, double& out_right) {
+                const double sum = process_mono();
                 out_left += sum * m_gain_l;
                 out_right += sum * m_gain_r;
             }
+
+            /// The seat gains this chime is currently sounding at — what process() multiplies
+            /// the mono sum by, so a caller holding the dry voice can rebuild the rack image.
+            double gain_left() const { return m_gain_l; }
+            double gain_right() const { return m_gain_r; }
+
+            /// The fundamental this chime was last struck at, in Hz (0 before any strike). The
+            /// pool reassigns bells as it steals, so this is how a caller knows which tube a
+            /// given voice is currently holding.
+            double frequency() const { return m_freq_hz; }
 
           private:
             double                                m_sr{48000.0};
             double                                m_attack_s{k_default_attack_s};
             double                                m_decay_s{k_default_decay_s};
             double                                m_pan_coeff{1.0};
+            double                                m_freq_hz{0.0};
             double                                m_gain_l{0.0};
             double                                m_gain_r{0.0};
             double                                m_gain_l_target{0.0};
@@ -460,12 +481,37 @@ namespace tap::tools {
                 }
             }
 
+            /// Per-voice mono taps: one sample per bell, RAW — before each bell's seat is
+            /// applied — written into `out`, which must hold at least `count` doubles (extra
+            /// entries beyond k_voices are zeroed). This is the same advance as process(); a
+            /// caller takes one or the other on a given sample, never both.
+            ///
+            /// Summing these back through voice_gain_left/right reproduces process() exactly,
+            /// which is what the pinned scenario checks. The point of taking them apart is that
+            /// you do not have to: place, filter, or gate each tube yourself.
+            void process_voices(double* out, int count) {
+                for (int i = 0; i < count; ++i) {
+                    out[static_cast<size_t>(i)] = (i < k_voices) ? m_bells[static_cast<size_t>(i)].process_mono() : 0.0;
+                }
+            }
+
             int active_voices() const {
                 int n = 0;
                 for (const auto& v : m_bells) {
                     n += (v.level() > k_gain_epsilon) ? 1 : 0;
                 }
                 return n;
+            }
+
+            /// Which tube a given voice is currently holding, and how loudly — the pool
+            /// reassigns bells as it steals, so voice i is whatever was last put there.
+            double voice_hz(int i) const { return valid_voice(i) ? m_bells[static_cast<size_t>(i)].frequency() : 0.0; }
+            double voice_level(int i) const { return valid_voice(i) ? m_bells[static_cast<size_t>(i)].level() : 0.0; }
+            double voice_gain_left(int i) const {
+                return valid_voice(i) ? m_bells[static_cast<size_t>(i)].gain_left() : 0.0;
+            }
+            double voice_gain_right(int i) const {
+                return valid_voice(i) ? m_bells[static_cast<size_t>(i)].gain_right() : 0.0;
             }
 
             double attack_s() const { return m_attack_s; }
@@ -475,6 +521,8 @@ namespace tap::tools {
             double samplerate() const { return m_sr; }
 
           private:
+            static bool valid_voice(int i) { return i >= 0 && i < k_voices; }
+
             double                     m_sr{48000.0};
             double                     m_attack_s{k_default_attack_s};
             double                     m_decay_s{k_default_decay_s};

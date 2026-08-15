@@ -373,6 +373,12 @@ def load() -> ctypes.CDLL:
         "taptools_gardener_tick":          ([vp, ctypes.c_int, f64p, f64p], ctypes.c_int),
         "taptools_scale_quantize":         ([ctypes.c_double, ctypes.c_int, ctypes.c_int],
                                             ctypes.c_double),
+        "taptools_chime_process_voices":   ([vp, f64p, ctypes.c_int, ctypes.c_int], ctypes.c_int),
+        "taptools_chime_voice_hz":         ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_chime_voice_level":      ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_chime_voice_gain_left":  ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_chime_voice_gain_right": ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_composite_period_seconds": ([f64p, ctypes.c_int, ctypes.c_double], ctypes.c_double),
         "taptools_yin_create":             ([ctypes.c_int, ctypes.c_int, ctypes.c_int], vp),
         "taptools_yin_destroy":            ([vp], None),
         "taptools_yin_frame_size":         ([vp], ctypes.c_int),
@@ -1505,6 +1511,31 @@ class Chime:
         _check(_LIB.taptools_chime_process(self._h, _p64(out_l), _p64(out_r), out_l.size), "process")
         return out_l, out_r
 
+    VOICES = 16
+
+    def process_voices(self, n: int, voices: int = 16):
+        """Render n samples of each voice, RAW — before each bell's seat is
+        applied. Returns a (voices, n) array. This is the same advance as
+        process(); take one or the other for a given span, never both."""
+        out = np.zeros((int(voices), int(n)))
+        _check(_LIB.taptools_chime_process_voices(self._h, _p64(out), int(voices), int(n)),
+               "process_voices")
+        return out
+
+    def voice_hz(self, voice: int) -> float:
+        """Which tube this voice is holding, in Hz (0 if never struck). The pool
+        reassigns bells as it steals, so voice i is whatever was last put there."""
+        return float(_LIB.taptools_chime_voice_hz(self._h, int(voice)))
+
+    def voice_level(self, voice: int) -> float:
+        return float(_LIB.taptools_chime_voice_level(self._h, int(voice)))
+
+    def voice_gains(self, voice: int):
+        """The seat gains process() would multiply this voice's mono sum by —
+        enough to rebuild the stereo rack from the per-voice taps."""
+        return (float(_LIB.taptools_chime_voice_gain_left(self._h, int(voice))),
+                float(_LIB.taptools_chime_voice_gain_right(self._h, int(voice))))
+
     def clear(self) -> None:
         _check(_LIB.taptools_chime_clear(self._h), "clear")
 
@@ -1626,6 +1657,17 @@ class Gardener:
         if h:
             _LIB.taptools_gardener_destroy(h)
             self._h = None
+
+
+def composite_period_seconds(loop_seconds, sr: float = 48000.0) -> float:
+    """How long until a set of free-running loops realigns, in seconds — the lcm
+    of their lengths once each is quantized to the sample grid exactly as a reel
+    would quantize it. Returns inf once the lcm leaves the 64-bit range, which
+    incommensurate lengths reach fast; that is the point, not a failure. This is
+    what `tap.period` wraps, and what `Airport.composite_period_seconds` reports
+    for a bank."""
+    x = _f64(np.asarray(loop_seconds, dtype=float).ravel())
+    return float(_LIB.taptools_composite_period_seconds(_p64(x), x.size, float(sr)))
 
 
 def scale_quantize(pitch, root: int = 0, scale: int = 3):

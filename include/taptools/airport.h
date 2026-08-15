@@ -71,6 +71,46 @@ namespace tap::tools {
         constexpr double k_default_max_seconds = 30.0; // worst case per loop (~92 MB total @ 48k)
         constexpr double k_default_smooth_ms   = 20.0; // anti-zipper ramp for level/pan/darken
 
+        /// The sample count a reel uses for a length in seconds — the same floor and the same
+        /// rounding the reel itself applies. Anything that needs to reason about a reel's grid
+        /// without holding one (tap.period, asked about a patch of reels it cannot see) goes
+        /// through here, so the two can never quietly disagree.
+        inline long loop_samples_for(double seconds, double sr) {
+            const double rate = (sr > 0.0) ? sr : 48000.0;
+            return static_cast<long>(std::ceil(std::max(k_min_loop_seconds, seconds) * rate));
+        }
+
+        /// Least common multiple of a set of loop lengths (in SAMPLES), expressed in seconds —
+        /// how long until a bank of free-running loops realigns. Informational; returns +inf on
+        /// 64-bit overflow, which incommensurate lengths reach fast, and that is the point of the
+        /// piece rather than a failure. Free-standing so anything holding a set of lengths can ask
+        /// the question — a loop_bank asks it of its own lanes, and tap.period asks it of a patch
+        /// of independent tap.reel~ that has no bank to ask.
+        inline double composite_period_seconds(const long* loop_samples, int count, double sr) {
+            if (loop_samples == nullptr || count < 1 || sr <= 0.0) {
+                return 0.0;
+            }
+            long long acc = 1;
+            for (int i = 0; i < count; ++i) {
+                const long long n = static_cast<long long>(loop_samples[i]);
+                if (n < 1) {
+                    return 0.0;
+                }
+                long long a = acc;
+                long long b = n;
+                while (b != 0) { // gcd
+                    const long long t = a % b;
+                    a                 = b;
+                    b                 = t;
+                }
+                if (acc / a > std::numeric_limits<long long>::max() / n) {
+                    return std::numeric_limits<double>::infinity();
+                }
+                acc = acc / a * n;
+            }
+            return static_cast<double>(acc) / sr;
+        }
+
         /// One free-running tape loop: a single head that both plays and records, its playback
         /// shaded, leveled, and panned to a seat. A `loop_bank` is an array of these and nothing
         /// more; one on its own is a complete instrument (tap.reel~), and the head is just as
@@ -216,7 +256,7 @@ namespace tap::tools {
 
           private:
             long smooth_samples() const { return static_cast<long>(m_smooth_ms * 0.001 * m_sr); }
-            long seconds_to_samples(double s) const { return static_cast<long>(std::ceil(s * m_sr)); }
+            long seconds_to_samples(double s) const { return loop_samples_for(s, m_sr); }
 
             tape::reel m_tape;
             tape::wear m_shade;      // playback tone only: drive stays 0, bypassed at ceiling
@@ -335,16 +375,11 @@ namespace tap::tools {
                 if (!prepared() || m_num_loops < 1) {
                     return 0.0;
                 }
-                long long acc = 1;
+                std::array<long, k_max_loops> lengths{};
                 for (int i = 0; i < m_num_loops; ++i) {
-                    const long long n = static_cast<long long>(lane(i).loop_samples());
-                    const long long g = gcd_ll(acc, n);
-                    if (acc / g > std::numeric_limits<long long>::max() / n) {
-                        return std::numeric_limits<double>::infinity();
-                    }
-                    acc = acc / g * n;
+                    lengths[static_cast<size_t>(i)] = lane(i).loop_samples();
                 }
-                return static_cast<double>(acc) / m_sr;
+                return airport::composite_period_seconds(lengths.data(), m_num_loops, m_sr);
             }
 
             // -- audio ---------------------------------------------------------------------------
@@ -370,15 +405,6 @@ namespace tap::tools {
             }
 
           private:
-            static long long gcd_ll(long long a, long long b) {
-                while (b != 0) {
-                    const long long t = a % b;
-                    a                 = b;
-                    b                 = t;
-                }
-                return a;
-            }
-
             bool  valid_loop(int index) const { return index >= 0 && index < k_max_loops; }
             loop& lane_ref(int index) { return m_loops[static_cast<size_t>(std::clamp(index, 0, k_max_loops - 1))]; }
 
