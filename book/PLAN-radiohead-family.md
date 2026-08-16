@@ -33,7 +33,7 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 | `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom (maths only — see the source hunt), `vco.h`/`vca.h` | planned — sources identified, full texts still needed |
-| `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic | planned |
+| `tap.fuzz~` | `fuzz.h` | Two-stage tone-stacked fuzz (the OK Computer-era dirt) | `overdrive.h` sibling; the DAFx-07 cascade | ✅ kernel shipped 2026-08-15; Max slice, notebook, chapter pending |
 | `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
 
 Parked (surveyed, deliberately not planned): a spectral freeze on the `stft.h` scaffold
@@ -222,7 +222,36 @@ and automated retrieval is blocked (HAL sits behind an anti-bot wall; the IEEE p
 paywalled). The remaining step is manual access to those three PDFs, which is a
 five-minute job for someone with institutional access and not something to fake around.
 
-### 4. `tap.fuzz~` — the ShredMaster school *(small, parallel-friendly)*
+### 4. `tap.fuzz~` — the two-stage fuzz *(small, parallel-friendly)* — ✅ kernel shipped
+
+> **Shipped 2026-08-15**: `include/taptools/fuzz.h` (`stage` + `tone` under a thin `pedal`),
+> `tests/fuzz_test.cpp` (9 scenarios), and the C ABI + ctypes surface (`Fuzz`). The name
+> question closed: **`tap.fuzz~`**, generic, per the trademark posture below.
+>
+> The method is Yeh, Abel & Smith's DAFx-07 *simplified cascade* — conditioning filter →
+> memoryless nonlinearity → equalization filter, twice — which is a stronger footing than
+> the plan assumed: it supplies the architecture, the justification for a static curve
+> (the diode limiter's exact ODE is a lowpass whose pole moves with voltage), the curve
+> family (tanh), and the reason `asymmetry` exists (a real op-amp stage clips
+> asymmetrically, producing the even harmonics an odd-only model cannot).
+>
+> **Two defects found by measurement, both worth carrying:**
+> 1. *Gain staging.* The first cut had the second stage fully clipped at `gain` 0 — the
+>    knob did nothing above about 0.2 — because the tanh family's small-signal slope is
+>    `knee/tanh(knee)` (~3 at the original knee) and that multiplied into a fixed ×2.2.
+>    Retuned; the harmonic ratio now sweeps 0.010 → 0.358 across the knob.
+> 2. *The house oversampler is not steep enough here.* With the 4th-order Butterworth that
+>    `tap.ladder~` / `overdrive.h` use, alias energy fell from 1× to 2× and then **rose**
+>    at 4× and 8×. Replaced with 8th order, which restores the monotone improvement.
+>    Whether `overdrive.h` is owed the same change is a live question — different
+>    nonlinearity, different gain structure, so it needs its own measurement rather than
+>    this one's conclusion.
+>
+> Two test-design errors were also caught and are recorded in the suite itself, since both
+> are easy to repeat: an alias test whose tone divided the sample rate (every fold lands on
+> a harmonic and is invisible), and probe frequencies close enough to the fundamental to
+> measure window leakage rather than aliasing. Still to come: the notebook, a render
+> scenario, the Max vertical slice, and the chapter.
 
 The OK Computer-era dirt (*Paranoid Android*, *My Iron Lung*). A circuit-informed
 recreation from the widely published schematic — cascaded clipping stages plus its

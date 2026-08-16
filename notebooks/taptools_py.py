@@ -17,7 +17,7 @@ tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
 tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), the Discreet Music
 two-machine tape loop tap.discreet~ (`Discreet`), the multi-head tape echo
 tap.tapecho~ (`TapEcho`), the live buffer-stutter rig tap.stammer~
-(`Stammer`), the Music for Airports
+(`Stammer`), the two-stage fuzz tap.fuzz~ (`Fuzz`), the Music for Airports
 incommensurate loop bank tap.airport~ (`Airport`), the generative event
 loop tap.garden~ (`Garden`), and tap.tune~'s pitch corrector (`Tune`, with
 the shared DspTap detector passed through as `Yin` for the notebooks'
@@ -304,6 +304,21 @@ def load() -> ctypes.CDLL:
         "taptools_tapecho_set_smooth_ms":  ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_tapecho_clear":          ([vp], ctypes.c_int),
         "taptools_tapecho_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+
+        "taptools_fuzz_create":            ([], vp),
+        "taptools_fuzz_destroy":           ([vp], None),
+        "taptools_fuzz_prepare":           ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_gain":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_edge":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_asymmetry":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_bass":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_treble":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_contrast":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_level_db":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_set_oversample":    ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_fuzz_set_smooth_ms":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_fuzz_clear":             ([vp], ctypes.c_int),
+        "taptools_fuzz_process":           ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
 
         "taptools_stammer_create":         ([], vp),
         "taptools_stammer_destroy":        ([vp], None),
@@ -1356,6 +1371,52 @@ class TapEcho:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_tapecho_destroy(h)
+            self._h = None
+
+
+class Fuzz:
+    """tap.fuzz~'s kernel (tap::tools::fuzz::pedal): a two-stage, tone-stacked
+    distortion built on the Yeh/Abel/Smith DAFx-07 simplified cascade
+    (conditioning filter -> memoryless nonlinearity -> equalization filter,
+    twice), with a bass / contrast / treble voicing section outside the
+    nonlinearity. `gain` sweeps the first stage's drive, `edge` the second
+    stage's knee sharpness, `asymmetry` buys even harmonics. The clipper pair
+    runs oversampled (1/2/4/8x, default 4). A recreation of a circuit class,
+    not a component model of any one pedal."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_fuzz_create()
+        _check(_LIB.taptools_fuzz_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, gain=None, edge=None, asymmetry=None, bass=None, treble=None,
+            contrast=None, level_db=None, oversample=None, smooth_ms=None) -> "Fuzz":
+        # configuration first, so ramped targets in the same call honor the new slew
+        if oversample is not None:
+            _check(_LIB.taptools_fuzz_set_oversample(self._h, int(oversample)), "oversample")
+        if smooth_ms is not None:
+            _check(_LIB.taptools_fuzz_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        for name, value in (("gain", gain), ("edge", edge), ("asymmetry", asymmetry),
+                            ("bass", bass), ("treble", treble), ("contrast", contrast),
+                            ("level_db", level_db)):
+            if value is not None:
+                _check(getattr(_LIB, "taptools_fuzz_set_" + name)(self._h, float(value)), name)
+        return self
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_fuzz_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        """Flush the filters and the oversampling chain; parameters are kept."""
+        _check(_LIB.taptools_fuzz_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_fuzz_destroy(h)
             self._h = None
 
 
