@@ -1,6 +1,7 @@
 # Plan — `tap.ondes~`, after reading the sources
 
-> **Status: design, not yet implemented.** The source gate is closed —
+> **Status: in progress — `touche` shipped 2026-08-15 as `tap.touche~` (kernel side); the rest
+> is design.** The source gate is closed —
 > `PLAN-radiohead-family.md` §3 records what was found and how far each paper was read. This
 > file is the design pass those findings forced, written before any code, because what the
 > papers describe is **not the object the family plan sketched**.
@@ -38,7 +39,27 @@ standalone externals from the start:
 wants an ondes. That is worth designing for rather than discovering later, per the components
 chapter's lesson.
 
-## `touche` — fully specified, build it first
+## `touche` — ✅ shipped
+
+> **Shipped 2026-08-15**: `include/taptools/touche.h`, `tests/touche_test.cpp` (11 scenarios),
+> the C ABI + ctypes surface (`Touche`), the executed `notebooks/touche.ipynb`, and a
+> `radiohead_render` scenario putting the curve against the two laws you would otherwise reach
+> for. The seven published points come back to within 6e-5 dB.
+>
+> Two implementation notes worth carrying. **The normalized domain is the physical travel, not
+> the measured band** — an early cut mapped 0..1 onto 4.3–8.8 mm, which put position 0 exactly
+> on the first published point *and* returned silence there, contradicting the measurement. The
+> paper puts playable gestures at roughly 3–9.5 mm with the measured band inside, so position
+> now spans 9.5 mm and the bottom 45 % is genuinely silent (the key's first phase is bending
+> before it reaches the powder bag). **And the dead zone belongs in the lookup, not the table**:
+> zeroing dense-table entries below the floor put a cliff next to it, so a query landing on the
+> floor lerped toward zero and read 4.2 dB low. Both were caught by the reproduce-the-table
+> test, which is exactly what that test is for.
+>
+> Still to come for this piece: the Max vertical slice and a chapter (probably folded into an
+> Ondes-family chapter once more of the instrument exists, rather than one chapter per part).
+
+## The design (as written before implementation)
 
 The measurement is in `PLAN-radiohead-family.md`; the design consequences:
 

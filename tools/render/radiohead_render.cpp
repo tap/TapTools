@@ -1,6 +1,7 @@
 /// @file
 /// @brief      Offline renderer for the Radiohead family — writes demo WAVs for listening checks.
-/// @details    Exercises tapecho.h, stammer.h and fuzz.h with no Max involved (the kernels' portability, demonstrated).
+/// @details    Exercises tapecho.h, stammer.h, fuzz.h and touche.h with no Max involved (the kernels' portability,
+/// demonstrated).
 ///             The tape echo is a *performed* effect, so these scenarios move the controls while
 ///             they render rather than auditioning static settings — that is the only way to hear
 ///             what the kernel is actually for.
@@ -20,7 +21,10 @@
 ///             performance); and `fuzz_gain_sweep` (five gain settings back to back, so the
 ///             sweep from edge-of-breakup to saturated is audible rather than described),
 ///             `fuzz_tone` (the voicing section, which is most of that pedal class's identity),
-///             and `fuzz_edge_and_bite` (the knee sharpening, then the even harmonics coming in).
+///             and `fuzz_edge_and_bite` (the knee sharpening, then the even harmonics coming
+///             in); and `touche_against_a_fade`, which swells one note three times — a linear
+///             fade, a fade linear in dB, and the Ondes Martenot's published intensity-key
+///             curve — because the measured law is audibly neither of the obvious two.
 ///
 ///             Usage: radiohead_render [output-directory]   (default: current directory)
 /// @author     Timothy Place
@@ -37,6 +41,7 @@
 #include <taptools/fuzz.h>
 #include <taptools/stammer.h>
 #include <taptools/tapecho.h>
+#include <taptools/touche.h>
 
 namespace {
 
@@ -421,6 +426,50 @@ namespace {
         write_scenario(dir + "/fuzz_edge_and_bite.wav", mono, 0.7, 1);
     }
 
+    // ---- tap.touche~ -----------------------------------------------------------------------------
+
+    /// The intensity key against the obvious alternative. The same note is swelled and released
+    /// three times: once through a straight linear fade, once through a straight fade in dB, and
+    /// once through the published curve. The point is that the measured law is neither — it
+    /// steepens through the middle of the travel and flattens at the top, which is what lets a
+    /// player place a crescendo where they want it instead of where the taper puts it.
+    void touche_against_a_fade(const std::string& dir) {
+        tap::tools::touche::key k;
+        k.prepare(k_r_sr);
+        k.set_smooth_ms(0.0);
+
+        const double        gesture = 3.0; // seconds up, then the same back down
+        const size_t        frames  = static_cast<size_t>(2.0 * gesture * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(3 * frames);
+
+        for (int law = 0; law < 3; ++law) {
+            double phase = 0.0;
+            for (size_t i = 0; i < frames; ++i) {
+                const double t = static_cast<double>(i) / k_r_sr;
+                // A triangle over the gesture: press in, release out.
+                const double u = (t < gesture) ? (t / gesture) : (2.0 - t / gesture);
+                // A steady tone, so the only thing moving is the gain law.
+                phase += 220.0 / k_r_sr;
+                phase -= std::floor(phase);
+                const double tone = 0.4 * std::sin(2.0 * k_r_pi * phase);
+
+                double g = 0.0;
+                if (law == 0) {
+                    g = u; // linear in amplitude
+                }
+                else if (law == 1) {
+                    g = (u <= 0.0) ? 0.0 : std::pow(10.0, (-50.0 * (1.0 - u)) / 20.0); // linear in dB
+                }
+                else {
+                    g = k.gain_at(u); // the published curve
+                }
+                mono.push_back(tone * g);
+            }
+        }
+        write_scenario(dir + "/touche_against_a_fade.wav", mono, 0.9, 1);
+    }
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -435,5 +484,6 @@ int main(int argc, char** argv) {
     fuzz_gain_sweep(dir);
     fuzz_tone(dir);
     fuzz_edge_and_bite(dir);
+    touche_against_a_fade(dir);
     return 0;
 }

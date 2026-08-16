@@ -28,6 +28,7 @@ add_executable(taptools_kernel_tests
     step_seq_test.cpp
     stammer_test.cpp
     tapecho_test.cpp
+    touche_test.cpp
     tune_test.cpp
     tr808_clap_test.cpp
     tr808_cymbal_test.cpp
