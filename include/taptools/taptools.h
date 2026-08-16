@@ -37,6 +37,7 @@
 #include "tr808_kick.h"
 #include "tr808_rim.h"
 #include "tr808_snare.h"
+#include "touche.h"
 #include "tr808_tom.h"
 #include "vca.h"
 #include "vco.h"

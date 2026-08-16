@@ -27,6 +27,7 @@
 #include <taptools/svf.h>
 #include <taptools/tapecho.h>
 #include <taptools/tb303_voice.h>
+#include <taptools/touche.h>
 #include <taptools/tr808_kick.h>
 #include <taptools/tune.h>
 #include <taptools/vco.h>
@@ -1227,6 +1228,69 @@ int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL,
         return -1;
     }
     return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.process(in, outL, outR, static_cast<size_t>(n)); });
+}
+
+// ---- tap.touche~ ---------------------------------------------------------------------------------
+
+using touche_key = tap::tools::touche::key;
+
+taptools_touche taptools_touche_create(void) {
+    return static_cast<taptools_touche>(new touche_key());
+}
+
+void taptools_touche_destroy(taptools_touche h) {
+    delete static_cast<touche_key*>(h);
+}
+
+int taptools_touche_prepare(taptools_touche h, double sr) {
+    return with<touche_key>(h, [&](touche_key& k) { k.prepare(sr); });
+}
+
+int taptools_touche_set_position(taptools_touche h, double p) {
+    return with<touche_key>(h, [&](touche_key& k) { k.set_position(p); });
+}
+
+int taptools_touche_set_position_mm(taptools_touche h, double mm) {
+    return with<touche_key>(h, [&](touche_key& k) { k.set_position_mm(mm); });
+}
+
+int taptools_touche_set_force_n(taptools_touche h, double n) {
+    return with<touche_key>(h, [&](touche_key& k) { k.set_force_n(n); });
+}
+
+int taptools_touche_set_mode(taptools_touche h, int mode) {
+    return with<touche_key>(h, [&](touche_key& k) { k.set_mode(mode); });
+}
+
+int taptools_touche_set_smooth_ms(taptools_touche h, double ms) {
+    return with<touche_key>(h, [&](touche_key& k) { k.set_smooth_ms(ms); });
+}
+
+int taptools_touche_clear(taptools_touche h) {
+    return with<touche_key>(h, [&](touche_key& k) { k.clear(); });
+}
+
+double taptools_touche_gain_at(taptools_touche h, double p) {
+    const touche_key* k = static_cast<const touche_key*>(h);
+    return k ? k->gain_at(p) : std::nan("");
+}
+
+int taptools_touche_process(taptools_touche h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<touche_key>(h, [&](touche_key& k) { k.process(in, out, static_cast<size_t>(n)); });
+}
+
+int taptools_touche_process_mod(taptools_touche h, const double* in, const double* position, double* out, int n) {
+    if (!in || !position || !out || n < 0) {
+        return -1;
+    }
+    return with<touche_key>(h, [&](touche_key& k) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = k.process(in[i], position[i]);
+        }
+    });
 }
 
 // ---- tap.fuzz~ -----------------------------------------------------------------------------------

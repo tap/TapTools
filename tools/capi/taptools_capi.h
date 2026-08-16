@@ -393,6 +393,26 @@ TAPTOOLS_API int taptools_tapecho_clear(taptools_tapecho h);
 /// Process n samples mono-in / stereo-out (the dry path is mixed to both busses).
 TAPTOOLS_API int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL, double* outR, int n);
 
+// ---- tap.touche~ (tap::tools::touche::key) -------------------------------------------------------
+
+typedef void* taptools_touche;
+
+TAPTOOLS_API taptools_touche taptools_touche_create(void);
+TAPTOOLS_API void            taptools_touche_destroy(taptools_touche h);
+TAPTOOLS_API int             taptools_touche_prepare(taptools_touche h, double sr);
+TAPTOOLS_API int             taptools_touche_set_position(taptools_touche h, double p);     // 0..1 of the travel
+TAPTOOLS_API int             taptools_touche_set_position_mm(taptools_touche h, double mm); // published units
+TAPTOOLS_API int             taptools_touche_set_force_n(taptools_touche h, double n);
+TAPTOOLS_API int             taptools_touche_set_mode(taptools_touche h, int mode); // 0 displacement, 1 force
+TAPTOOLS_API int             taptools_touche_set_smooth_ms(taptools_touche h, double ms);
+TAPTOOLS_API int             taptools_touche_clear(taptools_touche h);
+/// The curve itself: linear gain at a normalized position (NaN on a bad handle). No state touched.
+TAPTOOLS_API double taptools_touche_gain_at(taptools_touche h, double p);
+TAPTOOLS_API int    taptools_touche_process(taptools_touche h, const double* in, double* out, int n);
+/// Signal-rate position: `position` drives the gain sample by sample.
+TAPTOOLS_API int taptools_touche_process_mod(taptools_touche h, const double* in, const double* position, double* out,
+                                             int n);
+
 // ---- tap.fuzz~ (tap::tools::fuzz::pedal) ---------------------------------------------------------
 
 typedef void* taptools_fuzz;

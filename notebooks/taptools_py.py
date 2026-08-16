@@ -17,7 +17,8 @@ tap.303.seq~ (`TriggerRow`, `NoteRow`), tap.808.kick~ (`Kick`),
 tap.delay~ (`Delay`), tap.multitap~ (`Multitap`), the Discreet Music
 two-machine tape loop tap.discreet~ (`Discreet`), the multi-head tape echo
 tap.tapecho~ (`TapEcho`), the live buffer-stutter rig tap.stammer~
-(`Stammer`), the two-stage fuzz tap.fuzz~ (`Fuzz`), the Music for Airports
+(`Stammer`), the two-stage fuzz tap.fuzz~ (`Fuzz`), the Ondes Martenot intensity
+key tap.touche~ (`Touche`), the Music for Airports
 incommensurate loop bank tap.airport~ (`Airport`), the generative event
 loop tap.garden~ (`Garden`), and tap.tune~'s pitch corrector (`Tune`, with
 the shared DspTap detector passed through as `Yin` for the notebooks'
@@ -304,6 +305,19 @@ def load() -> ctypes.CDLL:
         "taptools_tapecho_set_smooth_ms":  ([vp, ctypes.c_double], ctypes.c_int),
         "taptools_tapecho_clear":          ([vp], ctypes.c_int),
         "taptools_tapecho_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+
+        "taptools_touche_create":          ([], vp),
+        "taptools_touche_destroy":         ([vp], None),
+        "taptools_touche_prepare":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_touche_set_position":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_touche_set_position_mm": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_touche_set_force_n":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_touche_set_mode":        ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_touche_set_smooth_ms":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_touche_clear":           ([vp], ctypes.c_int),
+        "taptools_touche_gain_at":         ([vp, ctypes.c_double], ctypes.c_double),
+        "taptools_touche_process":         ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_touche_process_mod":     ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
 
         "taptools_fuzz_create":            ([], vp),
         "taptools_fuzz_destroy":           ([vp], None),
@@ -1371,6 +1385,67 @@ class TapEcho:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_tapecho_destroy(h)
+            self._h = None
+
+
+class Touche:
+    """tap.touche~'s kernel (tap::tools::touche::key): the Ondes Martenot
+    intensity key as a gain law. The curve is not modelled — it is Quartier
+    et al.'s published measurement (Acta Acustica 101(2), 2015, Table II),
+    interpolated with monotone cubic segments through all seven points: 50 dB
+    over 4.5 mm of the key's travel, referenced to 0 dB at full press.
+    `position` spans the physical 9.5 mm throw, so the bottom ~45% is silent
+    — that dead zone is the key bending before it reaches the powder bag.
+    `mode` 0 drives from displacement (primary), 1 from finger force."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_touche_create()
+        _check(_LIB.taptools_touche_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, position=None, position_mm=None, force_n=None, mode=None,
+            smooth_ms=None) -> "Touche":
+        # configuration first, so ramped targets in the same call honor the new slew
+        if mode is not None:
+            _check(_LIB.taptools_touche_set_mode(self._h, int(mode)), "mode")
+        if smooth_ms is not None:
+            _check(_LIB.taptools_touche_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        if position is not None:
+            _check(_LIB.taptools_touche_set_position(self._h, float(position)), "position")
+        if position_mm is not None:
+            _check(_LIB.taptools_touche_set_position_mm(self._h, float(position_mm)), "position_mm")
+        if force_n is not None:
+            _check(_LIB.taptools_touche_set_force_n(self._h, float(force_n)), "force_n")
+        return self
+
+    def gain_at(self, p) -> float:
+        """The curve itself: linear gain at a normalized position. No state touched."""
+        return float(_LIB.taptools_touche_gain_at(self._h, float(p)))
+
+    def curve(self, n: int = 512):
+        """The whole law as (position, linear gain) arrays — for plotting."""
+        p = np.linspace(0.0, 1.0, int(n))
+        return p, np.array([self.gain_at(v) for v in p])
+
+    def process(self, x, position=None) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        if position is None:
+            _check(_LIB.taptools_touche_process(self._h, _p64(x), _p64(out), x.size), "process")
+        else:
+            pos = _f64(position)
+            _check(_LIB.taptools_touche_process_mod(self._h, _p64(x), _p64(pos), _p64(out), x.size),
+                   "process_mod")
+        return out
+
+    def clear(self) -> None:
+        """Return the key to rest (silent)."""
+        _check(_LIB.taptools_touche_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_touche_destroy(h)
             self._h = None
 
 
