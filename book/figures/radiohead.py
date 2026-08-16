@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Generate the measured figures for the Radiohead-family book chapters.
 
-Drives the *shipping* kernels (tapecho.h, stammer.h) through the C ABI via the
+Drives the *shipping* kernels (tapecho.h, stammer.h, fuzz.h) through the C ABI via the
 notebooks' ctypes bridge — the same rule as eno.py and the verification
 notebooks: figures are measurements of the real DSP, never illustrations of
 what it should do. The companion notebooks (notebooks/tapecho.ipynb,
-stammer.ipynb) carry the same measurements with commentary; this script renders
+stammer.ipynb, fuzz.ipynb) carry the same measurements with commentary; this script renders
 the book-styled SVGs.
 
 Regenerate after a kernel behavior change:
 
-    python3 book/figures/radiohead.py   # writes book/src/images/{tapecho,stammer}/*.svg
+    python3 book/figures/radiohead.py   # writes book/src/images/{tapecho,stammer,fuzz}/*.svg
 
 Colors and rcParams are eno.py's, verbatim in intent: the house categorical
 hues with the amber snapped darker so pairs pass the print/CVD lightness-band
@@ -198,9 +198,71 @@ def material():
     plt.close(fig)
 
 
+def fuzz_curve():
+    """fuzz: the one clipping family, and its knee as a character control."""
+    x = np.linspace(-3, 3, 1201)
+    fig, ax = plt.subplots(figsize=(7.2, 2.8))
+    for k, color, label in [(0.5, INK, "0.5"), (1.6, BLUE, "1.6 — first stage"),
+                            (2.0, AMBER, "2.0 — second stage, edge 0"), (12.0, RED, "12 — edge 1")]:
+        ax.plot(x, np.tanh(k * x) / np.tanh(k), color=color, lw=1.4)
+        ax.text(3.05, np.tanh(k * 3.0) / np.tanh(k), label, color=color, fontsize=8.5, va="center")
+    ax.plot(x, x, color="0.75", lw=0.8, ls="--")
+    ax.set_xlim(-3, 4.4); ax.set_ylim(-1.6, 1.6)
+    ax.set_xlabel("input"); ax.set_ylabel("output")
+    ax.set_title("one curve, tanh(kx)/tanh(k): full scale in is full scale out at every knee")
+    fig.savefig(out_dir("fuzz") / "curve.svg", bbox_inches="tight")
+    plt.close(fig)
+
+
+def fuzz_gain_and_bite():
+    """fuzz: the gain knob's real sweep, and asymmetry as the even-harmonic control."""
+    f0 = 220.0
+    t = np.arange(int(0.4 * fs)) / fs
+    x = 0.3 * np.sin(2 * np.pi * f0 * t)
+
+    def spec(y):
+        seg = y[int(0.5 * y.size):]
+        w = np.hanning(seg.size)
+        return (np.fft.rfftfreq(seg.size, 1 / fs), np.abs(np.fft.rfft(seg * w)) * 2.0 / w.sum())
+
+    def at(f, fr, m):
+        return float(m[np.argmin(np.abs(fr - f))])
+
+    def make(**kw):
+        base = dict(smooth_ms=0, bass=0.0, treble=0.0, contrast=0.0, asymmetry=0.0, level_db=0.0)
+        base.update(kw)
+        return tap.Fuzz(fs, **base)
+
+    knob = np.linspace(0, 1, 11)
+    harm = []
+    for g in knob:
+        fr, m = spec(make(gain=g).process(x))
+        harm.append(np.sqrt(sum(at(f0 * k, fr, m) ** 2 for k in range(2, 9))) / at(f0, fr, m))
+
+    even = []
+    for a in knob:
+        fr, m = spec(make(gain=0.8, asymmetry=a).process(x))
+        e = np.sqrt(sum(at(f0 * k, fr, m) ** 2 for k in (2, 4, 6, 8)))
+        o = np.sqrt(sum(at(f0 * k, fr, m) ** 2 for k in (3, 5, 7)))
+        even.append(e / o)
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.2, 2.7))
+    a1.plot(knob, harm, color=BLUE, marker="o", ms=4)
+    a1.set_xlabel("gain"); a1.set_ylabel("harmonics / fundamental")
+    a1.set_title("the gain knob", fontsize=9.5)
+    a2.plot(knob, even, color=RED, marker="o", ms=4)
+    a2.set_xlabel("asymmetry"); a2.set_ylabel("even / odd energy")
+    a2.set_title("asymmetry buys the even harmonics", fontsize=9.5)
+    plt.tight_layout()
+    fig.savefig(out_dir("fuzz") / "gain-and-bite.svg", bbox_inches="tight")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     head_layout()
     self_oscillation()
     occupancy()
     material()
+    fuzz_curve()
+    fuzz_gain_and_bite()
     print("wrote the Radiohead-family figures")

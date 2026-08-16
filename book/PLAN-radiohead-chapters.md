@@ -1,7 +1,7 @@
 # Plan — the Radiohead-family chapters
 
-> **Status: drafted.** All four chapters are written and live in `src/` per the placement
-> below (2026-08-15). This file remains as the drafting record, the plans-directory way. The
+> **Status: drafted.** Six chapters now — the original four plus `tap.fuzz~`'s pair, added
+> the same day (2026-08-15). This file remains as the drafting record, the plans-directory way. The
 > object-level plan is `PLAN-radiohead-family.md`; this one covers only the book.
 
 Planning document for the *Tools on Tap* chapters covering the first two Radiohead-family
@@ -28,12 +28,14 @@ entries append to the file-by-file part, keeping its chronological order.
 
 - [Four heads and a motor](tapecho.md)
 - [The part that comes apart](stammer.md)
+- [The dirt with two stages](fuzz.md)
 
 # Part X — The machine, file by file
   ...existing entries...
 - [Events, not audio: garden.h](machine/garden.md)
 - [Composition, not construction: tapecho.h](machine/tapecho.md)
 - [Dice you can replay: stammer.h](machine/stammer.md)
+- [Two stages and a knee: fuzz.h](machine/fuzz.md)
 ```
 
 **Found while renumbering:** `introduction.md`'s part list had been stale since the Eno wave
@@ -53,6 +55,9 @@ contract, driving the shipping kernels through the C ABI rather than illustratin
   the analytic ceiling at every point.
 - `images/stammer/occupancy.svg` — when a slice is in flight, four density/repeat pairs.
 - `images/stammer/material.svg` — slice similarity for a sustained sine vs a played phrase.
+- `images/fuzz/curve.svg` — the clipping family at four knees, all through the same full-scale
+  point.
+- `images/fuzz/gain-and-bite.svg` — the gain knob's sweep and asymmetry's even/odd ratio.
 
 No hand-authored block diagrams this round. The Eno chapters needed them because their
 signal flow is a rig with named machines; these two are a tape line with extra read points
@@ -140,6 +145,30 @@ once, so the pinned-dice identity gets the space. Then: the draw order as part o
 contract, the early return at density 0, ring reads vs a burst memcpy (with the failure mode
 stated), the deliberate envelope dip, and the corollary to the components chapter — not every
 class boundary is a seam.
+
+### `src/fuzz.md` — *The dirt with two stages* and `src/machine/fuzz.md` — *Two stages and a knee*
+
+Added with the object. The user-facing chapter opens by placing it against `tap.overdrive~`
+(two dirt objects, not competing) and spends its length on the three things a patcher can act
+on: the knee as a character control, why the gain floor sits below unity, and why
+`oversample` 2 beats 8. The appendix is deliberately **about two mistakes**, because the DSP
+is a published recipe followed closely and the failures are the reusable part:
+
+- *Small-signal gain compounds across a cascade.* The tanh family's slope is `k/tanh(k)`, so a
+  fixed ×2.2 into a knee-3 curve gave the second stage an effective ×6.6 and left it saturated
+  at gain 0. Harmonic ratio measured 0.401 → 0.408 across the whole knob. The point worth
+  keeping is that it was **inaudible** — it sounded like a distortion at every setting because
+  it was one — so only a swept measurement found it.
+- *The house oversampler measured wrong here, and so did the first explanation.* 4th order made
+  4× worse than 2×; 8th order improves 4× ~6× but does not restore an ordering. An earlier
+  draft of both the appendix and the plan claimed it did; that is corrected, the measured table
+  is in the chapter, and the ruled-out hypothesis (biquad conditioning, disproved by an
+  impulse-response check) is recorded alongside the surviving one (imaging) rather than left
+  as a vague "needs investigation".
+
+Two aliasing test-design errors are also written up in the appendix — a tone dividing the
+sample rate, and probes near enough the fundamental to read window leakage — since both passed
+review the first time.
 
 ## Deliberately not covered
 

@@ -1,7 +1,8 @@
 # Plan — the Radiohead family
 
-> **Status: in progress — `tap.tapecho~` and `tap.stammer~` have both shipped end-to-end,
-> chapters included (2026-08-15); the rest is plan.** This is the drafting record of the
+> **Status: in progress — `tap.tapecho~`, `tap.stammer~` and `tap.fuzz~` have all shipped
+> end-to-end, chapters included (2026-08-15). `tap.ondes~`'s sources are read and its gate is
+> open; `tap.scrub~` is still plan.** This is the drafting record of the
 > 2026-08-15 survey ("are there Radiohead-inspired objects we should consider?"), amended the
 > same day against the Eno components wave (`d4cf28a`) before any code was written. It stays
 > after the objects ship, the plans-directory way; the chapters have their own drafting
@@ -33,7 +34,7 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 | `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | Heterodyne source + triode nonlinearity + `garden.h` modal idiom; **not** `vco.h` — see the source hunt | planned — sources read, gate open, needs a design pass |
-| `tap.fuzz~` | `fuzz.h` | Two-stage tone-stacked fuzz (the OK Computer-era dirt) | `overdrive.h` sibling; the DAFx-07 cascade | ✅ kernel shipped 2026-08-15; Max slice, notebook, chapter pending |
+| `tap.fuzz~` | `fuzz.h` | Two-stage tone-stacked fuzz (the OK Computer-era dirt) | `overdrive.h` sibling; the DAFx-07 cascade | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
 
 Parked (surveyed, deliberately not planned): a spectral freeze on the `stft.h` scaffold
@@ -261,7 +262,7 @@ data still has to come from Fletcher & Rossing rather than from an ondes-specifi
 remaining work is design, not sourcing — and the object it points at is not the one originally
 sketched, so `tap.ondes~` needs a design pass against these findings before implementation.
 
-### 4. `tap.fuzz~` — the two-stage fuzz *(small, parallel-friendly)* — ✅ kernel shipped
+### 4. `tap.fuzz~` — the two-stage fuzz *(small, parallel-friendly)* — ✅ shipped
 
 > **Shipped 2026-08-15**: `include/taptools/fuzz.h` (`stage` + `tone` under a thin `pedal`),
 > `tests/fuzz_test.cpp` (9 scenarios), and the C ABI + ctypes surface (`Fuzz`). The name
