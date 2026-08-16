@@ -1,6 +1,6 @@
 /// @file
 /// @brief      Offline renderer for the Radiohead family — writes demo WAVs for listening checks.
-/// @details    Exercises tapecho.h and stammer.h with no Max involved (the kernels' portability, demonstrated).
+/// @details    Exercises tapecho.h, stammer.h and fuzz.h with no Max involved (the kernels' portability, demonstrated).
 ///             The tape echo is a *performed* effect, so these scenarios move the controls while
 ///             they render rather than auditioning static settings — that is the only way to hear
 ///             what the kernel is actually for.
@@ -17,7 +17,10 @@
 ///             object exists for — density, chop, hold and reversal all ridden up until the part
 ///             comes apart, then the reach-back opened so it quotes material from seconds ago),
 ///             and `stammer_two_seeds` (the same settings on two seeds back to back: a seed is a
-///             performance).
+///             performance); and `fuzz_gain_sweep` (five gain settings back to back, so the
+///             sweep from edge-of-breakup to saturated is audible rather than described),
+///             `fuzz_tone` (the voicing section, which is most of that pedal class's identity),
+///             and `fuzz_edge_and_bite` (the knee sharpening, then the even harmonics coming in).
 ///
 ///             Usage: radiohead_render [output-directory]   (default: current directory)
 /// @author     Timothy Place
@@ -31,6 +34,7 @@
 #include <string>
 #include <vector>
 
+#include <taptools/fuzz.h>
 #include <taptools/stammer.h>
 #include <taptools/tapecho.h>
 
@@ -341,6 +345,82 @@ namespace {
         write_scenario(dir + "/stammer_two_seeds.wav", mono, 0.8, 1);
     }
 
+    // ---- tap.fuzz~ -------------------------------------------------------------------------------
+
+    /// The gain knob doing what a gain knob should: the same phrase at five settings, so the
+    /// sweep from edge-of-breakup to saturated is audible in one file rather than described.
+    void fuzz_gain_sweep(const std::string& dir) {
+        const double        step   = 4.0;
+        const size_t        frames = static_cast<size_t>(step * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(5 * frames);
+
+        for (double g : {0.0, 0.25, 0.5, 0.75, 1.0}) {
+            tap::tools::fuzz::pedal p;
+            p.prepare(k_r_sr);
+            p.set_gain(g);
+            p.set_edge(0.4);
+            p.set_asymmetry(0.15);
+            p.set_bass(0.2);
+            p.set_treble(0.1);
+            p.set_contrast(0.35);
+            for (size_t i = 0; i < frames; ++i) {
+                mono.push_back(p.process(looping_phrase(static_cast<double>(i) / k_r_sr)));
+            }
+        }
+        write_scenario(dir + "/fuzz_gain_sweep.wav", mono, 0.7, 1);
+    }
+
+    /// The tone section, which on this class of pedal is most of the identity: flat, scooped,
+    /// and the two shelves at their travel, twelve seconds apiece.
+    void fuzz_tone(const std::string& dir) {
+        struct setting {
+            double bass, treble, contrast;
+        };
+        const setting settings[4] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {0.6, -0.6, 0.5}, {-0.6, 0.8, 0.5}};
+
+        const size_t        frames = static_cast<size_t>(8.0 * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(4 * frames);
+        for (const setting& v : settings) {
+            tap::tools::fuzz::pedal p;
+            p.prepare(k_r_sr);
+            p.set_gain(0.7);
+            p.set_edge(0.5);
+            p.set_bass(v.bass);
+            p.set_treble(v.treble);
+            p.set_contrast(v.contrast);
+            for (size_t i = 0; i < frames; ++i) {
+                mono.push_back(p.process(looping_phrase(static_cast<double>(i) / k_r_sr)));
+            }
+        }
+        write_scenario(dir + "/fuzz_tone.wav", mono, 0.4, 1); // the bass-shelf setting is the peak here
+    }
+
+    /// The two controls a static-curve model has to be honest about, ridden rather than set:
+    /// `edge` sharpening the knee toward a corner, and `asymmetry` bringing in the even
+    /// harmonics an odd-only curve cannot make.
+    void fuzz_edge_and_bite(const std::string& dir) {
+        tap::tools::fuzz::pedal p;
+        p.prepare(k_r_sr);
+        p.set_gain(0.8);
+        p.set_contrast(0.4);
+        p.set_smooth_ms(300.0);
+        p.set_oversample(8); // the honest setting for a hard knee
+
+        const double        seconds = 24.0;
+        const size_t        frames  = static_cast<size_t>(seconds * k_r_sr);
+        std::vector<double> mono(frames);
+        for (size_t i = 0; i < frames; ++i) {
+            const double t = static_cast<double>(i) / k_r_sr;
+            const double u = t / seconds;
+            p.set_edge(u < 0.5 ? 2.0 * u : 1.0);              // first half: the knee sharpens
+            p.set_asymmetry(u < 0.5 ? 0.0 : 2.0 * (u - 0.5)); // second half: the bite comes in
+            mono[i] = p.process(looping_phrase(t));
+        }
+        write_scenario(dir + "/fuzz_edge_and_bite.wav", mono, 0.7, 1);
+    }
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -352,5 +432,8 @@ int main(int argc, char** argv) {
     stammer_grid(dir);
     stammer_disintegrate(dir);
     stammer_two_seeds(dir);
+    fuzz_gain_sweep(dir);
+    fuzz_tone(dir);
+    fuzz_edge_and_bite(dir);
     return 0;
 }

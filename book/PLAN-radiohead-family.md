@@ -240,12 +240,17 @@ five-minute job for someone with institutional access and not something to fake 
 >    knob did nothing above about 0.2 — because the tanh family's small-signal slope is
 >    `knee/tanh(knee)` (~3 at the original knee) and that multiplied into a fixed ×2.2.
 >    Retuned; the harmonic ratio now sweeps 0.010 → 0.358 across the knob.
-> 2. *The house oversampler is not steep enough here.* With the 4th-order Butterworth that
->    `tap.ladder~` / `overdrive.h` use, alias energy fell from 1× to 2× and then **rose**
->    at 4× and 8×. Replaced with 8th order, which restores the monotone improvement.
->    Whether `overdrive.h` is owed the same change is a live question — different
->    nonlinearity, different gain structure, so it needs its own measurement rather than
->    this one's conclusion.
+> 2. *The house oversampler is not steep enough here — and steepening it was not the whole
+>    story.* With the 4th-order Butterworth that `tap.ladder~` / `overdrive.h` use, alias
+>    energy at 4× came out worse than at 2× (1.7e-2 vs 2.8e-3). Eighth order improves 4× by
+>    ~6× but does **not** make the sequence monotone: measured, 1×/2×/4×/8× run
+>    1.2e-1 / 2.7e-5 / 7.4e-4 / 1.8e-3, so 2× is best and is now the default. An earlier
+>    draft of this record claimed 8th order "restored monotonicity" — it does not, and the
+>    notebook plot is the correction. The cause is open: the obvious suspect (ill-conditioned
+>    biquads at low normalized cutoffs) was tested and **ruled out** by an impulse-response
+>    check; the untested hypothesis is imaging, which would point at cascaded 2× resampling
+>    as the real fix. Whether `overdrive.h` is owed the 8th-order change is a separate live
+>    question needing its own measurement.
 >
 > Two test-design errors were also caught and are recorded in the suite itself, since both
 > are easy to repeat: an alias test whose tone divided the sample rate (every fold lands on

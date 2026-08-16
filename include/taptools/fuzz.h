@@ -43,15 +43,17 @@
 ///             - `pedal` — input gain, the two stages inside the oversampled region, the DC
 ///               blocker, the tone stack, output level.
 ///
-///             Aliasing: the clipper pair runs oversampled (1/2/4/8x, default 4x) — zero-stuff
-///             plus an 8th-order Butterworth anti-image on the way up, a matching anti-alias
-///             before decimation. The house pattern (tap.ladder~ / overdrive.h) uses 4th order
-///             there; it was measured here and found to make oversampling *non-monotone* for
-///             this kernel, so this file uses 8th (see butterworth8's comment for the numbers). DAFx-07 notes that
-///             typical implementations use 8-10x and that residual aliases at 8x and above tend
-///             to be masked by the dense spectrum of guitar distortion; 4x is the default here
-///             because this kernel's curve is C-infinity rather than a hard corner, and 8 is one
-///             setter away when it is not enough.
+///             Aliasing: the clipper pair runs oversampled (1/2/4/8x, **default 2x**) —
+///             zero-stuff plus an 8th-order Butterworth anti-image on the way up, a matching
+///             anti-alias before decimation. Two things here differ from the house pattern and
+///             both are measurements rather than preferences. The pattern's 4th-order filter is
+///             not steep enough (it made 4x worse than 2x); and even at 8th order the sequence
+///             is *not* monotone — 2x measures best, so 2x is the default, not the largest
+///             factor. DAFx-07 notes that typical implementations use 8-10x and that residual
+///             aliases there tend to be masked by the dense spectrum of guitar distortion; this
+///             kernel's curve is C-infinity rather than a hard corner, which is why a modest
+///             factor already buys four orders of magnitude. See butterworth8's comment for the
+///             numbers and for what is and is not known about the cause.
 ///
 ///             Honest limits:
 ///             - The nonlinearity is static. The pole-moves-with-voltage behaviour of the real
@@ -216,14 +218,27 @@ namespace tap::tools {
         /// anti-image and anti-alias filter.
         ///
         /// The house pattern (tap.ladder~ / overdrive.h) uses a 4th-order pair here. It is not
-        /// steep enough for this kernel, and the difference is measurable rather than
-        /// theoretical: with the 4th-order filter, alias energy fell from 1x to 2x and then rose
-        /// again at 4x and 8x — more oversampling made it *worse*, because 24 dB/octave leaves
-        /// content just above the base Nyquist barely touched, and a higher factor pushes more
-        /// clipper-generated harmonics into that barely-touched band before decimation. Eighth
-        /// order restores the monotone improvement the setting promises. (Whether the same change
-        /// is owed to overdrive.h is a live question — it is a different nonlinearity at a
-        /// different gain structure, so it needs its own measurement, not this one's conclusion.)
+        /// steep enough for this kernel: with it, alias energy at the fold frequencies measured
+        /// 1.7e-2 at 4x against 2.8e-3 at 2x — more oversampling was *worse*. Eighth order cuts
+        /// that to 2.7e-3, a ~6x improvement at 4x.
+        ///
+        /// It does NOT make the sequence monotone, and this file does not claim it does. Measured
+        /// against a 3733 Hz tone (fuzz.ipynb §5), fold-frequency energy runs 1.2e-1 / 2.7e-5 /
+        /// 7.4e-4 / 1.8e-3 at 1x / 2x / 4x / 8x: every factor is worth having over none, and 2x
+        /// is the best of them, which is why it is the default.
+        ///
+        /// The cause is not established. The obvious suspect — biquads going ill-conditioned at
+        /// the low normalized cutoffs a high factor needs (0.056 at 8x) — was tested and ruled
+        /// out: the cascade's impulse response decays cleanly to denormal at every factor. The
+        /// next hypothesis, untested, is imaging: zero-stuffing by N leaves N-1 images for one
+        /// filter to suppress, and residuals intermodulate in the clipper into products that are
+        /// not harmonics of the input, which is exactly what the probe measures. If that is
+        /// right, the fix is cascaded 2x (halfband/polyphase) resampling rather than a single
+        /// stage at 1/N — each step then suppresses one image at a comfortable normalized
+        /// frequency. That is the known next move on this file.
+        ///
+        /// (Whether overdrive.h is owed the 8th-order change is a live question — different
+        /// nonlinearity, different gain structure, so it needs its own measurement.)
         ///
         /// Pole Qs are the standard 8th-order Butterworth set, Q_k = 1/(2 cos((2k+1)pi/16)).
         struct butterworth8 {
@@ -383,7 +398,8 @@ namespace tap::tools {
                 m_level_db.to(std::clamp(db, -k_level_range_db, k_level_range_db), smooth_samples());
             }
 
-            /// 1, 2, 4 or 8. Reconfigures the stage corners and the filters — not real-time-safe.
+            /// 1, 2, 4 or 8; 2 is the default and measures best (see the banner — bigger is not
+            /// better here). Reconfigures the stage corners and the filters — not real-time-safe.
             void set_oversample(int os) {
                 const int v = (os >= 8) ? 8 : (os >= 4) ? 4 : (os >= 2) ? 2 : 1;
                 if (v != m_os) {
@@ -488,7 +504,7 @@ namespace tap::tools {
 
             double m_sr{48000.0};
             double m_smooth_ms{k_default_smooth_ms};
-            int    m_os{4};
+            int    m_os{2};
             bool   m_configured{false};
 
             stage        m_s1, m_s2;
