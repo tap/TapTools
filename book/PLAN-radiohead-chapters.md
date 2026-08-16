@@ -4,9 +4,10 @@
 > the same day (2026-08-15). This file remains as the drafting record, the plans-directory way. The
 > object-level plan is `PLAN-radiohead-family.md`; this one covers only the book.
 
-Planning document for the *Tools on Tap* chapters covering the first two Radiohead-family
-objects (`tap.tapecho~`, `tap.stammer~`; `taptools/tapecho.h`, `stammer.h`). Four chapters:
-two user-facing, two machine appendices. It is not part of the built book.
+Planning document for the *Tools on Tap* chapters covering the shipped Radiohead-family
+objects (`tap.tapecho~`, `tap.stammer~`, `tap.fuzz~`; `taptools/tapecho.h`, `stammer.h`,
+`fuzz.h`). Six chapters: three user-facing, three machine appendices. It is not part of the
+built book.
 
 Every measured claim below already exists as an executed notebook cell or a pinned test —
 each section lists its evidence, so the chapters keep the book's "measured, not remembered"
@@ -61,8 +62,9 @@ contract, driving the shipping kernels through the C ABI rather than illustratin
 
 No hand-authored block diagrams this round. The Eno chapters needed them because their
 signal flow is a rig with named machines; these two are a tape line with extra read points
-and a buffer with dice, and the measured figures carry more than a box diagram would. If a
-diagram is ever added, the obvious one is the stammer's grid/slice/repeat timeline.
+and a buffer with dice, and the fuzz is a two-box chain; the measured figures carry more than
+a block diagram would. If a diagram is ever added, the obvious one is the stammer's
+grid/slice/repeat timeline.
 
 One thing the generator learned the hard way, recorded so it is not re-learned: the
 occupancy figure's first draft used `fill_between` over a per-sample boolean at 48 kHz and
