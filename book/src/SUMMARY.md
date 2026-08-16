@@ -29,6 +29,7 @@
 
 - [Four heads and a motor](tapecho.md)
 - [The part that comes apart](stammer.md)
+- [The dirt with two stages](fuzz.md)
 
 # Part VI — The spectral set
 
@@ -72,6 +73,7 @@
 - [Events, not audio: garden.h](machine/garden.md)
 - [Composition, not construction: tapecho.h](machine/tapecho.md)
 - [Dice you can replay: stammer.h](machine/stammer.md)
+- [Two stages and a knee: fuzz.h](machine/fuzz.md)
 
 # Part XI — Recipes
 

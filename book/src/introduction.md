@@ -35,7 +35,8 @@ The book is organized the way a patch is:
   (`tap.garden~`), and the components they decompose into.
 - **Part V — The machines you ride**: the Radiohead family — objects whose
   point is the performance surface rather than a setting. The multi-head tape
-  echo (`tap.tapecho~`) and the live buffer-stutter rig (`tap.stammer~`).
+  echo (`tap.tapecho~`), the live buffer-stutter rig (`tap.stammer~`), and the
+  two-stage fuzz (`tap.fuzz~`).
 - **Part VI — The spectral set**: the 24-band vocoder (`tap.vocoder~`), the
   per-bin spectral gate (`tap.nr~`), and the bin remapper (`tap.spectra~`).
 - **Part VII — The rhythm section**: the Roland recreations — the TB-303 voice,
