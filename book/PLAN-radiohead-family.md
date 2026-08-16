@@ -32,7 +32,7 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 |--------|--------|-----------|-------------|--------|
 | `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
-| `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom, `vco.h`/`vca.h` | planned — gated on source collection |
+| `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom (maths only — see the source hunt), `vco.h`/`vca.h` | planned — sources identified, full texts still needed |
 | `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic | planned |
 | `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
 
@@ -170,12 +170,57 @@ instrument decomposes on exactly the family's seams, and the decomposition is th
   (comb/waveguide school, `grm_comb.h` experience). Principal is the dry path.
 
 **Gate: source collection before implementation.** The provenance rule is the whole
-ballgame here. Candidate sources to verify and pin: the published organological studies of
-the instrument (there is published work specifically measuring the touche d'intensité's
-response — locate and verify it), Fletcher & Rossing for both diffuseurs, and period
-technical descriptions of the waveform registers. If a needed number has no published
-source, the honest fallback is a *recreation* voiced by ear against published recordings
-and documented as such — decided per-number, in the header, when we get there.
+ballgame here. If a needed number has no published source, the honest fallback is a
+*recreation* voiced by ear against published recordings and documented as such — decided
+per-number, in the header, when we get there.
+
+#### Source hunt, 2026-08-15 — findings
+
+The sources exist and are identified. Status per source, with an honest note on how far
+each was actually read:
+
+| Source | For | Read to |
+|--------|-----|---------|
+| Quartier, Meurisse, Colmars, Frelat, Vaiedelich, "Intensity Key of the Ondes Martenot: An Early Mechanical Haptic Device", *Acta Acustica united with Acustica* **101**(2), 421–428, 2015 | the touche d'intensité | abstract / indexed summary only |
+| Wijnand, Boutin, Jossic, Maniguet, "A physical model for the electromagnetic loudspeaker used in early Ondes Martenot diffuseurs", Forum Acusticum 2023 (EAA), CC-BY | the diffuseur transducer | **full text** |
+| Najnudel, Hélie, Roze, Boutin, "Simulation of an Ondes Martenot Circuit", *IEEE/ACM TASLP* **28**, 2651–2660, 2020 | the oscillator/circuit | abstract only |
+| Najnudel et al., "Simulation of the Ondes Martenot Ribbon-Controlled Oscillator…" (HAL hal-02425249) | the ribbon oscillator | abstract only |
+| Leipp, "Les Ondes Martenot, un archétype", *Bulletin du GAM* n°60, 1972 | the palme (cited as the palme source by Wijnand et al.) | not obtained |
+| Laurendeau, *Maurice Martenot, luthier de l'électronique* (1990; Beauchesne 2017) | the standard monograph | not obtained |
+
+**Three findings that change the design, not just the citation list.**
+
+1. **The touche maps *displacement*, not force.** The Acta Acustica work measured force on
+   the key, key depression, and the resulting sound, and reports that the change in sound
+   intensity depends on the key's displacement (the force applied follows from it), across a
+   **50 dB** dynamic range per note over the instrument's range. So the kernel's control
+   input is a position, the range is pinned at 50 dB, and what remains unknown is the
+   *taper* between them — which is exactly what the full text should settle.
+2. **The diffuseurs are driven, not struck.** Wijnand et al. describe the *métallique*
+   (1944–45, patented 1947) as a gong excited by a **motor**, and the *palme* (1949–50) as an
+   **electromagnet driving 12 metal strings** attached to a soundboard; *résonance* (1970s)
+   is motor-excited metal springs. This invalidates amendment 2's assumption that the
+   diffuseurs inherit `garden.h`'s *strike-excited* modal idiom wholesale. The mode banks
+   still apply, but the excitation is continuous, so the right model is a driven resonator
+   bank — closer to `grm_comb.h`'s sustained ringing than to the chime's decay envelopes.
+   Amendment 2 stands for the resonator maths and falls for the excitation.
+3. **The transducer itself is part of the sound.** The early diffuseurs used a moving-iron
+   loudspeaker whose operating principle is *inherently nonlinear* — the paper's point is
+   precisely that the linear Thiele–Small model does not apply, and it quantifies the
+   nonlinearity on a heritage instrument. A diffuseur model that is only a resonator is
+   missing a documented stage.
+
+**A discrepancy worth recording:** widely circulated DIY build pages describe the palme as
+24 strings (two sets of 12); the peer-reviewed source says 12. Prefer the peer-reviewed
+number, and treat hobbyist build documentation as unciteable for this family.
+
+**Where the gate stands.** Substantially clearer than when this plan was written: every
+subsystem now has at least one peer-reviewed source, and two design assumptions have already
+been corrected by reading them. It is **not yet clear** — full texts of the intensity-key
+and circuit-simulation papers are still needed for the numbers that would go in the header,
+and automated retrieval is blocked (HAL sits behind an anti-bot wall; the IEEE paper is
+paywalled). The remaining step is manual access to those three PDFs, which is a
+five-minute job for someone with institutional access and not something to fake around.
 
 ### 4. `tap.fuzz~` — the ShredMaster school *(small, parallel-friendly)*
 
