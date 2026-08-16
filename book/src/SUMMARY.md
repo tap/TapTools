@@ -25,26 +25,31 @@
 - [The garden that plays itself](garden.md)
 - [The same machine, in pieces](components.md)
 
-# Part V — The spectral set
+# Part V — The machines you ride
+
+- [Four heads and a motor](tapecho.md)
+- [The part that comes apart](stammer.md)
+
+# Part VI — The spectral set
 
 - [Making the machine talk](vocoder.md)
 - [A gate for every bin](nr.md)
 - [The spectrum, re-plumbed](spectra.md)
 
-# Part VI — The rhythm section
+# Part VII — The rhythm section
 
 - [The acid machine](acid.md)
 - [The drum machine](drums.md)
 
-# Part VII — Staying in tune
+# Part VIII — Staying in tune
 
 - [The note you meant](tune.md)
 
-# Part VIII — The pedalboard
+# Part IX — The pedalboard
 
 - [Distortion with a memory](overdrive.md)
 
-# Part IX — The machine, file by file
+# Part X — The machine, file by file
 
 - [Solving the filter on paper: svf.h](machine/svf.md)
 - [The nonlinear loop: ladder.h](machine/ladder.md)
@@ -65,8 +70,10 @@
 - [Wear as the stabilizer: tape_loop.h and discreet.h](machine/tape.md)
 - [Free-running heads, one shared clock: airport.h](machine/airport.md)
 - [Events, not audio: garden.h](machine/garden.md)
+- [Composition, not construction: tapecho.h](machine/tapecho.md)
+- [Dice you can replay: stammer.h](machine/stammer.md)
 
-# Part X — Recipes
+# Part XI — Recipes
 
 - [How to read a recipe](recipes/cookbook.md)
 - [One machine, four decades](recipes/808-classics.md)
