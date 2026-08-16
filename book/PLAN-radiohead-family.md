@@ -1,11 +1,11 @@
 # Plan — the Radiohead family
 
-> **Status: in progress — `tap.tapecho~` and `tap.stammer~` have both shipped end-to-end
-> (2026-08-15); the rest is plan.** This is the drafting record of the 2026-08-15 survey ("are there
-> Radiohead-inspired objects we should consider?"), amended the same day against the Eno
-> components wave (`d4cf28a`) before any code was written. It stays after the objects ship,
-> the plans-directory way; per-chapter drafting records will follow separately when the book
-> chapters are drafted. Per-object status lives in the table below.
+> **Status: in progress — `tap.tapecho~` and `tap.stammer~` have both shipped end-to-end,
+> chapters included (2026-08-15); the rest is plan.** This is the drafting record of the
+> 2026-08-15 survey ("are there Radiohead-inspired objects we should consider?"), amended the
+> same day against the Eno components wave (`d4cf28a`) before any code was written. It stays
+> after the objects ship, the plans-directory way; the chapters have their own drafting
+> record in `PLAN-radiohead-chapters.md`. Per-object status lives in the table below.
 
 Planning document for a family of kernels drawn from Radiohead's performed electronics:
 the Ondes Martenot, the live Max/MSP mangling rigs, the tape echoes, the Kaoss-pad vocal
@@ -30,8 +30,8 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 
 | Object | Kernel | Recreates | Standing on | Status |
 |--------|--------|-----------|-------------|--------|
-| `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel + Max vertical slice); chapter pending |
-| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel + Max vertical slice); chapter pending |
+| `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
+| `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | `garden.h` modal idiom, `vco.h`/`vca.h` | planned — gated on source collection |
 | `tap.fuzz~` (name open) | `fuzz.h` | ShredMaster-school two-stage fuzz | `overdrive.h` sibling, published schematic | planned |
 | `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
@@ -75,7 +75,8 @@ The survey predated the Eno components wave by hours. Five amendments, now assum
 > vertical slice in TapTools-Max (wrapper, six min-api scenarios, maxref, help patcher,
 > pin bump — REVIVAL.md entry 18). What the plan predicted held: the kernel is composition
 > — the null test below is *bitwise*, and `tape_loop.h` needed no changes at all to serve a
-> second topology. Still to come: the book chapter, and the on-Mac validation pass.
+> second topology. The chapters shipped the same day (see `PLAN-radiohead-chapters.md`).
+> Still to come: the on-Mac validation pass.
 >
 > Design decisions taken during implementation that this record should carry:
 > the head layout is `span_ms` (the motor, = a ratio-1.0 head) times a per-head ratio, so
@@ -129,7 +130,8 @@ predicted; every past-unity drive setting plateaus under its analytic ceiling.
 > material contract is measured at its premise — slices of a sustained sine are 1.000 alike by
 > magnitude spectrum, slices of a plucked phrase 0.286. The Max vertical slice followed the
 > same day (wrapper, five min-api scenarios, maxref, help patcher, pin bump — REVIVAL.md entry
-> 19). Still to come: the book chapter and the on-Mac validation pass.
+> 19), and the chapters with it (see `PLAN-radiohead-chapters.md`). Still to come: the
+> on-Mac validation pass.
 
 The disintegrating guitar at the end of *Go To Sleep* and the mangling in *The Gloaming*
 come from Greenwood's own Max patches: capture the live input, re-fire randomized slices
@@ -207,10 +209,10 @@ is to make that sharing literal, not copied.
   performance, the diffuseurs rung by a struck string.
 - **Oracle-based measurement** where a promise is audible: yin on the echo's wow, yin on
   the ondes ribbon glide, envelope-power measurement on the stammer slices.
-- **Book**: a family part (working titles — *The machine as a band member*; per-object
-  chapters like *The tape with three heads*, *The patch that stutters*, *Waves and
-  wire*) plus machine appendices, each with its own PLAN drafting record when drafted,
-  every number citing an executed cell or pinned test.
+- **Book**: a family part — shipped as **Part V, *The machines you ride*** (the title the
+  family thesis earned), with *Four heads and a motor* and *The part that comes apart* plus
+  their machine appendices; drafting record in `PLAN-radiohead-chapters.md`. Later objects
+  join the same part. Every number cites an executed cell or pinned test.
 
 ## Provenance and naming (the IP posture, applied)
 

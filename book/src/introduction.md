@@ -29,23 +29,30 @@ The book is organized the way a patch is:
 - **Part III — Strings, rooms, and spirals**: exact true-stereo convolution
   (`tap.convolve~`) and the two GRM Tools recreations — the tuned comb bank
   (`tap.5comb~`) and the pitch-accumulating shimmer loop (`tap.pitchaccum~`).
-- **Part IV — The spectral set**: the 24-band vocoder (`tap.vocoder~`), the
+- **Part IV — Tape and time**: the Eno recreations — the *Discreet Music*
+  two-machine tape loop (`tap.discreet~`), the *Music for Airports*
+  incommensurate loop bank (`tap.airport~`), the generative event garden
+  (`tap.garden~`), and the components they decompose into.
+- **Part V — The machines you ride**: the Radiohead family — objects whose
+  point is the performance surface rather than a setting. The multi-head tape
+  echo (`tap.tapecho~`) and the live buffer-stutter rig (`tap.stammer~`).
+- **Part VI — The spectral set**: the 24-band vocoder (`tap.vocoder~`), the
   per-bin spectral gate (`tap.nr~`), and the bin remapper (`tap.spectra~`).
-- **Part V — The rhythm section**: the Roland recreations — the TB-303 voice,
+- **Part VII — The rhythm section**: the Roland recreations — the TB-303 voice,
   its diode-ladder filter, and its sequencer (`tap.303~`, `tap.diode~`,
   `tap.303.seq~`), and the eight TR-808 voice channels with their row
   sequencer (`tap.808.*`, `tap.808.seq~`).
-- **Part VI — Staying in tune**: the pitch corrector (`tap.tune~`) and the
+- **Part VIII — Staying in tune**: the pitch corrector (`tap.tune~`) and the
   detection/resynthesis machinery it stands on.
-- **Part VII — The pedalboard**: the stompbox recreations — the voiced feedback
+- **Part IX — The pedalboard**: the stompbox recreations — the voiced feedback
   overdrive (`tap.overdrive~`), chasing the TS-lineage feedback pedals rather
   than a waveshaping curve.
-- **Part VIII — The machine, file by file**: the SampleRateTap-style deep dives —
+- **Part X — The machine, file by file**: the SampleRateTap-style deep dives —
   one chapter per kernel header, deriving the math, reviewing the code, and
   recording *why* each algorithm is written the way it is, alternatives and
-  all. Parts I–VII are for driving the objects; Part VIII is for trusting them —
+  all. Parts I–IX are for driving the objects; Part X is for trusting them —
   or changing them.
-- **Part IX — Recipes**: whole patches chasing specific sounds — the TR-808
+- **Part XI — Recipes**: whole patches chasing specific sounds — the TR-808
   kits behind four decades of records, the three-oscillator Moog voice —
   with settings you can check against the reference pages and the honest
   accounting of what each ingredient buys.
