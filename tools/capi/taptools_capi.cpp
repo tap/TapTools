@@ -17,6 +17,7 @@
 #include <taptools/delay.h>
 #include <taptools/diode_ladder.h>
 #include <taptools/discreet.h>
+#include <taptools/fuzz.h>
 #include <taptools/garden.h>
 #include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
@@ -1226,6 +1227,69 @@ int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL,
         return -1;
     }
     return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.process(in, outL, outR, static_cast<size_t>(n)); });
+}
+
+// ---- tap.fuzz~ -----------------------------------------------------------------------------------
+
+using fuzz_pedal = tap::tools::fuzz::pedal;
+
+taptools_fuzz taptools_fuzz_create(void) {
+    return static_cast<taptools_fuzz>(new fuzz_pedal());
+}
+
+void taptools_fuzz_destroy(taptools_fuzz h) {
+    delete static_cast<fuzz_pedal*>(h);
+}
+
+int taptools_fuzz_prepare(taptools_fuzz h, double sr) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.prepare(sr); });
+}
+
+int taptools_fuzz_set_gain(taptools_fuzz h, double g) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_gain(g); });
+}
+
+int taptools_fuzz_set_edge(taptools_fuzz h, double e) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_edge(e); });
+}
+
+int taptools_fuzz_set_asymmetry(taptools_fuzz h, double a) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_asymmetry(a); });
+}
+
+int taptools_fuzz_set_bass(taptools_fuzz h, double b) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_bass(b); });
+}
+
+int taptools_fuzz_set_treble(taptools_fuzz h, double t) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_treble(t); });
+}
+
+int taptools_fuzz_set_contrast(taptools_fuzz h, double c) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_contrast(c); });
+}
+
+int taptools_fuzz_set_level_db(taptools_fuzz h, double db) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_level_db(db); });
+}
+
+int taptools_fuzz_set_oversample(taptools_fuzz h, int os) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_oversample(os); });
+}
+
+int taptools_fuzz_set_smooth_ms(taptools_fuzz h, double ms) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.set_smooth_ms(ms); });
+}
+
+int taptools_fuzz_clear(taptools_fuzz h) {
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.clear(); });
+}
+
+int taptools_fuzz_process(taptools_fuzz h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.process(in, out, static_cast<size_t>(n)); });
 }
 
 // ---- tap.stammer~ --------------------------------------------------------------------------------

@@ -393,6 +393,25 @@ TAPTOOLS_API int taptools_tapecho_clear(taptools_tapecho h);
 /// Process n samples mono-in / stereo-out (the dry path is mixed to both busses).
 TAPTOOLS_API int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL, double* outR, int n);
 
+// ---- tap.fuzz~ (tap::tools::fuzz::pedal) ---------------------------------------------------------
+
+typedef void* taptools_fuzz;
+
+TAPTOOLS_API taptools_fuzz taptools_fuzz_create(void);
+TAPTOOLS_API void          taptools_fuzz_destroy(taptools_fuzz h);
+TAPTOOLS_API int           taptools_fuzz_prepare(taptools_fuzz h, double sr);
+TAPTOOLS_API int           taptools_fuzz_set_gain(taptools_fuzz h, double g);      // 0..1, first-stage drive
+TAPTOOLS_API int           taptools_fuzz_set_edge(taptools_fuzz h, double e);      // 0..1, second-stage knee
+TAPTOOLS_API int           taptools_fuzz_set_asymmetry(taptools_fuzz h, double a); // 0..1, the even harmonics
+TAPTOOLS_API int           taptools_fuzz_set_bass(taptools_fuzz h, double b);      // -1..1 low shelf
+TAPTOOLS_API int           taptools_fuzz_set_treble(taptools_fuzz h, double t);    // -1..1 high shelf
+TAPTOOLS_API int           taptools_fuzz_set_contrast(taptools_fuzz h, double c);  // 0..1 mid scoop
+TAPTOOLS_API int           taptools_fuzz_set_level_db(taptools_fuzz h, double db);
+TAPTOOLS_API int           taptools_fuzz_set_oversample(taptools_fuzz h, int os); // 1, 2, 4 or 8
+TAPTOOLS_API int           taptools_fuzz_set_smooth_ms(taptools_fuzz h, double ms);
+TAPTOOLS_API int           taptools_fuzz_clear(taptools_fuzz h);
+TAPTOOLS_API int           taptools_fuzz_process(taptools_fuzz h, const double* in, double* out, int n);
+
 // ---- tap.stammer~ (tap::tools::stammer::machine) -------------------------------------------------
 
 typedef void* taptools_stammer;
