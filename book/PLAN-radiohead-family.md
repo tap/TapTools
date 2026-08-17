@@ -430,11 +430,12 @@ are the house precedent for schematic-based recreation. **Naming is an open ques
   and the two taps land a half-window apart. That is a real finding about a shipped object,
   recorded rather than acted on: fixing it is its own job, with its own tests and its own
   consumers, and it should not ride along on an unrelated kernel.
-- **Chapters for the six newest objects.** `tap.touche~`, the two diffuseurs, `tap.scrub~`,
-  `tap.triode~` and `tap.ondes~` have kernels, notebooks and Max slices but no book chapters.
-  The first three of those and the last two now belong together in one Ondes-family chapter,
-  since the instrument is complete enough to write about as an instrument; the scrub's belongs
-  beside the stammer in Part V, since they share a tape.
+- ~~**Chapters for the six newest objects.**~~ — ✅ shipped 2026-08-17 as six chapters, three
+  user-facing and three machine appendices: `book/src/scrub.md`, `diffuseurs.md`, `ondes.md`
+  (which carries `tap.ondes~`, `tap.triode~` and `tap.touche~` together, since the triode and
+  the key only make sense next to the instrument they are stages of), plus
+  `machine/scrub.md`, `machine/diffuseur.md` and `machine/ondes.md`. Eight new measured
+  figures in `book/figures/radiohead.py`. Drafting record in `PLAN-radiohead-chapters.md`.
 - ~~**The oversampler's non-monotone sequence** (`fuzz.h`'s open question)~~ — not resolved, but
   no longer without evidence. `ondes.h` runs the same 8th-order chain around a comparably hard
   nonlinearity as a **source**, with no zero-stuffing and therefore no images, and its sequence

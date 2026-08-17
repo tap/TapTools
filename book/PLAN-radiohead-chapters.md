@@ -1,13 +1,15 @@
 # Plan — the Radiohead-family chapters
 
-> **Status: drafted.** Six chapters now — the original four plus `tap.fuzz~`'s pair, added
-> the same day (2026-08-15). This file remains as the drafting record, the plans-directory way. The
+> **Status: drafted.** Twelve chapters now — the original four, `tap.fuzz~`'s pair
+> (2026-08-15), and the six added when the Ondes family and the scrub landed (2026-08-17).
+> This file remains as the drafting record, the plans-directory way. The
 > object-level plan is `PLAN-radiohead-family.md`; this one covers only the book.
 
 Planning document for the *Tools on Tap* chapters covering the shipped Radiohead-family
-objects (`tap.tapecho~`, `tap.stammer~`, `tap.fuzz~`; `taptools/tapecho.h`, `stammer.h`,
-`fuzz.h`). Six chapters: three user-facing, three machine appendices. It is not part of the
-built book.
+objects (`tap.tapecho~`, `tap.stammer~`, `tap.fuzz~`, `tap.scrub~`, `tap.metallique~`,
+`tap.palme~`, `tap.ondes~`, `tap.triode~`, `tap.touche~`; `taptools/tapecho.h`, `stammer.h`,
+`fuzz.h`, `scrub.h`, `diffuseur.h`, `ondes.h`, `touche.h`). Twelve chapters: six user-facing,
+six machine appendices. It is not part of the built book.
 
 Every measured claim below already exists as an executed notebook cell or a pinned test —
 each section lists its evidence, so the chapters keep the book's "measured, not remembered"
@@ -180,3 +182,133 @@ review the first time.
   a signal chain to describe. `recipes/` is for whole patches, and two objects is not a rig.
 - **Comparative listening claims** ("sounds like the record"). Not measurable, not the book's
   business.
+
+
+---
+
+# The 2026-08-17 wave — six more chapters
+
+Nine objects shipped without chapters between 2026-08-15 and 2026-08-17 (`tap.touche~`, the
+two diffuseurs, `tap.scrub~`, `tap.triode~`, `tap.ondes~`). They became **six** chapters, not
+nine, and the grouping decisions are the interesting part of this record.
+
+## Grouping
+
+- **`src/scrub.md` — *Two hands on the same tape*.** Its own chapter, in Part V, filed
+  immediately after `stammer.md` because the two share a tape *literally* — `scrub.h`
+  includes `stammer.h` and uses `stammer::capture` itself. The chapter opens on that, since
+  "same recorder, different read pattern" is the cleanest way to say what the object is.
+- **`src/diffuseurs.md` — *Loudspeakers you can play*.** `tap.metallique~` and `tap.palme~`
+  together. They are one file, one idea and one set of caveats; two chapters would have
+  duplicated the provenance section twice over.
+- **`src/ondes.md` — *The instrument that is not a synthesizer*.** `tap.ondes~`,
+  `tap.triode~` **and** `tap.touche~`. The triode does not carry a chapter alone — it is one
+  stage of the instrument, and its interest (the model is a citation, the stage inverts) only
+  lands next to the thing it is a stage of. The touche shipped two days earlier and could have
+  had its own chapter then; holding it for this one was the right call, because "50 dB in
+  4.5 mm" means more when the reader can see what it is the dynamic range *of*.
+
+That is the one structural rule this wave establishes: **chapters follow instruments, not
+externals.** The diffuseurs get a separate chapter from the voice despite being part of the
+same instrument, because they are usable on anything and the audience is different.
+
+Machine appendices are one per header, as always: `machine/scrub.md`, `machine/diffuseur.md`,
+`machine/ondes.md`. No appendix for `touche.h` — it is a published table with a PCHIP
+interpolator over it, and the user chapter already carries everything true about it.
+
+## Placement
+
+Three entries appended to **Part V — The machines you ride** (after `fuzz.md`) and three to
+**Part X — The machine, file by file** (after `machine/fuzz.md`), keeping Part X's
+chronological order. No renumbering this time, so `introduction.md` needed only its Part V
+sentence extended — but it *did* need that, which is the second time the standing note below
+has earned its keep.
+
+> **Standing note, restated:** `introduction.md`'s part list is a second copy of SUMMARY's
+> structure and nothing checks the two against each other. Any part insertion *or* any change
+> to what a part contains has to touch both by hand.
+
+## Figures
+
+Eight more measured SVGs, appended to `book/figures/radiohead.py` under the same contract —
+driving the shipping kernels through the C ABI, never illustrating them:
+
+- `images/scrub/null.svg` — the delay identity, and the Hann window sum at overlaps 1/2/4.
+- `images/scrub/two-hands.svg` — band energy and concentration across ±19 semitones.
+- `images/ondes/envelope.svg` — the envelope at two depths, and `|cos|`'s harmonic series.
+- `images/ondes/tube.svg` — the 6C5's plate characteristics with the load line and quiescent
+  point, and the three stages' transfer curves.
+- `images/ondes/drive.svg` — THD and level against drive, with the demodulator's floor marked.
+- `images/touche/curve.svg` — the published law, the seven measured points, a straight line
+  for comparison, and the silent dead zone shaded.
+- `images/diffuseur/plate.svg` — the eight modes, and the body answering a sweep.
+- `images/diffuseur/selectivity.svg` — the palme's ring after a **faded** drive tone.
+
+Two rendering lessons, recorded so they are not re-learned:
+
+- **A label outside the axes stretches the layout.** `ondes_tube`'s first draft labelled each
+  plate-characteristic curve at its rightmost point; the Vg 0 curve is off the top of the box
+  by an order of magnitude, and `tight_layout` collapsed the axes to zero trying to fit the
+  text. Labels are now placed where each curve leaves the visible box.
+- **Two curves that are the same line need to look like two curves.** Overlaps 2 and 4 both
+  sum to exactly 1, so `scrub_null`'s right panel drew one line with two labels on top of each
+  other. The second is dashed and labelled further along.
+
+## Evidence the new chapters cite
+
+`tap.scrub~` — `notebooks/scrub.ipynb`, `tests/scrub_test.cpp`:
+
+- the delay identity at unity pitch, 4.4e-16 (*"held still at unity pitch, the scrub is the
+  input delayed"*)
+- band energy retained 0.988 mean / 0.917 worst over 7 fundamentals × 7 intervals;
+  concentration 0.920 / 0.750
+- the wander sweep: 0.933 / 0.958 / 0.965 / 0.990 / 0.993 mean at ±0.5 / ±1 / ±2 / ±3 / ±4
+  grains, worst 0.716 / 0.820 / 0.874 / 0.918 / 0.940
+- spray 0 ⇒ seed cannot matter, bitwise; mix 0 ⇒ bitwise passthrough
+
+`tap.metallique~` / `tap.palme~` — `notebooks/diffuseur.ipynb`, `tests/diffuseur_test.cpp`:
+
+- the cabinet is **bitwise** `transducer → body`; the reverse wiring differs by 28 % of peak
+- plate weights sum to exactly 1, unit peak gain per mode
+- transducer bound `2/saturation` (measured 1.49, naive bound 1.25)
+- every one of the twelve strings ≥ 4.4× selective, with the drive faded 250 ms in and out
+
+`tap.ondes~` / `tap.triode~` / `tap.touche~` — `notebooks/ondes.ipynb`, `notebooks/touche.ipynb`,
+`tests/ondes_test.cpp`, `tests/touche_test.cpp`:
+
+- `|cos|` harmonics −14.0 / −21.3 / −26.4 dB, before any valve
+- closed form vs full 80 kHz simulation: within 0.10 dB on every harmonic, uniform 3.0–3.2 %
+  level offset
+- detector pitch dependence: H2 −14.0 dB at A2 → −19.3 dB at A6, level down 2.0 dB
+- 6C5 demodulator bias Vk 2.70 V, Vp 86.5 V, Ip 2.70 mA, gain 4.86; asymmetry 2.17 : 1
+- drive sweeps THD 0.221 → 0.344 monotonically; `keyplacement` worth 0.09, `polarity` 0.12,
+  `power` 0.248 → 0.251
+- the oversampling table at 587 / 1175 / 1760 / 2637 / 3520 Hz
+- the published key table, 50 dB from 4.3 mm to 8.8 mm, silent below
+
+## What the appendices are *about*
+
+Same rule as `machine/fuzz.md`: an appendix earns its length from what went wrong, not from
+restating the header.
+
+- **`machine/scrub.md`** — the anchoring defect (grains anchored at the position cancel the
+  transposition, and no listening test can see it), and the measurement trap that nearly
+  inverted the conclusion (a single-bin probe reads the *fixed* kernel as broken, 0.02 against
+  a band figure of 0.43).
+- **`machine/diffuseur.md`** — unit peak gain removing the limiter, the DC blocker and the
+  decay/level coupling in one choice; the bitwise order null and the `cos(π/2)` endpoint that
+  had to be short-circuited to get it; the `2/saturation` correction; and the selectivity test
+  that was measuring its own on/off step.
+- **`machine/ondes.md`** — the stage that needed no design because the paper published it; the
+  detector that is an identity rather than an approximation; the sign error that made a
+  distortion knob run backwards; three measurements that lied in three different ways; the
+  oversampling evidence for `fuzz.h`'s open question; and the wrapper test that found a kernel
+  bug.
+
+## Still deliberately not covered
+
+- **A recipes entry.** Now genuinely earnable — `tap.ondes~` → `tap.palme~` with the ribbon
+  and key on signals is a rig, and the scrub into a diffuseur is another. Deferred rather than
+  declined: `recipes/` entries are whole patches with patcher-level detail, and that is a
+  separate piece of work from the chapters.
+- **The Max-side surface**, and **comparative listening claims**. Unchanged.
