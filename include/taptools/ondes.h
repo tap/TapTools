@@ -629,9 +629,38 @@ namespace tap::tools {
             // -- audio ---------------------------------------------------------------------------
 
             /// A source: no input. One sample of the instrument, minus its loudspeaker.
-            double process() {
+            double process() { return core_sample(-1.0, -1.0, false); }
+
+            /// The signal-rate performance path: the ribbon in semitones above A1 and the key
+            /// over its travel, taken straight from the caller with the ramps bypassed — a
+            /// control signal is already smooth, and re-targeting a 20 ms ramp every sample would
+            /// just make the key lag the hand. The ramps are still ticked so a later switch back
+            /// to the attribute path is continuous rather than a jump.
+            double process(double semitones, double key_position) {
+                return core_sample(std::clamp(semitones, 0.0, k_max_semitones), std::clamp(key_position, 0.0, 1.0),
+                                   true);
+            }
+
+            /// Block form: the trivial loop over the scalar path.
+            void process(double* out, size_t n) {
+                for (size_t i = 0; i < n; ++i) {
+                    out[i] = process();
+                }
+            }
+
+          private:
+            // The grid swing each stage sees at `drive` 1, chosen so the published operating
+            // points are worked but not slammed — the fuzz.h lesson, applied before it bit.
+            static constexpr double k_nominal_demod_v  = 0.9;
+            static constexpr double k_nominal_preamp_v = 0.6;
+            static constexpr double k_nominal_power_v  = 0.5;
+
+            double core_sample(double semitones, double key_position, bool driven) {
                 if (!m_prepared) {
                     return 0.0;
+                }
+                if (driven) {
+                    m_detector.set_ribbon(semitones);
                 }
                 const double drive = m_drive.tick();
                 const double level = m_level.tick();
@@ -640,8 +669,10 @@ namespace tap::tools {
                 m_power.set_drive(std::max(k_min_drive_v, k_nominal_power_v * drive));
 
                 // The key's ramp is ticked ONCE per output sample whichever side of the chain it
-                // is on, so its slew time means the same thing at every oversampling factor.
-                const double key_gain = m_key.process(1.0);
+                // is on, so its slew time means the same thing at every oversampling factor. On
+                // the driven path the ramp still ticks, but the gain comes from the caller.
+                const double ramped   = m_key.process(1.0);
+                const double key_gain = driven ? m_key.gain_at(key_position) : ramped;
 
                 double y = 0.0;
                 for (int j = 0; j < m_os; ++j) {
@@ -661,20 +692,6 @@ namespace tap::tools {
                 const double keyed = (m_key_where == key_after) ? m_dc_y1 * key_gain : m_dc_y1;
                 return keyed * level;
             }
-
-            /// Block form: the trivial loop over the scalar path.
-            void process(double* out, size_t n) {
-                for (size_t i = 0; i < n; ++i) {
-                    out[i] = process();
-                }
-            }
-
-          private:
-            // The grid swing each stage sees at `drive` 1, chosen so the published operating
-            // points are worked but not slammed — the fuzz.h lesson, applied before it bit.
-            static constexpr double k_nominal_demod_v  = 0.9;
-            static constexpr double k_nominal_preamp_v = 0.6;
-            static constexpr double k_nominal_power_v  = 0.5;
 
             /// The nonlinear chain at whatever rate the caller is running.
             ///
