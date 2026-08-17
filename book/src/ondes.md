@@ -205,9 +205,9 @@ already bottomed out. Never worse. 4× is the default because that is where
 the cost stops buying uniformly; 8× is there for anyone playing the top
 octave hard.
 
-Readers of the `tap.fuzz~` chapter will notice this is the *opposite* of
-what that object measured. That is not a contradiction, and the appendix
-explains why it is evidence.
+Readers of the `tap.fuzz~` chapter will notice this used to be the *opposite*
+of what that object measured. That was not a contradiction — it was the clue
+that fixed the fuzz. The appendix explains how.
 
 ## What is missing, deliberately
 

@@ -43,17 +43,17 @@
 ///             - `pedal` — input gain, the two stages inside the oversampled region, the DC
 ///               blocker, the tone stack, output level.
 ///
-///             Aliasing: the clipper pair runs oversampled (1/2/4/8x, **default 2x**) —
-///             zero-stuff plus an 8th-order Butterworth anti-image on the way up, a matching
-///             anti-alias before decimation. Two things here differ from the house pattern and
-///             both are measurements rather than preferences. The pattern's 4th-order filter is
-///             not steep enough (it made 4x worse than 2x); and even at 8th order the sequence
-///             is *not* monotone — 2x measures best, so 2x is the default, not the largest
-///             factor. DAFx-07 notes that typical implementations use 8-10x and that residual
-///             aliases there tend to be masked by the dense spectrum of guitar distortion; this
-///             kernel's curve is C-infinity rather than a hard corner, which is why a modest
-///             factor already buys four orders of magnitude. See butterworth8's comment for the
-///             numbers and for what is and is not known about the cause.
+///             Aliasing: the clipper pair runs oversampled (1/2/4/8x, **default 4x**) by
+///             **cascaded 2x stages** — one zero-stuff-by-two and one 8th-order Butterworth per
+///             doubling, each cutting at 0.225 of its own output rate, and the mirror of that on
+///             the way down. Two things here differ from the house pattern and both are
+///             measurements rather than preferences: the pattern's 4th-order filter is not steep
+///             enough for this curve, and its single zero-stuff-by-N is what made more
+///             oversampling measure *worse* here. Cascading fixes that — see butterworth8's
+///             comment for the before/after table. DAFx-07 notes that typical implementations
+///             use 8-10x and that residual aliases there tend to be masked by the dense spectrum
+///             of guitar distortion; this kernel's curve is C-infinity rather than a hard corner,
+///             which is why a modest factor already buys two to three orders of magnitude.
 ///
 ///             Honest limits:
 ///             - The nonlinearity is static. The pole-moves-with-voltage behaviour of the real
@@ -75,6 +75,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 
@@ -90,6 +91,11 @@ namespace tap::tools {
         // family's slope is knee/tanh(knee), ~2 at the stock knee), so a floor at unity would
         // arrive at the limiter already saturated and the knob would do nothing over most of its
         // travel. Gain staging across a cascade is the whole game; these two numbers are it.
+        constexpr int    k_max_os     = 8;     // 1, 2, 4 or 8
+        constexpr int    k_max_stages = 3;     // log2(k_max_os): one 2x resampler per doubling
+        constexpr int    k_default_os = 4;     // measured: within noise of 8x, and never bad
+        constexpr double k_os_fc_norm = 0.225; // each 2x stage's corner, of its own output rate
+
         constexpr double k_gain_min_db    = -12.0;
         constexpr double k_gain_max_db    = 36.0;
         constexpr double k_level_range_db = 24.0;
@@ -222,31 +228,55 @@ namespace tap::tools {
         /// 1.7e-2 at 4x against 2.8e-3 at 2x — more oversampling was *worse*. Eighth order cuts
         /// that to 2.7e-3, a ~6x improvement at 4x.
         ///
-        /// It does NOT make the sequence monotone, and this file does not claim it does. Measured
-        /// against a 3733 Hz tone (fuzz.ipynb §5), fold-frequency energy runs 1.2e-1 / 2.7e-5 /
-        /// 7.4e-4 / 1.8e-3 at 1x / 2x / 4x / 8x: every factor is worth having over none, and 2x
-        /// is the best of them, which is why it is the default.
+        /// **Eighth order did not fix the ordering; cascading did.** The chain used to zero-stuff
+        /// by N in one step and filter once, at 0.45/N normalized — 0.056 at 8x. That leaves N-1
+        /// images for a single filter to suppress at a corner that gets tighter with every
+        /// doubling, and residuals entering the clipper intermodulate into products that are not
+        /// harmonics of the input, which is exactly what the probe measures. ondes.h supplied the
+        /// first evidence for that reading: same filters, comparably hard nonlinearity, but a
+        /// SOURCE with nothing zero-stuffed, and no reversal.
         ///
-        /// The cause is not established. The obvious suspect — biquads going ill-conditioned at
-        /// the low normalized cutoffs a high factor needs (0.056 at 8x) — was tested and ruled
-        /// out: the cascade's impulse response decays cleanly to denormal at every factor. The
-        /// next hypothesis was imaging: zero-stuffing by N leaves N-1 images for one filter to
-        /// suppress, and residuals intermodulate in the clipper into products that are not
-        /// harmonics of the input, which is exactly what the probe measures. If that is right,
-        /// the fix is cascaded 2x (halfband/polyphase) resampling rather than a single stage at
-        /// 1/N — each step then suppresses one image at a comfortable normalized frequency. That
-        /// is the known next move on this file.
+        /// Acting on it confirms it. The chain is now one 2x stage per doubling, each filtering at
+        /// 0.225 of its own operating rate — a corner that never tightens however deep the cascade
+        /// goes. Fold energy against a hard-driven sine, same probe both sides (fuzz.ipynb §5):
         ///
-        /// **There is now evidence for it.** ondes.h runs the same butterworth8 chain around a
-        /// comparably hard nonlinearity, but as a SOURCE: nothing is zero-stuffed on the way up,
-        /// its generator simply runs at the high rate, so there are no images at all. Measured
-        /// the same way, its sequence never reverses — about 12 dB per doubling to 4x and 7-12 dB
-        /// more at 8x in the top octave (ondes.ipynb §5). Same filters, same order, no upsampler,
-        /// no reversal. Evidence rather than proof, since the nonlinearity differs too, but it is
-        /// the first evidence either way and it points at the upsampler.
+        ///     tone        single zero-stuff by N              cascaded 2x
+        ///            1x       2x       4x       8x         2x       4x       8x
+        ///    3067  7.8e-2   1.0e-3   2.5e-3   3.1e-3     1.0e-3   9.1e-4   8.9e-4
+        ///    3733  1.2e-1   2.7e-5   7.4e-4   1.8e-3     3.0e-5   2.1e-5   2.2e-5
+        ///    4409  1.4e-1   9.4e-7   7.9e-4   2.1e-3     8.6e-7   3.7e-7   3.7e-7
+        ///    5171  1.5e-1   3.3e-4   9.2e-4   2.3e-3     3.3e-4   2.0e-7   1.9e-7
+        ///    6421  8.5e-2   3.2e-2   5.8e-4   1.3e-3     3.2e-2   3.9e-7   3.6e-7
+        ///    7211  1.0e-1   8.9e-2   4.3e-4   9.6e-4     8.9e-2   4.5e-7   4.3e-7
+        ///    8123  9.0e-2   7.8e-2   1.1e-3   1.1e-3     7.8e-2   1.1e-3   2.0e-5
+        ///    9337  9.1e-2   8.1e-2   2.9e-4   6.2e-5     8.1e-2   1.8e-6   2.4e-8
+        ///   10499  1.5e-1   1.7e-1   1.8e-3   1.4e-4     1.7e-1   1.2e-5   1.6e-6
         ///
-        /// (Whether overdrive.h is owed the 8th-order change is a live question — different
-        /// nonlinearity, different gain structure, so it needs its own measurement.)
+        /// The worst step-up past 2x is now a ratio of 1.017 — flat, where the old chain ran up to
+        /// 3x worse per doubling. Where the old 4x and 8x were merely adequate they are now two to
+        /// four orders of magnitude better (5171 Hz at 8x: 2.3e-3 to 1.9e-7). The 2x column is
+        /// unchanged, as it must be: one doubling is one stage either way.
+        ///
+        /// It cost essentially nothing: 8x runs 3.16 % of a core against the old 3.02 % (20 s of
+        /// audio), because the extra filter instances are cheap next to the clipper they surround.
+        ///
+        /// **The old default was also generalized from one probe.** Every earlier number here came
+        /// from 3733 Hz, where 2x happens to look best. Swept across tones, 2x collapses above
+        /// about 6 kHz — at 10.5 kHz it is *worse than no oversampling at all* — because the
+        /// clipper's low harmonics already exceed the base Nyquist there and one doubling does not
+        /// move them out of the way. **4x is the default now.** 8x earns its keep above about
+        /// 7.5 kHz, where harmonics start folding inside the 4x band before decimation (8123 Hz is
+        /// the visible case above); below that the two are indistinguishable.
+        ///
+        /// Two limits of the probe itself, since it is what every number here rests on: it only
+        /// measures folding at all above about 3 kHz (below that, harmonics 8-13 are still under
+        /// Nyquist and it reads real harmonics instead), and tones that are simple rational
+        /// multiples of the sample rate put folds on top of each other or exactly at Nyquist,
+        /// where it reads nonsense. The sweep tones are chosen to avoid both.
+        ///
+        /// (Whether overdrive.h is owed the same change is a live question — different
+        /// nonlinearity, different gain structure, so it needs its own measurement. ondes.h does
+        /// not need it: it is a source and zero-stuffs nothing.)
         ///
         /// Pole Qs are the standard 8th-order Butterworth set, Q_k = 1/(2 cos((2k+1)pi/16)).
         struct butterworth8 {
@@ -375,8 +405,12 @@ namespace tap::tools {
                 m_s1.clear();
                 m_s2.clear();
                 m_tone.clear();
-                m_up.reset();
-                m_down.reset();
+                for (auto& f : m_up) {
+                    f.reset();
+                }
+                for (auto& f : m_down) {
+                    f.reset();
+                }
                 m_dc_x1 = m_dc_y1 = 0.0;
             }
 
@@ -406,8 +440,9 @@ namespace tap::tools {
                 m_level_db.to(std::clamp(db, -k_level_range_db, k_level_range_db), smooth_samples());
             }
 
-            /// 1, 2, 4 or 8; 2 is the default and measures best (see the banner — bigger is not
-            /// better here). Reconfigures the stage corners and the filters — not real-time-safe.
+            /// 1, 2, 4 or 8; 4 is the default. Reconfigures the stage corners and the resampler
+            /// cascade — not real-time-safe. 2x is offered but measures badly above about 6 kHz
+            /// (see the butterworth8 banner); prefer 4 unless something specific measures better.
             void set_oversample(int os) {
                 const int v = (os >= 8) ? 8 : (os >= 4) ? 4 : (os >= 2) ? 2 : 1;
                 if (v != m_os) {
@@ -462,12 +497,33 @@ namespace tap::tools {
                     y = core(x, drive, knee2, bias);
                 }
                 else {
-                    // zero-stuff + anti-image up, the clipper pair at the high rate, anti-alias
-                    // + decimate down (the tap.ladder~ / overdrive.h chain).
-                    for (int j = 0; j < m_os; ++j) {
-                        const double up = m_up.tick(j == 0 ? x * m_os : 0.0);
-                        y               = m_down.tick(core(up, drive, knee2, bias));
+                    // Cascaded 2x: each stage doubles the rate and suppresses the single image
+                    // that doubling creates, at a comfortable normalized corner. See the
+                    // butterworth8 banner for why this is not one zero-stuff by N.
+                    std::array<double, k_max_os> a{}, b{};
+                    a[0]      = x;
+                    int count = 1;
+                    for (int i = 0; i < m_stages; ++i) {
+                        for (int j = 0; j < count; ++j) {
+                            b[static_cast<size_t>(2 * j)]     = m_up[i].tick(a[static_cast<size_t>(j)] * 2.0);
+                            b[static_cast<size_t>(2 * j + 1)] = m_up[i].tick(0.0);
+                        }
+                        std::swap(a, b);
+                        count *= 2;
                     }
+                    for (int j = 0; j < count; ++j) {
+                        a[static_cast<size_t>(j)] = core(a[static_cast<size_t>(j)], drive, knee2, bias);
+                    }
+                    for (int i = m_stages - 1; i >= 0; --i) {
+                        for (int j = 0; j < count / 2; ++j) {
+                            // Filter every sample, keep the first of each pair.
+                            b[static_cast<size_t>(j)] = m_down[i].tick(a[static_cast<size_t>(2 * j)]);
+                            m_down[i].tick(a[static_cast<size_t>(2 * j + 1)]);
+                        }
+                        std::swap(a, b);
+                        count /= 2;
+                    }
+                    y = a[0];
                 }
 
                 // Asymmetry generates DC that the shelves would otherwise pass; always on.
@@ -496,11 +552,16 @@ namespace tap::tools {
                 m_s1.prepare(osr, k_voice_stage1_hp_hz, k_voice_stage1_lp_hz);
                 m_s2.prepare(osr, k_voice_stage2_hp_hz, k_voice_stage2_lp_hz);
                 m_tone.prepare(m_sr);
-                if (m_os > 1) {
-                    // Cut just below the original Nyquist, normalized to the oversampled rate.
-                    const double fc_norm = 0.45 / static_cast<double>(m_os);
-                    m_up.design(fc_norm);
-                    m_down.design(fc_norm);
+                m_stages = 0;
+                for (int n = m_os; n > 1; n >>= 1) {
+                    ++m_stages;
+                }
+                for (int i = 0; i < m_stages; ++i) {
+                    // 0.225 of each stage's own output rate — its input Nyquist, with margin.
+                    // Every stage gets the same comfortable corner however deep the cascade is,
+                    // which is the entire point of cascading rather than zero-stuffing by N.
+                    m_up[i].design(k_os_fc_norm);
+                    m_down[i].design(k_os_fc_norm);
                 }
                 m_tone_bass = m_tone_treble = m_tone_contrast = std::nan("");
                 m_configured                                  = true;
@@ -512,12 +573,13 @@ namespace tap::tools {
 
             double m_sr{48000.0};
             double m_smooth_ms{k_default_smooth_ms};
-            int    m_os{2};
+            int    m_os{k_default_os};
             bool   m_configured{false};
 
             stage        m_s1, m_s2;
             tone         m_tone;
-            butterworth8 m_up, m_down;
+            butterworth8 m_up[k_max_stages], m_down[k_max_stages];
+            int          m_stages{1}; // log2(m_os); 0 at 1x
             double       m_dc_x1{0.0}, m_dc_y1{0.0};
 
             // Cached tone targets so the biquads are only redesigned when a control actually moves.

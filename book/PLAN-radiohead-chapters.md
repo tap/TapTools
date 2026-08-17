@@ -154,8 +154,8 @@ class boundary is a seam.
 
 Added with the object. The user-facing chapter opens by placing it against `tap.overdrive~`
 (two dirt objects, not competing) and spends its length on the three things a patcher can act
-on: the knee as a character control, why the gain floor sits below unity, and why
-`oversample` 2 beats 8. The appendix is deliberately **about two mistakes**, because the DSP
+on: the knee as a character control, why the gain floor sits below unity, and what
+`oversample` actually buys. The appendix is deliberately **about mistakes**, because the DSP
 is a published recipe followed closely and the failures are the reusable part:
 
 - *Small-signal gain compounds across a cascade.* The tanh family's slope is `k/tanh(k)`, so a
@@ -164,11 +164,17 @@ is a published recipe followed closely and the failures are the reusable part:
   keeping is that it was **inaudible** — it sounded like a distortion at every setting because
   it was one — so only a swept measurement found it.
 - *The house oversampler measured wrong here, and so did the first explanation.* 4th order made
-  4× worse than 2×; 8th order improves 4× ~6× but does not restore an ordering. An earlier
-  draft of both the appendix and the plan claimed it did; that is corrected, the measured table
-  is in the chapter, and the ruled-out hypothesis (biquad conditioning, disproved by an
-  impulse-response check) is recorded alongside the surviving one (imaging) rather than left
-  as a vague "needs investigation".
+  4× worse than 2×; 8th order improves 4× ~6× but did not restore an ordering. An earlier
+  draft of both the appendix and the plan claimed it did; that was corrected, and the
+  ruled-out hypothesis (biquad conditioning, disproved by an impulse-response check) was
+  recorded alongside the surviving one (imaging) rather than left as a vague "needs
+  investigation".
+- *And then the surviving hypothesis was acted on, 2026-08-17.* Cascaded 2× resampling removed
+  the reversal; the appendix's "Mistake two" section is rewritten from *a hypothesis that died*
+  to *a hypothesis that was right*, with a before/after table. **A third mistake was found
+  doing it and got its own section**: every number in the original write-up came from one test
+  tone, and swept properly the shipped default of 2× collapses above 6 kHz. The default is now
+  4×. The section is called "one tone is not a sweep" and it is the reusable part.
 
 Two aliasing test-design errors are also written up in the appendix — a tone dividing the
 sample rate, and probes near enough the fundamental to read window leakage — since both passed

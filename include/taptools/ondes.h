@@ -104,15 +104,20 @@
 ///             bottomed out. **Never worse.** 4× is the default because it is where the cost
 ///             stops buying uniformly; 8× is there for anyone playing the top octave hard.
 ///
-///             That matters beyond this file, because `fuzz.h` measured the opposite — 4× came
-///             out *worse* than 2× there — and left an untested hypothesis behind: that the
+///             That mattered beyond this file. `fuzz.h` measured the opposite — 4× came out
+///             *worse* than 2× there — and had left an untested hypothesis behind: that the
 ///             culprit is *imaging*, since zero-stuffing by N leaves N−1 images for one filter to
 ///             suppress and their residuals intermodulate in the clipper into products that are
 ///             not harmonics of the input. This object is a **source**. Nothing is zero-stuffed
 ///             on the way up; the detector simply runs fast, so there are no images at all — and
-///             the sequence never reverses. Evidence for that hypothesis rather than proof of it
-///             (the nonlinearity differs too), but it is the first evidence either way, and it
-///             points the same direction.
+///             the sequence never reverses. Same filters, no upsampler, no reversal, which was
+///             the first evidence either way.
+///
+///             **It was acted on, and it held.** `fuzz.h` now cascades one 2× stage per doubling
+///             instead of zero-stuffing by N once, and its reversal is gone: worst step-up past
+///             2× is a ratio of 1.017, and its 4× and 8× improved by two to four orders of
+///             magnitude. This file needs no such change — it has no upsampler to fix — but the
+///             cross-check is worth keeping, because it is why the change was made.
 ///
 ///             Honest limits:
 ///             - **This is not a circuit solve.** It is the published *reductions* of one: the

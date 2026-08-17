@@ -195,27 +195,32 @@ SCENARIO("asymmetry is what puts even harmonics in the spectrum") {
 //     thing being measured.
 //
 // What is asserted is what is true: oversampling drops aliasing by two orders of magnitude
-// against no oversampling. It is deliberately NOT asserted that 8x beats 2x — measured, the
-// residual above 2x sits around -60 dB where filter numerics and window leakage dominate, and a
-// test that pinned an ordering there would be pinning noise.
+// against no oversampling. Since the resampler became a cascade of 2x stages it is also true
+// that more is never meaningfully worse, and that IS asserted below — it is the property the
+// cascade was built to deliver, and the single zero-stuff-by-N chain it replaced failed it.
+//
+// A third thing is asserted that the old chain would have passed while being broken: that 4x
+// works at a *high* tone. Every number in the original write-up came from 3733 Hz alone, and
+// 2x happens to look best there; swept properly, 2x collapses above about 6 kHz. One probe is
+// not a sweep.
 SCENARIO("oversampling drops the aliased energy by orders of magnitude") {
     const double f0          = 3733.0; // deliberately not a submultiple of the sample rate
-    auto         alias_floor = [&](int os) {
+    auto         alias_floor = [&](int os, double tone) {
         pedal p = make();
         p.set_gain(1.0);
         p.set_edge(1.0);
         p.set_oversample(os);
-        const std::vector<double> y = render(p, f0, 0.5, 0.4);
+        const std::vector<double> y = render(p, tone, 0.5, 0.4);
         const size_t              b = at(0.2), e = at(0.4);
-        // Where harmonics 8..13 of f0 fold back, skipping any fold that lands near the
+        // Where harmonics 8..13 of the tone fold back, skipping any fold that lands near the
         // fundamental (those probes read leakage, not aliasing).
         double acc = 0.0;
         for (int k = 8; k <= 13; ++k) {
-            double f = k * f0;
+            double f = k * tone;
             while (f > k_sr * 0.5) {
                 f = (f > k_sr) ? f - k_sr : k_sr - f;
             }
-            if (std::abs(f - f0) < 1000.0) {
+            if (std::abs(f - tone) < 1000.0) {
                 continue;
             }
             const double m = goertzel(y, f, b, e);
@@ -224,15 +229,28 @@ SCENARIO("oversampling drops the aliased energy by orders of magnitude") {
         return std::sqrt(acc);
     };
 
-    const double none  = alias_floor(1);
-    const double two   = alias_floor(2);
-    const double four  = alias_floor(4);
-    const double eight = alias_floor(8);
-    INFO("alias energy: 1x = " << none << ", 2x = " << two << ", 4x = " << four << ", 8x = " << eight);
+    const double none  = alias_floor(1, f0);
+    const double two   = alias_floor(2, f0);
+    const double four  = alias_floor(4, f0);
+    const double eight = alias_floor(8, f0);
+    INFO("alias energy at " << f0 << ": 1x = " << none << ", 2x = " << two << ", 4x = " << four << ", 8x = " << eight);
     REQUIRE(none > 0.05);       // the test material really does alias when nothing is done
     REQUIRE(two < none * 0.05); // and oversampling really does fix it
     REQUIRE(four < none * 0.05);
     REQUIRE(eight < none * 0.05);
+
+    // The cascade's promise: the sequence never reverses. A 15 % tolerance, because past 2x the
+    // readings sit within about an order of magnitude of the probe's own floor (4e-5 to 1.5e-4
+    // with the pedal nearly clean) and pinning a tighter ordering there would pin noise.
+    REQUIRE(four <= two * 1.15);
+    REQUIRE(eight <= four * 1.15);
+
+    // And the reason the default moved to 4x: one doubling is not enough for a bright input,
+    // where the clipper's low harmonics already exceed the base Nyquist.
+    const double bright_two  = alias_floor(2, 6421.0);
+    const double bright_four = alias_floor(4, 6421.0);
+    INFO("alias energy at 6421: 2x = " << bright_two << ", 4x = " << bright_four);
+    REQUIRE(bright_four < bright_two * 0.1);
 }
 
 SCENARIO("the tone stack moves the band it says it moves") {
