@@ -2,8 +2,10 @@
 
 > **Status: complete as an object — every piece has shipped.** `touche` 2026-08-15 as
 > `tap.touche~`; both diffuseurs 2026-08-17 as `tap.metallique~` and `tap.palme~`; the `triode`
-> and the heterodyne source 2026-08-17 as `tap.triode~` and `tap.ondes~`. What remains is the
-> waveform registers, which are still unsourced (see the last section), and the book chapter.
+> and the heterodyne source 2026-08-17 as `tap.triode~` and `tap.ondes~`. The book chapters
+> followed the same day — `book/src/ondes.md` (voice, triode and intensity key together) and
+> `book/src/diffuseurs.md`, plus `machine/ondes.md` and `machine/diffuseur.md`. What remains is
+> the waveform registers, which are still unsourced (see the last section).
 > The source gate is closed —
 > `PLAN-radiohead-family.md` §3 records what was found and how far each paper was read. This
 > file is the design pass those findings forced, written before any code, because what the

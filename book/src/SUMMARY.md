@@ -30,6 +30,9 @@
 - [Four heads and a motor](tapecho.md)
 - [The part that comes apart](stammer.md)
 - [The dirt with two stages](fuzz.md)
+- [Two hands on the same tape](scrub.md)
+- [Loudspeakers you can play](diffuseurs.md)
+- [The instrument that is not a synthesizer](ondes.md)
 
 # Part VI — The spectral set
 
@@ -74,6 +77,9 @@
 - [Composition, not construction: tapecho.h](machine/tapecho.md)
 - [Dice you can replay: stammer.h](machine/stammer.md)
 - [Two stages and a knee: fuzz.h](machine/fuzz.md)
+- [One tape, two read patterns: scrub.h](machine/scrub.md)
+- [Driven, not struck: diffuseur.h](machine/diffuseur.md)
+- [A citation, an identity, and a sign: ondes.h](machine/ondes.md)
 
 # Part XI — Recipes
 

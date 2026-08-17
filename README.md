@@ -113,10 +113,13 @@ Plus, all Max-free:
 - **`bench/`** — CPU benchmarks and the per-machine regression ratchet (see `bench/README.md`).
 - **`book/`** — *Tools on Tap*, the mdBook field guide (the AmbiTap/SampleRateTap/MuTap book
   pattern): one chapter per object family, every claim measured by the notebooks/tests. Built
-  and published to Pages by `.github/workflows/docs.yml`. Fourteen user-facing chapters across seven
-  parts — sources (`vco`), filters (`svf`, `ladder`, `autowah`), strings/rooms/spirals
-  (`convolve`, `5comb`, `pitchaccum`), the spectral set (`vocoder`, `nr`, `spectra`), the rhythm
-  section (`acid`, `drums`), staying in tune (`tune`), the pedalboard (`overdrive`) — plus
+  and published to Pages by `.github/workflows/docs.yml`. Twenty-four user-facing chapters across
+  nine parts — sources (`vco`), filters (`svf`, `ladder`, `autowah`), strings/rooms/spirals
+  (`convolve`, `5comb`, `pitchaccum`), tape and time (`discreet`, `airport`, `garden`,
+  `components`), the machines you ride (`tapecho`, `stammer`, `fuzz`, `scrub`, `diffuseurs`,
+  `ondes`), the spectral set (`vocoder`, `nr`, `spectra`), the rhythm
+  section (`acid`, `drums`), staying in tune (`tune`), the pedalboard (`overdrive`) — plus a
+  recipes part of whole patches, and
   **"The machine, file by file"**: one deep-dive appendix per kernel header
   (SampleRateTap-style) deriving the math, reviewing the code, and recording why each
   algorithm is built the way it is.
