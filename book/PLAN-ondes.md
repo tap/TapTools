@@ -1,7 +1,8 @@
 # Plan — `tap.ondes~`, after reading the sources
 
-> **Status: in progress — `touche` shipped 2026-08-15 as `tap.touche~` (kernel side); the rest
-> is design.** The source gate is closed —
+> **Status: in progress — `touche` shipped 2026-08-15 as `tap.touche~`, and both diffuseurs
+> shipped 2026-08-17 as `tap.metallique~` and `tap.palme~`; the `triode` and the heterodyne
+> `source` are still design.** The source gate is closed —
 > `PLAN-radiohead-family.md` §3 records what was found and how far each paper was read. This
 > file is the design pass those findings forced, written before any code, because what the
 > papers describe is **not the object the family plan sketched**.
@@ -116,7 +117,31 @@ port-Hamiltonian simulation runs at 768 kHz and their plugin consumes 85 % of a 
 that is the road not taken, and the header should say so, so nobody assumes the simple path
 was chosen out of ignorance.
 
-## The diffuseurs — driven, not struck
+## The diffuseurs — driven, not struck — ✅ shipped
+
+> **Shipped 2026-08-17**: `include/taptools/diffuseur.h`, `tests/diffuseur_test.cpp` (18
+> scenarios), the C ABI + ctypes surface (`Metallique`, `Palme`, plus the bare `Plate` and
+> `Transducer` components), the executed `notebooks/diffuseur.ipynb`, the `metallique_stages`
+> and `palme_halo` render scenarios, and both Max vertical slices.
+>
+> Everything below survived contact with the code. The one thing the design pass did not say,
+> and the build made explicit, is that **the order is a claim worth a null test**: the
+> transducer drives the body, so the cabinet must be exactly `transducer -> plate`, bitwise,
+> and the reversed wiring must measurably differ (it does — 28 % of peak). Two smaller findings:
+> the modal bank needs no limiter and no DC blocker at all, because Steiglitz's
+> constant-peak-gain resonator has unit peak gain at any Q and its zeros at ±1 null DC and
+> Nyquist exactly; and the transducer's output bound is **2/saturation, not 1/saturation**,
+> because taking the DC out of a hard-driven squared law doubles the worst-case swing.
+>
+> The transducer question the plan left open — model the nonlinearity or state its absence —
+> was answered by modelling it: the squared law is defensible from the moving-iron principle
+> alone, and it is measured against its own prediction (second harmonic at exactly
+> asymmetry × amplitude / 2, to 1.4e-4, with nothing at the third). The bounding saturator
+> after it is labelled what it is: a modelling necessity, not a measured stage.
+>
+> Still open, and stated in the header rather than hidden: no radiation or cabinet model, no
+> soundboard resonance, and no string stiffness (a real steel string's partials stretch sharp;
+> a delay loop's are exactly harmonic).
 
 The correction that matters most for reusing `garden.h`'s idiom. Wijnand et al.:
 
@@ -144,8 +169,7 @@ peer-reviewed source says 12. Prefer 12 and say why.
 
 1. **`touche`** — fully specified, small, independently useful, and it can ship as
    `tap.touche~` before the rest of the instrument exists. Do this first.
-2. **The diffuseurs** — also independently useful, and the modal machinery is familiar.
-   `tap.palme~` and `tap.metallique~`.
+2. ~~**The diffuseurs**~~ — ✅ shipped 2026-08-17 as `tap.metallique~` and `tap.palme~`.
 3. **`triode`** — needs a listening comparison to settle the curve question.
 4. **`source`** and the composition — last, because it is the cheapest piece and the one most
    constrained by the others.

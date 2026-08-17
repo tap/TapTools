@@ -393,6 +393,115 @@ TAPTOOLS_API int taptools_tapecho_clear(taptools_tapecho h);
 /// Process n samples mono-in / stereo-out (the dry path is mixed to both busses).
 TAPTOOLS_API int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL, double* outR, int n);
 
+// ---- tap.transducer (tap::tools::diffuseur::transducer) ------------------------------------------
+
+/// The diffuseurs' moving-iron driver on its own — a component, not an external. Reachable here
+/// because the family's rule is that parts get C ABI reachability from the start, and because
+/// measuring the driver through a body means measuring the body too.
+typedef void* taptools_transducer;
+
+TAPTOOLS_API taptools_transducer taptools_transducer_create(void);
+TAPTOOLS_API void                taptools_transducer_destroy(taptools_transducer h);
+TAPTOOLS_API int                 taptools_transducer_prepare(taptools_transducer h, double sr);
+TAPTOOLS_API int                 taptools_transducer_set_drive(taptools_transducer h, double lin);
+TAPTOOLS_API int                 taptools_transducer_set_asymmetry(taptools_transducer h, double a);
+TAPTOOLS_API int                 taptools_transducer_set_saturation(taptools_transducer h, double s);
+TAPTOOLS_API int                 taptools_transducer_clear(taptools_transducer h);
+TAPTOOLS_API int taptools_transducer_process(taptools_transducer h, const double* in, double* out, int n);
+
+// ---- tap.plate (tap::tools::diffuseur::plate) ----------------------------------------------------
+
+/// The metallique's body on its own — the mode bank without the driver in front of it. Same
+/// reason as the transducer above: the parts are reachable so a measurement of one is not
+/// silently a measurement of both.
+typedef void* taptools_plate;
+
+TAPTOOLS_API taptools_plate taptools_plate_create(void);
+TAPTOOLS_API void           taptools_plate_destroy(taptools_plate h);
+TAPTOOLS_API int            taptools_plate_prepare(taptools_plate h, double sr);
+TAPTOOLS_API int            taptools_plate_set_pitch_hz(taptools_plate h, double hz);
+TAPTOOLS_API int            taptools_plate_set_decay(taptools_plate h, double t60_s);
+TAPTOOLS_API int            taptools_plate_set_tilt(taptools_plate h, double tilt);
+TAPTOOLS_API int            taptools_plate_set_brightness(taptools_plate h, double b);
+TAPTOOLS_API int            taptools_plate_clear(taptools_plate h);
+TAPTOOLS_API int            taptools_plate_process(taptools_plate h, const double* in, double* out, int n);
+TAPTOOLS_API double         taptools_plate_mode_hz(taptools_plate h, int mode);
+TAPTOOLS_API double         taptools_plate_mode_level(taptools_plate h, int mode);
+
+// ---- tap.metallique~ (tap::tools::diffuseur::metallique) -----------------------------------------
+
+typedef void* taptools_metallique;
+
+TAPTOOLS_API taptools_metallique taptools_metallique_create(void);
+TAPTOOLS_API void                taptools_metallique_destroy(taptools_metallique h);
+TAPTOOLS_API int                 taptools_metallique_prepare(taptools_metallique h, double sr);
+TAPTOOLS_API int                 taptools_metallique_set_pitch_hz(taptools_metallique h, double hz);
+TAPTOOLS_API int                 taptools_metallique_set_decay(taptools_metallique h, double t60_s);
+/// Upper modes decay by ratio^tilt faster than the fundamental.
+TAPTOOLS_API int taptools_metallique_set_tilt(taptools_metallique h, double tilt);
+TAPTOOLS_API int taptools_metallique_set_brightness(taptools_metallique h, double b); // 0..1
+TAPTOOLS_API int taptools_metallique_set_drive(taptools_metallique h, double lin);
+TAPTOOLS_API int taptools_metallique_set_asymmetry(taptools_metallique h, double a);  // 0..1, moving-iron squared term
+TAPTOOLS_API int taptools_metallique_set_saturation(taptools_metallique h, double s); // 0 is exactly linear
+TAPTOOLS_API int taptools_metallique_set_mix(taptools_metallique h, double pct);      // 0..100, equal-power
+TAPTOOLS_API int taptools_metallique_set_level(taptools_metallique h, double lin);
+TAPTOOLS_API int taptools_metallique_set_smooth_ms(taptools_metallique h, double ms);
+TAPTOOLS_API int taptools_metallique_clear(taptools_metallique h);
+TAPTOOLS_API int taptools_metallique_process(taptools_metallique h, const double* in, double* out, int n);
+/// The body's tuning, so a notebook can plot where the modes landed (NaN on a bad handle).
+TAPTOOLS_API double taptools_metallique_mode_hz(taptools_metallique h, int mode);
+TAPTOOLS_API double taptools_metallique_mode_level(taptools_metallique h, int mode);
+
+// ---- tap.palme~ (tap::tools::diffuseur::palme) ---------------------------------------------------
+
+typedef void* taptools_palme;
+
+TAPTOOLS_API taptools_palme taptools_palme_create(void);
+TAPTOOLS_API void           taptools_palme_destroy(taptools_palme h);
+TAPTOOLS_API int            taptools_palme_prepare(taptools_palme h, double sr);
+TAPTOOLS_API int            taptools_palme_set_root_hz(taptools_palme h, double hz);
+TAPTOOLS_API int            taptools_palme_set_tuning(taptools_palme h, int tuning); // 0 chromatic, 1 harmonic
+TAPTOOLS_API int            taptools_palme_set_decay(taptools_palme h, double t60_s);
+TAPTOOLS_API int            taptools_palme_set_damping(taptools_palme h, double hz);
+TAPTOOLS_API int            taptools_palme_set_detune(taptools_palme h, double cents);
+TAPTOOLS_API int            taptools_palme_set_drive(taptools_palme h, double lin);
+TAPTOOLS_API int            taptools_palme_set_asymmetry(taptools_palme h, double a);
+TAPTOOLS_API int            taptools_palme_set_saturation(taptools_palme h, double s);
+TAPTOOLS_API int            taptools_palme_set_mix(taptools_palme h, double pct);
+TAPTOOLS_API int            taptools_palme_set_level(taptools_palme h, double lin);
+TAPTOOLS_API int            taptools_palme_set_smooth_ms(taptools_palme h, double ms);
+TAPTOOLS_API int            taptools_palme_clear(taptools_palme h);
+TAPTOOLS_API int            taptools_palme_process(taptools_palme h, const double* in, double* out, int n);
+/// Where a string ended up after tuning and scatter, in Hz (NaN on a bad handle).
+TAPTOOLS_API double taptools_palme_string_hz(taptools_palme h, int index);
+/// The loop gain a string settled on — the cap is visible here when damping and ring time fight.
+TAPTOOLS_API double taptools_palme_string_feedback(taptools_palme h, int index);
+
+// ---- tap.scrub~ (tap::tools::scrub::machine) -----------------------------------------------------
+
+typedef void* taptools_scrub;
+
+TAPTOOLS_API taptools_scrub taptools_scrub_create(void);
+TAPTOOLS_API void           taptools_scrub_destroy(taptools_scrub h);
+TAPTOOLS_API int            taptools_scrub_prepare(taptools_scrub h, double sr, double max_history_ms);
+TAPTOOLS_API int            taptools_scrub_set_position_ms(taptools_scrub h, double ms); // lag behind the live edge
+TAPTOOLS_API int            taptools_scrub_set_pitch(taptools_scrub h, double semitones);
+TAPTOOLS_API int            taptools_scrub_set_drift(taptools_scrub h, double rate); // playback-rate units
+TAPTOOLS_API int            taptools_scrub_set_freeze(taptools_scrub h, int on);
+TAPTOOLS_API int            taptools_scrub_set_size_ms(taptools_scrub h, double ms);
+TAPTOOLS_API int            taptools_scrub_set_overlap(taptools_scrub h, int n); // 1..4
+TAPTOOLS_API int            taptools_scrub_set_spray_ms(taptools_scrub h, double ms);
+TAPTOOLS_API int            taptools_scrub_set_seed(taptools_scrub h, unsigned long long seed);
+TAPTOOLS_API int            taptools_scrub_set_mix(taptools_scrub h, double pct);
+TAPTOOLS_API int            taptools_scrub_set_level(taptools_scrub h, double lin);
+TAPTOOLS_API int            taptools_scrub_set_smooth_ms(taptools_scrub h, double ms);
+TAPTOOLS_API int            taptools_scrub_clear(taptools_scrub h);
+TAPTOOLS_API int            taptools_scrub_process(taptools_scrub h, const double* in, double* out, int n);
+/// Signal-rate performance path: position (ms behind the edge) and pitch (semitones) per sample.
+TAPTOOLS_API int taptools_scrub_process_mod(taptools_scrub h, const double* in, const double* position_ms,
+                                            const double* pitch_st, double* out, int n);
+TAPTOOLS_API int taptools_scrub_active_grains(taptools_scrub h); // -1 on a bad handle
+
 // ---- tap.touche~ (tap::tools::touche::key) -------------------------------------------------------
 
 typedef void* taptools_touche;

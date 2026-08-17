@@ -1,8 +1,10 @@
 # Plan — the Radiohead family
 
-> **Status: in progress — `tap.tapecho~`, `tap.stammer~` and `tap.fuzz~` have all shipped
-> end-to-end, chapters included (2026-08-15). `tap.ondes~`'s sources are read and its gate is
-> open; `tap.scrub~` is still plan.** This is the drafting record of the
+> **Status: in progress — `tap.tapecho~`, `tap.stammer~` and `tap.fuzz~` shipped end-to-end,
+> chapters included (2026-08-15); `tap.touche~`, the two diffuseurs and `tap.scrub~` shipped
+> as kernels plus Max slices (2026-08-15/17), chapters still to come for those three.**
+> `tap.ondes~`'s remaining pieces (the `triode` stage and the heterodyne `source`) are design.
+> This is the drafting record of the
 > 2026-08-15 survey ("are there Radiohead-inspired objects we should consider?"), amended the
 > same day against the Eno components wave (`d4cf28a`) before any code was written. It stays
 > after the objects ship, the plans-directory way; the chapters have their own drafting
@@ -35,7 +37,8 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 | `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | Heterodyne source + triode nonlinearity + `garden.h` modal idiom; **not** `vco.h` — see the source hunt | planned — sources read, gate open, needs a design pass |
 | `tap.fuzz~` | `fuzz.h` | Two-stage tone-stacked fuzz (the OK Computer-era dirt) | `overdrive.h` sibling; the DAFx-07 cascade | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
-| `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `tape::reel` + the `grm_pitchaccum.h` grain engine | planned |
+| `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `stammer::capture` (shared, not copied) + a Hann grain scheduler | ✅ shipped 2026-08-17 (kernel, notebook, Max slice) |
+| `tap.metallique~` / `tap.palme~` | `diffuseur.h` | The Ondes diffuseurs as driven resonators | `garden.h`'s modal maths without its strike envelopes; `grm_comb.h`'s sustained resonance | ✅ shipped 2026-08-17 (kernel, notebook, Max slices) |
 
 Parked (surveyed, deliberately not planned): a spectral freeze on the `stft.h` scaffold
 (`tap.sustain~` and `tap.discreet~` now cover most of that ground between them), a Klatt
@@ -306,15 +309,60 @@ are the house precedent for schematic-based recreation. **Naming is an open ques
 (below): the garden precedent (Bloom → garden) says don't ship a live trademark;
 "ShredMaster" is Marshall's mark, and the header will cite it as provenance either way.
 
-### 5. `tap.scrub~` — the Kaoss school *(after stammer; shares its capture)*
+### 5. `tap.scrub~` — the Kaoss school *(after stammer; shares its capture)* — ✅ shipped
 
-Live *Everything In Its Right Place*: the voice sampled on the fly and scrubbed, reversed,
-smeared from a pad. A continuously recording `tape::reel` with a **performable granular
-playhead**: position and speed as signals (the pad is two axes — that is the Max-side
-mapping story), Hermite grains from the `grm_pitchaccum.h` engine, overlap and grain size
-exposed. Distinct from `tap.reel~` (free-running loop, no performable head) and from
-`tap.pitchaccum~` (transposition, not scrubbing); shares machinery with both, and the plan
-is to make that sharing literal, not copied.
+> **Shipped 2026-08-17**: `include/taptools/scrub.h` (`head` + `machine`),
+> `tests/scrub_test.cpp` (13 scenarios), the C ABI + ctypes surface (`Scrub`), the executed
+> `notebooks/scrub.ipynb`, two `radiohead_render` scenarios, and the Max slice.
+>
+> **The sharing is literal**, as planned: the tape is `stammer::capture` itself, not a second
+> copy of it, and the only addition the stutter needed was `read_frac` — the fractional Hermite
+> read its ±1-rate slices never used. The plan's "position and speed as signals" became
+> **position and pitch**, which is the stronger claim: on tape, moving the head *is* the pitch
+> change, and decoupling them is what makes this an instrument rather than a varispeed.
+>
+> **The load-bearing null**: Hann overlap-adds to exactly 1 at hop = size/2, so held still at
+> unity pitch with no spray the scrub is the input delayed, to 4.4e-16.
+>
+> **One real defect, found by measurement and worth carrying.** The first cut anchored every
+> grain at the position. Origins then advance at the *write head's* speed while each grain plays
+> at `rate`, so the transposition applies only inside a grain, the average read rate returns to
+> 1, and a steady tone comes out at its **original** pitch with a comb of grain-rate sidebands.
+> The pitch knob did nothing but add texture — and no other test on the page could see it. The
+> fix is a phase-continuous read head wrapped back toward the position only after it has
+> wandered ±1.5 grains, a bound chosen by sweep (band energy retained 0.933 / 0.958 / 0.965 /
+> 0.990 / 0.993 at ±0.5 / ±1 / ±2 / ±3 / ±4 grains; flat past 3, and every extra grain is a
+> grain of position error).
+>
+> **And a measurement warning.** A single-bin probe reads the fixed kernel as badly broken: the
+> wraps spread the transposed partial into a comb a few Hz wide, and a rectangular-window
+> Goertzel on one line saw 0.02 where the band figure was 0.43. Measured properly, 98.8 % of a
+> perfect shifter's energy lands within ±15 Hz of the transposed pitch (worst 91.7 %); what the
+> wraps cost is concentration — 92.0 % as focused as a clean shift, 75.0 % at worst. Measure the
+> band, not the bin.
+
+### 6. The diffuseurs — `tap.metallique~` and `tap.palme~` — ✅ shipped
+
+> **Shipped 2026-08-17**: `include/taptools/diffuseur.h` (`mode`, `plate`, `sympathetic`,
+> `harp`, `transducer`, and the two cabinets over a shared `cabinet` base),
+> `tests/diffuseur_test.cpp` (18 scenarios), the C ABI + ctypes surface (`Metallique`, `Palme`,
+> and the bare `Plate` / `Transducer` components), the executed `notebooks/diffuseur.ipynb`,
+> two `radiohead_render` scenarios, and both Max slices. Design record in `PLAN-ondes.md`.
+>
+> Three things the build settled. **The order is the argument**: the transducer drives the body,
+> so the nonlinearity is upstream of the resonator, and a null test pins that the cabinet is
+> exactly `transducer -> body` (bitwise) while the reverse wiring differs by 28 % of peak.
+> **Unit peak gain per mode** (Steiglitz's constant-peak-gain resonator) plus weights that sum
+> to exactly 1 makes the body bounded by its input with no limiter and no DC blocker — the
+> zeros at ±1 handle DC and Nyquist. **The transducer's bound is 2/saturation, not
+> 1/saturation**: a hard-driven squared law is a nearly-constant positive waveform, and removing
+> its DC doubles the worst-case swing (measured 1.49 against the naive 1.25).
+>
+> Honest about what it is: the bodies are **recreations of the general physics** (Fletcher &
+> Rossing's free circular plate, and the harmonic series), because no ondes-specific modal
+> measurement exists in any of the four sources; the string tuning is a design choice; and both
+> nonlinear coefficients are voiced by ear, since the source establishes *that* the moving-iron
+> driver is nonlinear without handing over a curve.
 
 ## Cross-cutting commitments
 
@@ -370,9 +418,20 @@ is to make that sharing literal, not copied.
 - ~~**Echo head layout.**~~ Resolved at ship: free ratios with a nominal even-spacing
   default (0.25 / 0.5 / 0.75 / 1.0), rather than a named-machine preset — no head spacings
   are claimed as measured from any unit, and a Copicat-style three is two lines to set.
-- **One capture component or two.** Stammer and scrub both record the live input into a
-  reel; whether that is one shared class with two heads of use, or two thin wrappers over
-  `tape::reel`, is a design call to make when the stammer lands.
+- ~~**One capture component or two.**~~ Resolved at the scrub's ship: **one**. `scrub.h`
+  includes `stammer.h` and uses `stammer::capture` directly; the only change the stutter needed
+  was a fractional read it does not itself call.
+- **`tap.pitchaccum~` has the same warble, and worse.** Measured on the same sweep the scrub was
+  measured on (5 fundamentals × 7 intervals, band energy retained around the transposed pitch):
+  the scrub returns mean 0.988 / worst 0.917, `tap.pitchaccum~` returns mean 0.908 / **worst
+  0.004** — a near-total cancellation at 311 Hz up 19 semitones, where its ratio is exactly 3
+  and the two taps land a half-window apart. That is a real finding about a shipped object,
+  recorded rather than acted on: fixing it is its own job, with its own tests and its own
+  consumers, and it should not ride along on an unrelated kernel.
+- **Chapters for the three newest objects.** `tap.touche~`, the diffuseurs and `tap.scrub~` have
+  kernels, notebooks and Max slices but no book chapters yet. The touche's belongs inside an
+  Ondes-family chapter once the `triode` and `source` exist; the diffuseurs' probably with it;
+  the scrub's belongs beside the stammer in Part V, since they share a tape.
 - **Diffuseur delivery.** Ship the resonators inside `tap.ondes~` only, or as standalone
   externals (`tap.palme~` / `tap.metallique~`) from day one? The components chapter's
   lesson leans standalone-from-day-one.

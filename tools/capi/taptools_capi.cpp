@@ -15,6 +15,7 @@
 #include <taptools/autowah.h>
 #include <taptools/conv_engine.h>
 #include <taptools/delay.h>
+#include <taptools/diffuseur.h>
 #include <taptools/diode_ladder.h>
 #include <taptools/discreet.h>
 #include <taptools/fuzz.h>
@@ -22,6 +23,7 @@
 #include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
 #include <taptools/overdrive.h>
+#include <taptools/scrub.h>
 #include <taptools/stammer.h>
 #include <taptools/step_seq.h>
 #include <taptools/svf.h>
@@ -1228,6 +1230,352 @@ int taptools_tapecho_process(taptools_tapecho h, const double* in, double* outL,
         return -1;
     }
     return with<tapecho_machine>(h, [&](tapecho_machine& m) { m.process(in, outL, outR, static_cast<size_t>(n)); });
+}
+
+// ---- tap.transducer -------------------------------------------------------------------------------
+
+using diffuseur_transducer = tap::tools::diffuseur::transducer;
+
+taptools_transducer taptools_transducer_create(void) {
+    return static_cast<taptools_transducer>(new diffuseur_transducer());
+}
+
+void taptools_transducer_destroy(taptools_transducer h) {
+    delete static_cast<diffuseur_transducer*>(h);
+}
+
+int taptools_transducer_prepare(taptools_transducer h, double sr) {
+    return with<diffuseur_transducer>(h, [&](diffuseur_transducer& t) { t.prepare(sr); });
+}
+
+int taptools_transducer_set_drive(taptools_transducer h, double lin) {
+    return with<diffuseur_transducer>(h, [&](diffuseur_transducer& t) { t.set_drive(lin); });
+}
+
+int taptools_transducer_set_asymmetry(taptools_transducer h, double a) {
+    return with<diffuseur_transducer>(h, [&](diffuseur_transducer& t) { t.set_asymmetry(a); });
+}
+
+int taptools_transducer_set_saturation(taptools_transducer h, double s) {
+    return with<diffuseur_transducer>(h, [&](diffuseur_transducer& t) { t.set_saturation(s); });
+}
+
+int taptools_transducer_clear(taptools_transducer h) {
+    return with<diffuseur_transducer>(h, [&](diffuseur_transducer& t) { t.clear(); });
+}
+
+int taptools_transducer_process(taptools_transducer h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<diffuseur_transducer>(h, [&](diffuseur_transducer& t) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = t.process(in[i]);
+        }
+    });
+}
+
+// ---- tap.plate -------------------------------------------------------------------------------------
+
+using diffuseur_plate = tap::tools::diffuseur::plate;
+
+taptools_plate taptools_plate_create(void) {
+    return static_cast<taptools_plate>(new diffuseur_plate());
+}
+
+void taptools_plate_destroy(taptools_plate h) {
+    delete static_cast<diffuseur_plate*>(h);
+}
+
+int taptools_plate_prepare(taptools_plate h, double sr) {
+    return with<diffuseur_plate>(h, [&](diffuseur_plate& p) { p.prepare(sr); });
+}
+
+int taptools_plate_set_pitch_hz(taptools_plate h, double hz) {
+    return with<diffuseur_plate>(h, [&](diffuseur_plate& p) { p.set_pitch_hz(hz); });
+}
+
+int taptools_plate_set_decay(taptools_plate h, double t60_s) {
+    return with<diffuseur_plate>(h, [&](diffuseur_plate& p) { p.set_decay(t60_s); });
+}
+
+int taptools_plate_set_tilt(taptools_plate h, double tilt) {
+    return with<diffuseur_plate>(h, [&](diffuseur_plate& p) { p.set_tilt(tilt); });
+}
+
+int taptools_plate_set_brightness(taptools_plate h, double b) {
+    return with<diffuseur_plate>(h, [&](diffuseur_plate& p) { p.set_brightness(b); });
+}
+
+int taptools_plate_clear(taptools_plate h) {
+    return with<diffuseur_plate>(h, [&](diffuseur_plate& p) { p.clear(); });
+}
+
+int taptools_plate_process(taptools_plate h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<diffuseur_plate>(h, [&](diffuseur_plate& p) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = p.process(in[i]);
+        }
+    });
+}
+
+double taptools_plate_mode_hz(taptools_plate h, int mode) {
+    const diffuseur_plate* p = static_cast<const diffuseur_plate*>(h);
+    return p ? p->mode_hz(mode) : std::nan("");
+}
+
+double taptools_plate_mode_level(taptools_plate h, int mode) {
+    const diffuseur_plate* p = static_cast<const diffuseur_plate*>(h);
+    return p ? p->mode_level(mode) : std::nan("");
+}
+
+// ---- tap.metallique~ ------------------------------------------------------------------------------
+
+using diffuseur_metallique = tap::tools::diffuseur::metallique;
+
+taptools_metallique taptools_metallique_create(void) {
+    return static_cast<taptools_metallique>(new diffuseur_metallique());
+}
+
+void taptools_metallique_destroy(taptools_metallique h) {
+    delete static_cast<diffuseur_metallique*>(h);
+}
+
+int taptools_metallique_prepare(taptools_metallique h, double sr) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.prepare(sr); });
+}
+
+int taptools_metallique_set_pitch_hz(taptools_metallique h, double hz) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_pitch_hz(hz); });
+}
+
+int taptools_metallique_set_decay(taptools_metallique h, double t60_s) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_decay(t60_s); });
+}
+
+int taptools_metallique_set_tilt(taptools_metallique h, double tilt) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_tilt(tilt); });
+}
+
+int taptools_metallique_set_brightness(taptools_metallique h, double b) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_brightness(b); });
+}
+
+int taptools_metallique_set_drive(taptools_metallique h, double lin) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_drive(lin); });
+}
+
+int taptools_metallique_set_asymmetry(taptools_metallique h, double a) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_asymmetry(a); });
+}
+
+int taptools_metallique_set_saturation(taptools_metallique h, double s) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_saturation(s); });
+}
+
+int taptools_metallique_set_mix(taptools_metallique h, double pct) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_mix(pct); });
+}
+
+int taptools_metallique_set_level(taptools_metallique h, double lin) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_level(lin); });
+}
+
+int taptools_metallique_set_smooth_ms(taptools_metallique h, double ms) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.set_smooth_ms(ms); });
+}
+
+int taptools_metallique_clear(taptools_metallique h) {
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.clear(); });
+}
+
+int taptools_metallique_process(taptools_metallique h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<diffuseur_metallique>(h, [&](diffuseur_metallique& m) { m.process(in, out, static_cast<size_t>(n)); });
+}
+
+double taptools_metallique_mode_hz(taptools_metallique h, int mode) {
+    const diffuseur_metallique* m = static_cast<const diffuseur_metallique*>(h);
+    return m ? m->body().mode_hz(mode) : std::nan("");
+}
+
+double taptools_metallique_mode_level(taptools_metallique h, int mode) {
+    const diffuseur_metallique* m = static_cast<const diffuseur_metallique*>(h);
+    return m ? m->body().mode_level(mode) : std::nan("");
+}
+
+// ---- tap.palme~ -----------------------------------------------------------------------------------
+
+using diffuseur_palme = tap::tools::diffuseur::palme;
+
+taptools_palme taptools_palme_create(void) {
+    return static_cast<taptools_palme>(new diffuseur_palme());
+}
+
+void taptools_palme_destroy(taptools_palme h) {
+    delete static_cast<diffuseur_palme*>(h);
+}
+
+int taptools_palme_prepare(taptools_palme h, double sr) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.prepare(sr); });
+}
+
+int taptools_palme_set_root_hz(taptools_palme h, double hz) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_root_hz(hz); });
+}
+
+int taptools_palme_set_tuning(taptools_palme h, int tuning) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_tuning(tuning); });
+}
+
+int taptools_palme_set_decay(taptools_palme h, double t60_s) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_decay(t60_s); });
+}
+
+int taptools_palme_set_damping(taptools_palme h, double hz) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_damping(hz); });
+}
+
+int taptools_palme_set_detune(taptools_palme h, double cents) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_detune(cents); });
+}
+
+int taptools_palme_set_drive(taptools_palme h, double lin) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_drive(lin); });
+}
+
+int taptools_palme_set_asymmetry(taptools_palme h, double a) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_asymmetry(a); });
+}
+
+int taptools_palme_set_saturation(taptools_palme h, double s) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_saturation(s); });
+}
+
+int taptools_palme_set_mix(taptools_palme h, double pct) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_mix(pct); });
+}
+
+int taptools_palme_set_level(taptools_palme h, double lin) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_level(lin); });
+}
+
+int taptools_palme_set_smooth_ms(taptools_palme h, double ms) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.set_smooth_ms(ms); });
+}
+
+int taptools_palme_clear(taptools_palme h) {
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.clear(); });
+}
+
+int taptools_palme_process(taptools_palme h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<diffuseur_palme>(h, [&](diffuseur_palme& p) { p.process(in, out, static_cast<size_t>(n)); });
+}
+
+double taptools_palme_string_hz(taptools_palme h, int index) {
+    const diffuseur_palme* p = static_cast<const diffuseur_palme*>(h);
+    return p ? p->body().string_hz(index) : std::nan("");
+}
+
+double taptools_palme_string_feedback(taptools_palme h, int index) {
+    const diffuseur_palme* p = static_cast<const diffuseur_palme*>(h);
+    return p ? p->body().string_feedback(index) : std::nan("");
+}
+
+// ---- tap.scrub~ -----------------------------------------------------------------------------------
+
+using scrub_machine = tap::tools::scrub::machine;
+
+taptools_scrub taptools_scrub_create(void) {
+    return static_cast<taptools_scrub>(new scrub_machine());
+}
+
+void taptools_scrub_destroy(taptools_scrub h) {
+    delete static_cast<scrub_machine*>(h);
+}
+
+int taptools_scrub_prepare(taptools_scrub h, double sr, double max_history_ms) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.prepare(sr, max_history_ms); });
+}
+
+int taptools_scrub_set_position_ms(taptools_scrub h, double ms) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_position_ms(ms); });
+}
+
+int taptools_scrub_set_pitch(taptools_scrub h, double semitones) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_pitch(semitones); });
+}
+
+int taptools_scrub_set_drift(taptools_scrub h, double rate) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_drift(rate); });
+}
+
+int taptools_scrub_set_freeze(taptools_scrub h, int on) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_freeze(on != 0); });
+}
+
+int taptools_scrub_set_size_ms(taptools_scrub h, double ms) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_size_ms(ms); });
+}
+
+int taptools_scrub_set_overlap(taptools_scrub h, int n) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_overlap(n); });
+}
+
+int taptools_scrub_set_spray_ms(taptools_scrub h, double ms) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_spray_ms(ms); });
+}
+
+int taptools_scrub_set_seed(taptools_scrub h, unsigned long long seed) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_seed(static_cast<uint64_t>(seed)); });
+}
+
+int taptools_scrub_set_mix(taptools_scrub h, double pct) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_mix(pct); });
+}
+
+int taptools_scrub_set_level(taptools_scrub h, double lin) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_level(lin); });
+}
+
+int taptools_scrub_set_smooth_ms(taptools_scrub h, double ms) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.set_smooth_ms(ms); });
+}
+
+int taptools_scrub_clear(taptools_scrub h) {
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.clear(); });
+}
+
+int taptools_scrub_process(taptools_scrub h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<scrub_machine>(h, [&](scrub_machine& m) { m.process(in, out, static_cast<size_t>(n)); });
+}
+
+int taptools_scrub_process_mod(taptools_scrub h, const double* in, const double* position_ms, const double* pitch_st,
+                               double* out, int n) {
+    if (!in || !position_ms || !pitch_st || !out || n < 0) {
+        return -1;
+    }
+    return with<scrub_machine>(h, [&](scrub_machine& m) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = m.process(in[i], position_ms[i], pitch_st[i]);
+        }
+    });
+}
+
+int taptools_scrub_active_grains(taptools_scrub h) {
+    const scrub_machine* m = static_cast<const scrub_machine*>(h);
+    return m ? m->active_grains() : -1;
 }
 
 // ---- tap.touche~ ---------------------------------------------------------------------------------
