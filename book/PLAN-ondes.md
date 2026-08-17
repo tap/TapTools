@@ -5,7 +5,8 @@
 > and the heterodyne source 2026-08-17 as `tap.triode~` and `tap.ondes~`. The book chapters
 > followed the same day — `book/src/ondes.md` (voice, triode and intensity key together) and
 > `book/src/diffuseurs.md`, plus `machine/ondes.md` and `machine/diffuseur.md`. What remains is
-> the waveform registers, which are still unsourced (see the last section).
+> the waveform registers, which are still unsourced — a second hunt on 2026-08-17 failed to
+> close the gate but left two concrete leads (see the last section).
 > The source gate is closed —
 > `PLAN-radiohead-family.md` §3 records what was found and how far each paper was read. This
 > file is the design pass those findings forced, written before any code, because what the
@@ -219,12 +220,39 @@ delivers value before the flagship is finished.
 - Modal data for either diffuseur specific to the instrument — falling back to Fletcher &
   Rossing for the general plate/string physics, which is a recreation rather than a model, and
   must be labelled as such.
-- The waveform-register filter shapes. The circuit paper covers five stages but not the timbre
-  registers in detail; Leipp (*Bulletin du GAM* n°60, 1972) and Laurendeau's monograph are the
-  next places to look, neither yet obtained. If they do not settle it, the registers are a
-  recreation voiced by ear and the header says so. **This is now the only thing standing between
-  `tap.ondes~` and a complete instrument**, and the header states its absence rather than filling
-  it with invention.
+- The waveform-register filter shapes. **This is the only thing standing between `tap.ondes~`
+  and a complete instrument**, and the header states its absence rather than filling it with
+  invention. A second source hunt ran 2026-08-17 and **did not close the gate**; what it found
+  is below, so the next attempt starts further along rather than repeating it.
+
+  *Confirmed to exist, not obtainable from here:*
+  - **Leipp, "Les ondes Martenot", *Bulletin du GAM* n°60, April 1972.** The citation is real —
+    it appears in an academic bibliography, and the Catgut Acoustical Society Library holds 45
+    GAM issues (1963–1978) as a physical archive. Nothing is digitized anywhere reachable. This
+    needs a library request, not a search.
+  - **Laurendeau, *Maurice Martenot, luthier de l'électronique* (1990).** A print monograph; not
+    obtained.
+
+  *Ruled out as sources for this:*
+  - The TASLP circuit paper, read in full: five stages, and the registers are not among them.
+  - Its companion, "Simulation of the Ondes Martenot **Ribbon-Controlled Oscillator**"
+    (HAL hal-02425249) — the title is the scope.
+
+  *New lead, and the best one: the patents.* Martenot's 1928 "Perfectionnements aux instruments
+  de musique électriques" and **FR 841.128 (February 1939)**. Patents are exactly the right class
+  of source here — published, long expired, schematic-bearing, and IP-clean in a way a blog never
+  is. Google Patents and Espacenet both refused to serve this environment (503 / access denied),
+  so they remain unread. **Try these first next time, from a machine that can reach them.**
+
+  *And the trap to avoid.* Hobbyist and encyclopedic descriptions of the register *waveforms* are
+  abundant and broadly consistent — creux as a peak-limited triangle, gambe as a pulse at roughly
+  35/65 duty, nasillard as a very narrow pulse, octaviant as an added octave, petit gambe as
+  gambe lowpassed, souffle as noise, feutré as a softening filter. Every one of those is a blog,
+  a forum, a retailer's history page, a performer's site or a replica manual; none is published
+  literature and **none gives a filter shape, a corner, or a component value**. Implementing from
+  them would break the published-literature-only policy *and* the promise the header makes, to
+  buy a register set that would be guesswork wearing the instrument's vocabulary. Not done, on
+  purpose.
 - **Where the intensity key sits in the chain.** The paper's five stages do not include it, so
   `tap.ondes~` offers both readings as a switch (`key_placement`): after the valves it is a clean
   output law, before them the dirt comes up with the pressure. Measured, the difference is real

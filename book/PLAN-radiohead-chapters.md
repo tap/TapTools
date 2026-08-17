@@ -313,8 +313,17 @@ restating the header.
 
 ## Still deliberately not covered
 
-- **A recipes entry.** Now genuinely earnable — `tap.ondes~` → `tap.palme~` with the ribbon
-  and key on signals is a rig, and the scrub into a diffuseur is another. Deferred rather than
-  declined: `recipes/` entries are whole patches with patcher-level detail, and that is a
-  separate piece of work from the chapters.
+- ~~**A recipes entry.**~~ — ✅ written 2026-08-17, three of them, appended to Part XI:
+  `recipes/tape-and-stutter.md` (the fuzz → stutter → echo rig, and why that order),
+  `recipes/scrub-pad.md` (the two-axis controller, freeze as a performance, and the grain/live-edge
+  constraint), and `recipes/ondes-rig.md` (the assembled instrument, where most of the length goes
+  to the two hands rather than the settings, because the ribbon being linear in semitones and the
+  key's bottom 45 % being silent are the two facts that decide whether it sounds like an ondes).
+  Between them they name all nine family objects.
+
+  One process note worth keeping: writing them **caught a documentation error the chapters had
+  missed**. A first draft set the stutter's `jump` to 0.15, reading it as a probability like
+  `reverse`; it is milliseconds. Recipes are the only part of the book that has to name every
+  control with a legal value, so they check the reference pages in a way prose never does. Verify
+  a recipe's controls against `docs/*.maxref.xml` before committing it.
 - **The Max-side surface**, and **comparative listening claims**. Unchanged.

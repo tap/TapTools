@@ -95,3 +95,6 @@
 - [Sixteenths into a listening filter](recipes/funk-filter.md)
 - [A field guide to rooms](recipes/rooms.md)
 - [Chords with no keyboard](recipes/comb-drones.md)
+- [The part that comes apart, on tape](recipes/tape-and-stutter.md)
+- [Two hands on a live buffer](recipes/scrub-pad.md)
+- [The instrument in the corner of the room](recipes/ondes-rig.md)
