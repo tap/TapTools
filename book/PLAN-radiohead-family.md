@@ -1,10 +1,11 @@
 # Plan — the Radiohead family
 
-> **Status: in progress — `tap.tapecho~`, `tap.stammer~` and `tap.fuzz~` shipped end-to-end,
-> chapters included (2026-08-15); `tap.touche~`, the two diffuseurs and `tap.scrub~` shipped
-> as kernels plus Max slices (2026-08-15/17), chapters still to come for those three.**
-> `tap.ondes~`'s remaining pieces (the `triode` stage and the heterodyne `source`) are design.
-> This is the drafting record of the
+> **Status: every object in the plan has shipped.** `tap.tapecho~`, `tap.stammer~` and
+> `tap.fuzz~` end-to-end with chapters (2026-08-15); `tap.touche~`, `tap.metallique~`,
+> `tap.palme~`, `tap.scrub~`, `tap.triode~` and `tap.ondes~` as kernels plus Max slices
+> (2026-08-15/17), chapters still to come for those six. The one piece of the Ondes Martenot
+> still missing is its waveform registers, which no source obtained describes — see
+> `PLAN-ondes.md`. This is the drafting record of the
 > 2026-08-15 survey ("are there Radiohead-inspired objects we should consider?"), amended the
 > same day against the Eno components wave (`d4cf28a`) before any code was written. It stays
 > after the objects ship, the plans-directory way; the chapters have their own drafting
@@ -35,7 +36,8 @@ Max/MSP. A Radiohead family in a Max package is not a tribute; it is a return.
 |--------|--------|-----------|-------------|--------|
 | `tap.tapecho~` | `tapecho.h` | Multi-head tape echo (Copicat / Space Echo school) | `tape_loop.h` — almost pure composition | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.stammer~` | `stammer.h` | The live buffer-stutter rig (*Go To Sleep*, *The Gloaming*) | Original design; `tape::reel`, seeded rng | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
-| `tap.ondes~` | `ondes.h` + diffuseurs | The Ondes Martenot voice and its diffuseurs | Heterodyne source + triode nonlinearity + `garden.h` modal idiom; **not** `vco.h` — see the source hunt | planned — sources read, gate open, needs a design pass |
+| `tap.ondes~` | `ondes.h` | The Ondes Martenot voice: heterodyne detector, two triode stages, the intensity key | The published circuit's own reductions; `fuzz.h`'s DAFx-07 architecture with a fitted tube model in place of a tanh | ✅ shipped 2026-08-17 (kernel, notebook, Max slice) |
+| `tap.triode~` | `ondes.h` | One triode stage on its load line, from a published tube model | The enhanced Norman Koren model with the circuit paper's fitted parameters | ✅ shipped 2026-08-17 (kernel, notebook, Max slice) |
 | `tap.fuzz~` | `fuzz.h` | Two-stage tone-stacked fuzz (the OK Computer-era dirt) | `overdrive.h` sibling; the DAFx-07 cascade | ✅ shipped 2026-08-15 (kernel, Max slice, chapters) |
 | `tap.scrub~` | `scrub.h` | Kaoss-school granular scrub of live capture | `stammer::capture` (shared, not copied) + a Hann grain scheduler | ✅ shipped 2026-08-17 (kernel, notebook, Max slice) |
 | `tap.metallique~` / `tap.palme~` | `diffuseur.h` | The Ondes diffuseurs as driven resonators | `garden.h`'s modal maths without its strike envelopes; `grm_comb.h`'s sustained resonance | ✅ shipped 2026-08-17 (kernel, notebook, Max slices) |
@@ -428,10 +430,18 @@ are the house precedent for schematic-based recreation. **Naming is an open ques
   and the two taps land a half-window apart. That is a real finding about a shipped object,
   recorded rather than acted on: fixing it is its own job, with its own tests and its own
   consumers, and it should not ride along on an unrelated kernel.
-- **Chapters for the three newest objects.** `tap.touche~`, the diffuseurs and `tap.scrub~` have
-  kernels, notebooks and Max slices but no book chapters yet. The touche's belongs inside an
-  Ondes-family chapter once the `triode` and `source` exist; the diffuseurs' probably with it;
-  the scrub's belongs beside the stammer in Part V, since they share a tape.
+- **Chapters for the six newest objects.** `tap.touche~`, the two diffuseurs, `tap.scrub~`,
+  `tap.triode~` and `tap.ondes~` have kernels, notebooks and Max slices but no book chapters.
+  The first three of those and the last two now belong together in one Ondes-family chapter,
+  since the instrument is complete enough to write about as an instrument; the scrub's belongs
+  beside the stammer in Part V, since they share a tape.
+- ~~**The oversampler's non-monotone sequence** (`fuzz.h`'s open question)~~ — not resolved, but
+  no longer without evidence. `ondes.h` runs the same 8th-order chain around a comparably hard
+  nonlinearity as a **source**, with no zero-stuffing and therefore no images, and its sequence
+  never reverses: about 12 dB per doubling to 4× and 7–12 dB more at 8× in the top octave, where
+  `fuzz.h` got *worse* at 4×. Same filters, no upsampler, no reversal — which is what the imaging
+  hypothesis predicted. The next move is unchanged (cascaded 2× halfband resampling in `fuzz.h`),
+  but it now has a reason behind it rather than a guess.
 - **Diffuseur delivery.** Ship the resonators inside `tap.ondes~` only, or as standalone
   externals (`tap.palme~` / `tap.metallique~`) from day one? The components chapter's
   lesson leans standalone-from-day-one.

@@ -1,8 +1,10 @@
 # Plan — `tap.ondes~`, after reading the sources
 
-> **Status: in progress — `touche` shipped 2026-08-15 as `tap.touche~`, and both diffuseurs
-> shipped 2026-08-17 as `tap.metallique~` and `tap.palme~`; the `triode` and the heterodyne
-> `source` are still design.** The source gate is closed —
+> **Status: complete as an object — every piece has shipped.** `touche` 2026-08-15 as
+> `tap.touche~`; both diffuseurs 2026-08-17 as `tap.metallique~` and `tap.palme~`; the `triode`
+> and the heterodyne source 2026-08-17 as `tap.triode~` and `tap.ondes~`. What remains is the
+> waveform registers, which are still unsourced (see the last section), and the book chapter.
+> The source gate is closed —
 > `PLAN-radiohead-family.md` §3 records what was found and how far each paper was read. This
 > file is the design pass those findings forced, written before any code, because what the
 > papers describe is **not the object the family plan sketched**.
@@ -85,37 +87,69 @@ The measurement is in `PLAN-radiohead-family.md`; the design consequences:
 Honest limit to state in the header: the table is one instrument (No. 320) and the paper notes
 variation between units can exceed 10 %.
 
-## `triode` — where the timbre actually is
+## `triode` — where the timbre actually is — ✅ shipped
 
-The circuit paper attributes the harmonics to two successive triode stages after the
-demodulator, and their plugin exposes demodulator input gain as a harmonics control — a knob
-the real instrument does not have, and a good precedent for exposing one here.
+> **Shipped 2026-08-17** as `tap.triode~`, in `include/taptools/ondes.h`.
+>
+> **The open question resolved itself on a closer read, and in the best possible direction.** The
+> plan framed it as a choice between "a published grid-conduction curve" and "the tanh family with
+> an asymmetry bias". It is neither, because the circuit paper does not merely *mention* a tube
+> model — it names one (the **enhanced Norman Koren** model: Koren, *Glass Audio* 8(5), 1996, with
+> Cohen & Hélie's grid-current extension, AES 129, 2010), writes out its equations, and publishes
+> parameter sets **fitted to the actual valves in ondes No. 169** in its Table II, alongside the
+> supply voltages and cathode resistors of every stage. So there was nothing to voice by ear and
+> nothing to choose: the whole stage is a citation.
+>
+> A stage is then the static solution of `ipc(vpc, vgc) = (Vbias − Vk − vpc)/Rp` on its load line
+> — a memoryless nonlinearity in the DAFx-07 sense, so tabulating it is not an approximation of
+> the model, it *is* the model. The published operating points bias sanely (6C5 demodulator:
+> Vk 2.70 V, Vp 86.5 V, Ip 2.70 mA, gain 4.86) and the curve is strongly asymmetric — a 2.17:1
+> ratio between the two directions at ±4 units — which is where a triode's even harmonics live.
+>
+> Two things the build added to the plan. **The stage must invert**, and the sign is load-bearing
+> rather than cosmetic: the tube's asymmetry acts on whichever side of the waveform actually
+> reaches its grid, and a stage that quietly un-inverted itself applied the curve to the wrong
+> side. An early cut did exactly that, and its drive knob *reduced* harmonics as it was turned up.
+> **And the demodulator's grid-leak detection inverts too** — a growing envelope drives that grid
+> toward cutoff — so the two inversions put the demodulator's plate in phase with the envelope
+> while its curve has meanwhile acted on the underside.
+>
+> The gain-staging lesson from `fuzz.h` was applied from the start and held: output is normalized
+> by each stage's own small-signal gain, so `drive` sweeps total harmonic content 0.221 → 0.344
+> monotonically without the level running away.
 
-This is `fuzz.h` territory and should reuse its thinking rather than its code: a
-conditioning filter, an asymmetric static curve (triodes are strongly asymmetric — even
-harmonics are the point), an equalization filter, and oversampling. Two stages, cascaded, with
-the gain-staging lesson from `fuzz.h` applied from the start: **the small-signal slope of the
-curve family compounds**, so the drive floor must sit low enough that stage two is not
-saturated at zero.
+## `source` — cheap, and deliberately so — ✅ shipped, and the plan was wrong about how
 
-Open question: whether to model the triode with a published grid-conduction curve or to reuse
-the tanh family with an asymmetry bias. The former is more honest to the instrument; the
-latter is already in the house and measured. Decide with a listening comparison, and document
-whichever loses.
-
-## `source` — cheap, and deliberately so
-
-A heterodyne pair whose difference tone is the note. Given the measured 0.03 % distortion, the
-kernel should synthesize the difference tone **directly** as a sinusoid rather than simulating
-two RF oscillators and a demodulator: same output, a fraction of the cost, and the paper is
-the citation for why that is legitimate. The ribbon paper is the reference for how the
-variable oscillator's frequency responds to the ribbon, which matters for glide feel.
-
-State plainly in the header that this is a *documented simplification of a published model*,
-not a circuit solve — and note the number that justifies it. Najnudel et al.'s full
-port-Hamiltonian simulation runs at 768 kHz and their plugin consumes 85 % of a laptop core;
-that is the road not taken, and the header should say so, so nobody assumes the simple path
-was chosen out of ignorance.
+> **Shipped 2026-08-17** as `detector` inside `include/taptools/ondes.h`, and composed into
+> `tap.ondes~`.
+>
+> **The plan's central instruction here was a mistake, and catching it is the most valuable thing
+> this build did.** "Synthesize the difference tone **directly** as a sinusoid" would have thrown
+> away the instrument's single largest source of harmonics. The paper's 0.03 % figure and its
+> "replace with a sinewave generator" licence apply to the **oscillators**, not to the
+> demodulator — and the demodulator is not a mixer that hands you a difference tone. It is an
+> envelope detector, and the envelope of `cos(Φ) + cos(Φ − φ)` is `2|cos(φ/2)|`, whose Fourier
+> series puts H2 at −14.0 dB, H3 at −21.3 dB and H4 at −26.4 dB. All of that exists before any
+> valve touches the signal.
+>
+> **What replaces the carrier is better than a simplification: it is an identity.** For amplitudes
+> 1 and `depth` the envelope is exactly `sqrt(1 + depth² + 2·depth·cos φ)`, so the 80 kHz carrier
+> drops out of the arithmetic rather than being approximated away. Running the published RC
+> detector (200 µs, from R4·C21) on that closed form reproduces the full heterodyne-plus-diode-
+> plus-RC simulation to **within 0.10 dB on every harmonic at every pitch tried**, with one
+> systematic difference — a uniform 3.0–3.2 % level offset, because a follower chasing real
+> carrier half-cycles never quite reaches the peak between them. The detector's characteristic
+> pitch dependence comes along free: H2 runs −14.0 dB at A2 to −19.3 dB at A6 and the level falls
+> 2.0 dB across those five octaves, all out of the same 200 µs.
+>
+> A bonus the plan did not anticipate: because the closed form is parameterized by the two
+> oscillator amplitudes, **oscillator balance becomes a real physical timbre control**. At `depth`
+> 1 the envelope closes and the series is full; below that it never closes and the harmonics thin
+> out. That is a mismatch between two real oscillators, not an invented knob.
+>
+> The ribbon law is the circuit paper's Eq. 7, and it is simple: `f = A1 · 2^(d/12·d0)` with
+> A1 = 55 Hz. **The ribbon is linear in semitones**, which is exactly why an ondes glissando
+> sounds the way it does, and why `set_ribbon` takes semitones rather than Hz.
 
 ## The diffuseurs — driven, not struck — ✅ shipped
 
@@ -170,9 +204,10 @@ peer-reviewed source says 12. Prefer 12 and say why.
 1. **`touche`** — fully specified, small, independently useful, and it can ship as
    `tap.touche~` before the rest of the instrument exists. Do this first.
 2. ~~**The diffuseurs**~~ — ✅ shipped 2026-08-17 as `tap.metallique~` and `tap.palme~`.
-3. **`triode`** — needs a listening comparison to settle the curve question.
-4. **`source`** and the composition — last, because it is the cheapest piece and the one most
-   constrained by the others.
+3. ~~**`triode`**~~ — ✅ shipped 2026-08-17 as `tap.triode~`. No listening comparison was needed:
+   the circuit paper publishes the tube model *and* parameter sets fitted to the instrument's own
+   valves, so there was no curve to choose.
+4. ~~**`source`** and the composition~~ — ✅ shipped 2026-08-17 as `tap.ondes~`.
 
 That order deliberately front-loads the parts that are useful on their own, so the object
 delivers value before the flagship is finished.
@@ -185,4 +220,14 @@ delivers value before the flagship is finished.
 - The waveform-register filter shapes. The circuit paper covers five stages but not the timbre
   registers in detail; Leipp (*Bulletin du GAM* n°60, 1972) and Laurendeau's monograph are the
   next places to look, neither yet obtained. If they do not settle it, the registers are a
-  recreation voiced by ear and the header says so.
+  recreation voiced by ear and the header says so. **This is now the only thing standing between
+  `tap.ondes~` and a complete instrument**, and the header states its absence rather than filling
+  it with invention.
+- **Where the intensity key sits in the chain.** The paper's five stages do not include it, so
+  `tap.ondes~` offers both readings as a switch (`key_placement`): after the valves it is a clean
+  output law, before them the dirt comes up with the pressure. Measured, the difference is real
+  (THD 0.311 against 0.222 at a half-press with drive 6), so it is a choice worth exposing rather
+  than a detail to guess at.
+- **The winding sense of the transformer between the two triode stages.** It decides which side of
+  the waveform the preamplifier's asymmetry acts on, and it is audible — THD 0.274 against 0.394 —
+  so it is a switch too (`polarity`).

@@ -39,6 +39,7 @@ header adds no nested namespace, the class) the kernel lives in.
 | `fuzz.h` | `tap.fuzz~` | Two-stage tone-stacked fuzz on the DAFx-07 cascade (`tap::tools::fuzz`) |
 | `touche.h` | `tap.touche~` | The Ondes Martenot intensity key as a published gain law (`tap::tools::touche`) |
 | `diffuseur.h` | `tap.metallique~`, `tap.palme~` | The Ondes diffuseurs as driven resonators (`tap::tools::diffuseur`) |
+| `ondes.h` | `tap.ondes~`, `tap.triode~` | The Ondes Martenot voice: heterodyne detector and load-line triode stages (`tap::tools::ondes`) |
 
 **Voices, drums, and sequencing**
 

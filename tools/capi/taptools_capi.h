@@ -409,6 +409,89 @@ TAPTOOLS_API int                 taptools_transducer_set_saturation(taptools_tra
 TAPTOOLS_API int                 taptools_transducer_clear(taptools_transducer h);
 TAPTOOLS_API int taptools_transducer_process(taptools_transducer h, const double* in, double* out, int n);
 
+// ---- the Ondes Martenot tube model (tap::tools::ondes) -------------------------------------------
+
+/// The enhanced Norman Koren law itself, with the circuit paper's fitted parameter sets selected
+/// by index (0 = 6F5, 1 = 6C5, 2 = 2A3). Stateless, so no handle: a notebook plotting the
+/// published tube curves should be plotting the shipping code, not a copy of the equations.
+TAPTOOLS_API double taptools_tube_plate_current(int tube, double vpc, double vgc);
+TAPTOOLS_API double taptools_tube_grid_current(int tube, double vgc);
+/// The fitted parameters, so a plot can be labelled with the numbers it was drawn from. Fields in
+/// Table II order: mu, Ex, Kg, Kp, Kvb, Vct, Va, Rgk. Returns 0 on a bad index, 8 on success.
+TAPTOOLS_API int taptools_tube_params(int tube, double* out8);
+
+// ---- tap.triode~ (tap::tools::ondes::triode) -----------------------------------------------------
+
+typedef void* taptools_triode;
+
+TAPTOOLS_API taptools_triode taptools_triode_create(void);
+TAPTOOLS_API void            taptools_triode_destroy(taptools_triode h);
+TAPTOOLS_API int             taptools_triode_prepare(taptools_triode h, double sr);
+TAPTOOLS_API int             taptools_triode_set_tube(taptools_triode h, int tube);
+/// Supply volts, cathode resistor and plate load — the published stage operating points are
+/// (100, 1000, 4000) demodulator, (180, 1000, 4000) preamplifier, (230, 750, 1500) power.
+TAPTOOLS_API int taptools_triode_set_operating_point(taptools_triode h, double vbias, double rk, double rp);
+TAPTOOLS_API int taptools_triode_set_drive(taptools_triode h, double grid_volts);
+TAPTOOLS_API int taptools_triode_set_corners(taptools_triode h, double hp_hz, double lp_hz);
+TAPTOOLS_API int taptools_triode_clear(taptools_triode h);
+TAPTOOLS_API int taptools_triode_process(taptools_triode h, const double* in, double* out, int n);
+/// The stage's static curve without running audio: normalized in, normalized out.
+TAPTOOLS_API double taptools_triode_curve_at(taptools_triode h, double x);
+/// And in the tube's own units: grid volts in, plate volts of swing out.
+TAPTOOLS_API double taptools_triode_plate_swing_at(taptools_triode h, double grid_volts);
+/// The quiescent point the curve was built around: cathode bias V, plate V, plate current A, and
+/// the small-signal gain magnitude.
+TAPTOOLS_API double taptools_triode_bias_v(taptools_triode h);
+TAPTOOLS_API double taptools_triode_quiescent_plate_v(taptools_triode h);
+TAPTOOLS_API double taptools_triode_quiescent_current_a(taptools_triode h);
+TAPTOOLS_API double taptools_triode_gain(taptools_triode h);
+
+// ---- the heterodyne detector (tap::tools::ondes::detector) ---------------------------------------
+
+typedef void* taptools_detector;
+
+TAPTOOLS_API taptools_detector taptools_detector_create(void);
+TAPTOOLS_API void              taptools_detector_destroy(taptools_detector h);
+TAPTOOLS_API int               taptools_detector_prepare(taptools_detector h, double sr);
+TAPTOOLS_API int               taptools_detector_set_frequency(taptools_detector h, double hz);
+TAPTOOLS_API int               taptools_detector_set_ribbon(taptools_detector h, double semitones);
+TAPTOOLS_API int               taptools_detector_set_depth(taptools_detector h, double d);
+TAPTOOLS_API int               taptools_detector_set_detect_ms(taptools_detector h, double ms);
+TAPTOOLS_API int               taptools_detector_clear(taptools_detector h);
+/// A source: render n samples of the detected envelope (DC included — the circuit's coupling
+/// removes it downstream, and so does the triode stage's conditioning highpass).
+TAPTOOLS_API int taptools_detector_process(taptools_detector h, double* out, int n);
+/// The ideal envelope at a phase in [0, 1), with no detector on it — the closed form itself.
+TAPTOOLS_API double taptools_detector_envelope_at(taptools_detector h, double phase);
+
+// ---- tap.ondes~ (tap::tools::ondes::voice) -------------------------------------------------------
+
+typedef void* taptools_ondes;
+
+TAPTOOLS_API taptools_ondes taptools_ondes_create(void);
+TAPTOOLS_API void           taptools_ondes_destroy(taptools_ondes h);
+TAPTOOLS_API int            taptools_ondes_prepare(taptools_ondes h, double sr);
+TAPTOOLS_API int            taptools_ondes_set_ribbon(taptools_ondes h, double semitones); // above A1
+TAPTOOLS_API int            taptools_ondes_set_frequency(taptools_ondes h, double hz);
+TAPTOOLS_API int            taptools_ondes_set_depth(taptools_ondes h, double d);      // 0..1
+TAPTOOLS_API int            taptools_ondes_set_detect_ms(taptools_ondes h, double ms); // published 0.2
+TAPTOOLS_API int            taptools_ondes_set_drive(taptools_ondes h, double x);      // 0..8
+TAPTOOLS_API int            taptools_ondes_set_key(taptools_ondes h, double position); // 0..1 of the travel
+TAPTOOLS_API int            taptools_ondes_set_key_mm(taptools_ondes h, double mm);
+TAPTOOLS_API int            taptools_ondes_set_key_placement(taptools_ondes h, int where); // 0 after, 1 before
+TAPTOOLS_API int            taptools_ondes_set_power_stage(taptools_ondes h, int on);
+TAPTOOLS_API int            taptools_ondes_set_polarity(taptools_ondes h, int sign);
+TAPTOOLS_API int            taptools_ondes_set_level(taptools_ondes h, double lin);
+TAPTOOLS_API int            taptools_ondes_set_oversample(taptools_ondes h, int os);
+TAPTOOLS_API int            taptools_ondes_set_smooth_ms(taptools_ondes h, double ms);
+TAPTOOLS_API int            taptools_ondes_clear(taptools_ondes h);
+/// A source: render n samples of the instrument, minus its diffuseur.
+TAPTOOLS_API int taptools_ondes_process(taptools_ondes h, double* out, int n);
+/// Signal-rate performance: the ribbon in semitones and the key position, per sample.
+TAPTOOLS_API int taptools_ondes_process_mod(taptools_ondes h, const double* semitones, const double* key, double* out,
+                                            int n);
+TAPTOOLS_API double taptools_ondes_frequency(taptools_ondes h);
+
 // ---- tap.plate (tap::tools::diffuseur::plate) ----------------------------------------------------
 
 /// The metallique's body on its own — the mode bank without the driver in front of it. Same

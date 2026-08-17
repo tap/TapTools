@@ -33,7 +33,14 @@
 ///             same rake with the pitch riding its own independent gesture — the two hands are
 ///             the object) and `scrub_freeze` (two seconds recorded, the recorder stopped, and
 ///             nine seconds built out of that fixed tape: held, crawled through with drift, then
-///             scattered with spray).
+///             scattered with spray); and finally the Ondes Martenot itself — `triode_tubes`
+///             (a sine driven progressively harder through each of the three published valves at
+///             its own operating point), `ondes_stages` (the detected envelope alone, then through
+///             the demodulator, the preamplifier and the power stage in turn — the first pass is
+///             already harmonically rich, which is the object's whole thesis), `ondes_ribbon` (the
+///             ribbon and the intensity key played, with continuous glissandi because the ribbon
+///             is linear in semitones), and `ondes_diffuseurs` (the same phrase through the
+///             principal, the palme and the métallique — the choice an ondes player makes).
 ///
 ///             Usage: radiohead_render [output-directory]   (default: current directory)
 /// @author     Timothy Place
@@ -49,6 +56,7 @@
 
 #include <taptools/diffuseur.h>
 #include <taptools/fuzz.h>
+#include <taptools/ondes.h>
 #include <taptools/scrub.h>
 #include <taptools/stammer.h>
 #include <taptools/tapecho.h>
@@ -622,6 +630,175 @@ namespace {
         write_scenario(dir + "/scrub_freeze.wav", mono, 0.8, 1);
     }
 
+    // ---- the Ondes Martenot -------------------------------------------------------------------
+
+    /// The chain, one stage at a time. The same held note four times: the detected envelope on
+    /// its own, then through the demodulator triode, then the preamplifier as well, then with the
+    /// 2A3 power stage switched in. The point of hearing it this way is that the first pass is
+    /// already harmonically rich — the demodulator makes those harmonics, not the tubes.
+    void ondes_stages(const std::string& dir) {
+        const double        pass   = 4.0;
+        const size_t        frames = static_cast<size_t>(pass * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(4 * frames);
+
+        for (int stage = 0; stage < 4; ++stage) {
+            if (stage == 0) {
+                // The detector alone: no tube in the path at all.
+                tap::tools::ondes::detector d;
+                d.prepare(k_r_sr);
+                d.set_ribbon(24.0);
+                double dc = 0.0;
+                for (size_t i = 0; i < frames; ++i) {
+                    const double e = d.process();
+                    dc += 0.001 * (e - dc); // the coupling capacitor the tubes would have provided
+                    mono.push_back(0.35 * (e - dc));
+                }
+                continue;
+            }
+            tap::tools::ondes::voice v;
+            v.prepare(k_r_sr);
+            v.set_ribbon(24.0);
+            v.set_key(1.0);
+            v.set_level(0.35);
+            v.set_drive(stage >= 2 ? 4.0 : 1.0);
+            v.set_power_stage(stage == 3);
+            for (size_t i = 0; i < frames; ++i) {
+                mono.push_back(v.process());
+            }
+        }
+        write_scenario(dir + "/ondes_stages.wav", mono, 0.8, 1);
+    }
+
+    /// The ribbon and the key, played. A slow phrase whose pitch glides continuously — the ribbon
+    /// is linear in semitones, so a linear hand movement is a linear glissando — with the
+    /// intensity key shaping every note. Nothing here is quantized, because the instrument does
+    /// not quantize.
+    void ondes_ribbon(const std::string& dir) {
+        tap::tools::ondes::voice v;
+        v.prepare(k_r_sr);
+        v.set_smooth_ms(4.0);
+        v.set_drive(2.5);
+        v.set_level(0.5);
+
+        // (arrival time, semitones above A1) — the hand slides between them.
+        const std::vector<note> stops  = {{0.0, 19.0}, {2.2, 26.0},  {4.0, 24.0}, {6.0, 31.0},
+                                          {8.4, 29.0}, {10.5, 22.0}, {13.0, 19.0}};
+        const size_t            frames = static_cast<size_t>(16.0 * k_r_sr);
+        std::vector<double>     mono(frames);
+
+        for (size_t i = 0; i < frames; ++i) {
+            const double t = static_cast<double>(i) / k_r_sr;
+            // Where the hand is: interpolation between stops, which on this instrument really is
+            // a glissando rather than a portamento between fixed pitches.
+            double st = stops.back().pitch;
+            for (size_t k = 0; k + 1 < stops.size(); ++k) {
+                if (t >= stops[k].onset && t < stops[k + 1].onset) {
+                    const double u = (t - stops[k].onset) / (stops[k + 1].onset - stops[k].onset);
+                    const double e = u * u * (3.0 - 2.0 * u); // eased, so it reads as a hand
+                    st             = stops[k].pitch + e * (stops[k + 1].pitch - stops[k].pitch);
+                    break;
+                }
+            }
+            v.set_ribbon(st);
+            // The left hand on the key: a swell per note.
+            double press = 0.0;
+            for (size_t k = 0; k < stops.size(); ++k) {
+                const double dt = t - stops[k].onset;
+                if (dt >= -0.35 && dt < 1.9) {
+                    const double a = std::clamp((dt + 0.35) / 0.5, 0.0, 1.0);
+                    const double r = std::clamp(1.0 - (dt - 0.9) / 1.0, 0.0, 1.0);
+                    press          = std::max(press, std::min(a, r));
+                }
+            }
+            v.set_key(0.45 + 0.55 * press); // never quite off: the key's dead zone does the rest
+            mono[i] = v.process();
+        }
+        write_scenario(dir + "/ondes_ribbon.wav", mono, 0.8, 1);
+    }
+
+    /// The whole instrument, finally: the voice into each of its loudspeakers in turn. The same
+    /// phrase through the principal (dry), the palme, and the métallique — which is the choice an
+    /// ondes player actually makes.
+    void ondes_diffuseurs(const std::string& dir) {
+        const size_t        frames = static_cast<size_t>(11.0 * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(3 * frames);
+
+        for (int cabinet = 0; cabinet < 3; ++cabinet) {
+            tap::tools::ondes::voice v;
+            v.prepare(k_r_sr);
+            v.set_smooth_ms(4.0);
+            v.set_drive(3.0);
+            v.set_level(0.5);
+
+            tap::tools::diffuseur::palme palme;
+            palme.prepare(k_r_sr);
+            palme.set_root_hz(110.0);
+            palme.set_decay(4.0);
+            palme.set_damping(3000.0);
+            palme.set_drive(1.0);
+            palme.set_asymmetry(0.2);
+            palme.set_saturation(0.3);
+            palme.set_mix(60.0);
+            palme.set_level(0.5);
+
+            tap::tools::diffuseur::metallique gong;
+            gong.prepare(k_r_sr);
+            gong.set_pitch_hz(165.0);
+            gong.set_decay(6.0);
+            gong.set_brightness(0.8);
+            gong.set_drive(1.4);
+            gong.set_asymmetry(0.35);
+            gong.set_saturation(0.5);
+            gong.set_mix(60.0);
+            gong.set_level(1.6);
+
+            for (size_t i = 0; i < frames; ++i) {
+                const double t  = static_cast<double>(i) / k_r_sr;
+                const double st = 24.0 + 5.0 * std::sin(2.0 * k_r_pi * 0.09 * t) + ((t > 5.5) ? 7.0 : 0.0);
+                v.set_ribbon(st);
+                v.set_key(0.55 + 0.45 * (0.5 - 0.5 * std::cos(2.0 * k_r_pi * 0.22 * t)));
+                const double dry = v.process();
+                mono.push_back(cabinet == 0 ? dry : ((cabinet == 1) ? palme.process(dry) : gong.process(dry)));
+            }
+        }
+        write_scenario(dir + "/ondes_diffuseurs.wav", mono, 0.45, 1); // the gong pass is much the loudest
+    }
+
+    /// The three tubes, on the same signal. A 220 Hz sine driven progressively harder through the
+    /// 6C5 at the demodulator's operating point, then the preamplifier's, then the 2A3 — same
+    /// sweep each time, so what changes is only what each valve does with it.
+    void triode_tubes(const std::string& dir) {
+        struct setup {
+            int                                tube;
+            tap::tools::ondes::operating_point op;
+        };
+        const setup setups[3] = {{tap::tools::ondes::tube_6c5, tap::tools::ondes::k_op_demod},
+                                 {tap::tools::ondes::tube_6c5, tap::tools::ondes::k_op_preamp},
+                                 {tap::tools::ondes::tube_2a3, tap::tools::ondes::k_op_power}};
+
+        const size_t        frames = static_cast<size_t>(6.0 * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(3 * frames);
+
+        for (const setup& s : setups) {
+            tap::tools::ondes::triode t;
+            t.prepare(k_r_sr);
+            t.set_tube(s.tube);
+            t.set_operating_point(s.op);
+            double phase = 0.0;
+            for (size_t i = 0; i < frames; ++i) {
+                const double u = static_cast<double>(i) / static_cast<double>(frames);
+                t.set_drive(0.2 + 12.0 * u * u); // the grid swing rising through the whole pass
+                phase += 220.0 / k_r_sr;
+                phase -= std::floor(phase);
+                mono.push_back(0.5 * t.process(std::sin(2.0 * k_r_pi * phase)));
+            }
+        }
+        write_scenario(dir + "/triode_tubes.wav", mono, 0.7, 1);
+    }
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -641,5 +818,9 @@ int main(int argc, char** argv) {
     palme_halo(dir);
     scrub_gesture(dir);
     scrub_freeze(dir);
+    triode_tubes(dir);
+    ondes_stages(dir);
+    ondes_ribbon(dir);
+    ondes_diffuseurs(dir);
     return 0;
 }
