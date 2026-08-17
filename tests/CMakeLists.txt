@@ -24,6 +24,7 @@ add_executable(taptools_kernel_tests
     grm_comb_test.cpp
     harmonizer_test.cpp
     nr_test.cpp
+    ondes_test.cpp
     overdrive_test.cpp
     scrub_test.cpp
     spectra_test.cpp

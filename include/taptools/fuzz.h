@@ -230,12 +230,20 @@ namespace tap::tools {
         /// The cause is not established. The obvious suspect — biquads going ill-conditioned at
         /// the low normalized cutoffs a high factor needs (0.056 at 8x) — was tested and ruled
         /// out: the cascade's impulse response decays cleanly to denormal at every factor. The
-        /// next hypothesis, untested, is imaging: zero-stuffing by N leaves N-1 images for one
-        /// filter to suppress, and residuals intermodulate in the clipper into products that are
-        /// not harmonics of the input, which is exactly what the probe measures. If that is
-        /// right, the fix is cascaded 2x (halfband/polyphase) resampling rather than a single
-        /// stage at 1/N — each step then suppresses one image at a comfortable normalized
-        /// frequency. That is the known next move on this file.
+        /// next hypothesis was imaging: zero-stuffing by N leaves N-1 images for one filter to
+        /// suppress, and residuals intermodulate in the clipper into products that are not
+        /// harmonics of the input, which is exactly what the probe measures. If that is right,
+        /// the fix is cascaded 2x (halfband/polyphase) resampling rather than a single stage at
+        /// 1/N — each step then suppresses one image at a comfortable normalized frequency. That
+        /// is the known next move on this file.
+        ///
+        /// **There is now evidence for it.** ondes.h runs the same butterworth8 chain around a
+        /// comparably hard nonlinearity, but as a SOURCE: nothing is zero-stuffed on the way up,
+        /// its generator simply runs at the high rate, so there are no images at all. Measured
+        /// the same way, its sequence never reverses — about 12 dB per doubling to 4x and 7-12 dB
+        /// more at 8x in the top octave (ondes.ipynb §5). Same filters, same order, no upsampler,
+        /// no reversal. Evidence rather than proof, since the nonlinearity differs too, but it is
+        /// the first evidence either way and it points at the upsampler.
         ///
         /// (Whether overdrive.h is owed the 8th-order change is a live question — different
         /// nonlinearity, different gain structure, so it needs its own measurement.)

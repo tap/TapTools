@@ -22,6 +22,7 @@
 #include "ladder.h"
 #include "metal_bank.h"
 #include "nr.h"
+#include "ondes.h"
 #include "overdrive.h"
 #include "scrub.h"
 #include "spectra.h"

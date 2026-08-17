@@ -22,6 +22,7 @@
 #include <taptools/garden.h>
 #include <taptools/harmonizer.h>
 #include <taptools/ladder.h>
+#include <taptools/ondes.h>
 #include <taptools/overdrive.h>
 #include <taptools/scrub.h>
 #include <taptools/stammer.h>
@@ -1273,6 +1274,259 @@ int taptools_transducer_process(taptools_transducer h, const double* in, double*
             out[i] = t.process(in[i]);
         }
     });
+}
+
+// ---- the Ondes Martenot tube model -----------------------------------------------------------------
+
+double taptools_tube_plate_current(int tube, double vpc, double vgc) {
+    return tap::tools::ondes::plate_current(tap::tools::ondes::tube_at(tube), vpc, vgc);
+}
+
+double taptools_tube_grid_current(int tube, double vgc) {
+    return tap::tools::ondes::grid_current(tap::tools::ondes::tube_at(tube), vgc);
+}
+
+int taptools_tube_params(int tube, double* out8) {
+    if (!out8 || tube < 0 || tube >= tap::tools::ondes::k_num_tubes) {
+        return 0;
+    }
+    const tap::tools::ondes::tube_params& t = tap::tools::ondes::tube_at(tube);
+    out8[0]                                 = t.mu;
+    out8[1]                                 = t.ex;
+    out8[2]                                 = t.kg;
+    out8[3]                                 = t.kp;
+    out8[4]                                 = t.kvb;
+    out8[5]                                 = t.vct;
+    out8[6]                                 = t.va;
+    out8[7]                                 = t.rgk;
+    return 8;
+}
+
+// ---- tap.triode~ ------------------------------------------------------------------------------------
+
+using ondes_triode = tap::tools::ondes::triode;
+
+taptools_triode taptools_triode_create(void) {
+    return static_cast<taptools_triode>(new ondes_triode());
+}
+
+void taptools_triode_destroy(taptools_triode h) {
+    delete static_cast<ondes_triode*>(h);
+}
+
+int taptools_triode_prepare(taptools_triode h, double sr) {
+    return with<ondes_triode>(h, [&](ondes_triode& t) { t.prepare(sr); });
+}
+
+int taptools_triode_set_tube(taptools_triode h, int tube) {
+    return with<ondes_triode>(h, [&](ondes_triode& t) { t.set_tube(tube); });
+}
+
+int taptools_triode_set_operating_point(taptools_triode h, double vbias, double rk, double rp) {
+    return with<ondes_triode>(
+        h, [&](ondes_triode& t) { t.set_operating_point(tap::tools::ondes::operating_point{vbias, rk, rp}); });
+}
+
+int taptools_triode_set_drive(taptools_triode h, double grid_volts) {
+    return with<ondes_triode>(h, [&](ondes_triode& t) { t.set_drive(grid_volts); });
+}
+
+int taptools_triode_set_corners(taptools_triode h, double hp_hz, double lp_hz) {
+    return with<ondes_triode>(h, [&](ondes_triode& t) { t.set_corners(hp_hz, lp_hz); });
+}
+
+int taptools_triode_clear(taptools_triode h) {
+    return with<ondes_triode>(h, [&](ondes_triode& t) { t.clear(); });
+}
+
+int taptools_triode_process(taptools_triode h, const double* in, double* out, int n) {
+    if (!in || !out || n < 0) {
+        return -1;
+    }
+    return with<ondes_triode>(h, [&](ondes_triode& t) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = t.process(in[i]);
+        }
+    });
+}
+
+double taptools_triode_curve_at(taptools_triode h, double x) {
+    const ondes_triode* t = static_cast<const ondes_triode*>(h);
+    return t ? t->curve_at(x) : std::nan("");
+}
+
+double taptools_triode_plate_swing_at(taptools_triode h, double grid_volts) {
+    const ondes_triode* t = static_cast<const ondes_triode*>(h);
+    return t ? t->plate_swing_at(grid_volts) : std::nan("");
+}
+
+double taptools_triode_bias_v(taptools_triode h) {
+    const ondes_triode* t = static_cast<const ondes_triode*>(h);
+    return t ? t->bias_v() : std::nan("");
+}
+
+double taptools_triode_quiescent_plate_v(taptools_triode h) {
+    const ondes_triode* t = static_cast<const ondes_triode*>(h);
+    return t ? t->quiescent_plate_v() : std::nan("");
+}
+
+double taptools_triode_quiescent_current_a(taptools_triode h) {
+    const ondes_triode* t = static_cast<const ondes_triode*>(h);
+    return t ? t->quiescent_current_a() : std::nan("");
+}
+
+double taptools_triode_gain(taptools_triode h) {
+    const ondes_triode* t = static_cast<const ondes_triode*>(h);
+    return t ? t->small_signal_gain() : std::nan("");
+}
+
+// ---- the heterodyne detector --------------------------------------------------------------------
+
+using ondes_detector = tap::tools::ondes::detector;
+
+taptools_detector taptools_detector_create(void) {
+    return static_cast<taptools_detector>(new ondes_detector());
+}
+
+void taptools_detector_destroy(taptools_detector h) {
+    delete static_cast<ondes_detector*>(h);
+}
+
+int taptools_detector_prepare(taptools_detector h, double sr) {
+    return with<ondes_detector>(h, [&](ondes_detector& d) { d.prepare(sr); });
+}
+
+int taptools_detector_set_frequency(taptools_detector h, double hz) {
+    return with<ondes_detector>(h, [&](ondes_detector& d) { d.set_frequency(hz); });
+}
+
+int taptools_detector_set_ribbon(taptools_detector h, double semitones) {
+    return with<ondes_detector>(h, [&](ondes_detector& d) { d.set_ribbon(semitones); });
+}
+
+int taptools_detector_set_depth(taptools_detector h, double depth) {
+    return with<ondes_detector>(h, [&](ondes_detector& d) { d.set_depth(depth); });
+}
+
+int taptools_detector_set_detect_ms(taptools_detector h, double ms) {
+    return with<ondes_detector>(h, [&](ondes_detector& d) { d.set_detect_ms(ms); });
+}
+
+int taptools_detector_clear(taptools_detector h) {
+    return with<ondes_detector>(h, [&](ondes_detector& d) { d.clear(); });
+}
+
+int taptools_detector_process(taptools_detector h, double* out, int n) {
+    if (!out || n < 0) {
+        return -1;
+    }
+    return with<ondes_detector>(h, [&](ondes_detector& d) {
+        for (int i = 0; i < n; ++i) {
+            out[i] = d.process();
+        }
+    });
+}
+
+double taptools_detector_envelope_at(taptools_detector h, double phase) {
+    const ondes_detector* d = static_cast<const ondes_detector*>(h);
+    return d ? d->envelope_at(phase) : std::nan("");
+}
+
+// ---- tap.ondes~ -------------------------------------------------------------------------------------
+
+using ondes_voice = tap::tools::ondes::voice;
+
+taptools_ondes taptools_ondes_create(void) {
+    return static_cast<taptools_ondes>(new ondes_voice());
+}
+
+void taptools_ondes_destroy(taptools_ondes h) {
+    delete static_cast<ondes_voice*>(h);
+}
+
+int taptools_ondes_prepare(taptools_ondes h, double sr) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.prepare(sr); });
+}
+
+int taptools_ondes_set_ribbon(taptools_ondes h, double semitones) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_ribbon(semitones); });
+}
+
+int taptools_ondes_set_frequency(taptools_ondes h, double hz) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_frequency(hz); });
+}
+
+int taptools_ondes_set_depth(taptools_ondes h, double d) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_depth(d); });
+}
+
+int taptools_ondes_set_detect_ms(taptools_ondes h, double ms) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_detect_ms(ms); });
+}
+
+int taptools_ondes_set_drive(taptools_ondes h, double x) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_drive(x); });
+}
+
+int taptools_ondes_set_key(taptools_ondes h, double position) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_key(position); });
+}
+
+int taptools_ondes_set_key_mm(taptools_ondes h, double mm) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_key_mm(mm); });
+}
+
+int taptools_ondes_set_key_placement(taptools_ondes h, int where) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_key_placement(where); });
+}
+
+int taptools_ondes_set_power_stage(taptools_ondes h, int on) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_power_stage(on != 0); });
+}
+
+int taptools_ondes_set_polarity(taptools_ondes h, int sign) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_polarity(sign); });
+}
+
+int taptools_ondes_set_level(taptools_ondes h, double lin) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_level(lin); });
+}
+
+int taptools_ondes_set_oversample(taptools_ondes h, int os) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_oversample(os); });
+}
+
+int taptools_ondes_set_smooth_ms(taptools_ondes h, double ms) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.set_smooth_ms(ms); });
+}
+
+int taptools_ondes_clear(taptools_ondes h) {
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.clear(); });
+}
+
+int taptools_ondes_process(taptools_ondes h, double* out, int n) {
+    if (!out || n < 0) {
+        return -1;
+    }
+    return with<ondes_voice>(h, [&](ondes_voice& v) { v.process(out, static_cast<size_t>(n)); });
+}
+
+int taptools_ondes_process_mod(taptools_ondes h, const double* semitones, const double* key, double* out, int n) {
+    if (!semitones || !key || !out || n < 0) {
+        return -1;
+    }
+    return with<ondes_voice>(h, [&](ondes_voice& v) {
+        for (int i = 0; i < n; ++i) {
+            v.set_ribbon(semitones[i]);
+            v.set_key(key[i]);
+            out[i] = v.process();
+        }
+    });
+}
+
+double taptools_ondes_frequency(taptools_ondes h) {
+    const ondes_voice* v = static_cast<const ondes_voice*>(h);
+    return v ? v->frequency() : std::nan("");
 }
 
 // ---- tap.plate -------------------------------------------------------------------------------------

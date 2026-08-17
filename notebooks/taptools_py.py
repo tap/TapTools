@@ -306,6 +306,60 @@ def load() -> ctypes.CDLL:
         "taptools_tapecho_clear":          ([vp], ctypes.c_int),
         "taptools_tapecho_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
 
+        "taptools_tube_plate_current":     ([ctypes.c_int, ctypes.c_double, ctypes.c_double],
+                                            ctypes.c_double),
+        "taptools_tube_grid_current":      ([ctypes.c_int, ctypes.c_double], ctypes.c_double),
+        "taptools_tube_params":            ([ctypes.c_int, f64p], ctypes.c_int),
+
+        "taptools_triode_create":          ([], vp),
+        "taptools_triode_destroy":         ([vp], None),
+        "taptools_triode_prepare":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_triode_set_tube":        ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_triode_set_operating_point": ([vp, ctypes.c_double, ctypes.c_double,
+                                                 ctypes.c_double], ctypes.c_int),
+        "taptools_triode_set_drive":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_triode_set_corners":     ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_triode_clear":           ([vp], ctypes.c_int),
+        "taptools_triode_process":         ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_triode_curve_at":        ([vp, ctypes.c_double], ctypes.c_double),
+        "taptools_triode_plate_swing_at":  ([vp, ctypes.c_double], ctypes.c_double),
+        "taptools_triode_bias_v":          ([vp], ctypes.c_double),
+        "taptools_triode_quiescent_plate_v": ([vp], ctypes.c_double),
+        "taptools_triode_quiescent_current_a": ([vp], ctypes.c_double),
+        "taptools_triode_gain":            ([vp], ctypes.c_double),
+
+        "taptools_detector_create":        ([], vp),
+        "taptools_detector_destroy":       ([vp], None),
+        "taptools_detector_prepare":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_detector_set_frequency": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_detector_set_ribbon":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_detector_set_depth":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_detector_set_detect_ms": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_detector_clear":         ([vp], ctypes.c_int),
+        "taptools_detector_process":       ([vp, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_detector_envelope_at":   ([vp, ctypes.c_double], ctypes.c_double),
+
+        "taptools_ondes_create":           ([], vp),
+        "taptools_ondes_destroy":          ([vp], None),
+        "taptools_ondes_prepare":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_ribbon":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_frequency":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_depth":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_detect_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_drive":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_key":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_key_mm":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_key_placement": ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_ondes_set_power_stage":  ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_ondes_set_polarity":     ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_ondes_set_level":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_set_oversample":   ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_ondes_set_smooth_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_ondes_clear":            ([vp], ctypes.c_int),
+        "taptools_ondes_process":          ([vp, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_ondes_process_mod":      ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_ondes_frequency":        ([vp], ctypes.c_double),
+
         "taptools_plate_create":           ([], vp),
         "taptools_plate_destroy":          ([vp], None),
         "taptools_plate_prepare":          ([vp, ctypes.c_double], ctypes.c_int),
@@ -1462,6 +1516,243 @@ class TapEcho:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_tapecho_destroy(h)
+            self._h = None
+
+
+# The circuit paper's fitted tube parameter sets, addressed by index.
+TUBE_6F5, TUBE_6C5, TUBE_2A3 = 0, 1, 2
+TUBE_NAMES = ("6F5", "6C5", "2A3")
+
+# Published stage operating points (vbias, rk, rp) — TASLP 28 (2020), Table II.
+OP_DEMOD = (100.0, 1000.0, 4000.0)
+OP_PREAMP = (180.0, 1000.0, 4000.0)
+OP_POWER = (230.0, 750.0, 1500.0)
+
+
+def tube_plate_current(tube, vpc, vgc):
+    """The enhanced Norman Koren plate current, in amps — the shipping C++, not a copy of
+    the equations. `tube` is TUBE_6F5 / TUBE_6C5 / TUBE_2A3."""
+    f = np.vectorize(lambda p, g: _LIB.taptools_tube_plate_current(int(tube), float(p), float(g)))
+    return f(vpc, vgc)
+
+
+def tube_grid_current(tube, vgc):
+    """The grid-conduction branch, in amps (TASLP Eq. 9)."""
+    f = np.vectorize(lambda g: _LIB.taptools_tube_grid_current(int(tube), float(g)))
+    return f(vgc)
+
+
+def tube_params(tube):
+    """The fitted parameters as a dict: mu, ex, kg, kp, kvb, vct, va, rgk."""
+    buf = np.zeros(8)
+    n = _LIB.taptools_tube_params(int(tube), _p64(buf))
+    if n != 8:
+        raise ValueError(f"no such tube: {tube}")
+    return dict(zip(("mu", "ex", "kg", "kp", "kvb", "vct", "va", "rgk"), buf))
+
+
+class Triode:
+    """tap.triode~'s kernel (tap::tools::ondes::triode): one common-cathode triode
+    stage, solved on its load line from the enhanced Norman Koren tube model at a
+    published operating point.
+
+    The tube parameters are fitted to the actual valves in ondes Martenot No. 169
+    (Najnudel, Hélie, Roze & Boutin, IEEE/ACM TASLP 28, 2020, Table II) — 6F5 in the
+    oscillators, 6C5 in the demodulator and preamplifier, 2A3 in the power amplifier.
+    Nothing here is voiced by ear.
+
+    The static load-line solution is a memoryless nonlinearity in the DAFx-07 sense,
+    so tabulating it is not an approximation of the model, it IS the model. Output is
+    normalized by the stage's own small-signal gain, so `drive` changes the distortion
+    without changing the level — and the stage inverts, because a real one does."""
+
+    def __init__(self, sr: float = 48000.0, tube=TUBE_6C5, operating_point=OP_DEMOD, **params):
+        self._h = _LIB.taptools_triode_create()
+        _check(_LIB.taptools_triode_prepare(self._h, float(sr)), "prepare")
+        _check(_LIB.taptools_triode_set_tube(self._h, int(tube)), "tube")
+        self.set_operating_point(*operating_point)
+        self.set(**params)
+
+    def set_operating_point(self, vbias, rk, rp) -> "Triode":
+        """Supply volts, cathode resistor, plate load. A mode, not a fader: it rebuilds
+        the curve table."""
+        _check(_LIB.taptools_triode_set_operating_point(self._h, float(vbias), float(rk),
+                                                        float(rp)), "operating_point")
+        return self
+
+    def set(self, *, tube=None, drive=None, corners=None) -> "Triode":
+        if tube is not None:
+            _check(_LIB.taptools_triode_set_tube(self._h, int(tube)), "tube")
+        if drive is not None:
+            _check(_LIB.taptools_triode_set_drive(self._h, float(drive)), "drive")
+        if corners is not None:
+            _check(_LIB.taptools_triode_set_corners(self._h, float(corners[0]),
+                                                    float(corners[1])), "corners")
+        return self
+
+    @property
+    def bias(self):
+        """The quiescent point: (cathode volts, plate volts, plate amps, gain magnitude)."""
+        return (_LIB.taptools_triode_bias_v(self._h),
+                _LIB.taptools_triode_quiescent_plate_v(self._h),
+                _LIB.taptools_triode_quiescent_current_a(self._h),
+                _LIB.taptools_triode_gain(self._h))
+
+    def curve(self, x):
+        """The static transfer, normalized in and out. No state touched."""
+        f = np.vectorize(lambda v: _LIB.taptools_triode_curve_at(self._h, float(v)))
+        return f(x)
+
+    def plate_swing(self, grid_volts):
+        """The same curve in the tube's units: grid volts in, plate volts of swing out."""
+        f = np.vectorize(lambda v: _LIB.taptools_triode_plate_swing_at(self._h, float(v)))
+        return f(grid_volts)
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_triode_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_triode_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_triode_destroy(h)
+            self._h = None
+
+
+class Detector:
+    """The Ondes Martenot's heterodyne pair and its envelope detector
+    (tap::tools::ondes::detector), with no carrier simulated at all.
+
+    The envelope of `cos(P) + depth*cos(P - p)` is exactly
+    `sqrt(1 + depth^2 + 2 depth cos(p))`, so the 80 kHz carrier drops out of the
+    arithmetic. At depth 1 that is `2|cos(p/2)|`, whose harmonics sit at -14.0 / -21.3 /
+    -26.4 dB **before anything nonlinear happens** — which is the instrument's single
+    largest source of harmonics, and the thing you lose if you synthesize the difference
+    tone as a sinusoid.
+
+    The detector is the published one: a triode grid at near-zero bias conducts on
+    positive half-cycles and charges instantly, and R4*C21 discharges it with a 200 us
+    time constant. `set_ribbon` takes semitones above A1 because the circuit paper's
+    Eq. 7 makes the ribbon linear in semitones."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_detector_create()
+        _check(_LIB.taptools_detector_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, frequency=None, ribbon=None, depth=None, detect_ms=None) -> "Detector":
+        for value, fn, name in (
+            (frequency, _LIB.taptools_detector_set_frequency, "frequency"),
+            (ribbon, _LIB.taptools_detector_set_ribbon, "ribbon"),
+            (depth, _LIB.taptools_detector_set_depth, "depth"),
+            (detect_ms, _LIB.taptools_detector_set_detect_ms, "detect_ms"),
+        ):
+            if value is not None:
+                _check(fn(self._h, float(value)), name)
+        return self
+
+    def envelope(self, phase):
+        """The ideal envelope at a phase in [0, 1), with no detector on it."""
+        f = np.vectorize(lambda p: _LIB.taptools_detector_envelope_at(self._h, float(p)))
+        return f(phase)
+
+    def process(self, n: int) -> np.ndarray:
+        out = np.zeros(int(n))
+        _check(_LIB.taptools_detector_process(self._h, _p64(out), out.size), "process")
+        return out
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_detector_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_detector_destroy(h)
+            self._h = None
+
+
+class Ondes:
+    """tap.ondes~'s kernel (tap::tools::ondes::voice): the Ondes Martenot minus its
+    loudspeaker — the heterodyne detector into the demodulator triode into the
+    preamplifier triode into the intensity key.
+
+    A source, not an effect: `process(n)` renders n samples. Patch a Palme or a
+    Metallique after it for the rest of the instrument.
+
+    `ribbon` is semitones above A1 (55 Hz), because the published ribbon law is linear
+    in semitones. `drive` is the harmonics control — the circuit paper's own plugin
+    exposes demodulator input gain the same way, a knob the real instrument does not
+    have. `power_stage` runs the 2A3 and is off by default, following the paper.
+    `polarity` and `key_placement` are choices the sources do not settle, offered as
+    switches rather than guessed at silently."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_ondes_create()
+        _check(_LIB.taptools_ondes_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, ribbon=None, frequency=None, depth=None, detect_ms=None, drive=None,
+            key=None, key_mm=None, key_placement=None, power_stage=None, polarity=None,
+            level=None, oversample=None, smooth_ms=None) -> "Ondes":
+        # configuration first, so ramped targets in the same call honor the new slew
+        if oversample is not None:
+            _check(_LIB.taptools_ondes_set_oversample(self._h, int(oversample)), "oversample")
+        if key_placement is not None:
+            _check(_LIB.taptools_ondes_set_key_placement(self._h, int(key_placement)), "key_placement")
+        if power_stage is not None:
+            _check(_LIB.taptools_ondes_set_power_stage(self._h, 1 if power_stage else 0), "power_stage")
+        if polarity is not None:
+            _check(_LIB.taptools_ondes_set_polarity(self._h, int(polarity)), "polarity")
+        if smooth_ms is not None:
+            _check(_LIB.taptools_ondes_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        for value, fn, name in (
+            (ribbon, _LIB.taptools_ondes_set_ribbon, "ribbon"),
+            (frequency, _LIB.taptools_ondes_set_frequency, "frequency"),
+            (depth, _LIB.taptools_ondes_set_depth, "depth"),
+            (detect_ms, _LIB.taptools_ondes_set_detect_ms, "detect_ms"),
+            (drive, _LIB.taptools_ondes_set_drive, "drive"),
+            (key, _LIB.taptools_ondes_set_key, "key"),
+            (key_mm, _LIB.taptools_ondes_set_key_mm, "key_mm"),
+            (level, _LIB.taptools_ondes_set_level, "level"),
+        ):
+            if value is not None:
+                _check(fn(self._h, float(value)), name)
+        return self
+
+    @property
+    def frequency(self) -> float:
+        return float(_LIB.taptools_ondes_frequency(self._h))
+
+    def process(self, n=None, ribbon=None, key=None) -> np.ndarray:
+        """Render samples. Pass arrays for `ribbon` (semitones) and `key` (0..1) to play
+        the performance surface sample by sample; both must be given together."""
+        if ribbon is None and key is None:
+            out = np.zeros(int(n))
+            _check(_LIB.taptools_ondes_process(self._h, _p64(out), out.size), "process")
+            return out
+        rib = _f64(np.atleast_1d(ribbon if ribbon is not None else 24.0))
+        k = _f64(np.atleast_1d(key if key is not None else 1.0))
+        size = int(n) if n is not None else max(rib.size, k.size)
+        rib = _f64(np.broadcast_to(rib, (size,)) if rib.size != size else rib)
+        k = _f64(np.broadcast_to(k, (size,)) if k.size != size else k)
+        out = np.zeros(size)
+        _check(_LIB.taptools_ondes_process_mod(self._h, _p64(rib), _p64(k), _p64(out), size),
+               "process_mod")
+        return out
+
+    def clear(self) -> None:
+        """Silence the detector and every filter. Parameters are kept."""
+        _check(_LIB.taptools_ondes_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_ondes_destroy(h)
             self._h = None
 
 
