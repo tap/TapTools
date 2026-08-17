@@ -81,28 +81,49 @@ voicing section is most of the identity — the scoop is the sound people mean
 when they describe it — so it is a first-class part of the object rather
 than an afterthought bolted on at the end.
 
-## `oversample` — where 2 beats 8
+## `oversample` — and a default that was wrong twice
 
 A static curve makes harmonics without limit, so anything above Nyquist folds
-back. The clipper pair therefore runs oversampled. Two things about the
-setting are worth knowing, and both are measurements rather than opinions.
+back. The clipper pair therefore runs oversampled. Everything about this
+control has been re-measured, because the first two conclusions drawn from it
+were wrong, and wrong in the same way.
 
 First, the anti-alias filter here is **8th order**, where the rest of the
 house uses 4th. Measured in this kernel the 4th-order pair is not steep
 enough — alias energy at 4× came out worse than at 2×.
 
-Second, and more surprising: **bigger is not better**. Fold energy measures
-1.2e-1 / 2.7e-5 / 7.4e-4 / 1.8e-3 at 1× / 2× / 4× / 8×. Every factor is worth
-having over none — 2× alone is four orders of magnitude — but the sequence is
-not monotone, and 2× wins. That is why the default is 2 rather than the
-largest available number. The cause is genuinely open: the obvious suspect
-(filters going ill-conditioned at the very low normalized cutoffs a high
-factor needs) was tested and ruled out, and the untested candidate is
-imaging from the zero-stuff upsampler intermodulating in the clipper. The
-appendix says more.
+Second, the chain is a **cascade of 2× stages** — one doubling, one filter,
+repeated — rather than a single zero-stuff by the whole factor. That is what
+finally made more oversampling mean less aliasing. The single-stage chain left
+N−1 images for one filter to suppress at a corner that got tighter with every
+doubling, and the residue intermodulated in the clipper into exactly the
+non-harmonic junk the probe measures. Cascading removes the reversal outright,
+and where 4× and 8× used to be merely adequate they are now two to four orders
+of magnitude cleaner. It costs about 5 % more CPU at 8×.
 
-Use a higher factor if a specific patch measures better there. Do not assume
-it will.
+Third — and this is the part worth taking away — **the old default came from a
+single test tone.** Every number in the original write-up was measured at
+3733 Hz, and 2× happens to look best there. Swept across tones, 2× collapses
+above about 6 kHz; at 10.5 kHz it is *worse than not oversampling at all*,
+because the clipper's low harmonics already exceed the base Nyquist and one
+doubling does not move them out of the way.
+
+| input tone | 1× | 2× | 4× | 8× |
+|---|---|---|---|---|
+| 3733 Hz | 1.2e-1 | 3.0e-5 | 2.1e-5 | 2.2e-5 |
+| 5171 Hz | 1.5e-1 | 3.3e-4 | 2.0e-7 | 1.9e-7 |
+| 6421 Hz | 8.5e-2 | 3.2e-2 | 3.9e-7 | 3.6e-7 |
+| 8123 Hz | 9.0e-2 | 7.8e-2 | 1.1e-3 | 2.0e-5 |
+| 10499 Hz | 1.5e-1 | 1.7e-1 | 1.2e-5 | 1.6e-6 |
+
+So: **4× is the default.** More is never worse now, and 4× is
+indistinguishable from 8× below about 7.5 kHz. Above that, harmonics start
+folding inside the 4× band before decimation — 8123 Hz in the table is that
+happening — and 8× is worth the extra 1.4 % of a core.
+
+Use 2× only if you have measured your own material and it holds up there. It
+is kept because it is cheap and because on a bass-heavy source it is fine, not
+because it is good.
 
 ## Recipes
 
@@ -111,8 +132,8 @@ it will.
 - **The scoop:** `@gain 0.8 @edge 0.6 @contrast 1. @bass 0.4 @treble 0.2`.
   The sound the control is named for.
 - **Lopsided and mean:** `@gain 0.9 @edge 1. @asymmetry 0.7 @oversample 8`.
-  Hard knee plus even harmonics; the one setting where a bigger oversample
-  factor is worth auditioning.
+  Hard knee plus even harmonics, and 8× because a hard knee on a bright source
+  is exactly where the top octave folds.
 - **Into the echo:** `tap.fuzz~` → `tap.tapecho~` with the echo's `@drive`
   low. Two saturators in series get muddy fast; let the pedal be the dirt and
   the tape be the space.
@@ -133,7 +154,9 @@ One clipping family with a knee control, cascaded twice, into a voicing
 section that scoops the middle. The gain knob's floor is below unity because
 small-signal gain compounds through a cascade — a lesson that cost this
 kernel one wrong first draft. `asymmetry` is the even-harmonic control and
-costs no DC. And the oversample setting is a measurement, not a
-bigger-is-better dial: 2× is the default because 2× wins. Every number here
+costs no DC. And the oversample setting is a
+measurement twice corrected: cascaded 2× stages, because a single zero-stuff
+by N was what made bigger measure worse — and a default of 4× rather than 2×,
+because the old default had been generalized from one test tone. Every number here
 lives twice, as a cell in `fuzz.ipynb` and as a pinned scenario in
 `tests/fuzz_test.cpp`.

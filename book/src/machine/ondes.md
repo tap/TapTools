@@ -133,10 +133,10 @@ state, 131072-point Hann — showed 8× continuing to improve in the top
 octave. Corrected to "never worse", with the full table in the header, the
 test comment and the notebook.
 
-## Evidence for an open question in `fuzz.h`
+## The evidence that closed an open question in `fuzz.h`
 
 `fuzz.h` measured its oversampling sequence going the wrong way — 4× worse
-than 2× — and left an untested hypothesis behind: that the culprit is
+than 2× — and had left an untested hypothesis behind: that the culprit is
 *imaging*, since zero-stuffing by N leaves N−1 images for one filter to
 suppress, and residual images entering a nonlinearity intermodulate into
 products that are not harmonics of the input.
@@ -156,10 +156,23 @@ The difference between the two files is exactly the hypothesis: this object
 is a **source**. Nothing is zero-stuffed on the way up — the detector simply
 runs fast — so there are no images at all.
 
-That is evidence, not proof. The nonlinearities differ too, and one
-confounded comparison does not settle a question. But it is the first
-evidence either way and it points the same direction, and both headers now
-record it as such.
+That was evidence, not proof — the nonlinearities differ too, and one
+confounded comparison does not settle a question. But it was the first
+evidence either way, and it pointed somewhere specific enough to act on.
+
+**Acting on it settled it.** `fuzz.h` now cascades one 2× stage per doubling
+instead of zero-stuffing by N once, each stage filtering at a corner that
+never tightens however deep the cascade goes. Its reversal is gone — worst
+step-up past 2× is a ratio of 1.017 — and its 4× and 8× improved by two to
+four orders of magnitude, for about 5 % more CPU. This file needed no change,
+having no upsampler to fix.
+
+Worth naming the shape of it, because it is not the usual one: the evidence
+that resolved a two-wave-old open question in one file came from **building a
+different file that happened to differ in exactly the right variable**. It
+was not designed as an experiment. It was noticed, written down in both
+headers as evidence rather than proof, and left where the next person would
+trip over it.
 
 ## A wrapper test that found a kernel bug
 
@@ -196,7 +209,7 @@ A stage that required no design because the paper published the model and
 its fitted parameters. A detector that is exact rather than approximate, and
 cheaper than the thing it replaces. One sign error that inverted the meaning
 of a distortion knob and was invisible at any single setting. Three
-measurements that lied in three different ways, all recorded. Evidence for
-`fuzz.h`'s open oversampler question from a file that happens to differ in
-exactly the right variable. And a wrapper test that found a kernel bug,
+measurements that lied in three different ways, all recorded. The evidence that closed `fuzz.h`'s
+oversampler question, from a file that happened to differ in exactly the
+right variable and was not built as an experiment. And a wrapper test that found a kernel bug,
 which is the split doing its job.

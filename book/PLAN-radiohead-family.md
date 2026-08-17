@@ -288,14 +288,16 @@ sketched, so `tap.ondes~` needs a design pass against these findings before impl
 > 2. *The house oversampler is not steep enough here — and steepening it was not the whole
 >    story.* With the 4th-order Butterworth that `tap.ladder~` / `overdrive.h` use, alias
 >    energy at 4× came out worse than at 2× (1.7e-2 vs 2.8e-3). Eighth order improves 4× by
->    ~6× but does **not** make the sequence monotone: measured, 1×/2×/4×/8× run
->    1.2e-1 / 2.7e-5 / 7.4e-4 / 1.8e-3, so 2× is best and is now the default. An earlier
->    draft of this record claimed 8th order "restored monotonicity" — it does not, and the
->    notebook plot is the correction. The cause is open: the obvious suspect (ill-conditioned
->    biquads at low normalized cutoffs) was tested and **ruled out** by an impulse-response
->    check; the untested hypothesis is imaging, which would point at cascaded 2× resampling
->    as the real fix. Whether `overdrive.h` is owed the 8th-order change is a separate live
->    question needing its own measurement.
+>    ~6× but did **not** make the sequence monotone: measured, 1×/2×/4×/8× ran
+>    1.2e-1 / 2.7e-5 / 7.4e-4 / 1.8e-3, so 2× shipped as the default. An earlier draft of
+>    this record claimed 8th order "restored monotonicity" — it did not, and the notebook
+>    plot was the correction. The cause was recorded open, with ill-conditioned biquads
+>    **ruled out** by an impulse-response check and imaging left as the untested hypothesis.
+>    **Both halves of that were later closed** (see the open-questions list): imaging was
+>    right, the chain now cascades 2× stages and the reversal is gone — and the whole
+>    conclusion turned out to rest on a single test tone, so the default is now 4×.
+>    Whether `overdrive.h` is owed the 8th-order change is still a separate live question
+>    needing its own measurement.
 >
 > Two test-design errors were also caught and are recorded in the suite itself, since both
 > are easy to repeat: an alias test whose tone divided the sample rate (every fold lands on
@@ -447,13 +449,24 @@ are the house precedent for schematic-based recreation. **Naming is an open ques
   the key only make sense next to the instrument they are stages of), plus
   `machine/scrub.md`, `machine/diffuseur.md` and `machine/ondes.md`. Eight new measured
   figures in `book/figures/radiohead.py`. Drafting record in `PLAN-radiohead-chapters.md`.
-- ~~**The oversampler's non-monotone sequence** (`fuzz.h`'s open question)~~ — not resolved, but
-  no longer without evidence. `ondes.h` runs the same 8th-order chain around a comparably hard
-  nonlinearity as a **source**, with no zero-stuffing and therefore no images, and its sequence
-  never reverses: about 12 dB per doubling to 4× and 7–12 dB more at 8× in the top octave, where
-  `fuzz.h` got *worse* at 4×. Same filters, no upsampler, no reversal — which is what the imaging
-  hypothesis predicted. The next move is unchanged (cascaded 2× halfband resampling in `fuzz.h`),
-  but it now has a reason behind it rather than a guess.
+- ~~**The oversampler's non-monotone sequence** (`fuzz.h`'s open question)~~ — ✅ **resolved
+  2026-08-17, and the imaging hypothesis was right.** `ondes.h` supplied the evidence by
+  accident: same 8th-order chain, comparably hard nonlinearity, but a **source** with nothing
+  zero-stuffed, and no reversal. Acting on it, `fuzz.h` now cascades one 2× stage per doubling
+  — each filtering at 0.225 of its own operating rate, a corner that never tightens however deep
+  the cascade goes — instead of zero-stuffing by N once at 0.45/N (0.056 at 8×). The reversal is
+  gone: worst step-up past 2× is a ratio of 1.017, and 4× / 8× improved by two to four orders of
+  magnitude (5171 Hz at 8×: 2.3e-3 → 1.9e-7). Cost: 3.16 % of a core at 8× against 3.02 %.
+
+  **And a second, larger error surfaced doing it.** Every number in the original write-up came
+  from a *single* test tone at 3733 Hz, where 2× happens to look best. Swept across nine tones,
+  2× collapses above about 6 kHz and at 10499 Hz measures worse than no oversampling at all. The
+  shipped default of 2× was safe only for material below 6 kHz; it is now **4×**. One probe is
+  not a sweep — the same lesson as the pitchaccum retraction above, from the other direction:
+  there, one metric applied everywhere; here, one point of the input domain.
+
+  Still open, unchanged: whether `overdrive.h` is owed the same change. Different nonlinearity,
+  different gain structure, so it needs its own measurement rather than this one's conclusion.
 - **Diffuseur delivery.** Ship the resonators inside `tap.ondes~` only, or as standalone
   externals (`tap.palme~` / `tap.metallique~`) from day one? The components chapter's
   lesson leans standalone-from-day-one.
