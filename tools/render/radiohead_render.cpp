@@ -24,7 +24,16 @@
 ///             and `fuzz_edge_and_bite` (the knee sharpening, then the even harmonics coming
 ///             in); and `touche_against_a_fade`, which swells one note three times — a linear
 ///             fade, a fade linear in dB, and the Ondes Martenot's published intensity-key
-///             curve — because the measured law is audibly neither of the obvious two.
+///             curve — because the measured law is audibly neither of the obvious two; then
+///             `metallique_stages` (the same phrase dry, through the gong with a linear driver,
+///             with the moving-iron squared term armed, and driven hard enough that the saturator
+///             is working — the order is the argument for the transducer being a real stage) and
+///             `palme_halo` (the twelve strings answering a phrase, chromatic then harmonic then
+///             detuned); and `scrub_gesture` (the position raked across a running loop, then the
+///             same rake with the pitch riding its own independent gesture — the two hands are
+///             the object) and `scrub_freeze` (two seconds recorded, the recorder stopped, and
+///             nine seconds built out of that fixed tape: held, crawled through with drift, then
+///             scattered with spray).
 ///
 ///             Usage: radiohead_render [output-directory]   (default: current directory)
 /// @author     Timothy Place
@@ -38,7 +47,9 @@
 #include <string>
 #include <vector>
 
+#include <taptools/diffuseur.h>
 #include <taptools/fuzz.h>
+#include <taptools/scrub.h>
 #include <taptools/stammer.h>
 #include <taptools/tapecho.h>
 #include <taptools/touche.h>
@@ -470,6 +481,147 @@ namespace {
         write_scenario(dir + "/touche_against_a_fade.wav", mono, 0.9, 1);
     }
 
+    // ---- the diffuseurs ---------------------------------------------------------------------------
+
+    /// The métallique against a bare signal. The same phrase runs four times: dry, then through
+    /// the gong with the transducer linear, then with the moving-iron squared term armed, then
+    /// with the drive pushed so the saturator is doing real work. The order is the argument —
+    /// a diffuseur modelled as a resonator alone is missing a documented stage, and the third
+    /// and fourth passes are what that stage sounds like.
+    void metallique_stages(const std::string& dir) {
+        const double        pass   = 9.0;
+        const size_t        frames = static_cast<size_t>(pass * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(4 * frames);
+
+        for (int stage = 0; stage < 4; ++stage) {
+            tap::tools::diffuseur::metallique m;
+            m.prepare(k_r_sr);
+            m.set_pitch_hz(146.0);
+            m.set_decay(7.0);
+            m.set_tilt(0.9);
+            m.set_brightness(0.85);
+            m.set_mix((stage == 0) ? 0.0 : 70.0);
+            m.set_drive((stage == 3) ? 6.0 : 1.0);
+            m.set_asymmetry((stage >= 2) ? 0.45 : 0.0);
+            m.set_saturation((stage >= 2) ? 0.6 : 0.0);
+            // Levelled so the four passes are comparable by ear: the body is a colouring, not a
+            // boost, and the hard-driven pass is far louder than the rest.
+            m.set_level((stage == 0) ? 1.0 : ((stage == 3) ? 0.45 : 1.9));
+
+            for (size_t i = 0; i < frames; ++i) {
+                mono.push_back(m.process(phrase(demo_phrase(), static_cast<double>(i) / k_r_sr)));
+            }
+        }
+        write_scenario(dir + "/metallique_stages.wav", mono, 0.7, 1);
+    }
+
+    /// The palme's halo. A phrase in A minor into the twelve chromatic strings, then the same
+    /// phrase into the harmonic tuning on the same root — the first answers every note, the
+    /// second answers only what belongs to A. Then the detune opened, so the board beats.
+    void palme_halo(const std::string& dir) {
+        const double        pass   = 11.0;
+        const size_t        frames = static_cast<size_t>(pass * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(3 * frames);
+
+        const int    tunings[3] = {tap::tools::diffuseur::tuning_chromatic, tap::tools::diffuseur::tuning_harmonic,
+                                   tap::tools::diffuseur::tuning_chromatic};
+        const double detunes[3] = {0.0, 0.0, 22.0};
+
+        for (int pass_index = 0; pass_index < 3; ++pass_index) {
+            tap::tools::diffuseur::palme p;
+            p.prepare(k_r_sr);
+            p.set_root_hz(110.0);
+            p.set_tuning(tunings[pass_index]);
+            p.set_decay(5.0);
+            p.set_damping(3500.0);
+            p.set_detune(detunes[pass_index]);
+            p.set_drive(1.0);
+            p.set_asymmetry(0.2);
+            p.set_saturation(0.35);
+            p.set_mix(55.0);
+            p.set_level(0.5); // twelve resonant loops add up
+
+            for (size_t i = 0; i < frames; ++i) {
+                mono.push_back(p.process(phrase(demo_phrase(), static_cast<double>(i) / k_r_sr)));
+            }
+        }
+        write_scenario(dir + "/palme_halo.wav", mono, 0.4, 1); // twelve high-Q loops peak hard
+    }
+
+    // ---- tap.scrub~ -------------------------------------------------------------------------------
+
+    /// The scrub as it is actually played: the position dragged back and forth across the last
+    /// second and a half of a loop that keeps running underneath, first at unity pitch, then with
+    /// the pitch riding its own independent gesture. The two hands are the object, so the render
+    /// moves both.
+    void scrub_gesture(const std::string& dir) {
+        const double        pass   = 12.0;
+        const size_t        frames = static_cast<size_t>(pass * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(2 * frames);
+
+        for (int with_pitch = 0; with_pitch < 2; ++with_pitch) {
+            tap::tools::scrub::machine m;
+            m.prepare(k_r_sr, 3000.0);
+            m.set_size_ms(70.0);
+            m.set_overlap(2);
+            m.set_mix(100.0);
+            m.set_smooth_ms(8.0);
+
+            for (size_t i = 0; i < frames; ++i) {
+                const double t = static_cast<double>(i) / k_r_sr;
+                // A rake back and forth: slow at first, then faster as the gesture takes hold.
+                const double rate  = 0.25 + 0.45 * (t / pass);
+                const double sweep = 0.5 - 0.5 * std::cos(2.0 * k_r_pi * rate * t);
+                m.set_position_ms(1500.0 * sweep);
+                if (with_pitch != 0) {
+                    m.set_pitch(7.0 * std::sin(2.0 * k_r_pi * 0.11 * t));
+                }
+                mono.push_back(m.process(looping_phrase(t)));
+            }
+        }
+        write_scenario(dir + "/scrub_gesture.wav", mono, 0.8, 1);
+    }
+
+    /// The frozen half of the object: two seconds of the phrase go in, the recorder stops, and
+    /// everything afterwards is made out of that fixed tape — first held still, then crawled
+    /// through with `drift`, then scattered with `spray`. Nothing is going into the input at all
+    /// after the freeze, which is the point.
+    void scrub_freeze(const std::string& dir) {
+        tap::tools::scrub::machine m;
+        m.prepare(k_r_sr, 3000.0);
+        m.set_size_ms(110.0);
+        m.set_overlap(3);
+        m.set_mix(100.0);
+        m.set_smooth_ms(20.0);
+        m.set_position_ms(900.0);
+        m.set_seed(7);
+
+        const size_t        live = static_cast<size_t>(2.5 * k_r_sr);
+        const size_t        held = static_cast<size_t>(9.0 * k_r_sr);
+        std::vector<double> mono;
+        mono.reserve(live + held);
+
+        for (size_t i = 0; i < live; ++i) {
+            mono.push_back(m.process(looping_phrase(static_cast<double>(i) / k_r_sr)));
+        }
+        m.set_freeze(true);
+        for (size_t i = 0; i < held; ++i) {
+            const double t = static_cast<double>(i) / k_r_sr;
+            if (t > 3.0 && t <= 6.0) {
+                m.set_drift(-0.35); // crawl backwards through the frozen tape
+            }
+            else if (t > 6.0) {
+                m.set_drift(0.0);
+                m.set_spray_ms(260.0); // and then let the origin scatter
+            }
+            mono.push_back(m.process(0.0)); // nothing going in: all of this is the frozen tape
+        }
+        write_scenario(dir + "/scrub_freeze.wav", mono, 0.8, 1);
+    }
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -485,5 +637,9 @@ int main(int argc, char** argv) {
     fuzz_tone(dir);
     fuzz_edge_and_bite(dir);
     touche_against_a_fade(dir);
+    metallique_stages(dir);
+    palme_halo(dir);
+    scrub_gesture(dir);
+    scrub_freeze(dir);
     return 0;
 }

@@ -306,6 +306,83 @@ def load() -> ctypes.CDLL:
         "taptools_tapecho_clear":          ([vp], ctypes.c_int),
         "taptools_tapecho_process":        ([vp, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
 
+        "taptools_plate_create":           ([], vp),
+        "taptools_plate_destroy":          ([vp], None),
+        "taptools_plate_prepare":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_plate_set_pitch_hz":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_plate_set_decay":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_plate_set_tilt":         ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_plate_set_brightness":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_plate_clear":            ([vp], ctypes.c_int),
+        "taptools_plate_process":          ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_plate_mode_hz":          ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_plate_mode_level":       ([vp, ctypes.c_int], ctypes.c_double),
+
+        "taptools_transducer_create":      ([], vp),
+        "taptools_transducer_destroy":     ([vp], None),
+        "taptools_transducer_prepare":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_transducer_set_drive":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_transducer_set_asymmetry": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_transducer_set_saturation": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_transducer_clear":       ([vp], ctypes.c_int),
+        "taptools_transducer_process":     ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+
+        "taptools_metallique_create":      ([], vp),
+        "taptools_metallique_destroy":     ([vp], None),
+        "taptools_metallique_prepare":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_pitch_hz": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_decay":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_tilt":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_brightness": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_drive":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_asymmetry": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_saturation": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_mix":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_level":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_set_smooth_ms": ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_metallique_clear":       ([vp], ctypes.c_int),
+        "taptools_metallique_process":     ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_metallique_mode_hz":     ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_metallique_mode_level":  ([vp, ctypes.c_int], ctypes.c_double),
+
+        "taptools_palme_create":           ([], vp),
+        "taptools_palme_destroy":          ([vp], None),
+        "taptools_palme_prepare":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_root_hz":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_tuning":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_palme_set_decay":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_damping":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_detune":       ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_drive":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_asymmetry":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_saturation":   ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_mix":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_level":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_set_smooth_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_palme_clear":            ([vp], ctypes.c_int),
+        "taptools_palme_process":          ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_palme_string_hz":        ([vp, ctypes.c_int], ctypes.c_double),
+        "taptools_palme_string_feedback":  ([vp, ctypes.c_int], ctypes.c_double),
+
+        "taptools_scrub_create":           ([], vp),
+        "taptools_scrub_destroy":          ([vp], None),
+        "taptools_scrub_prepare":          ([vp, ctypes.c_double, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_position_ms":  ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_pitch":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_drift":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_freeze":       ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_scrub_set_size_ms":      ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_overlap":      ([vp, ctypes.c_int], ctypes.c_int),
+        "taptools_scrub_set_spray_ms":     ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_seed":         ([vp, ctypes.c_ulonglong], ctypes.c_int),
+        "taptools_scrub_set_mix":          ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_level":        ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_set_smooth_ms":    ([vp, ctypes.c_double], ctypes.c_int),
+        "taptools_scrub_clear":            ([vp], ctypes.c_int),
+        "taptools_scrub_process":          ([vp, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_scrub_process_mod":      ([vp, f64p, f64p, f64p, f64p, ctypes.c_int], ctypes.c_int),
+        "taptools_scrub_active_grains":    ([vp], ctypes.c_int),
+
         "taptools_touche_create":          ([], vp),
         "taptools_touche_destroy":         ([vp], None),
         "taptools_touche_prepare":         ([vp, ctypes.c_double], ctypes.c_int),
@@ -1385,6 +1462,300 @@ class TapEcho:
         h = getattr(self, "_h", None)
         if h:
             _LIB.taptools_tapecho_destroy(h)
+            self._h = None
+
+
+class Plate:
+    """The metallique's body on its own (tap::tools::diffuseur::plate) — eight
+    driven modes at the free circular plate's transverse ratios, each split
+    into a beating doublet, with no driver in front of it. A component, not an
+    external: reachable so that a measurement of the body is not silently a
+    measurement of the transducer too."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_plate_create()
+        _check(_LIB.taptools_plate_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, pitch_hz=None, decay=None, tilt=None, brightness=None) -> "Plate":
+        for value, fn, name in (
+            (pitch_hz, _LIB.taptools_plate_set_pitch_hz, "pitch_hz"),
+            (decay, _LIB.taptools_plate_set_decay, "decay"),
+            (tilt, _LIB.taptools_plate_set_tilt, "tilt"),
+            (brightness, _LIB.taptools_plate_set_brightness, "brightness"),
+        ):
+            if value is not None:
+                _check(fn(self._h, float(value)), name)
+        return self
+
+    def modes(self):
+        """Where the eight modes landed: (Hz, doublet weight) arrays."""
+        hz = np.array([_LIB.taptools_plate_mode_hz(self._h, i) for i in range(8)])
+        lv = np.array([_LIB.taptools_plate_mode_level(self._h, i) for i in range(8)])
+        return hz, lv
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_plate_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_plate_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_plate_destroy(h)
+            self._h = None
+
+
+class Transducer:
+    """The diffuseurs' moving-iron driver on its own
+    (tap::tools::diffuseur::transducer) — a component, not an external.
+
+    `asymmetry` is the moving-iron squared term: force follows the square of
+    the gap flux, so with a bias current the residual i² puts a second harmonic
+    on the output at exactly asymmetry x amplitude / 2 relative to the
+    fundamental, and nothing at the third. `saturation` is the bounding stage
+    (0 is exactly linear); the output is bounded by 2/saturation rather than
+    1/saturation, because taking the DC out of a hard-driven squared law
+    doubles the worst-case swing."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_transducer_create()
+        _check(_LIB.taptools_transducer_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, drive=None, asymmetry=None, saturation=None) -> "Transducer":
+        for value, fn, name in (
+            (drive, _LIB.taptools_transducer_set_drive, "drive"),
+            (asymmetry, _LIB.taptools_transducer_set_asymmetry, "asymmetry"),
+            (saturation, _LIB.taptools_transducer_set_saturation, "saturation"),
+        ):
+            if value is not None:
+                _check(fn(self._h, float(value)), name)
+        return self
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_transducer_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        _check(_LIB.taptools_transducer_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_transducer_destroy(h)
+            self._h = None
+
+
+class Metallique:
+    """tap.metallique~'s kernel (tap::tools::diffuseur::metallique): the Ondes
+    Martenot's motor-driven gong diffuseur, as a *driven* resonator — a
+    moving-iron transducer feeding a bank of plate modes, in that order,
+    because that is the order the instrument wires them.
+
+    The mode ratios are Fletcher & Rossing's free circular plate (Rayleigh's
+    Chladni set, 1 : 1.730 : 2.328 : 3.910 : 4.110 : 6.300 : 6.710 : 7.340),
+    each split into a slowly beating doublet. No ondes-specific modal
+    measurement exists in any of the sources, so the body is a **recreation of
+    the general physics**, not a model of Martenot's instrument.
+
+    `drive` / `asymmetry` / `saturation` are the transducer: asymmetry is the
+    moving-iron squared term (force follows the square of the gap flux), and
+    saturation is the bounding stage that keeps the squared law finite. Neither
+    coefficient is fitted to a measurement — set both to 0 for a linear body."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_metallique_create()
+        _check(_LIB.taptools_metallique_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, pitch_hz=None, decay=None, tilt=None, brightness=None, drive=None,
+            asymmetry=None, saturation=None, mix=None, level=None, smooth_ms=None) -> "Metallique":
+        # configuration first, so ramped targets in the same call honor the new slew
+        if smooth_ms is not None:
+            _check(_LIB.taptools_metallique_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        for value, fn, name in (
+            (pitch_hz, _LIB.taptools_metallique_set_pitch_hz, "pitch_hz"),
+            (decay, _LIB.taptools_metallique_set_decay, "decay"),
+            (tilt, _LIB.taptools_metallique_set_tilt, "tilt"),
+            (brightness, _LIB.taptools_metallique_set_brightness, "brightness"),
+            (drive, _LIB.taptools_metallique_set_drive, "drive"),
+            (asymmetry, _LIB.taptools_metallique_set_asymmetry, "asymmetry"),
+            (saturation, _LIB.taptools_metallique_set_saturation, "saturation"),
+            (mix, _LIB.taptools_metallique_set_mix, "mix"),
+            (level, _LIB.taptools_metallique_set_level, "level"),
+        ):
+            if value is not None:
+                _check(fn(self._h, float(value)), name)
+        return self
+
+    def modes(self):
+        """Where the eight modes landed: (Hz, doublet weight) arrays."""
+        hz = np.array([_LIB.taptools_metallique_mode_hz(self._h, i) for i in range(8)])
+        lv = np.array([_LIB.taptools_metallique_mode_level(self._h, i) for i in range(8)])
+        return hz, lv
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_metallique_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        """Silence the body and reset the driver; parameters are untouched."""
+        _check(_LIB.taptools_metallique_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_metallique_destroy(h)
+            self._h = None
+
+
+class Palme:
+    """tap.palme~'s kernel (tap::tools::diffuseur::palme): the Ondes Martenot's
+    string diffuseur — an electromagnet driving twelve metal strings on a
+    soundboard, here a moving-iron transducer into twelve damped waveguide
+    loops. Only the strings whose partials line up with the drive ring loudly,
+    which is the halo the instrument is known for.
+
+    **Twelve** strings, per the peer-reviewed source; the widely copied
+    hobbyist figure of twenty-four is not followed. Their tuning is not
+    published anywhere found, so it is a parameter: `tuning` 0 lays them out
+    chromatically across an octave from `root_hz` (a string for every pitch
+    class), 1 as the harmonic series on the root.
+
+    Note that `decay` and `damping` are not independent — a heavily damped
+    string cannot ring for the time you ask, and `string_feedback()` shows the
+    loop gain pinned at its cap when they fight."""
+
+    def __init__(self, sr: float = 48000.0, **params):
+        self._h = _LIB.taptools_palme_create()
+        _check(_LIB.taptools_palme_prepare(self._h, float(sr)), "prepare")
+        self.set(**params)
+
+    def set(self, *, root_hz=None, tuning=None, decay=None, damping=None, detune=None,
+            drive=None, asymmetry=None, saturation=None, mix=None, level=None,
+            smooth_ms=None) -> "Palme":
+        if tuning is not None:
+            _check(_LIB.taptools_palme_set_tuning(self._h, int(tuning)), "tuning")
+        if smooth_ms is not None:
+            _check(_LIB.taptools_palme_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        for value, fn, name in (
+            (root_hz, _LIB.taptools_palme_set_root_hz, "root_hz"),
+            (decay, _LIB.taptools_palme_set_decay, "decay"),
+            (damping, _LIB.taptools_palme_set_damping, "damping"),
+            (detune, _LIB.taptools_palme_set_detune, "detune"),
+            (drive, _LIB.taptools_palme_set_drive, "drive"),
+            (asymmetry, _LIB.taptools_palme_set_asymmetry, "asymmetry"),
+            (saturation, _LIB.taptools_palme_set_saturation, "saturation"),
+            (mix, _LIB.taptools_palme_set_mix, "mix"),
+            (level, _LIB.taptools_palme_set_level, "level"),
+        ):
+            if value is not None:
+                _check(fn(self._h, float(value)), name)
+        return self
+
+    def strings(self):
+        """Where the twelve strings ended up: (Hz, loop gain) arrays."""
+        hz = np.array([_LIB.taptools_palme_string_hz(self._h, i) for i in range(12)])
+        fb = np.array([_LIB.taptools_palme_string_feedback(self._h, i) for i in range(12)])
+        return hz, fb
+
+    def process(self, x) -> np.ndarray:
+        x = _f64(x)
+        out = np.zeros_like(x)
+        _check(_LIB.taptools_palme_process(self._h, _p64(x), _p64(out), x.size), "process")
+        return out
+
+    def clear(self) -> None:
+        """Damp every string and reset the driver; parameters are untouched."""
+        _check(_LIB.taptools_palme_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_palme_destroy(h)
+            self._h = None
+
+
+class Scrub:
+    """tap.scrub~'s kernel (tap::tools::scrub::machine): a granular scrub pad
+    over live capture. The tape is stammer.h's `capture` — the same live reel,
+    shared rather than copied — and the playhead is a Hann-windowed grain
+    scheduler whose position and pitch are two independent performable signals.
+
+    `position_ms` is a lag behind the live edge; `pitch` transposes without the
+    position moving; `freeze` stops the recorder so the position addresses
+    fixed tape; `drift` walks the playhead through the tape on its own.
+
+    Hann satisfies the overlap-add condition at hop = size/overlap, so at
+    overlap 2 with pitch 0, no spray and a held whole-sample position, the
+    scrub *is* the input delayed — pinned to under 1e-12 by the kernel tests."""
+
+    def __init__(self, sr: float = 48000.0, max_history_ms: float = 4000.0, **params):
+        self._h = _LIB.taptools_scrub_create()
+        _check(_LIB.taptools_scrub_prepare(self._h, float(sr), float(max_history_ms)), "prepare")
+        self.set(**params)
+
+    def set(self, *, position_ms=None, pitch=None, drift=None, freeze=None, size_ms=None,
+            overlap=None, spray_ms=None, seed=None, mix=None, level=None,
+            smooth_ms=None) -> "Scrub":
+        if overlap is not None:
+            _check(_LIB.taptools_scrub_set_overlap(self._h, int(overlap)), "overlap")
+        if freeze is not None:
+            _check(_LIB.taptools_scrub_set_freeze(self._h, 1 if freeze else 0), "freeze")
+        if seed is not None:
+            _check(_LIB.taptools_scrub_set_seed(self._h, int(seed)), "seed")
+        if smooth_ms is not None:
+            _check(_LIB.taptools_scrub_set_smooth_ms(self._h, float(smooth_ms)), "smooth_ms")
+        for value, fn, name in (
+            (position_ms, _LIB.taptools_scrub_set_position_ms, "position_ms"),
+            (pitch, _LIB.taptools_scrub_set_pitch, "pitch"),
+            (drift, _LIB.taptools_scrub_set_drift, "drift"),
+            (size_ms, _LIB.taptools_scrub_set_size_ms, "size_ms"),
+            (spray_ms, _LIB.taptools_scrub_set_spray_ms, "spray_ms"),
+            (mix, _LIB.taptools_scrub_set_mix, "mix"),
+            (level, _LIB.taptools_scrub_set_level, "level"),
+        ):
+            if value is not None:
+                _check(fn(self._h, float(value)), name)
+        return self
+
+    @property
+    def active_grains(self) -> int:
+        return int(_LIB.taptools_scrub_active_grains(self._h))
+
+    def process(self, x, position_ms=None, pitch=None) -> np.ndarray:
+        """Run n samples. Pass arrays for `position_ms` / `pitch` to drive the
+        performance surface at signal rate (both must be given together)."""
+        x = _f64(x)
+        out = np.zeros_like(x)
+        if position_ms is None and pitch is None:
+            _check(_LIB.taptools_scrub_process(self._h, _p64(x), _p64(out), x.size), "process")
+        else:
+            pos = _f64(np.broadcast_to(np.asarray(position_ms if position_ms is not None else 0.0,
+                                                  dtype=np.float64), x.shape))
+            pit = _f64(np.broadcast_to(np.asarray(pitch if pitch is not None else 0.0,
+                                                  dtype=np.float64), x.shape))
+            _check(_LIB.taptools_scrub_process_mod(self._h, _p64(x), _p64(pos), _p64(pit),
+                                                   _p64(out), x.size), "process_mod")
+        return out
+
+    def clear(self) -> None:
+        """Erase the tape, kill every grain, and restart the seeded stream."""
+        _check(_LIB.taptools_scrub_clear(self._h), "clear")
+
+    def __del__(self):
+        h = getattr(self, "_h", None)
+        if h:
+            _LIB.taptools_scrub_destroy(h)
             self._h = None
 
 

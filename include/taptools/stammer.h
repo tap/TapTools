@@ -131,6 +131,11 @@ namespace tap::tools {
             /// Hermite read returns the stored sample exactly (fraction 0 reads x0).
             double read(long pos) const { return m_reel.read_hermite(static_cast<double>(pos)); }
 
+            /// Read at a FRACTIONAL absolute position (wraps) — the same 4-point Hermite, exposed
+            /// for the family's rate-varying sibling (scrub.h), which shares this capture rather
+            /// than keeping its own. The slicer never calls it: its slices play at ±1 rate.
+            double read_frac(double pos) const { return m_reel.read_hermite(pos); }
+
           private:
             double     m_sr{48000.0};
             long       m_write{0};

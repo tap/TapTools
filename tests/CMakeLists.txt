@@ -16,6 +16,7 @@ add_executable(taptools_kernel_tests
     airport_test.cpp
     autowah_test.cpp
     delay_test.cpp
+    diffuseur_test.cpp
     diode_ladder_test.cpp
     discreet_test.cpp
     garden_test.cpp
@@ -24,6 +25,7 @@ add_executable(taptools_kernel_tests
     harmonizer_test.cpp
     nr_test.cpp
     overdrive_test.cpp
+    scrub_test.cpp
     spectra_test.cpp
     step_seq_test.cpp
     stammer_test.cpp

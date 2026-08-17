@@ -36,6 +36,9 @@ header adds no nested namespace, the class) the kernel lives in.
 | `overdrive.h` | `tap.overdrive~` | LGW-voiced feedback overdrive (`tap::tools::od`) |
 | `vca.h` | `tap.vca~` | Voltage-controlled amplifier (`tap::tools::vca`) |
 | `adsr.h` | `tap.adsr~` | Virtual-analog ADSR envelope, legacy Jamoma curves as modes (`tap::tools::adsr`) |
+| `fuzz.h` | `tap.fuzz~` | Two-stage tone-stacked fuzz on the DAFx-07 cascade (`tap::tools::fuzz`) |
+| `touche.h` | `tap.touche~` | The Ondes Martenot intensity key as a published gain law (`tap::tools::touche`) |
+| `diffuseur.h` | `tap.metallique~`, `tap.palme~` | The Ondes diffuseurs as driven resonators (`tap::tools::diffuseur`) |
 
 **Voices, drums, and sequencing**
 
@@ -82,6 +85,9 @@ header adds no nested namespace, the class) the kernel lives in.
 | `discreet.h` | `tap.discreet~` | *Discreet Music* two-machine regeneration loop (`tap::tools::discreet`) |
 | `airport.h` | `tap.airport~` | *Music for Airports* incommensurate loop bank (`tap::tools::airport`) |
 | `garden.h` | `tap.garden~` | Generative event loop on the Bloom principle (`tap::tools::garden`) |
+| `tapecho.h` | `tap.tapecho~` | Multi-head tape echo (`tap::tools::tapecho`) |
+| `stammer.h` | `tap.stammer~` | Live buffer-stutter rig (`tap::tools::stammer`) |
+| `scrub.h` | `tap.scrub~` | Granular scrub over live capture (`tap::tools::scrub`) |
 
 `taptools.h` is the umbrella header that pulls in every kernel above. `stft.h`, `tune.h`,
 `harmonizer.h` and `conv_engine.h` reach into `tap::dsp` (the pinned DspTap submodule) for the
@@ -92,7 +98,7 @@ Plus, all Max-free:
 - **`tests/`** — Catch2 unit tests for the kernels (fetched via FetchContent; run with `ctest`).
   Wrapper-level tests (attributes, Min plumbing) stay with the externals on the min-api harness
   in the Max package.
-- **`tools/render/`** — offline WAV renderers (`diode_render`, `tb303_render`, `ladder_render`, `vco_render`,
+- **`tools/render/`** — offline WAV renderers (`diode_render`, `tb303_render`, `ladder_render`, `vco_render`, `radiohead_render`,
   `grm_comb_render`, `grm_pitchaccum_render`, `autowah_render`) for listening checks outside Max.
 - **`tools/capi/`** — a small C ABI (`taptools_capi`) over a *subset* of the kernels, for the
   notebooks and other non-C++ consumers. `tools/capi/taptools_capi.h` is the authoritative list of
