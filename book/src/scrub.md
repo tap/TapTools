@@ -116,10 +116,12 @@ render bit for bit, and two instances decorrelate by seed alone.
 - **Clean transposition.** The warble above is inherent to the method.
   `tap.shift~` and `tap.pitchaccum~` are the objects built for that job —
   with one caveat worth stating plainly: measured on this same sweep,
-  `tap.pitchaccum~` retained mean 0.908 of band energy with a **worst case
-  of 0.004**, well below the scrub's worst of 0.917. That is recorded as an
-  open question against `tap.pitchaccum~` rather than a recommendation
-  against it, but audition before you assume.
+  `tap.pitchaccum~` retained mean 0.907 of band energy against the scrub's
+  0.988, worst 0.633 against 0.917. Its two-tap crossfade also puts its
+  strongest spectral line a few hertz *beside* the intended pitch, which is
+  filed as [issue #33](https://github.com/tap/TapTools/issues/33). None of
+  that makes it the wrong object — it is a shimmer, and shimmer is what those
+  sidebands are — but audition before you assume it is the transparent one.
 - **A tidy delay.** `tap.delay~` and `tap.tapecho~` cost far less and do not
   window anything.
 - **Slicing to a grid.** That is `tap.stammer~`, on the same tape.

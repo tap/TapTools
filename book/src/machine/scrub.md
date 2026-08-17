@@ -77,6 +77,20 @@ pitch-shifter: **if the process can smear a partial, a single-bin probe is
 measuring the smear, not the partial.** Integrate a band wide enough to
 contain the artifact you already know about.
 
+And then, immediately, the same mistake in its other half. The comparison
+against `tap.pitchaccum~` used that ±15 Hz band unchanged across the whole
+sweep — but ±15 Hz is about 115 cents wide at 220 Hz and only 26 cents at
+932 Hz, so at the top of the sweep the probe was again narrower than the
+process it was measuring, and it produced two readings of 0.0001 and 0.0006
+that were recorded as near-total cancellations of a shipped object. Widened
+to a constant 3 %, they read 0.63 and 0.85 and no cancellation exists. The
+retraction and what survives it are [issue #33](https://github.com/tap/TapTools/issues/33).
+
+So the rule has a second half: a band wide enough **in the units the process
+works in**. A pitch shifter works in cents. A fixed hertz window is a
+different width at every pitch, and the place it is narrowest is exactly
+where a shifter's error is largest.
+
 Two related mistakes are recorded here because both were committed:
 
 - **Analysing mostly silence.** The first wander sweep ran 1 second of
