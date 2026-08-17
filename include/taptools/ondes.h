@@ -533,6 +533,7 @@ namespace tap::tools {
             void prepare(double sr) {
                 m_sr = (sr > 0.0) ? sr : 48000.0;
                 m_key.prepare(m_sr);
+                m_key.set_smooth_ms(m_smooth_ms); // prepare() resets it; the voice's setting wins
                 configure();
                 m_drive.snap(m_drive.target());
                 m_level.snap(m_level.target());
@@ -599,7 +600,15 @@ namespace tap::tools {
                 }
             }
 
-            void set_smooth_ms(double ms) { m_smooth_ms = std::max(0.0, ms); }
+            /// Anti-zipper ramp time for the attribute-driven drive, level and key, in ms.
+            /// It reaches the intensity key too: `touche::key` keeps its own slew, and a `voice`
+            /// whose smoothing did not propagate to it would slew the one control the instrument
+            /// is actually played with at a time nobody set. (Found by a wrapper test asking for
+            /// silence at a rest position and getting 20 ms of sound.)
+            void set_smooth_ms(double ms) {
+                m_smooth_ms = std::max(0.0, ms);
+                m_key.set_smooth_ms(m_smooth_ms);
+            }
 
             // -- introspection ---------------------------------------------------------------------
 

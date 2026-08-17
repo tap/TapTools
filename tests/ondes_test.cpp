@@ -385,6 +385,42 @@ SCENARIO("the power stage really is the least important of the three") {
     CHECK(thd(b, 220.0) > thd(a, 220.0)); // it does something, just not much
 }
 
+// A wrapper test asked for silence at a rest position and got 20 ms of sound: the voice's
+// smoothing was not reaching the intensity key, which keeps its own slew, so the one control the
+// instrument is played with was slewing at a time nobody had set.
+SCENARIO("the voice's smoothing reaches the intensity key") {
+    O::voice v;
+    v.prepare(k_sr);
+    v.set_smooth_ms(0.0);
+    v.set_ribbon(24.0);
+    v.set_level(1.0);
+    v.set_key(1.0);
+    for (int i = 0; i < 4800; ++i) {
+        v.process(); // get it sounding
+    }
+
+    v.set_key(0.0);
+    bool immediate = true;
+    for (int i = 0; i < 4800; ++i) {
+        immediate = immediate && (v.process() == 0.0);
+    }
+    REQUIRE(immediate); // smooth 0 means smooth 0, everywhere
+
+    // And with smoothing on, the key really does take that long rather than snapping.
+    v.set_smooth_ms(50.0);
+    v.set_key(1.0);
+    for (int i = 0; i < 4800; ++i) {
+        v.process();
+    }
+    v.set_key(0.0);
+    int sounded = 0;
+    for (int i = 0; i < 4800; ++i) {
+        sounded += (v.process() != 0.0) ? 1 : 0;
+    }
+    INFO("samples still sounding after a slewed release: " << sounded);
+    CHECK(sounded > 100);
+}
+
 SCENARIO("the intensity key silences the voice at rest and opens it at full press") {
     O::voice v;
     v.prepare(k_sr);
