@@ -423,13 +423,24 @@ are the house precedent for schematic-based recreation. **Naming is an open ques
 - ~~**One capture component or two.**~~ Resolved at the scrub's ship: **one**. `scrub.h`
   includes `stammer.h` and uses `stammer::capture` directly; the only change the stutter needed
   was a fractional read it does not itself call.
-- **`tap.pitchaccum~` has the same warble, and worse.** Measured on the same sweep the scrub was
-  measured on (5 fundamentals × 7 intervals, band energy retained around the transposed pitch):
-  the scrub returns mean 0.988 / worst 0.917, `tap.pitchaccum~` returns mean 0.908 / **worst
-  0.004** — a near-total cancellation at 311 Hz up 19 semitones, where its ratio is exactly 3
-  and the two taps land a half-window apart. That is a real finding about a shipped object,
-  recorded rather than acted on: fixing it is its own job, with its own tests and its own
-  consumers, and it should not ride along on an unrelated kernel.
+- **`tap.pitchaccum~` has the same warble, and worse** — now filed as
+  [taptools#33](https://github.com/tap/TapTools/issues/33), **and partially retracted on the way
+  there.** The original entry here recorded a "near-total cancellation" at 311 Hz +19 semitones,
+  band energy 0.004. That number was an artifact of the metric: the sweep integrated a fixed
+  **±15 Hz** band, which is about 115 cents wide at 220 Hz but only 26 cents at 932 Hz, so at
+  high transposed pitches the probe was narrower than the shifter's own spread and missed the
+  energy. Widened to a constant 3 % — the same width in cents everywhere — the two "cancellations"
+  read 0.63 and 0.85, and none exists anywhere on the sweep.
+
+  What survives: on 5 fundamentals × 7 intervals, `tap.pitchaccum~` retains mean 0.907 / worst
+  0.633 against the scrub's 0.988 / 0.917; its strongest spectral line sits 5–20 Hz *beside* the
+  intended pitch (consistent with two-tap crossfade sidebands); and `tap::dsp::yin` reads it up to
+  +35 cents sharp at 110 Hz for the +7 and +19 intervals, falling to −5 cents at 440 Hz — which is
+  ambiguous between a real error and a detector artifact and is written up as such in the issue.
+
+  **The lesson is the one `machine/scrub.md` had just finished writing**, committed one section
+  later: if a process can smear or shift a partial, the probe must be wide enough *in the units
+  the process works in*. For a pitch shifter that unit is cents, never hertz.
 - ~~**Chapters for the six newest objects.**~~ — ✅ shipped 2026-08-17 as six chapters, three
   user-facing and three machine appendices: `book/src/scrub.md`, `diffuseurs.md`, `ondes.md`
   (which carries `tap.ondes~`, `tap.triode~` and `tap.touche~` together, since the triode and
