@@ -1517,9 +1517,7 @@ int taptools_ondes_process_mod(taptools_ondes h, const double* semitones, const 
     }
     return with<ondes_voice>(h, [&](ondes_voice& v) {
         for (int i = 0; i < n; ++i) {
-            v.set_ribbon(semitones[i]);
-            v.set_key(key[i]);
-            out[i] = v.process();
+            out[i] = v.process(semitones[i], key[i]);
         }
     });
 }
