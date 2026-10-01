@@ -17,7 +17,7 @@ general-purpose signal primitives go there; musical/object-level kernels stay he
 
 - `include/taptools/` — one header per kernel (e.g. `tune.h`, `svf.h`, `grm_pitchaccum.h`);
   `stft.h` is the shared overlap-add scaffold for the spectral kernels.
-- `submodules/dsptap/` — `tap::dsp` (fft/yin/psola/pvoc + vendored Ooura/CMSIS), pinned.
+- `submodules/dsptap/` — `tap::dsp` (fft/yin/psola/pvoc + vendored CMSIS-DSP for the Cortex-M55), pinned.
 - `tests/` — Catch2 (FetchContent), pure C++, no Max/min-api/mock kernel; runs via `ctest`.
 - `tools/capi/` + `notebooks/` — the verification layer: a C ABI over the same kernel headers the
   externals compile, a ctypes bridge (`notebooks/taptools_py.py`), and *executed* verification

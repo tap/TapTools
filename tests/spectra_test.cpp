@@ -10,6 +10,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <tap/dsp/fft.h>
+#include <taptools/nr.h>
 #include <taptools/spectra.h>
 
 namespace {
@@ -95,6 +96,50 @@ SCENARIO("remap = 2 relocates input bin 2k to output bin k") {
                 // Frame-aligned slice well into steady state.
                 REQUIRE(peak_bin(out, 4 * N, N) == 8);
             }
+        }
+    }
+}
+
+SCENARIO("the STFT scaffold refuses sizes the FFT engine does not support and is silent until configured") {
+    tap::tools::stft s;
+
+    GIVEN("a scaffold that was never configured") {
+        THEN("process emits silence instead of touching unallocated buffers") {
+            const std::vector<double> in(100, 1.0);
+            std::vector<double>       out(100, 7.0);
+            s.process(in.data(), out.data(), 100, [](std::vector<double>&, std::vector<double>&, int) {});
+            bool silent = true;
+            for (double v : out) {
+                silent = silent && v == 0.0;
+            }
+            REQUIRE(silent);
+            REQUIRE_FALSE(s.configured());
+        }
+    }
+
+    GIVEN("a scaffold configured at 256") {
+        REQUIRE(s.configure(256));
+        REQUIRE(s.fftsize() == 256);
+        REQUIRE(s.hop() == 64);
+
+        THEN("a non-power-of-two size, a size below 4, or a non-dividing overlap is refused, unchanged") {
+            REQUIRE_FALSE(s.configure(1000));
+            REQUIRE_FALSE(s.configure(96));
+            REQUIRE_FALSE(s.configure(2));
+            REQUIRE_FALSE(s.configure(0));
+            REQUIRE_FALSE(s.configure(256, 0));
+            REQUIRE_FALSE(s.configure(256, 3));
+            REQUIRE(s.fftsize() == 256);
+            REQUIRE(s.hop() == 64);
+            REQUIRE(s.configured());
+        }
+        THEN("the wrappers propagate the refusal") {
+            tap::tools::spectra::remapper r;
+            REQUIRE(r.configure(512));
+            REQUIRE_FALSE(r.configure(500));
+            tap::tools::nr::reducer g;
+            REQUIRE(g.configure(512));
+            REQUIRE_FALSE(g.configure(500));
         }
     }
 }

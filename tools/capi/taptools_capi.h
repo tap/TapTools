@@ -29,13 +29,15 @@ typedef void* taptools_conv;
 TAPTOOLS_API taptools_conv taptools_conv_create(void);
 TAPTOOLS_API void          taptools_conv_destroy(taptools_conv engine);
 
-/// Allocate the engine for a partition size (samples, power of two) and a maximum partition count.
-/// Discards any loaded IR and clears all state. Returns 0, or -1 on a bad handle.
+/// Allocate the engine for a partition size (samples, a power of two >= 2 whose doubled FFT size the
+/// DspTap engine supports) and a maximum partition count (>= 1). Discards any loaded IR and clears
+/// all state. Returns 0, or -1 on a bad handle or an unsupported size (the engine is then unchanged).
 TAPTOOLS_API int taptools_conv_configure(taptools_conv engine, int blocksize, int max_partitions);
 
 /// Load the four true-stereo IR paths (LL, LR, RL, RR) of `length` samples into the engine and
 /// publish them atomically. Any of the four pointers may be NULL for a silent path; `scale` is
-/// applied to every sample. Returns 0, or -1 on a bad/unconfigured handle.
+/// applied to every sample. Returns 0, or -1 on a bad/unconfigured handle (or, only if the audio
+/// thread held the target slot for over a second, a refused load; nothing is changed then).
 TAPTOOLS_API int taptools_conv_load_ir(taptools_conv engine, const float* ll, const float* lr, const float* rl,
                                        const float* rr, int length, double scale);
 

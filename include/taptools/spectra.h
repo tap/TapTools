@@ -23,11 +23,15 @@ namespace tap::tools {
 
         class remapper {
           public:
-            // Allocate for the given FFT size (a power of two). Resets running state.
-            void configure(int fftsize) {
-                m_stft.configure(fftsize);
+            // Allocate for the given FFT size (a power of two the FFT engine supports). Resets running
+            // state. Returns false, leaving everything as it was, when stft::configure refuses the size.
+            bool configure(int fftsize) {
+                if (!m_stft.configure(fftsize)) {
+                    return false;
+                }
                 m_ore.assign(fftsize, 0.0);
                 m_oim.assign(fftsize, 0.0);
+                return true;
             }
 
             // Flush the STFT buffers without changing the size.
