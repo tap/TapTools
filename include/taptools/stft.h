@@ -10,15 +10,22 @@
 ///             and Nyquist being real). With an identity op, the output reconstructs the input delayed
 ///             by one FFT frame (the latency).
 ///
-///             The transform is the shared DspTap real FFT (tap::dsp::real_fft): half the work of the
-///             old complex radix-2 for a real signal, and on Apple / Arm targets it dispatches to the
-///             vDSP / CMSIS-Helium backends. Plain C++20, standard library only.
+///             The transform is the shared DspTap real FFT (tap::dsp::real_fft, the double profile,
+///             which runs DspTap's srdif engine on every target — the vDSP / CMSIS-Helium backends
+///             serve the float profile only): half the work of the old complex radix-2 for a real
+///             signal. Plain C++20, standard library only.
+///
+///             Size gate: `configure()` refuses an FFT size the engine does not support (a power of two
+///             in `real_fft::supports_size`) or an overlap that does not divide it, and leaves the
+///             scaffold as it was — DspTap's constructor checks nothing in a release build and an
+///             unsupported size corrupts the heap. `process()` emits silence until a configure succeeds.
 /// @author     Timothy Place
 // SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <utility>
@@ -33,9 +40,19 @@ namespace tap::tools {
         static constexpr int    k_default_overlap = 4;
         static constexpr double k_pi              = 3.14159265358979323846;
 
+        // True exactly for the sizes configure() accepts: a power of two the FFT engine supports.
+        static bool supports_size(int fftsize) {
+            return fftsize >= 4 && tap::dsp::real_fft::supports_size(static_cast<size_t>(fftsize));
+        }
+
         // Allocate the window and buffers for the given FFT size (a power of two) and overlap factor.
-        // Resets all running state. Call before processing and whenever the size changes.
-        void configure(int fftsize, int overlap = k_default_overlap) {
+        // Resets all running state. Call before processing and whenever the size changes. Returns
+        // false, leaving everything as it was, when fftsize is not supports_size() or overlap is
+        // not a positive divisor of it.
+        bool configure(int fftsize, int overlap = k_default_overlap) {
+            if (!supports_size(fftsize) || overlap < 1 || fftsize % overlap != 0) {
+                return false;
+            }
             m_fftsize = fftsize;
             m_overlap = overlap;
             m_hop     = m_fftsize / m_overlap;
@@ -61,7 +78,10 @@ namespace tap::tools {
             m_re.assign(m_fftsize, 0.0);
             m_im.assign(m_fftsize, 0.0);
             reset();
+            return true;
         }
+
+        bool configured() const { return m_fft.has_value(); }
 
         // Flush the running buffers without touching the window/size (safe from a message handler).
         void reset() {
@@ -77,9 +97,14 @@ namespace tap::tools {
         int latency() const { return m_fftsize; } // reconstruction delay with an identity op
 
         // Pump n samples through the STFT. `op` is invoked once per hop as op(re, im, N) and may modify
-        // the half-spectrum (bins 0..N/2) in place; input and output must not alias.
+        // the half-spectrum (bins 0..N/2) in place; input and output must not alias. Silence until
+        // configure() has succeeded.
         template <class SpectralOp>
         void process(const double* in, double* out, long n, SpectralOp&& op) {
+            if (!configured()) {
+                std::fill(out, out + n, 0.0);
+                return;
+            }
             for (long i = 0; i < n; ++i) {
                 m_inbuf[m_pos]  = in[i];
                 out[i]          = m_outbuf[m_pos];

@@ -23,8 +23,9 @@ namespace tap::tools {
 
         class reducer {
           public:
-            // Allocate for the given FFT size (a power of two). Resets running state.
-            void configure(int fftsize) { m_stft.configure(fftsize); }
+            // Allocate for the given FFT size (a power of two the FFT engine supports). Resets running
+            // state. Returns false, leaving everything as it was, when stft::configure refuses the size.
+            bool configure(int fftsize) { return m_stft.configure(fftsize); }
 
             // Flush the STFT buffers without changing the size.
             void reset() { m_stft.reset(); }

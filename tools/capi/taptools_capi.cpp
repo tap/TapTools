@@ -50,8 +50,7 @@ void taptools_conv_destroy(taptools_conv engine) {
 int taptools_conv_configure(taptools_conv engine, int blocksize, int max_partitions) {
     if (!engine)
         return -1;
-    static_cast<conv_engine*>(engine)->configure(blocksize, max_partitions);
-    return 0;
+    return static_cast<conv_engine*>(engine)->configure(blocksize, max_partitions) ? 0 : -1;
 }
 
 int taptools_conv_load_ir(taptools_conv engine, const float* ll, const float* lr, const float* rl, const float* rr,
@@ -59,8 +58,7 @@ int taptools_conv_load_ir(taptools_conv engine, const float* ll, const float* lr
     if (!engine)
         return -1;
     const float* paths[conv_engine::k_paths] = {ll, lr, rl, rr};
-    static_cast<conv_engine*>(engine)->load_ir(paths, length, scale);
-    return 0;
+    return static_cast<conv_engine*>(engine)->load_ir(paths, length, scale) ? 0 : -1;
 }
 
 int taptools_conv_clear(taptools_conv engine) {

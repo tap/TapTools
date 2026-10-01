@@ -89,7 +89,12 @@ if (TAPTOOLS_INSTALL)
     # The DspTap real FFT is part of taptools' interface (the spectral kernels
     # include tap/dsp/fft.h), so its headers and targets join the export set.
     install(DIRECTORY submodules/dsptap/include/tap DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-    install(TARGETS taptools tap_dsp tap_dsp_fft EXPORT TapToolsKernelTargets)
+    install(TARGETS taptools tap_dsp EXPORT TapToolsKernelTargets)
+    # tap_dsp_fft exists only when DspTap builds the CMSIS-DSP backend
+    # (TAP_DSP_FFT_CMSIS); every other build of tap::dsp is header-only.
+    if(TARGET tap_dsp_fft)
+        install(TARGETS tap_dsp_fft EXPORT TapToolsKernelTargets)
+    endif()
     install(EXPORT TapToolsKernelTargets
         NAMESPACE TapTools::
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/TapToolsKernel)

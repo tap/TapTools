@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 // Copyright 2003-2026 Timothy Place.
 
+#include <atomic>
 #include <cmath>
+#include <thread>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
@@ -207,6 +209,103 @@ SCENARIO("a hot IR swap while running settles to the new response") {
                 }
                 REQUIRE(ok);
             }
+        }
+    }
+}
+
+SCENARIO("configure refuses a block size the FFT engine does not support and keeps the previous geometry") {
+    tap::tools::conv_engine engine;
+
+    GIVEN("an engine configured at a supported size") {
+        REQUIRE(engine.configure(16, 8));
+        REQUIRE(engine.block_size() == 16);
+        REQUIRE(engine.max_partitions() == 8);
+
+        THEN("a block size whose doubled FFT size is not a power of two is refused, unchanged") {
+            REQUIRE_FALSE(engine.configure(48, 8)); // N = 96: a heap overflow in DspTap's constructor if built
+            REQUIRE_FALSE(engine.configure(24, 8)); // N = 48
+            REQUIRE_FALSE(engine.configure(0, 8));
+            REQUIRE_FALSE(engine.configure(-16, 8));
+            REQUIRE_FALSE(engine.configure(1, 8)); // N = 2 is below the engine's minimum of 4
+            REQUIRE_FALSE(engine.configure(16, 0));
+            REQUIRE(engine.block_size() == 16);
+            REQUIRE(engine.max_partitions() == 8);
+            REQUIRE(engine.configured());
+        }
+        THEN("the predicate names exactly the accepted sizes") {
+            REQUIRE(tap::tools::conv_engine::supports_block_size(2));
+            REQUIRE(tap::tools::conv_engine::supports_block_size(1024));
+            REQUIRE_FALSE(tap::tools::conv_engine::supports_block_size(1));
+            REQUIRE_FALSE(tap::tools::conv_engine::supports_block_size(3));
+            REQUIRE_FALSE(tap::tools::conv_engine::supports_block_size(1000));
+        }
+    }
+
+    GIVEN("an engine that was never configured") {
+        THEN("process emits silence instead of touching unallocated buffers, and load_ir is refused") {
+            const std::vector<double> x(64, 1.0);
+            std::vector<double>       out_l(64, 7.0), out_r(64, 7.0);
+            engine.process(x.data(), x.data(), out_l.data(), out_r.data(), 64);
+            bool silent = true;
+            for (int i = 0; i < 64; ++i) {
+                silent = silent && out_l[i] == 0.0 && out_r[i] == 0.0;
+            }
+            REQUIRE(silent);
+            const float  h        = 1.0f;
+            const float* paths[4] = {&h, nullptr, nullptr, &h};
+            REQUIRE_FALSE(engine.load_ir(paths, 1, 1.0));
+        }
+    }
+}
+
+SCENARIO("an IR load on another thread never corrupts the audio thread's output or the published IR") {
+    // Two one-tap IRs, gains 1 and 2, on the diagonal paths; a constant input of 1. Every output
+    // sample is then exactly the gain of whichever IR its block saw: 1 or 2, never anything else.
+    // Before load_ir had its own scratch buffer the two threads transformed through one buffer, so
+    // a load during a block corrupted either the IR partition being built or the audio frame.
+    const int B = 32;
+    const int n = 8 * 1024;
+
+    tap::tools::conv_engine engine;
+    REQUIRE(engine.configure(B, 2));
+    const float  g1 = 1.0f, g2 = 2.0f;
+    const float* ir1[4] = {&g1, nullptr, nullptr, &g1};
+    const float* ir2[4] = {&g2, nullptr, nullptr, &g2};
+    REQUIRE(engine.load_ir(ir1, 1, 1.0));
+
+    GIVEN("a control thread swapping the two IRs as fast as it can while audio runs") {
+        std::atomic<bool> stop{false};
+        std::atomic<int>  loads{0};
+        std::thread       loader([&] {
+            while (!stop.load(std::memory_order_relaxed)) {
+                if (engine.load_ir(ir1, 1, 1.0)) {
+                    loads.fetch_add(1, std::memory_order_relaxed);
+                }
+                if (engine.load_ir(ir2, 1, 1.0)) {
+                    loads.fetch_add(1, std::memory_order_relaxed);
+                }
+            }
+        });
+
+        const std::vector<double> x(n, 1.0);
+        std::vector<double>       out_l(n, 0.0), out_r(n, 0.0);
+        int                       bad = 0;
+        for (int round = 0; round < 40; ++round) {
+            engine.process(x.data(), x.data(), out_l.data(), out_r.data(), n);
+            for (int t = B; t < n; ++t) { // the first block of the first round is the latency
+                const bool ok_l = std::abs(out_l[t] - 1.0) < 1e-9 || std::abs(out_l[t] - 2.0) < 1e-9;
+                const bool ok_r = std::abs(out_r[t] - 1.0) < 1e-9 || std::abs(out_r[t] - 2.0) < 1e-9;
+                if (!ok_l || !ok_r) {
+                    ++bad;
+                }
+            }
+        }
+        stop.store(true, std::memory_order_relaxed);
+        loader.join();
+
+        THEN("every output sample is one of the two gains and the loads were not starved") {
+            REQUIRE(bad == 0);
+            REQUIRE(loads.load() > 0);
         }
     }
 }
