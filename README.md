@@ -92,7 +92,8 @@ header adds no nested namespace, the class) the kernel lives in.
 
 `taptools.h` is the umbrella header that pulls in every kernel above. `stft.h`, `tune.h`,
 `harmonizer.h` and `conv_engine.h` reach into `tap::dsp` (the pinned DspTap submodule) for the
-real FFT and the pitch primitives; every other kernel is standard library only.
+real FFT and the pitch primitives, and each includes `dsptap_version.h`, which asserts the oldest
+DspTap this tree was tested with (0.7.0); every other kernel is standard library only.
 
 Plus, all Max-free:
 
@@ -171,8 +172,9 @@ its `submodules/taptools` pin.
 
 MIT — © 2002–2026 Timothy Place. See [`LICENSE`](LICENSE). Every kernel, test, tool and benchmark
 source file carries an `SPDX-License-Identifier: MIT` banner. The pinned DspTap submodule is
-separately MIT-licensed and the third-party code it vendors (Ooura FFT, CMSIS-DSP) keeps its own
-license — see [`submodules/dsptap/NOTICE.md`](submodules/dsptap/NOTICE.md).
+separately MIT-licensed and the third-party code it vendors (CMSIS-DSP) keeps its own license — see
+[`submodules/dsptap/NOTICE.md`](submodules/dsptap/NOTICE.md), which also keeps the Ooura FFT
+package's license record for the older DspTap trees that carried its code.
 
 Note the consuming Max package, [TapTools-Max](https://github.com/tap/TapTools-Max), remains under
 the New BSD License it has shipped under since 2002; this kernel library was relicensed to MIT to

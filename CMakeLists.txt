@@ -27,11 +27,14 @@ option(TAPTOOLS_BUILD_TOOLS "Build the offline render tools and the C ABI" ${TAP
 option(TAPTOOLS_BUILD_BENCH "Build the CPU benchmarks" ${TAPTOOLS_KERNEL_TOP_LEVEL})
 option(TAPTOOLS_INSTALL "Generate install and package-export rules" ${TAPTOOLS_KERNEL_TOP_LEVEL})
 
-# Shared real FFT (DspTap) — the Ooura wrapper used by the spectral kernels
-# (conv_engine / stft / nr / spectra), formerly a private radix-2 copy in
-# fft.h. Consumed from the tap/dsptap submodule as tap::dsp, which carries the
-# split-radix Ooura transform plus the per-target vDSP / CMSIS-Helium float32
-# backends. Pinned as submodules/dsptap (the AmbiTap / MuTap pattern).
+# DspTap, the shared primitives one level down: the real FFT the spectral
+# kernels use (conv_engine / stft / nr / spectra; formerly a private radix-2
+# copy in fft.h) and the pitch primitives (yin / psola / pvoc) behind tune and
+# harmonizer. Consumed from the tap/dsptap submodule as tap::dsp, a pure
+# INTERFACE target (the FFT's floating profiles run DspTap's srdif engine, with
+# per-target vDSP / CMSIS-Helium float32 backends). Pinned as submodules/dsptap
+# (the AmbiTap / MuTap pattern); the oldest DspTap this tree was tested with is
+# asserted in include/taptools/dsptap_version.h.
 add_subdirectory(submodules/dsptap)
 
 add_library(taptools INTERFACE)
@@ -46,7 +49,9 @@ target_compile_features(taptools INTERFACE cxx_std_20)
 target_include_directories(taptools INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
-# tap::dsp brings the real-FFT header and links the Ooura static lib.
+# tap::dsp brings DspTap's headers. Nothing of it is compiled, except under
+# TAP_DSP_FFT_CMSIS (Helium targets), where it also links tap_dsp_fft, the
+# static library of vendored CMSIS-DSP objects.
 target_link_libraries(taptools INTERFACE tap::dsp)
 
 # Warning flags for this project's own targets (tests, tools, benchmarks) --
