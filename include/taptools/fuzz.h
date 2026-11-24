@@ -46,14 +46,16 @@
 ///             Aliasing: the clipper pair runs oversampled (1/2/4/8x, **default 4x**) by
 ///             **cascaded 2x stages** — one zero-stuff-by-two and one 8th-order Butterworth per
 ///             doubling, each cutting at 0.225 of its own output rate, and the mirror of that on
-///             the way down. Two things here differ from the house pattern and both are
-///             measurements rather than preferences: the pattern's 4th-order filter is not steep
-///             enough for this curve, and its single zero-stuff-by-N is what made more
-///             oversampling measure *worse* here. Cascading fixes that — see butterworth8's
-///             comment for the before/after table. DAFx-07 notes that typical implementations
-///             use 8-10x and that residual aliases there tend to be masked by the dense spectrum
-///             of guitar distortion; this kernel's curve is C-infinity rather than a hard corner,
-///             which is why a modest factor already buys two to three orders of magnitude.
+///             the way down. The Butterworth is DspTap's stage (butterworth.h, which ondes.h shares;
+///             its host sets flush-to-zero, as that header explains). Two things here differ from
+///             the house pattern and both are measurements rather than preferences: the pattern's
+///             4th-order filter is not steep enough for this curve, and its single zero-stuff-by-N
+///             is what made more oversampling measure *worse* here. Cascading fixes that — see
+///             butterworth8's comment for the before/after table. DAFx-07 notes that typical
+///             implementations use 8-10x and that residual aliases there tend to be masked by the
+///             dense spectrum of guitar distortion; this kernel's curve is C-infinity rather than a
+///             hard corner, which is why a modest factor already buys two to three orders of
+///             magnitude.
 ///
 ///             Honest limits:
 ///             - The nonlinearity is static. The pole-moves-with-voltage behaviour of the real
@@ -78,6 +80,8 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+
+#include "butterworth.h" // the oversampling chain's low-pass (DspTap's Butterworth stage)
 
 namespace tap::tools {
     namespace fuzz {
@@ -158,17 +162,6 @@ namespace tap::tools {
             double b0{1.0}, b1{0.0}, b2{0.0}, a1{0.0}, a2{0.0};
             double z1{0.0}, z2{0.0};
 
-            void design_lowpass(double fc_norm, double q) {
-                const double w     = 2.0 * k_pi * fc_norm;
-                const double alpha = std::sin(w) / (2.0 * q);
-                const double cw    = std::cos(w);
-                const double a0    = 1.0 + alpha;
-                b0                 = ((1.0 - cw) * 0.5) / a0;
-                b1                 = (1.0 - cw) / a0;
-                b2                 = b0;
-                a1                 = (-2.0 * cw) / a0;
-                a2                 = (1.0 - alpha) / a0;
-            }
             void design_peaking(double fc_norm, double q, double gain_db) {
                 const double A     = std::pow(10.0, gain_db / 40.0);
                 const double w     = 2.0 * k_pi * fc_norm;
@@ -220,8 +213,12 @@ namespace tap::tools {
             void reset() { z1 = z2 = 0.0; }
         };
 
-        /// 8th-order Butterworth lowpass as four cascaded biquads — the oversampling chain's
-        /// anti-image and anti-alias filter.
+        /// 8th-order Butterworth lowpass — the oversampling chain's anti-image and anti-alias
+        /// filter. It is DspTap's Butterworth stage, through butterworth.h, which replaced the four
+        /// cascaded RBJ biquads (at the eight-decimal Qs 0.50979558 / 0.60134489 / 0.89997622 /
+        /// 2.56291545) this file carried. Every measurement below was made with those biquads; the
+        /// stage is the same filter to within their Q rounding, and the swap moved this kernel's
+        /// output by at most 2.5e-8 (butterworth.h).
         ///
         /// The house pattern (tap.ladder~ / overdrive.h) uses a 4th-order pair here. It is not
         /// steep enough for this kernel: with it, alias energy at the fold frequencies measured
@@ -257,8 +254,14 @@ namespace tap::tools {
         /// four orders of magnitude better (5171 Hz at 8x: 2.3e-3 to 1.9e-7). The 2x column is
         /// unchanged, as it must be: one doubling is one stage either way.
         ///
-        /// It cost essentially nothing: 8x runs 3.16 % of a core against the old 3.02 % (20 s of
-        /// audio), because the extra filter instances are cheap next to the clipper they surround.
+        /// It cost essentially nothing: 8x ran 3.16 % of a core against the old 3.02 % (20 s of
+        /// audio, with the biquads), because the extra filter instances are cheap next to the
+        /// clipper they surround. The swap to DspTap's stage left that so:
+        /// bench/oversampling_bench.cpp (20 s of audio, the best of 30 runs interleaved over two
+        /// sessions, GCC 13 -O3 on a shared 2.1 GHz Xeon VM, flush-to-zero set) measures 8x at
+        /// 2.23 % of a core against 2.20 % with the biquads and 4x at 1.24 % against 1.26 %, inside
+        /// that host's run-to-run spread; by instruction count (callgrind) the pedal runs 10 % more
+        /// at 8x and 7 % more at 4x.
         ///
         /// **The old default was also generalized from one probe.** Every earlier number here came
         /// from 3733 Hz, where 2x happens to look best. Swept across tones, 2x collapses above
@@ -278,23 +281,9 @@ namespace tap::tools {
         /// nonlinearity, different gain structure, so it needs its own measurement. ondes.h does
         /// not need it: it is a source and zero-stuffs nothing.)
         ///
-        /// Pole Qs are the standard 8th-order Butterworth set, Q_k = 1/(2 cos((2k+1)pi/16)).
-        struct butterworth8 {
-            biquad s1, s2, s3, s4;
-            void   design(double fc_norm) {
-                s1.design_lowpass(fc_norm, 0.50979558);
-                s2.design_lowpass(fc_norm, 0.60134489);
-                s3.design_lowpass(fc_norm, 0.89997622);
-                s4.design_lowpass(fc_norm, 2.56291545);
-            }
-            double tick(double x) { return s4.tick(s3.tick(s2.tick(s1.tick(x)))); }
-            void   reset() {
-                s1.reset();
-                s2.reset();
-                s3.reset();
-                s4.reset();
-            }
-        };
+        /// The stage's four sections are the standard 8th-order Butterworth set, Q_k = 1/(2
+        /// cos((2k+1)pi/16)), run in increasing Q.
+        using butterworth8 = tap::tools::butterworth8;
 
         /// The tanh family with an adjustable knee: `k` small is nearly linear, `k` large
         /// approaches a hard corner. Normalized so shape(1, k) == 1 for every k, which keeps the

@@ -15,6 +15,7 @@ add_executable(taptools_kernel_tests
     adsr_test.cpp
     airport_test.cpp
     autowah_test.cpp
+    butterworth_test.cpp
     delay_test.cpp
     diffuseur_test.cpp
     diode_ladder_test.cpp
@@ -46,6 +47,8 @@ add_executable(taptools_kernel_tests
     vco_test.cpp
     vocoder_test.cpp
     conv_engine_test.cpp
+    # Flush-to-zero for every test case, as a host runs the kernels (the file says why).
+    support/flush_to_zero_listener.cpp
 )
 target_link_libraries(taptools_kernel_tests PRIVATE tap::tools Catch2::Catch2WithMain taptools_warnings)
 set_target_properties(taptools_kernel_tests PROPERTIES

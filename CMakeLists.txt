@@ -29,8 +29,10 @@ option(TAPTOOLS_INSTALL "Generate install and package-export rules" ${TAPTOOLS_K
 
 # DspTap, the shared primitives one level down: the real FFT the spectral
 # kernels use (conv_engine / stft / nr / spectra; formerly a private radix-2
-# copy in fft.h) and the pitch primitives (yin / psola / pvoc) behind tune and
-# harmonizer. Consumed from the tap/dsptap submodule as tap::dsp, a pure
+# copy in fft.h), the pitch primitives (yin / psola / pvoc) behind tune and
+# harmonizer, and the Butterworth low-pass stage behind the oversampled kernels
+# (include/taptools/butterworth.h; formerly private RBJ biquad copies in five
+# headers). Consumed from the tap/dsptap submodule as tap::dsp, a pure
 # INTERFACE target (the FFT's floating profiles run DspTap's srdif engine, with
 # per-target vDSP / CMSIS-Helium float32 backends). Pinned as submodules/dsptap
 # (the AmbiTap / MuTap pattern); the oldest DspTap this tree was tested with is

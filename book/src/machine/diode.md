@@ -148,8 +148,11 @@ the same "linearize to solve, commit with the real nonlinearity" pattern as
 
 `tanh` generates harmonics; harmonics alias. The kernel runs 1×/2×/4×
 (default 2×) with zero-stuffing and matched 4th-order Butterworth
-anti-image/anti-alias cascades — the `ladder.h` pattern, self-contained here
-per the house rule against shared lookup tables. Every parameter rides a
+anti-image/anti-alias low-passes — the `ladder.h` pattern, on the same
+shared filter: DspTap's Butterworth stage through `butterworth.h`, which
+replaced the private RBJ biquad pair this file carried and moved its output
+by at most 2.1e-10 (the ladder chapter has the details, the host's
+flush-to-zero included). Every parameter rides a
 per-sample linear ramp; 16 preset slots morph through the same ramps; the
 right-inlet path recomputes the coefficient per sample for signal-rate
 cutoff. All state clears to zero, and all-zero state is a fixed point — a
