@@ -51,6 +51,7 @@
 #include <optional>
 #include <vector>
 
+#include "dsptap_version.h"
 #include "tap/dsp/pvoc.h"
 
 namespace tap::tools {

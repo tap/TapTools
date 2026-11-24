@@ -31,6 +31,7 @@
 #include <utility>
 #include <vector>
 
+#include "dsptap_version.h"
 #include "tap/dsp/fft.h"
 
 namespace tap::tools {

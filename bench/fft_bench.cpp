@@ -2,10 +2,11 @@
 /// @brief      Before/after CPU benchmark for the spectral-kernel FFT swap.
 /// @details    The spectral kernels (conv_engine / stft / nr / spectra) used to carry a private
 ///             complex radix-2 Cooley–Tukey FFT; they now share DspTap's real FFT (tap::dsp::real_fft
-///             — the split-radix Ooura transform, plus vDSP / CMSIS-Helium float32 backends on Apple
-///             and Arm). This times a forward+inverse round trip of each, over the FFT sizes the
-///             kernels actually use (a convolution partition of B samples runs a 2B-point transform),
-///             so the ratio is the per-transform speedup on this host.
+///             — the double profile, DspTap's split-radix srdif engine on every target; the vDSP /
+///             CMSIS-Helium backends serve its float32 profile on Apple and Arm). This times a
+///             forward+inverse round trip of each, over the FFT sizes the kernels actually use (a
+///             convolution partition of B samples runs a 2B-point transform), so the ratio is the
+///             per-transform speedup on this host.
 ///
 ///             The "before" path is a verbatim copy of the retired radix-2 routine (double, full
 ///             complex, engineering convention, inverse /N) kept HERE only as the benchmark baseline —

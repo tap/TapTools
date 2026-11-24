@@ -47,6 +47,7 @@
 #include <optional>
 #include <vector>
 
+#include "dsptap_version.h"
 #include "tap/dsp/psola.h"
 #include "tap/dsp/pvoc.h"
 #include "tap/dsp/yin.h"
