@@ -147,7 +147,10 @@ to the branchless-SIMD constraint this kernel inherits from its embedded
 targets, and its difference quotient loses precision in single-precision
 float — a real concern for the fixed-point/f32 ports. So v1 oversamples:
 zero-stuff + 4th-order Butterworth anti-image up, matching anti-alias down —
-the `ladder.h`/`svf.h` resampler verbatim, self-contained per house rule.
+the `ladder.h`/`svf.h` resampler, on the same shared filter (DspTap's
+Butterworth stage through `butterworth.h`, which replaced the private RBJ
+biquad pair this file carried and moved its output by at most 7.1e-9; the
+ladder chapter has the details, the host's flush-to-zero included).
 Factors 1/2/4/8, default 4×. Measured on a hard-driven 5 kHz tone: the
 folded seventh harmonic improves from −22 dB (1×) to −36 dB (4×) while the
 in-band harmonics stay within measurement error. ADAA remains the flagged

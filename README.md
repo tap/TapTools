@@ -17,7 +17,7 @@ This is a complete standalone CMake project with its own CI.
 [TapTools-Max](https://github.com/tap/TapTools-Max) pins it as its `submodules/taptools` submodule
 and points `TAPTOOLS_KERNEL_DIR` there. This repo in turn pins
 [DspTap](https://github.com/tap/dsptap) as `submodules/dsptap` for the shared low-level primitives
-(real FFT, YIN, PSOLA, phase vocoder), consumed as the `tap::dsp` target.
+(real FFT, YIN, PSOLA, phase vocoder, Butterworth low-pass), consumed as the `tap::dsp` target.
 
 ## What's here
 
@@ -40,6 +40,7 @@ header adds no nested namespace, the class) the kernel lives in.
 | `touche.h` | `tap.touche~` | The Ondes Martenot intensity key as a published gain law (`tap::tools::touche`) |
 | `diffuseur.h` | `tap.metallique~`, `tap.palme~` | The Ondes diffuseurs as driven resonators (`tap::tools::diffuseur`) |
 | `ondes.h` | `tap.ondes~`, `tap.triode~` | The Ondes Martenot voice: heterodyne detector and load-line triode stages (`tap::tools::ondes`) |
+| `butterworth.h` | *(shared)* | The oversampling chains' Butterworth low-pass, DspTap's stage (`tap::tools::butterworth_lowpass`) |
 
 **Voices, drums, and sequencing**
 
@@ -92,8 +93,13 @@ header adds no nested namespace, the class) the kernel lives in.
 
 `taptools.h` is the umbrella header that pulls in every kernel above. `stft.h`, `tune.h`,
 `harmonizer.h` and `conv_engine.h` reach into `tap::dsp` (the pinned DspTap submodule) for the
-real FFT and the pitch primitives, and each includes `dsptap_version.h`, which asserts the oldest
-DspTap this tree was tested with (0.7.0); every other kernel is standard library only.
+real FFT and the pitch primitives, and `butterworth.h` for the Butterworth low-pass stage that the
+oversampled kernels share (`ladder.h`, `diode_ladder.h`, `svf.h`, `overdrive.h` and `fuzz.h`, and
+through them `ondes.h`, `autowah.h` and `tb303_voice.h`); each includes `dsptap_version.h`, which
+asserts the oldest DspTap this tree was tested with (0.7.0). Every other kernel is standard library
+only. The Butterworth stage is recursive, and DspTap leaves subnormals to the host: a host runs
+these kernels with flush-to-zero set on its audio threads (for the shipping objects, that is
+TapTools-Max's job), and a Debug build asserts it (`butterworth.h` says what happens without it).
 
 Plus, all Max-free:
 
@@ -111,6 +117,8 @@ Plus, all Max-free:
   **executed**; re-execute them when behavior changes. Two are hardware-calibration harnesses
   rather than pure measurements: `autowah_validation.ipynb` (its last section ingests reamped
   recordings of the real Snow White pedal) and `tr808_calibration.ipynb`.
+- **`tools/support/`** — what this tree's own hosts share: `flush_to_zero.h`, the flush-to-zero
+  scope the tests, the C ABI, the benchmarks and the render tools set around the kernels.
 - **`bench/`** — CPU benchmarks and the per-machine regression ratchet (see `bench/README.md`).
 - **`book/`** — *Tools on Tap*, the mdBook field guide (the AmbiTap/SampleRateTap/MuTap book
   pattern): one chapter per object family, every claim measured by the notebooks/tests. Built

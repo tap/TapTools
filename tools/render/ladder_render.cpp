@@ -17,6 +17,8 @@
 
 #include <taptools/ladder.h>
 
+#include "../support/flush_to_zero.h"
+
 using tap::tools::ladder::ladder_filter;
 namespace k = tap::tools::ladder;
 
@@ -84,6 +86,9 @@ namespace {
 } // namespace
 
 int main(int argc, char** argv) {
+    // The host's job (tools/support/flush_to_zero.h): flush-to-zero on the thread that runs the kernels.
+    const tap::tools::support::flush_to_zero_scope ftz;
+
     const std::string dir = (argc > 1) ? std::string(argv[1]) + "/" : "";
 
     // 1. The classic: resonant sweep over a saw riff.

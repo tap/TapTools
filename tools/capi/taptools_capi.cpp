@@ -35,6 +35,8 @@
 #include <taptools/tune.h>
 #include <taptools/vco.h>
 
+#include "../support/flush_to_zero.h"
+
 using tap::tools::conv_engine;
 
 extern "C" {
@@ -102,6 +104,15 @@ namespace {
         return 0;
     }
 
+    // The C ABI is a host, and the host sets flush-to-zero (tap/dsp/subnormals.h): the process
+    // entry points of the kernels that run the oversampling chain's Butterworth stage
+    // (taptools/butterworth.h) — svf, ladder, diode, tb303, autowah, overdrive, ondes, fuzz — hold
+    // this scope for the call, as TapTools-Max must on its audio threads, and give the caller's
+    // register back on return. The notebooks build this library without a build type, so with
+    // assertions on, where the stage's debug-build precondition would otherwise stop the
+    // interpreter at the first oversampled sample.
+    using ftz_scope = tap::tools::support::flush_to_zero_scope;
+
 } // namespace
 
 extern "C" {
@@ -153,12 +164,14 @@ int taptools_svf_clear(taptools_svf h) {
 int taptools_svf_process(taptools_svf h, const double* in, double* out, int n) {
     if (!in || !out)
         return -1;
+    const ftz_scope ftz;
     return with<svf_filter>(h, [&](svf_filter& f) { f.process(in, out, static_cast<size_t>(n)); });
 }
 
 int taptools_svf_process_mod(taptools_svf h, const double* in, const double* cutoff_hz, double* out, int n) {
     if (!in || !cutoff_hz || !out)
         return -1;
+    const ftz_scope ftz;
     return with<svf_filter>(h, [&](svf_filter& f) {
         for (int i = 0; i < n; ++i) {
             out[i] = f.process(in[i], cutoff_hz[i]);
@@ -209,12 +222,14 @@ int taptools_ladder_clear(taptools_ladder h) {
 int taptools_ladder_process(taptools_ladder h, const double* in, double* out, int n) {
     if (!in || !out)
         return -1;
+    const ftz_scope ftz;
     return with<ladder_filter>(h, [&](ladder_filter& f) { f.process(in, out, static_cast<size_t>(n)); });
 }
 
 int taptools_ladder_process_mod(taptools_ladder h, const double* in, const double* cutoff_hz, double* out, int n) {
     if (!in || !cutoff_hz || !out)
         return -1;
+    const ftz_scope ftz;
     return with<ladder_filter>(h, [&](ladder_filter& f) {
         for (int i = 0; i < n; ++i) {
             out[i] = f.process(in[i], cutoff_hz[i]);
@@ -310,6 +325,7 @@ int taptools_diode_process(taptools_diode h, const double* in, double* out, int 
     if (!h || !in || !out || n < 0) {
         return -1;
     }
+    const ftz_scope ftz;
     static_cast<diode_filter*>(h)->process(in, out, static_cast<size_t>(n));
     return 0;
 }
@@ -318,7 +334,8 @@ int taptools_diode_process_mod(taptools_diode h, const double* in, const double*
     if (!h || !in || !cutoff_hz || !out || n < 0) {
         return -1;
     }
-    diode_filter& f = *static_cast<diode_filter*>(h);
+    const ftz_scope ftz;
+    diode_filter&   f = *static_cast<diode_filter*>(h);
     for (int i = 0; i < n; ++i) {
         out[i] = f.process(in[i], cutoff_hz[i]);
     }
@@ -400,6 +417,7 @@ int taptools_tb303_process(taptools_tb303 h, double* out, int n) {
     if (!h || !out || n < 0) {
         return -1;
     }
+    const ftz_scope ftz;
     static_cast<tb303_voice*>(h)->process(out, static_cast<size_t>(n));
     return 0;
 }
@@ -450,6 +468,7 @@ int taptools_wah_process(taptools_wah h, const double* in, const double* key, do
                          double* cutoff_out, int n) {
     if (!in || !out)
         return -1;
+    const ftz_scope ftz;
     return with<wah_filter>(h, [&](wah_filter& w) {
         for (int i = 0; i < n; ++i) {
             out[i] = key ? w.process(in[i], key[i]) : w.process(in[i]);
@@ -1080,6 +1099,7 @@ int taptools_od_process(taptools_od h, const double* in, double* out, int n) {
     if (!in || !out || n < 0) {
         return -1;
     }
+    const ftz_scope ftz;
     return with<overdrive>(h, [&](overdrive& o) { o.process(in, out, static_cast<size_t>(n)); });
 }
 
@@ -1506,6 +1526,7 @@ int taptools_ondes_process(taptools_ondes h, double* out, int n) {
     if (!out || n < 0) {
         return -1;
     }
+    const ftz_scope ftz;
     return with<ondes_voice>(h, [&](ondes_voice& v) { v.process(out, static_cast<size_t>(n)); });
 }
 
@@ -1513,6 +1534,7 @@ int taptools_ondes_process_mod(taptools_ondes h, const double* semitones, const 
     if (!semitones || !key || !out || n < 0) {
         return -1;
     }
+    const ftz_scope ftz;
     return with<ondes_voice>(h, [&](ondes_voice& v) {
         for (int i = 0; i < n; ++i) {
             out[i] = v.process(semitones[i], key[i]);
@@ -1951,6 +1973,7 @@ int taptools_fuzz_process(taptools_fuzz h, const double* in, double* out, int n)
     if (!in || !out || n < 0) {
         return -1;
     }
+    const ftz_scope ftz;
     return with<fuzz_pedal>(h, [&](fuzz_pedal& p) { p.process(in, out, static_cast<size_t>(n)); });
 }
 

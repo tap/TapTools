@@ -89,9 +89,10 @@
 ///
 ///             ## Oversampling, and a data point for an open question
 ///
-///             The nonlinear chain runs oversampled on `fuzz.h`'s shared Butterworth chain, and
-///             here the sequence behaves. Worst non-harmonic energy relative to the fundamental,
-///             at 1× / 2× / 4× / 8× (notebooks/ondes.ipynb §5):
+///             The nonlinear chain runs oversampled on `fuzz.h`'s shared 8th-order Butterworth
+///             (DspTap's stage, through butterworth.h; the hosts set flush-to-zero, as that header
+///             explains), and here the sequence behaves. Worst non-harmonic energy relative to the
+///             fundamental, at 1× / 2× / 4× / 8× (notebooks/ondes.ipynb §5):
 ///
 ///                 587 Hz   −79.3  −91.2  −104.5  −103.8
 ///                1175 Hz   −65.8  −77.2   −90.6   −92.5

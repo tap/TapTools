@@ -88,9 +88,25 @@ up to 3× worse per doubling. The 2× column is unchanged in both, as it must
 be: one doubling is one stage either way, and that it *is* unchanged is the
 best available check that nothing else moved.
 
-The cost is 3.16 % of a core at 8× against 3.02 % before. The filters are
+The cost was 3.16 % of a core at 8× against 3.02 % before. The filters are
 cheap next to the clipper they surround, which is worth knowing in advance
 next time this trade looks expensive.
+
+Every number in this chapter was measured with the four RBJ biquads this
+file then carried as its 8th-order Butterworth. The filter has since become
+DspTap's Butterworth stage, through `butterworth.h`, shared with `ondes.h`
+and, at 4th order, the house chain (the ladder chapter has the details, the
+host's flush-to-zero included). It is the same filter to within the
+eight-decimal Q rounding the biquads carried: the swap moved the pedal's
+output by at most 2.5e-8, and re-executing `fuzz.ipynb` against it prints
+every figure above unchanged. Its cost did not move beyond the measuring
+host's own run-to-run spread — 8× at 2.23 % of a core against 2.20 % with
+the biquads, 4× at 1.24 % against 1.26 % (`bench/oversampling_bench.cpp`, 20
+s of audio, the best of 30 runs interleaved over two sessions, GCC 13 `-O3`
+on a shared 2.1 GHz Xeon VM, flush-to-zero set) — though by instruction
+count (callgrind) the pedal runs 10 % more at 8× and 7 % more at 4×. The
+stage's per-sample kernel runs its sections in a loop over a coefficient
+table, where the biquads were four inline calls.
 
 ## Mistake three: one tone is not a sweep
 

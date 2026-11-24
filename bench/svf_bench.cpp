@@ -26,6 +26,8 @@
 
 #include <taptools/svf.h>
 
+#include "../tools/support/flush_to_zero.h"
+
 namespace ksv = tap::tools::svf;
 
 namespace {
@@ -99,6 +101,9 @@ namespace {
 } // namespace
 
 int main(int argc, char** argv) {
+    // The host's job (tools/support/flush_to_zero.h): flush-to-zero on the thread that runs the kernels.
+    const tap::tools::support::flush_to_zero_scope ftz;
+
     bool   json    = false;
     double seconds = 4.0;
     int    reps    = 5;

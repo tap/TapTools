@@ -27,7 +27,10 @@
 ///               reduced slope instead of plateauing at a rail.
 ///             - The clipper runs oversampled (1/2/4/8x, default 4x): zero-stuff + 4th-order
 ///               Butterworth anti-image up, matching anti-alias before decimation (the
-///               tap.ladder~ / tap.svf~ pattern, self-contained here per house rule).
+///               tap.ladder~ / tap.svf~ pattern). The Butterworth is DspTap's stage
+///               (butterworth.h, over tap::dsp::basic_butterworth_lowpass: the bilinear design
+///               with pre-warping), which replaced the RBJ biquad pair this file carried; its
+///               host sets flush-to-zero, as butterworth.h explains.
 ///             - "body" is the LGW-signature voicing control, all linear pre/post EQ (not part of
 ///               the nonlinearity): it slides the pre-clipper highpass corner (CW = thinner,
 ///               tighter lows into the clipper), adds an upper-mid push CW (a higher mid center
@@ -61,6 +64,8 @@
 #include <cmath>
 #include <cstddef>
 #include <vector>
+
+#include "butterworth.h" // the oversampling chain's low-pass (DspTap's Butterworth stage)
 
 namespace tap::tools {
     namespace od {
@@ -288,24 +293,12 @@ namespace tap::tools {
                 long   remaining{0};
             };
 
-            // RBJ biquad (Transposed Direct Form II) — lowpass pairs make the 4th-order Butterworth
-            // anti-image/anti-alias filters for the oversampling chain (tap.ladder~ / tap.svf~
-            // pattern); peaking and high-shelf voice the body control.
+            // RBJ biquad (Transposed Direct Form II): peaking and high-shelf voice the body control.
+            // (The oversampling chain's Butterworth is DspTap's stage, butterworth.h.)
             struct biquad {
                 double b0{1.0}, b1{0.0}, b2{0.0}, a1{0.0}, a2{0.0};
                 double z1{0.0}, z2{0.0};
 
-                void design_lowpass(double fc_norm, double q) { // fc_norm = fc / fs
-                    const double w     = 2.0 * k_pi * fc_norm;
-                    const double alpha = std::sin(w) / (2.0 * q);
-                    const double cw    = std::cos(w);
-                    const double a0    = 1.0 + alpha;
-                    b0                 = ((1.0 - cw) * 0.5) / a0;
-                    b1                 = (1.0 - cw) / a0;
-                    b2                 = b0;
-                    a1                 = (-2.0 * cw) / a0;
-                    a2                 = (1.0 - alpha) / a0;
-                }
                 void design_peaking(double fc_norm, double q, double gain_db) {
                     const double A     = std::pow(10.0, gain_db / 40.0);
                     const double w     = 2.0 * k_pi * fc_norm;
@@ -340,19 +333,6 @@ namespace tap::tools {
                     return y;
                 }
                 void reset() { z1 = z2 = 0.0; }
-            };
-
-            struct butterworth4 {
-                biquad s1, s2;
-                void   design(double fc_norm) {
-                    s1.design_lowpass(fc_norm, 0.54119610);
-                    s2.design_lowpass(fc_norm, 1.30656296);
-                }
-                double tick(double x) { return s2.tick(s1.tick(x)); }
-                void   reset() {
-                    s1.reset();
-                    s2.reset();
-                }
             };
 
             struct channel_state {

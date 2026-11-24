@@ -18,6 +18,8 @@
 
 #include <taptools/tb303_voice.h>
 
+#include "../support/flush_to_zero.h"
+
 using tap::tools::tb303::voice;
 namespace tb = tap::tools::tb303;
 
@@ -113,6 +115,9 @@ namespace {
 } // namespace
 
 int main(int argc, char** argv) {
+    // The host's job (tools/support/flush_to_zero.h): flush-to-zero on the thread that runs the kernels.
+    const tap::tools::support::flush_to_zero_scope ftz;
+
     const std::string dir = (argc > 1) ? std::string(argv[1]) + "/" : "";
 
     // 1. The pattern, played straight.

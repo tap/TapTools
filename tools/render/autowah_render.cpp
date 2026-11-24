@@ -25,6 +25,8 @@
 
 #include <taptools/autowah.h>
 
+#include "../support/flush_to_zero.h"
+
 using tap::tools::autowah::wah_filter;
 namespace k = tap::tools::autowah;
 
@@ -189,6 +191,9 @@ namespace {
 } // namespace
 
 int main(int argc, char** argv) {
+    // The host's job (tools/support/flush_to_zero.h): flush-to-zero on the thread that runs the kernels.
+    const tap::tools::support::flush_to_zero_scope ftz;
+
     // ---- WAV-in mode ----------------------------------------------------------------------------
     if (argc >= 3 && std::strcmp(argv[1], "--in") == 0) {
         std::vector<double> in;

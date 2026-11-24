@@ -62,6 +62,8 @@
 #include <taptools/tapecho.h>
 #include <taptools/touche.h>
 
+#include "../support/flush_to_zero.h"
+
 namespace {
 
     constexpr double k_r_sr = 48000.0;
@@ -802,6 +804,9 @@ namespace {
 } // namespace
 
 int main(int argc, char** argv) {
+    // The host's job (tools/support/flush_to_zero.h): flush-to-zero on the thread that runs the kernels.
+    const tap::tools::support::flush_to_zero_scope ftz;
+
     const std::string dir = (argc > 1) ? argv[1] : ".";
     tapecho_heads(dir);
     tapecho_three_head(dir);

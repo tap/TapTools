@@ -10,6 +10,7 @@
 #include "airport.h"
 #include "autowah.h"
 #include "bridged_t.h"
+#include "butterworth.h"
 #include "conv_engine.h"
 #include "delay.h"
 #include "diffuseur.h"

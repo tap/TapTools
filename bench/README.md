@@ -9,6 +9,14 @@ circuit (clean/driven) × order (2/4/8) × oversampling (1/2/4) × static vs sig
 cutoff — on deterministic noise, reporting the best-of-N ns/sample. A checksum keeps the
 optimizer honest and doubles as a smoke check that a speedup didn't change the output wildly.
 
+`diode_bench` does the same for `tap.diode~`. `oversampling_bench` times the six kernels that run
+a nonlinear core between the shared Butterworth filters (`ladder`, `diode`, `svf` driven,
+`overdrive`, `fuzz`, `ondes`) at each of their oversampling factors over 20 s of audio, and adds
+the share of one core that real time at 48 kHz takes; `--case NAME` runs one case alone, for an
+instruction counter such as callgrind. It has no committed baseline. The three benches that run
+these kernels set flush-to-zero first, as a host does (`tools/support/flush_to_zero.h`): the
+Butterworth stage asserts it in a Debug build.
+
 ## The ratchet
 
 1. Build and run (from the repo root):

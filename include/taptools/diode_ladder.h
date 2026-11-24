@@ -58,8 +58,11 @@
 ///               `solver_exact` repeats that secant re-linearization to convergence — audibly
 ///               identical until drive and resonance are both pushed hard.
 ///             - Oversampling 1x/2x/4x (default 2x): zero-stuff + 4th-order Butterworth
-///               anti-imaging up, matching anti-alias cascade before decimation (the
-///               tap.verb~/ladder.h pattern, self-contained here per house rule).
+///               anti-imaging up, matching anti-alias low-pass before decimation (the
+///               tap.verb~/ladder.h pattern). The Butterworth is DspTap's stage (butterworth.h,
+///               over tap::dsp::basic_butterworth_lowpass: the bilinear design with pre-warping),
+///               which replaced the RBJ biquad pair this file carried; its host sets
+///               flush-to-zero, as butterworth.h explains.
 ///
 ///             As in the other TapTools kernels: every parameter rides a per-sample linear ramp
 ///             (no zipper), a 16-slot preset-morph engine lives in the kernel, and the cutoff
@@ -75,6 +78,8 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+
+#include "butterworth.h" // the oversampling chain's low-pass (DspTap's Butterworth stage)
 
 namespace tap::tools {
     namespace diode {
@@ -297,45 +302,6 @@ namespace tap::tools {
                 double target{0.0};
                 double inc{0.0};
                 long   remaining{0};
-            };
-
-            // RBJ lowpass biquad (Transposed Direct Form II) — two in series make the 4th-order
-            // Butterworth anti-image/anti-alias filters for the oversampling chain.
-            struct biquad {
-                double b0{1.0}, b1{0.0}, b2{0.0}, a1{0.0}, a2{0.0};
-                double z1{0.0}, z2{0.0};
-
-                void design_lowpass(double fc_norm, double q) { // fc_norm = fc / fs
-                    const double w     = 2.0 * k_pi * fc_norm;
-                    const double alpha = std::sin(w) / (2.0 * q);
-                    const double cw    = std::cos(w);
-                    const double a0    = 1.0 + alpha;
-                    b0                 = ((1.0 - cw) * 0.5) / a0;
-                    b1                 = (1.0 - cw) / a0;
-                    b2                 = b0;
-                    a1                 = (-2.0 * cw) / a0;
-                    a2                 = (1.0 - alpha) / a0;
-                }
-                double tick(double x) {
-                    const double y = b0 * x + z1;
-                    z1             = b1 * x - a1 * y + z2;
-                    z2             = b2 * x - a2 * y;
-                    return y;
-                }
-                void reset() { z1 = z2 = 0.0; }
-            };
-
-            struct butterworth4 { // 4th-order Butterworth: two biquads with the standard Q pair
-                biquad s1, s2;
-                void   design(double fc_norm) {
-                    s1.design_lowpass(fc_norm, 0.54119610);
-                    s2.design_lowpass(fc_norm, 1.30656296);
-                }
-                double tick(double x) { return s2.tick(s1.tick(x)); }
-                void   reset() {
-                    s1.reset();
-                    s2.reset();
-                }
             };
 
             static bool valid_slot(int s) { return s >= 0 && s < k_presets; }

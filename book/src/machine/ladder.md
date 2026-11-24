@@ -201,16 +201,30 @@ riding four-pole resonance, exactly as in an Xpander.
 ## Oversampling: paying for tanh honestly
 
 tanh generates harmonics without limit; above Nyquist they fold back
-inharmonically. `run` is the classic chain (the `tap.verb~` pattern,
-self-contained per house rule): zero-stuff by the factor, scaling the
-retained sample by `m_os` to preserve passband gain; 4th-order Butterworth
-anti-imaging at 0.45 of the original Nyquist (fc_norm = 0.45/m_os); the
-nonlinear `core` at the high rate; a matching anti-alias Butterworth;
-decimation by keeping the last filtered sub-sample. Each Butterworth is
-two RBJ biquads at the textbook Q pair 0.54119610 / 1.30656296 =
-1/(2·cos(π/8)), 1/(2·cos(3π/8)). Measured on a hard-driven 5 kHz tone:
-non-harmonic (alias) energy −30.1 dB at 1×, −43.7 dB at 4× — the promised
-13.5 dB. The clamp `fc ≤ 0.49·fs_os` keeps 20 kHz legal at every factor.
+inharmonically. `run` is the classic chain (the `tap.verb~` pattern):
+zero-stuff by the factor, scaling the retained sample by `m_os` to preserve
+passband gain; 4th-order Butterworth anti-imaging at 0.45 of the original
+Nyquist (fc_norm = 0.45/m_os); the nonlinear `core` at the high rate; a
+matching anti-alias Butterworth; decimation by keeping the last filtered
+sub-sample. Measured on a hard-driven 5 kHz tone: non-harmonic (alias)
+energy −30.1 dB at 1×, −43.7 dB at 4× — the promised 13.5 dB
+(`ladder.ipynb`). The clamp `fc ≤ 0.49·fs_os` keeps 20 kHz legal at every
+factor.
+
+Each Butterworth is DspTap's low-pass stage,
+`tap::dsp::basic_butterworth_lowpass`, through `butterworth.h`, which every
+oversampled kernel here shares (`diode_ladder.h`, `svf.h` and `overdrive.h`
+at this order; `fuzz.h` and `ondes.h` at 8th order). It is two biquad
+sections at the Butterworth Q pair 1/(2·cos(3π/8)) ≈ 0.541 and
+1/(2·cos(π/8)) ≈ 1.307, designed by the bilinear transform with
+pre-warping and run in transposed direct form II. Until DspTap carried the
+stage, this file kept its own pair of RBJ cookbook biquads at those Qs
+rounded to eight decimals, 0.54119610 / 1.30656296: the same filter to
+within that rounding. The swap moved this kernel's output by at most
+3.5e-10, the filter's alone by at most 3.7e-9 at either order
+(`butterworth_test.cpp` pins it under 1e-8 against a copy of the old
+cascade), and every figure `ladder.ipynb` prints, the two above included,
+comes out the same.
 
 ## The engineering ledger
 
@@ -233,6 +247,17 @@ non-harmonic (alias) energy −30.1 dB at 1×, −43.7 dB at 4× — the promise
 - **Anti-denormal on the stage states** (`anti_denormal`, the `tap.comb~`
   1e-15 idiom), inside `tpt` — a ringing-out filter otherwise decays into
   denormals and multiplies its own CPU cost.
+- **Flush-to-zero is the host's, for the Butterworth.** The oversampling
+  filters take no such guard: they are DspTap's recursive stage, and DspTap
+  leaves subnormals to the host (`tap/dsp/subnormals.h`). Setting
+  flush-to-zero on the audio threads is TapTools-Max's job; a Debug build
+  asserts it on every call; this tree's own hosts — the tests, the C ABI,
+  the benchmarks, the render tools — set it through
+  `tools/support/flush_to_zero.h`. A Release
+  host that does not set it gets what the private biquads always did: once
+  the input stops, the recursion decays into subnormals, slower arithmetic
+  on x86 while it lasts and never a different sound. The same holds for
+  every kernel that shares `butterworth.h`.
 - **Newton is guarded, not trusted.** Seed clamp, derivative fallback,
   iteration cap: `solve_exact` cannot NaN or hang, only degrade toward
   `solver_fast`.

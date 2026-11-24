@@ -155,8 +155,11 @@ the one-pass scheme shared with `tap.ladder~`'s `solver_fast`: solve the
 linear ZDF prediction for the band node, saturate it, commit. The error of
 that shortcut is second-order in how much tanh bends over one oversampled
 step — and the driven circuit always runs oversampled (2× default), with
-4th-order Butterworth anti-image/anti-alias biquad pairs on the way up and
-down. At these rates the one-pass and iterated answers are audibly identical;
+4th-order Butterworth anti-image/anti-alias low-passes on the way up and
+down: DspTap's Butterworth stage through `butterworth.h`, two biquad sections
+each, which replaced the private RBJ biquad pairs this file carried and
+moved the driven circuit's output by at most 3.7e-10 (the ladder chapter has
+the details, the host's flush-to-zero included). At these rates the one-pass and iterated answers are audibly identical;
 the ladder file, which drives its nonlinearity much harder, is the one that
 also ships a Newton option.
 
